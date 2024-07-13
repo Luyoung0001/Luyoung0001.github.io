@@ -226,6 +226,85 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2024/06/12/mmap()%20%E7%9A%84%E5%87%A0%E7%A7%8D%E7%94%A8%E6%B3%95/" target="_self">
+          mmap() 的几种用法
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/12/mmap()%20%E7%9A%84%E5%87%A0%E7%A7%8D%E7%94%A8%E6%B3%95/" target="_self">
+        <div>
+          〇、前言mmap 是一个非常强大的系统调用，常用于映射文件到内存中，以实现快速和方便的文件访问，也用于进程间通信等多种场景。下面是一些 mmap 的常见用法： 1. 文件映射（Memory-mapped files）文件映射是 mmap 最直接的用途之一，可以将整个文件或文件的一部分映射到进程的地址空间。这允许程序像访问普通内存那样访问文件数据，可以提高文件操作的性能，特别是对于大文件的随机访
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-06-12 17:50" pubdate>
+              2024-06-12
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/OS/" class="category-chain-item">OS</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/OS/%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B/" class="category-chain-item">系统编程</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/OS/%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B/Unix-Linux/" class="category-chain-item">Unix/Linux</a>
+  
+  
+
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/">#系统调用</a>
+            
+              <a href="/tags/mmap/">#mmap</a>
+            
+              <a href="/tags/%E6%96%87%E4%BB%B6/">#文件</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2024/06/11/debugger%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E6%A0%88%E5%B8%A7%EF%BC%88backtrace%EF%BC%89/" target="_self">
           debugger（七）：栈帧（backtrace）
         </a>
@@ -824,74 +903,6 @@
         
   <a href="/categories/C/" class="category-chain-item">C++</a>
   
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/c/">#c++</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/05/17/C++%E8%B0%83%E8%AF%95%EF%BC%9A%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E8%BF%87%E7%A8%8B%E5%92%8C%E5%A0%86%E6%A0%88/" target="_self">
-          C++调试：函数调用过程和堆栈
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/05/17/C++%E8%B0%83%E8%AF%95%EF%BC%9A%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E8%BF%87%E7%A8%8B%E5%92%8C%E5%A0%86%E6%A0%88/" target="_self">
-        <div>
-          正文本文会讨论C++中函数的调用过程，以及堆栈、栈帧等调试信息。平台以及工具为 Apple Silicon M1 + lldb。 这将会从这个例子开始： 12345678910111213141516171819202122232425262728293031#include &lt;stdio.h&gt;#include &lt;stdlib.h&gt;#include &lt;sys/ty
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-05-17 16:43" pubdate>
-              2024-05-17
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E7%BB%8F%E9%AA%8C%E6%96%B9%E6%B3%95/" class="category-chain-item">经验方法</a>
-  
-  
-    <span>></span>
-    
-  <a href="/categories/%E7%BB%8F%E9%AA%8C%E6%96%B9%E6%B3%95/C/" class="category-chain-item">C++</a>
-  
-  
-
   
 
       </span>
