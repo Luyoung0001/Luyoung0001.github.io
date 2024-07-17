@@ -78,7 +78,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -288,13 +288,13 @@
 <h2 id="一、（译文）第三章-页表"><a href="#一、（译文）第三章-页表" class="headerlink" title="一、（译文）第三章 页表"></a>一、（译文）第三章 页表</h2><p>页表是最流行的机制，操作系统通过它提供每个进程拥有自己的私有地址空间和内存。页面表确定了内存地址的含义，以及可以访问物理内存的哪些部分。它们使得 <strong>xv6</strong> 能够隔离不同进程的地址空间，并将它们多路复用到单个物理内存中。页面表是一种流行的设计，因为它们提供了一种间接级别，使操作系统能够执行许多技巧。<strong>xv6</strong> 使用了一些技巧：在多个地址空间中映射相同的内存（一个跳板页面），并用未映射的页面保护内核和用户堆栈。本章的其余部分解释了 <strong>RISC-V</strong> 硬件提供的页面表以及 <strong>xv6</strong> 如何使用它们。</p>
 <h3 id="3-1-分页硬件"><a href="#3-1-分页硬件" class="headerlink" title="3.1 分页硬件"></a>3.1 分页硬件</h3><p>值得提醒的是，<strong>RISC-V</strong> 指令（包括用户指令和内核内核指令）操作虚拟地址。机器的 <strong>RAM</strong>，或者物理内存，都使用物理地址进行索引。<strong>RISC-V</strong> 的页面硬件连接了这两种地址，通过将每个虚拟地址映射到一个物理地址。</p>
 <p><strong>xv6</strong> 在 <strong>Sv39 RISC-V</strong> 上运行，这意味着仅使用了 64 位虚拟地址的底部 39 位；前 25 位未被使用。在这种 <strong>Sv39</strong> 配置下，一个 <strong>RISC-V</strong> 页面表在逻辑上是一个由 2^27^（134,217,728）个页面表项（<strong>PTEs</strong>）组成的数组。每个 <strong>PTE</strong> 包含一个 44 位的物理页号（<strong>PPN</strong>）和一些标志位。分页硬件通过使用 39 位中的前 27 位来索引页面表以找到一个 PTE，并且构造一个 56 位的物理地址，其中前 44 位来自 <strong>PTE</strong> 中的 <strong>PPN</strong>，后 12 位来自原始虚拟地址的底部。</p>
-<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/98bdf961821f424cb5488a45ccc8e488_1720253710031.png?token=ANB4BCIE76HHXRGWKZF2WC3GRD6U2" srcset="/img/loading.gif" lazyload alt="图 3.1：RISC-V 虚拟和物理地址，以及简化的逻辑页表"></p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/98bdf961821f424cb5488a45ccc8e488_1720253710031.png?token=ANB4BCIE76HHXRGWKZF2WC3GRD6U2" alt="图 3.1：RISC-V 虚拟和物理地址，以及简化的逻辑页表"></p>
 <center><b><font size ='3'>图 3.1：RISC-V 虚拟和物理地址，以及简化的逻辑页表</font></b></center></font>
 
 
 
 <p>图 3.1 展示了这个过程，使用一个 <strong>PTE</strong> 简单数组的逻辑视图（详细内容见图 3.2）。页面表让操作系统能够以 4096（2^12^）字节对齐的块的粒度控制虚拟地址到物理地址的转换。这样的一个块被称为一页。</p>
-<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/ddb97e10a58f4f3f8c9f0990ca7a3283_1720253710031.png?token=ANB4BCIEYKXXQQWRLWC64ADGRD6U4" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/ddb97e10a58f4f3f8c9f0990ca7a3283_1720253710031.png?token=ANB4BCIEYKXXQQWRLWC64ADGRD6U4" alt="在这里插入图片描述"></p>
 <center><b><font size ='3'>图 3.2：RISC-V 地址转换细节</font></b></center></font>
 
 <p>尽管 <strong>CPU</strong> 在执行加载或存储指令时会在硬件中遍历三级结构，但三级结构的一个潜在缺点是 <strong>CPU</strong> 必须从内存中加载三个页面表项（<strong>PTEs</strong>）来执行虚拟地址到物理地址的转换。为了避免从物理内存加载 <strong>PTEs</strong> 的开销，<strong>RISC-V CPU</strong> 将页面表项缓存到一个称为<em>Translation Look-aside Buffer</em>（<strong>TLB</strong>）的缓冲区中。</p>
@@ -302,7 +302,7 @@
 <p>为了告诉硬件使用页面表，内核必须将根页面的物理地址写入 <strong>satp</strong> 寄存器。每个 <strong>CPU</strong> 都有自己的 <strong>satp</strong>。<strong>CPU</strong> 将使用由自己的 <strong>satp</strong> 指向的页面表来转换后续指令生成的所有地址。每个 <strong>CPU</strong> 都有自己的 <strong>satp</strong>，这样不同的 <strong>CPU</strong> 可以运行不同的进程，每个进程都有一个由自己的页面表描述的私有地址空间。</p>
 <p>典型情况下，内核将所有物理内存映射到其页面表中，这样它就可以使用加载&#x2F;存储指令读写物理内存中的任何位置。由于页目录位于物理内存中，内核可以通过使用标准的存储指令向 <strong>PTE</strong> 的虚拟地址写入，来编程页目录中 <strong>PTE</strong> 的内容。</p>
 <p>关于术语的一些说明。物理内存指的是 <strong>DRAM</strong> 中的存储单元。物理内存的每个字节都有一个地址，称为物理地址。指令仅使用虚拟地址，分页硬件将虚拟地址翻译为物理地址，然后发送给 <strong>DRAM</strong> 硬件进行读取或写入。与物理内存和虚拟地址不同，虚拟内存并不是一个物理对象，而是指内核提供的一系列抽象和机制，用于管理物理内存和虚拟地址。</p>
-<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/18fbcc6c690644a09cd524751798fb7e_1720253710031.png?token=ANB4BCK2OIIHCECW6TL7YT3GRD6U6" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/18fbcc6c690644a09cd524751798fb7e_1720253710031.png?token=ANB4BCK2OIIHCECW6TL7YT3GRD6U6" alt="在这里插入图片描述"></p>
 <center><b><font size ='3'>图 3.3：左侧，xv6 的内核地址空间。 RWX指 PTE 读、写、执行
 权限。 右侧是 xv6 期望看到的 RISC-V 物理地址空间</font></b></center></font>
 
@@ -329,7 +329,7 @@
 <h3 id="3-5-代码：物理内存分配器"><a href="#3-5-代码：物理内存分配器" class="headerlink" title="3.5 代码：物理内存分配器"></a>3.5 代码：物理内存分配器</h3><p>分配器位于 <code>kalloc.c</code>（<code>kernel/kalloc.c</code>:1）中。分配器的数据结构是一系列可用于分配的物理内存页面的空闲列表。每个空闲页面的列表元素都是一个名为 <code>struct run</code> 的结构体（<code>kernel/kalloc.c</code>:17）。那么分配器从哪里获取内存来保存该数据结构呢？它将每个空闲页面的 <code>run</code> 结构体存储在空闲页面本身中，因为那里没有其他存储。空闲列表由一个自旋锁保护（<code>kernel/kalloc.c</code>:21-24）。该列表和锁被包装在一个结构体中，以明确锁保护该结构中的字段。暂时忽略锁和获取&#x2F;释放的调用；第6章将详细讨论锁定问题。</p>
 <p>函数 <code>main</code> 调用 <code>kinit</code> 来初始化分配器（<code>kernel/kalloc.c</code>:27）。<code>kinit</code> 将空闲列表初始化为内核结束后的第一个存储单元和 <strong>PHYSTOP</strong> 之间的每一页。<strong>xv6</strong>应该通过解析硬件提供的配置信息确定可用的物理内存有多少。然而，<strong>xv6</strong> 假设机器有 <strong>128 兆</strong>字节的 <strong>RAM</strong>。<code>kinit</code> 调用 <code>freerange</code> 来通过对 <code>kfree</code> 的每页调用向空闲列表添加内存。<strong>PTE</strong> 只能引用按 <strong>4096 字节</strong>边界对齐的物理地址（即 4096 的倍数），因此 <code>freerange</code> 使用 <strong>PGROUNDUP</strong> 来确保它只释放对齐的物理地址。分配器初始时没有内存；这些对 <code>kfree</code> 的调用给了它一些要管理的内存。</p>
 <p>分配器有时将地址视为整数进行运算（例如，在 <code>freerange</code> 中遍历所有页面），有时将地址用作指针读写内存（例如，操作存储在每个页面中的 <code>run</code> 结构体）；这种地址的双重用途是导致分配器代码充斥着 C 类型转换的主要原因。另一个原因是释放和分配在本质上会改变内存的类型。</p>
-<p>函数 <code>kfree</code>（<code>kernel/kalloc.c</code>:47）首先将要释放的内存中的每个字节设置为值 <strong>1</strong>。这将导致在释放后继续使用内存（使用“悬空引用”）的代码读取垃圾而不是旧的有效内容；希望这样可以更快地使此类代码出现故障。然后 <code>kfree</code> 将页面添加到空闲列表中：它将 <code>pa</code> 转换为指向 <code>struct run</code> 的指针，记录了空闲列表的旧开头在<code> r-&gt;next</code> 中，并将空闲列表设置为 <code>r</code>。<code>kalloc</code> 从空闲列表中移除并返回第一个元素。<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/7701116fd83b409494c78fe85df4abdc_1720253710031.png?token=ANB4BCJWKV2QQTR4XWE76GTGRD6VA" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<p>函数 <code>kfree</code>（<code>kernel/kalloc.c</code>:47）首先将要释放的内存中的每个字节设置为值 <strong>1</strong>。这将导致在释放后继续使用内存（使用“悬空引用”）的代码读取垃圾而不是旧的有效内容；希望这样可以更快地使此类代码出现故障。然后 <code>kfree</code> 将页面添加到空闲列表中：它将 <code>pa</code> 转换为指向 <code>struct run</code> 的指针，记录了空闲列表的旧开头在<code> r-&gt;next</code> 中，并将空闲列表设置为 <code>r</code>。<code>kalloc</code> 从空闲列表中移除并返回第一个元素。<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/7701116fd83b409494c78fe85df4abdc_1720253710031.png?token=ANB4BCJWKV2QQTR4XWE76GTGRD6VA" alt="在这里插入图片描述"></p>
 <center><b><font size ='3'>图 3.4：进程的用户地址空间及其初始堆栈</font></b></center></font>
 
 <h3 id="3-6-进程地址空间"><a href="#3-6-进程地址空间" class="headerlink" title="3.6 进程地址空间"></a>3.6 进程地址空间</h3><p>在 <strong>xv6</strong> 中，每个进程都有一个单独的页面表，并且当 <strong>xv6</strong> 在进程之间切换时，它也会更改页面表。正如图 2.3 所示，一个进程的用户内存从虚拟地址零开始，最多可以增长到 <code>MAXVA</code>（<code>kernel/riscv.h</code>:360），原则上允许一个进程寻址 <strong>256 GB</strong> 的内存。</p>
@@ -645,10 +645,6 @@
 
 
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
 
 
 

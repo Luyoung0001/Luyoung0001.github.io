@@ -75,7 +75,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -285,7 +285,7 @@
 <h2 id="二、波形图"><a href="#二、波形图" class="headerlink" title="二、波形图"></a>二、波形图</h2><p>在安装了 gtkwave 之后，就可以利用–trace 参数来在运行的过程中，生成 wave.vcd，然后通过 gtkwave 查看：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">gtkwave wave.vcd<br></code></pre></td></tr></table></figure>
 
-<p>如下图所示：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/wavegtk.png" srcset="/img/loading.gif" lazyload></p>
+<p>如下图所示：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/wavegtk.png"></p>
 <h2 id="三、自动化"><a href="#三、自动化" class="headerlink" title="三、自动化"></a>三、自动化</h2><p>事实上，是要将很多命令放在一起，顺序执行就好了：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs bash">.PHONY: all clean<br><br>all: sim<br>	@<span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;Write this Makefile by your self.&quot;</span><br><br>sim: ./csrc/main.cpp<br>	$(call git_commit, <span class="hljs-string">&quot;sim RTL&quot;</span>) <span class="hljs-comment"># DO NOT REMOVE THIS LINE!!!</span><br>	verilator -Wall --cc --exe --build ./csrc/main.cpp ./vsrc/top.v --trace &amp;&amp; \<br>	make -C obj_dir -f Vtop.mk Vtop &amp;&amp; \<br>	./obj_dir/Vtop<br><br>clean:<br>	<span class="hljs-built_in">rm</span> -rf obj_dir<br>	<span class="hljs-built_in">rm</span> wave.vcd<br><br>include ../Makefile<br></code></pre></td></tr></table></figure>
 
@@ -688,10 +688,6 @@
 
 
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
 
 
 

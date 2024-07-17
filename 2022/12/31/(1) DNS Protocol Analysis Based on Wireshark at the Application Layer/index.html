@@ -98,7 +98,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -306,7 +306,7 @@
 
 
 <h2 id="What-is-DNS"><a href="#What-is-DNS" class="headerlink" title="What is DNS"></a>What is DNS</h2><p>DNS (Domain Name System) is the English abbreviation of “Domain Name System”. It is a computer and network service naming system organized into a domain hierarchy. It is used in TCP&#x2F;IP networks. The job of converting domain names to IP addresses.<br>When port 53 of the computer uses TCP&#x2F;UDP domain name request query, if the data packet is less than 512 bytes, UDP is used; if the returned request size is greater than 512 bytes, the two sides of the interaction will negotiate to use TCP.</p>
-<h2 id="DNS-Domain-Name-Space-Structure"><a href="#DNS-Domain-Name-Space-Structure" class="headerlink" title="DNS Domain Name Space Structure"></a>DNS Domain Name Space Structure</h2><p>The Domain Name System acts as a hierarchical and distributed database that contains various types of data, including hostnames and domain names. The names in the DNS database form a hierarchical tree structure called a domain namespace.<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/d288b338ff2f4644b59c395fc63e9c94_1720253884434.png?token=ANB4BCKJ752YW2BBC2JN25LGRD67Y" srcset="/img/loading.gif" lazyload></p>
+<h2 id="DNS-Domain-Name-Space-Structure"><a href="#DNS-Domain-Name-Space-Structure" class="headerlink" title="DNS Domain Name Space Structure"></a>DNS Domain Name Space Structure</h2><p>The Domain Name System acts as a hierarchical and distributed database that contains various types of data, including hostnames and domain names. The names in the DNS database form a hierarchical tree structure called a domain namespace.<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/d288b338ff2f4644b59c395fc63e9c94_1720253884434.png?token=ANB4BCKJ752YW2BBC2JN25LGRD67Y"></p>
 <ul>
 <li><p>Root domain: In the use of DNS domain names, it is stipulated that the trailing period ‘.’ is used to specify the domain hierarchy whose name is at the root or a higher level.</p>
 </li>
@@ -347,7 +347,7 @@
 <p>For DNS servers, it should always be specified as the Internet category. For example, the specified name can be a computer’s fully qualified domain name, such as im.qq.com, and the specified query type is used to search for address resource records by this name.</p>
 <p>DNS queries are resolved in a variety of different ways. Clients can also sometimes answer queries in-place by using cached information obtained from previous queries. A DNS server can answer queries using its own cache of resource record information, or it can query or contact other DNS servers on behalf of the requesting client to fully resolve the name, and then return an answer to the client. This process is called recursion.</p>
 <p>Alternatively, the client itself may try to contact other DNS servers to resolve the name. If the client does this, it uses independent and additional queries based on the server’s answers. This process is called iteration, that is, interactive queries between DNS servers are iterative queries.</p>
-<p>The DNS query process is as follows:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/ca97b1c38431427daa33eacc68b2da85_1720253884434.png?token=ANB4BCIVOTM77MXCUXLE7DDGRD674" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<p>The DNS query process is as follows:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/ca97b1c38431427daa33eacc68b2da85_1720253884434.png?token=ANB4BCIVOTM77MXCUXLE7DDGRD674" alt="在这里插入图片描述"></p>
 <ol>
 <li><p>Enter the <a target="_blank" rel="noopener" href="http://www.qq.com/">www.qq.com</a> domain name in the browser, and the operating system will first check whether its local hosts file has this URL mapping relationship. If so, it will first call this IP address mapping to complete domain name resolution.</p>
 </li>
@@ -363,10 +363,10 @@
 </li>
 </ol>
 <p>From the client to the local DNS server is a recursive query, and the interactive query between DNS servers is an iterative query.</p>
-<h2 id="DNS-Message-Format"><a href="#DNS-Message-Format" class="headerlink" title="DNS Message Format"></a>DNS Message Format</h2><p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/2abc7a7358854aa4a87c5a86ae36a78e_1720253884434.png?token=ANB4BCIMFUU3DPPYVFGHHUTGRD676" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<h2 id="DNS-Message-Format"><a href="#DNS-Message-Format" class="headerlink" title="DNS Message Format"></a>DNS Message Format</h2><p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/2abc7a7358854aa4a87c5a86ae36a78e_1720253884434.png?token=ANB4BCIMFUU3DPPYVFGHHUTGRD676" alt="在这里插入图片描述"></p>
 <ul>
 <li>16-bit identifier: Mark a bunch of DNS queries and responses to distinguish which DNS response corresponds to which DNS query response</li>
-<li>16 flag bits:<br>  <img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/927e70b564b647baaf2e9217a49420b5_1720253891632.png?token=ANB4BCPQBMQAK47VXQLRWJTGRD7AC" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"><blockquote>
+<li>16 flag bits:<br>  <img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/927e70b564b647baaf2e9217a49420b5_1720253891632.png?token=ANB4BCPQBMQAK47VXQLRWJTGRD7AC" alt="在这里插入图片描述"><blockquote>
 <ul>
 <li>a. QR: query&#x2F;response flag, 0 means this is a query message, 1 means a response message</li>
 <li>b. opcode: Define the type of query&#x2F;response, 0 means standard query, 1 means reverse query (obtain host domain name from IP address), 2 means request server status</li>
@@ -394,7 +394,7 @@
 <li><p>Authorized resource, additional resource record data: can be 0 or non-0</p>
 </li>
 </ul>
-<p>The query question format is:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/e97d9043c82d459d95828c5fbdec49e1_1720253891632.png?token=ANB4BCKBCDFA4QB4R6P36PDGRD7AE" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"><br>The query name encapsulates the host name to be queried in a certain format, and how to perform query operations in the query type table:</p>
+<p>The query question format is:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/e97d9043c82d459d95828c5fbdec49e1_1720253891632.png?token=ANB4BCKBCDFA4QB4R6P36PDGRD7AE" alt="在这里插入图片描述"><br>The query name encapsulates the host name to be queried in a certain format, and how to perform query operations in the query type table:</p>
 <blockquote>
 <ul>
 <li>a. Type A, the value is 1: the table obtains the IP address of the destination host</li>
@@ -403,7 +403,7 @@
 <li>d. The query type is generally 1, and the table obtains the IP address.</li>
 </ul>
 </blockquote>
-<p>Response, authorization, and additional information fields all use the Resource Record (RR) format:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/7e344ad50b934b28bc5be0bbc864c94e_1720253891632.png?token=ANB4BCNPOMGKRVNGZOH35J3GRD7AO" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<p>Response, authorization, and additional information fields all use the Resource Record (RR) format:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/7e344ad50b934b28bc5be0bbc864c94e_1720253891632.png?token=ANB4BCNPOMGKRVNGZOH35J3GRD7AO" alt="在这里插入图片描述"></p>
 <blockquote>
 <ul>
 <li>domain name, type, class: the name corresponding to the resource, the format is the same as that of the query question</li>
@@ -413,18 +413,18 @@
 </blockquote>
 <h2 id="Wireshark-Capture-Packets"><a href="#Wireshark-Capture-Packets" class="headerlink" title="Wireshark Capture Packets"></a>Wireshark Capture Packets</h2><p>WireShark is mainly divided into these interfaces:</p>
 <ul>
-<li><p>Display Filter (display filter), used to set filter conditions for packet list filtering. Menu path: Analyze –&gt; Display Filters.<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/b6d6c2f7f0f34b4cbed6ef8698746255_1720253891632.png?token=ANB4BCPG4DUKLNCZKAAFE2LGRD7AS" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<li><p>Display Filter (display filter), used to set filter conditions for packet list filtering. Menu path: Analyze –&gt; Display Filters.<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/b6d6c2f7f0f34b4cbed6ef8698746255_1720253891632.png?token=ANB4BCPG4DUKLNCZKAAFE2LGRD7AS" alt="在这里插入图片描述"></p>
 </li>
-<li><p>Packet List Pane (data packet list), display the captured data packets, each data packet contains number, time stamp, source address, destination address, protocol, length, and data packet information. Packets of different protocols are displayed in different colors.<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/bb220bc7190744d09b76724ac96f405c_1720253891632.png?token=ANB4BCM26NA6T62SFHHUIITGRD7AU" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<li><p>Packet List Pane (data packet list), display the captured data packets, each data packet contains number, time stamp, source address, destination address, protocol, length, and data packet information. Packets of different protocols are displayed in different colors.<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/bb220bc7190744d09b76724ac96f405c_1720253891632.png?token=ANB4BCM26NA6T62SFHHUIITGRD7AU" alt="在这里插入图片描述"></p>
 </li>
-<li><p>Packet Details Pane (packet details), select the specified packet in the packet list, and all the detailed information of the packet will be displayed in the packet details. The packet details panel is the most important, used to view every field in the protocol. The lines of information are:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/4203da069bf44d7983a1dc80d102e399_1720253902706.png?token=ANB4BCPZYSUTMIMSBMPODEDGRD7AY" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<li><p>Packet Details Pane (packet details), select the specified packet in the packet list, and all the detailed information of the packet will be displayed in the packet details. The packet details panel is the most important, used to view every field in the protocol. The lines of information are:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/4203da069bf44d7983a1dc80d102e399_1720253902706.png?token=ANB4BCPZYSUTMIMSBMPODEDGRD7AY" alt="在这里插入图片描述"></p>
 </li>
 </ul>
 <p>(1) Frame: Overview of data frames at the physical layer<br>(2) Ethernet II: Data link layer Ethernet frame header information<br>(3) Internet Protocol Version 4: Internet layer IP packet header information<br>(4) User Datagram Protocol: The data segment header information of the transport layer T, here is UDP<br>(5) Domain Name System: Application layer information, here is DNS</p>
-<h3 id="Grab-the-DPU-of-DNS-first"><a href="#Grab-the-DPU-of-DNS-first" class="headerlink" title="Grab the DPU of DNS first"></a>Grab the DPU of DNS first</h3><p>Since DNS uses port 53 of the computer, we directly write <code>udp port 53</code> in the filter:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/682ebdc7e4974464bd9565c54f640245_1720253902706.png?token=ANB4BCPL2MAOMGN3TFDZY6LGRD7A2" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"><br>Then we start crawling:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/d614accbbc7a4f24aad0b2a87d0dd44c_1720253902706.png?token=ANB4BCOMHYPOIGPVS3IUTZTGRD7A4" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"><br>But we didn’t get any results, because our computer doesn’t have any DNS requests, so let’s try typing <code>baidu.com</code> in the browser:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/f36b82c39ef94873b05cb5d60f7f74bd_1720253902706.png?token=ANB4BCPMRW34NFKNFIHUNUDGRD7A6" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"><br>It can be found that there is still no result. This is because the local address has been cached. If there is no mapping of this domain name in hosts, then search the local DNS resolver cache to see if there is such a URL mapping relationship. If so, return directly and complete DNS. So we should enter an unfamiliar address, such as <code>www.nihao.com</code>:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/19b410989a644b78b173ebc733391332_1720253902706.png?token=ANB4BCLEFM5Q7Y4YY5QVRXTGRD7BC" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"><br>At this time, two crawling results were obtained in an instant.<br>Here is the first result:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/a7ac837b9efe4fc4b69d0c8194525165_1720253909407.png?token=ANB4BCOP2HZNSZAT6ZYCJELGRD7BE" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"><br>We only look at the DNS protocol:</p>
-<h3 id="Query"><a href="#Query" class="headerlink" title="Query:"></a>Query:</h3><p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/c3aaf18aa86b4026aeb4721202df1c3c_1720253909407.png?token=ANB4BCIAGWVTSLKCYM3F32DGRD7BI" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<h3 id="Grab-the-DPU-of-DNS-first"><a href="#Grab-the-DPU-of-DNS-first" class="headerlink" title="Grab the DPU of DNS first"></a>Grab the DPU of DNS first</h3><p>Since DNS uses port 53 of the computer, we directly write <code>udp port 53</code> in the filter:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/682ebdc7e4974464bd9565c54f640245_1720253902706.png?token=ANB4BCPL2MAOMGN3TFDZY6LGRD7A2" alt="在这里插入图片描述"><br>Then we start crawling:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/d614accbbc7a4f24aad0b2a87d0dd44c_1720253902706.png?token=ANB4BCOMHYPOIGPVS3IUTZTGRD7A4" alt="在这里插入图片描述"><br>But we didn’t get any results, because our computer doesn’t have any DNS requests, so let’s try typing <code>baidu.com</code> in the browser:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/f36b82c39ef94873b05cb5d60f7f74bd_1720253902706.png?token=ANB4BCPMRW34NFKNFIHUNUDGRD7A6" alt="在这里插入图片描述"><br>It can be found that there is still no result. This is because the local address has been cached. If there is no mapping of this domain name in hosts, then search the local DNS resolver cache to see if there is such a URL mapping relationship. If so, return directly and complete DNS. So we should enter an unfamiliar address, such as <code>www.nihao.com</code>:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/19b410989a644b78b173ebc733391332_1720253902706.png?token=ANB4BCLEFM5Q7Y4YY5QVRXTGRD7BC" alt="在这里插入图片描述"><br>At this time, two crawling results were obtained in an instant.<br>Here is the first result:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/a7ac837b9efe4fc4b69d0c8194525165_1720253909407.png?token=ANB4BCOP2HZNSZAT6ZYCJELGRD7BE" alt="在这里插入图片描述"><br>We only look at the DNS protocol:</p>
+<h3 id="Query"><a href="#Query" class="headerlink" title="Query:"></a>Query:</h3><p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/c3aaf18aa86b4026aeb4721202df1c3c_1720253909407.png?token=ANB4BCIAGWVTSLKCYM3F32DGRD7BI" alt="在这里插入图片描述"></p>
 <ul>
-<li><p><code>Transaction ID: 0x4a57</code> indicates that the request is <code>0x4a57</code> whose ID is 16 bits;<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/cb373d0ab7a04c889bcce87521147006_1720253909407.png?token=ANB4BCL24EMK7UCWLX535V3GRD7BK" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<li><p><code>Transaction ID: 0x4a57</code> indicates that the request is <code>0x4a57</code> whose ID is 16 bits;<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/cb373d0ab7a04c889bcce87521147006_1720253909407.png?token=ANB4BCL24EMK7UCWLX535V3GRD7BK" alt="在这里插入图片描述"></p>
 </li>
 <li><p>For 16-bit Flags: QR is 0, indicating that it is a query; opcode is 0, indicating that it is a standard query; AA is missing because it is only used for response (response); TC is 0, indicating that it is not truncated; RD 1, indicating that a recursive query is to be performed; RA is missing because it is only used for responses.</p>
 </li>
@@ -441,7 +441,7 @@
 </ul>
 </blockquote>
 </li>
-<li><p>Questions and Answers:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/626ecbeee6ee43ca8f02f3ce291dbf88_1720253909407.png?token=ANB4BCIH5NZUFLVNAN3KZTLGRD7BM" srcset="/img/loading.gif" lazyload></p>
+<li><p>Questions and Answers:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/626ecbeee6ee43ca8f02f3ce291dbf88_1720253909407.png?token=ANB4BCIH5NZUFLVNAN3KZTLGRD7BM"></p>
 <blockquote>
 <ul>
 <li>Questions (Questions): Unsigned 16-bit integer indicates the number of question records in the message request segment.</li>
@@ -452,8 +452,8 @@
 </blockquote>
 </li>
 </ul>
-<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/9e2dbc116a324499b3eb9f5951018e46_1720253909407.png?token=ANB4BCO44AXED7E533KSNOLGRD7BO" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"><br>The crawl results show that there is 1 question record, 0 answer records, 0 authorization records, and 0 additional records.</p>
-<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/4e1a1b0212e84a399ad1c7818fb2cf5a_1720253916289.png?token=ANB4BCJYDQUGL5H4ENPW6I3GRD7BS" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/9e2dbc116a324499b3eb9f5951018e46_1720253909407.png?token=ANB4BCO44AXED7E533KSNOLGRD7BO" alt="在这里插入图片描述"><br>The crawl results show that there is 1 question record, 0 answer records, 0 authorization records, and 0 additional records.</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/4e1a1b0212e84a399ad1c7818fb2cf5a_1720253916289.png?token=ANB4BCJYDQUGL5H4ENPW6I3GRD7BS" alt="在这里插入图片描述"></p>
 <blockquote>
 <ul>
 <li>The query name is: time.apple.com, which is a FQDN</li>
@@ -463,16 +463,16 @@
 </ul>
 </blockquote>
 <h3 id="Response"><a href="#Response" class="headerlink" title="Response"></a>Response</h3><p>  We can see that this response belongs to query because they have the same Transaction ID (0x4a57).</p>
-<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/da07f9e337fe407e9820348f0f55941d_1720253916289.png?token=ANB4BCOIKZHLYW5WBDWAUUTGRD7BU" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
-<p>It can also be seen that this time it has AA, rcode; and a status of Answer RRs &#x3D; 3, indicating that three answers have been obtained.<br>Let’s look at Answer again:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/598e7609263844f9ad78ed0a2d5b4cc2_1720253916289.png?token=ANB4BCIGUZCJQR5C52T36CLGRD7BY" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"><br>We got a total of three results:</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/da07f9e337fe407e9820348f0f55941d_1720253916289.png?token=ANB4BCOIKZHLYW5WBDWAUUTGRD7BU" alt="在这里插入图片描述"></p>
+<p>It can also be seen that this time it has AA, rcode; and a status of Answer RRs &#x3D; 3, indicating that three answers have been obtained.<br>Let’s look at Answer again:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/598e7609263844f9ad78ed0a2d5b4cc2_1720253916289.png?token=ANB4BCIGUZCJQR5C52T36CLGRD7BY" alt="在这里插入图片描述"><br>We got a total of three results:</p>
 <ul>
 <li>17.253.116.253</li>
 <li>17.253.114.253</li>
 <li>17.253.114.125</li>
 </ul>
-<p>According to the DNS protocol, we know that these three addresses should all point to “time.apple.com”, let’s check it!<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/ac78a30068db45c8a9c2141b76f36fcd_1720253916289.png?token=ANB4BCKFJ2BSYUOLHI2RJ6DGRD7B6" srcset="/img/loading.gif" lazyload alt="17.253.116.253"></p>
-<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/104dd84ddc6146dca0e5d7301b6fa6da_1720253916289.png?token=ANB4BCPLZRGVK6NA7QM3WNTGRD7CC" srcset="/img/loading.gif" lazyload alt="17.253.114.253"></p>
-<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/942e77c01402481e8a16caf33a69ec74_1720253925484.png?token=ANB4BCOIAJAGGJLCDMJ3R73GRD7CG" srcset="/img/loading.gif" lazyload alt="17.253.114.125"></p>
+<p>According to the DNS protocol, we know that these three addresses should all point to “time.apple.com”, let’s check it!<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/ac78a30068db45c8a9c2141b76f36fcd_1720253916289.png?token=ANB4BCKFJ2BSYUOLHI2RJ6DGRD7B6" alt="17.253.116.253"></p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/104dd84ddc6146dca0e5d7301b6fa6da_1720253916289.png?token=ANB4BCPLZRGVK6NA7QM3WNTGRD7CC" alt="17.253.114.253"></p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/942e77c01402481e8a16caf33a69ec74_1720253925484.png?token=ANB4BCOIAJAGGJLCDMJ3R73GRD7CG" alt="17.253.114.125"></p>
 <p>It can be seen that it is indeed so.</p>
 <p>But: <strong>Why does the DNS response message captured by Wireshark provide multiple “Answers”?</strong><br><strong>The answer is for load balancing.</strong> DNS provides domain name resolution service. When accessing a site, it is first necessary to provide a DNS server to obtain the IP address corresponding to the domain name. During this process, the DNS server completes the mapping from the domain name to the IP address. Similarly, this mapping can also be One-to-many. That is, the DNS server can calculate and return many IP addresses according to the records and load balancing algorithm, and let the client choose a connection by itself.</p>
 <p><em>This text is over, thank you for reading.</em></p>
@@ -756,10 +756,6 @@
 
 
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
 
 
 

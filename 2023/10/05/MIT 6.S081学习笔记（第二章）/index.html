@@ -78,7 +78,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -343,7 +343,7 @@
 <p>查一下它运行前 CPU 的模式是什么：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">(gdb) p/t <span class="hljs-variable">$sstatus</span><br><span class="hljs-variable">$4</span> = 100010<br></code></pre></td></tr></table></figure>
 <p><strong>根据RISC-V特权指令，SPP位指示在进入监控模式之前执行的HART的权限级别。</strong>创建陷阱时，如果陷阱源自用户模式，则 SPP 设置为 0，否则设置为 1。当执行 SRET 指令（请参阅第 3.3.2 节）以从陷阱处理程序返回时，如果 SPP 位为 0，则权限级别设置为用户模式，如果 SPP 位为 1，则设置为主管模式;然后将 SPP 设置为 0。</p>
-<p>SPP 位的值为 0，表示进入内核进行系统调用之前的权限级别是用户模式。<br>根据RISC-V特权指令，SPP位指示在进入监控器模式之前执行的HART的权限级别。创建陷阱时，如果陷阱源自用户模式，则 SPP 设置为 0，否则设置为 1。当执行 SRET 指令从陷阱处理程序返回时，如果 SPP 位为 0，则权限级别设置为用户模式，如果 SPP 位为 1，则设置为主管模式；然后将 SPP 设置为 0。<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/104b36357c924eabae99270867718742_1720253717123.png?token=ANB4BCMQHJZII2VLOSTQ57DGRD6VG" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<p>SPP 位的值为 0，表示进入内核进行系统调用之前的权限级别是用户模式。<br>根据RISC-V特权指令，SPP位指示在进入监控器模式之前执行的HART的权限级别。创建陷阱时，如果陷阱源自用户模式，则 SPP 设置为 0，否则设置为 1。当执行 SRET 指令从陷阱处理程序返回时，如果 SPP 位为 0，则权限级别设置为用户模式，如果 SPP 位为 1，则设置为主管模式；然后将 SPP 设置为 0。<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/104b36357c924eabae99270867718742_1720253717123.png?token=ANB4BCMQHJZII2VLOSTQ57DGRD6VG" alt="在这里插入图片描述"></p>
 <p>如我们所见，SPP 位的值（从右向左数，第8位）为 0，表示进入内核进行系统调用之前的权限级别是<strong>用户模式</strong>。也就是说，该陷入是由用户造成的。</p>
 <p>然后，将 <code>kernel/syscall.c</code> 中的语句<code>num = p-&gt;trapframe-&gt;a7</code> 换成<code> num = * (int *) 0</code>执行以下命令：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">$ make qemu<br></code></pre></td></tr></table></figure>
@@ -360,7 +360,7 @@
 </blockquote>
 <p>重新启动，在发生错误的位置设置断点：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash">Thread 1 received signal SIGINT, Interrupt.<br>panic (s=s@entry=0x800083c0 <span class="hljs-string">&quot;kerneltrap&quot;</span>)<br>    at kernel/printf.c:127<br>(gdb) p <span class="hljs-variable">$scause</span><br><span class="hljs-variable">$1</span> = 13<br></code></pre></td></tr></table></figure>
-<p>根据 RISC-V privileged instructions，13 代表着页面加载错误。<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/283e26634917427aa565b98ce0c8e53b_1720253717123.png?token=ANB4BCOCWA7JXVH7HUVEXVDGRD6VK" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"><br>重新启动，直接打印出内核 panic时地用户进程名字：</p>
+<p>根据 RISC-V privileged instructions，13 代表着页面加载错误。<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/283e26634917427aa565b98ce0c8e53b_1720253717123.png?token=ANB4BCOCWA7JXVH7HUVEXVDGRD6VK" alt="在这里插入图片描述"><br>重新启动，直接打印出内核 panic时地用户进程名字：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs bash">(gdb) b *0x0000000080002050<br>Breakpoint 1 at 0x80002050: file kernel/syscall.c, line 138.<br>(gdb) c<br>Continuing.<br>[Switching to Thread 1.3]<br><br>Thread 3 hit Breakpoint 1, syscall ()<br>    at kernel/syscall.c:138<br>138       num = *(int*) 0;<br>(gdb) p p-&gt;name<br><span class="hljs-variable">$1</span> = <span class="hljs-string">&quot;initcode\000\000\000\000\000\000\000&quot;</span><br>(gdb)<br></code></pre></td></tr></table></figure>
 <p>可以看出这个用户进程的名字是<code>initcode</code>，这是 xv6 中第一个运行的进程。</p>
 <p>我们还可以看看这个进程的 proc structure 长什么样：</p>
@@ -432,7 +432,7 @@
 <p>切换到内核态：当发生系统调用指令时，处理器将当前的用户态上下文保存到特定的寄存器或内存区域中，包括程序计数器（PC）和用户态栈指针（SP）。<strong>然后，处理器切换到内核态，切换到操作系统内核的地址空间</strong>。</p>
 <p>系统调用处理：<strong>操作系统内核根据系统调用号码确定要执行的系统调用，并使用传递的参数执行相应的操作</strong>。这可能涉及到访问硬件资源、文件系统、网络等等。内核执行完成后，将结果存储在适当的寄存器或内存位置。</p>
 <p>返回用户态：内核执行完系统调用后，将保存的用户态上下文恢复回处理器，包括将用户态栈指针（SP）和程序计数器（PC）还原到之前保存的值。<strong>然后，处理器切换回用户态，并继续执行用户程序，返回到调用系统调用的下一条指令</strong>。</p>
-<p>xv6 的系统调用过程大致如下所示：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/c609481c6e734628a56f965d54b77195_1720253717123.png?token=ANB4BCO4TIP4R64NKWBBEQ3GRD6VM" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<p>xv6 的系统调用过程大致如下所示：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/c609481c6e734628a56f965d54b77195_1720253717123.png?token=ANB4BCO4TIP4R64NKWBBEQ3GRD6VM" alt="在这里插入图片描述"></p>
 <h2 id="三、Sysinfo-moderate"><a href="#三、Sysinfo-moderate" class="headerlink" title="三、Sysinfo (moderate)"></a>三、Sysinfo (moderate)</h2><h3 id="Question-requirements-2"><a href="#Question-requirements-2" class="headerlink" title="Question requirements"></a>Question requirements</h3><blockquote>
 <p>In this assignment you will add a system call, sysinfo, that collects information about the running system. The system call takes one argument: a pointer to a struct sysinfo (see kernel&#x2F;sysinfo.h). The kernel should fill out the fields of this struct: the freemem field should be set to the number of bytes of free memory, and the nproc field should be set to the number of processes whose state is not UNUSED. We provide a test program sysinfotest; you pass this assignment if it prints “sysinfotest: OK”.</p>
 </blockquote>
@@ -757,10 +757,6 @@
 
 
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
 
 
 

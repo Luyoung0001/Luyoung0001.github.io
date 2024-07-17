@@ -76,7 +76,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -339,7 +339,7 @@
 <li>每个 <strong>log block</strong> 的实际对应的 <strong>block</strong> 编号。</li>
 </ul>
 <p>之后就是 <strong>log的数据</strong>，也就是<strong>每个block的数据</strong>，依次为 <strong>bn0</strong> 对应的 <strong>block</strong> 的数据，<strong>bn1</strong> 对应的 <strong>block</strong> 的数据以此类推。这就是 <strong>log</strong> 中的内容，并且 <strong>log</strong> 也不包含其他内容。</p>
-<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/599ef52b6c164eb89805125337551fdd_1720253687327.png?token=ANB4BCOBAKVCKZKLUUAOVS3GRD6TK" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/599ef52b6c164eb89805125337551fdd_1720253687327.png?token=ANB4BCOBAKVCKZKLUUAOVS3GRD6TK" alt="在这里插入图片描述"></p>
 <p>当文件系统在运行时，<strong>在内存中也有header block的一份拷贝</strong>，拷贝中也包含了 <strong>n</strong> 和 <strong>block编号</strong> 的数组。这里的 <strong>block编号</strong> 数组就是<strong>log</strong>数据对应的实际<strong>block</strong>编号，并且相应的 <strong>block</strong> 也会缓存在 <strong>block cache</strong> 中。</p>
 <h2 id="二、log-write-函数"><a href="#二、log-write-函数" class="headerlink" title="二、log_write() 函数"></a>二、<code>log_write()</code> 函数</h2><p>我们 <strong>不应该在所有的写操作完成之前写入commit record</strong>，这意味着文件系统操作必须表明事务的开始和结束。在 <strong>xv6</strong> 中，以创建文件的 <strong>sys_open</strong> 为例（在 <code>sysfile.c</code> 文件中）每个文件系统操作，都有<strong>begin_op</strong>和<strong>end_op</strong>分别表示事务的开始和结束。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs c">uint64<br><span class="hljs-title function_">sys_open</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>  ...<br><br>  begin_op(); <span class="hljs-comment">// 事务开始</span><br><br>  <span class="hljs-keyword">if</span>(omode &amp; O_CREATE)&#123;<br>    ip = create(path, T_FILE, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>);<br>    <span class="hljs-keyword">if</span>(ip == <span class="hljs-number">0</span>)&#123;<br>      end_op(); <span class="hljs-comment">// 事务结束</span><br>      <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>    &#125;<br>  &#125;<br>  ...<br>  <span class="hljs-keyword">return</span> fd;<br>&#125;<br></code></pre></td></tr></table></figure>
@@ -848,10 +848,6 @@
 
 
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
 
 
 

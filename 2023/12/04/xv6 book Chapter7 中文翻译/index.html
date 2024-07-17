@@ -75,7 +75,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -285,7 +285,7 @@
 <h2 id="一、（翻译）第七章-调度"><a href="#一、（翻译）第七章-调度" class="headerlink" title="一、（翻译）第七章 调度"></a>一、（翻译）第七章 调度</h2><p>任何操作系统可能会运行比计算机 CPU 数量更多的进程，因此需要一个计划来在这些进程之间进行 CPU 的时间共享。理想情况下，共享对于用户进程应该是透明的。常见的方法是通过将进程复用到硬件 CPU 上，为每个进程提供其拥有独立虚拟 CPU 的假象。本章将解释 xv6 如何实现这种复用。</p>
 <h3 id="7-1-复用"><a href="#7-1-复用" class="headerlink" title="7.1 复用"></a>7.1 复用</h3><p>xv6 通过在两种情况下将每个 CPU 从一个进程切换到另一个进程来进行复用。首先，在进程等待设备或管道 I&#x2F;O 完成、等待子进程退出或在睡眠系统调用中等待时，xv6 的睡眠和唤醒机制会进行切换。其次，xv6 定期强制进行切换，以处理长时间计算而不休眠的进程。这种复用创建了每个进程拥有独立 CPU 的假象，就像 xv6 利用内存分配器和硬件页表创造了每个进程拥有独立内存的假象一样。</p>
 <p>实现复用面临一些挑战。首先，如何从一个进程切换到另一个进程？尽管上下文切换的思想很简单，但实现起来是 xv6 中一些最不透明的代码。其次，如何以对用户进程透明的方式强制切换？xv6 使用标准技术，使用定时器中断驱动上下文切换。第三，许多 CPU 可能同时在进程之间进行切换，需要一种锁定计划来避免竞态条件。第四，进程退出时必须释放其内存和其他资源，但进程本身无法全部完成这些工作，因为（例如）它无法在仍在使用内核栈时释放自己的内核栈。第五，多核机器的每个核心必须记住它正在执行的进程，以便系统调用影响正确的进程的内核状态。最后，睡眠和唤醒允许进程放弃 CPU 并等待事件的发生，并允许另一个进程唤醒第一个进程。需要小心以避免导致唤醒通知丢失的竞态条件。xv6 试图尽可能简单地解决这些问题，但最终产生的代码仍然很棘手。</p>
-<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/7e0ba4c47dce4f8c965c6e3b02f000ff_1720253703115.png?token=ANB4BCMDB72NSPTC5FHLDMDGRD6UO" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/7e0ba4c47dce4f8c965c6e3b02f000ff_1720253703115.png?token=ANB4BCMDB72NSPTC5FHLDMDGRD6UO" alt="在这里插入图片描述"></p>
 <center><b><font size ='3'>图 7.1：从一个用户进程切换到另一个用户进程。 在此示例中，xv6 使用一个 CPU 运行
 （因此有一个调度程序线程）</font></b></center></font>
 
@@ -633,10 +633,6 @@
 
 
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
 
 
 

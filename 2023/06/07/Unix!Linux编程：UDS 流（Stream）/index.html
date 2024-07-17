@@ -76,7 +76,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -300,7 +300,7 @@
 <p>这只是Socket编程的基本概念和步骤，具体的使用方法和函数会根据编程语言和操作系统而有所不同。常见的编程语言，如C、C++、Java和Python，都提供了相应的Socket API库，使开发人员能够使用Socket进行网络编程。</p>
 <p>通过Socket编程，应用程序可以实现客户端-服务器模型，建立网络通信、传输数据和实现各种网络应用，如Web服务器、聊天应用、文件传输等。</p>
 <p>流程图如下：</p>
-<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/02f24f092c57410994c1ae16f8d84e76_1720253774709.png?token=ANB4BCNYM7LLDGCVJVC4OGTGRD6YY" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/02f24f092c57410994c1ae16f8d84e76_1720253774709.png?token=ANB4BCNYM7LLDGCVJVC4OGTGRD6YY" alt="在这里插入图片描述"></p>
 <p>本文将会写一个简单的、基本的服务器和客户端，并且成功让两者通信，平台为mac M1。</p>
 <h2 id="一、地址结构"><a href="#一、地址结构" class="headerlink" title="一、地址结构"></a>一、地址结构</h2><p>对于各种 <code>socket domain</code> 都需要定义一个不同的结构类型来存储<code>socket</code>地址。然而由于诸如<code>bind()</code>之类的系统调用适用于所有 <code>socket domain</code> ， 因此它们必须要能够接受任意类型的地址结构。为支持这种行为，<code>socket API</code> 定义了一个通用 的地址结构 <code>struct sockaddr</code>。这个类型的唯一用途是将各种 domain 特定的地址结构转换成<strong>单个类型</strong>以供 socket 系统调用中的各个参数使用。<code>sockaddr</code> 结构通常被定义成如下所示的结构：·</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span>  <span class="hljs-title">sockaddr_un</span> &#123;</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">char</span>   sun_len;        <span class="hljs-comment">/* sockaddr len including null */</span><br>	<span class="hljs-type">sa_family_t</span>     sun_family;     <span class="hljs-comment">/* [XSI] AF_UNIX */</span><br>	<span class="hljs-type">char</span>            sun_path[<span class="hljs-number">104</span>];  <span class="hljs-comment">/* [XSI] path name (gag) */</span><br>&#125;;<br></code></pre></td></tr></table></figure>
@@ -644,10 +644,6 @@
 
 
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
 
 
 

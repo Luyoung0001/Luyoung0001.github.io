@@ -74,7 +74,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -280,7 +280,7 @@
                 
                 <span id="more"></span>
 
-<h2 id="〇、思维导图"><a href="#〇、思维导图" class="headerlink" title="〇、思维导图"></a>〇、思维导图</h2><p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/97cc560b7093443892dcef212fe2e119_1720253841019.png?token=ANB4BCP75M5TOOKRQHXIMJDGRD65E" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<h2 id="〇、思维导图"><a href="#〇、思维导图" class="headerlink" title="〇、思维导图"></a>〇、思维导图</h2><p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/97cc560b7093443892dcef212fe2e119_1720253841019.png?token=ANB4BCP75M5TOOKRQHXIMJDGRD65E" alt="在这里插入图片描述"></p>
 <h2 id="一、准备工作"><a href="#一、准备工作" class="headerlink" title="一、准备工作"></a>一、准备工作</h2><h3 id="（一）对控制参数的处理"><a href="#（一）对控制参数的处理" class="headerlink" title="（一）对控制参数的处理"></a>（一）对控制参数的处理</h3><p>一共有 7 个可选参数，分别是<code>-a、-l、-R、-t、-r、-i、-s</code>，这些参数可以相互自由组合，因此可以设计一种机制，就是直接把它们全部用循环一次性做<code>或运算</code>，得到一个参数标记Vec。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// 标记: -a、-l、-R、-t、-r、-i、-s 参数(向量分量)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> a 0b1000000</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> l 0b0100000</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> R 0b0010000</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> t 0b0001000</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> r 0b0000100</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> I 0b0000010</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> s 0b0000001</span><br><span class="hljs-comment">// 向量</span><br><span class="hljs-type">int</span> Vec = <span class="hljs-number">0</span>;<br></code></pre></td></tr></table></figure>
 <p>而 Vec 可以使用全局变量，这样可以避免写函数时不断地给函数参数加入地址参数，使得更加代码整洁，更直观。</p>
@@ -574,10 +574,6 @@
 
 
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
 
 
 

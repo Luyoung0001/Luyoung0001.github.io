@@ -74,7 +74,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -305,7 +305,7 @@
 <p>编译并传入一个测试的参数：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs bash">luliang@shenjian Test % gcc plan4.c -o <span class="hljs-built_in">ls</span><br>luliang@shenjian Test % ./ls plan3.c<br>    mode : 100644<br>    links: 1<br>    user : 501<br>    group: 20<br>    size : 1136<br>    blocks: 8<br></code></pre></td></tr></table></figure>
 <p>可以看到达到了预期效果。<br>但是，刚获得到的一些信息，比如 <code>mode</code>、<code>user</code> 、<code>group</code>，为了方便阅读，还需要将它们转化成字符。</p>
-<h3 id="（一）对-st-mode进行转化"><a href="#（一）对-st-mode进行转化" class="headerlink" title="（一）对 st_mode进行转化"></a>（一）对 st_mode进行转化</h3><p>我们想要的信息需要从成员<code>st_mode</code>中获取，其类型<code>mode_t</code>在我的系统中定义就是<code>unsigned int</code>。但在命令<code>ls -l</code>的输出应该是类似<code>-rw-rw-rw-</code>的10个字符的字符串。其实这些信息是以位图的方式放进了这个16位（2B）整数类型中。<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/ce573cf49dce4edd92a9506cd303b07a_1720253841019.png?token=ANB4BCKZRHG6E3ADNZTS53TGRD65I" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<h3 id="（一）对-st-mode进行转化"><a href="#（一）对-st-mode进行转化" class="headerlink" title="（一）对 st_mode进行转化"></a>（一）对 st_mode进行转化</h3><p>我们想要的信息需要从成员<code>st_mode</code>中获取，其类型<code>mode_t</code>在我的系统中定义就是<code>unsigned int</code>。但在命令<code>ls -l</code>的输出应该是类似<code>-rw-rw-rw-</code>的10个字符的字符串。其实这些信息是以位图的方式放进了这个16位（2B）整数类型中。<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/ce573cf49dce4edd92a9506cd303b07a_1720253841019.png?token=ANB4BCKZRHG6E3ADNZTS53TGRD65I" alt="在这里插入图片描述"></p>
 <ul>
 <li>其中前4位用作文件类型。</li>
 <li>接下来3位是文件特殊属性，分别是<code>set-user-ID</code>，<code>set-group-ID</code>和<code>sticky</code>位，1表示具有该属性，0表示没有。</li>
@@ -603,10 +603,6 @@
 
 
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
 
 
 

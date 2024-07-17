@@ -75,7 +75,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -318,7 +318,7 @@
 <li>p2 占据 f2 请求 f3;</li>
 <li>p3 占据 f3 请求 f0;</li>
 </ul>
-<p>画出资源配置图之后，很容易求出它的可达性矩阵：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/99c48ab024d14f309e5a0db4e8417e64_1720253717123.png?token=ANB4BCLAN3VN3QWJJS2WG2TGRD6VC" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<p>画出资源配置图之后，很容易求出它的可达性矩阵：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/99c48ab024d14f309e5a0db4e8417e64_1720253717123.png?token=ANB4BCLAN3VN3QWJJS2WG2TGRD6VC" alt="在这里插入图片描述"></p>
 <p>因此，可达性矩阵为：<br>$$<br>  P &#x3D;  \left(<br>   \begin{matrix}<br>   1 &amp; 1 &amp; 1 &amp; 1  \<br>      1 &amp; 1 &amp; 1 &amp; 1  \<br>   1 &amp; 1 &amp; 1 &amp; 1  \<br>     1 &amp; 1 &amp; 1 &amp; 1  \<br>  \end{matrix}<br>  \right)<br>$$<br>强分图也就是:<br>$$<br>  P\bigwedge P^T &#x3D;  \left(<br>   \begin{matrix}<br>   1 &amp; 1 &amp; 1 &amp; 1  \<br>      1 &amp; 1 &amp; 1 &amp; 1  \<br>   1 &amp; 1 &amp; 1 &amp; 1  \<br>     1 &amp; 1 &amp; 1 &amp; 1  \<br>  \end{matrix}<br>  \right)<br>$$</p>
 <p>因此，在 t 时刻处于死锁状态，这与我们的经验相一致。</p>
 <h2 id="四、实现一个信号量"><a href="#四、实现一个信号量" class="headerlink" title="四、实现一个信号量"></a>四、实现一个信号量</h2><p>这里利用锁和条件变量来实现一个信号量。</p>
@@ -604,10 +604,6 @@
 
 
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
 
 
 

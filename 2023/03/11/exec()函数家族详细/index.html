@@ -73,7 +73,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -285,7 +285,7 @@
 <blockquote>
 <p>gcc fork_example.c -o fork_example<br>.&#x2F;fork_example </p>
 </blockquote>
-<p>查看进程：<code>top</code><br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/1e066854046742f5bc02da847062add1_1720253831934.png?token=ANB4BCJXGNQNJ6IJ4XYAEETGRD64Y" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"><br>可以发现，fork_example的进程的 PPID 为 54861，我们看看它是谁：<code>ps 54861</code></p>
+<p>查看进程：<code>top</code><br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/1e066854046742f5bc02da847062add1_1720253831934.png?token=ANB4BCJXGNQNJ6IJ4XYAEETGRD64Y" alt="在这里插入图片描述"><br>可以发现，fork_example的进程的 PPID 为 54861，我们看看它是谁：<code>ps 54861</code></p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c">  PID   TT  STAT      TIME COMMAND<br><span class="hljs-number">54861</span> s018  Ss     <span class="hljs-number">0</span>:<span class="hljs-number">00.23</span> /bin/zsh -il<br></code></pre></td></tr></table></figure>
 <p>很明显，它是 <code>zsh</code>，现在可以终止fork_example：<code> kill 57892</code></p>
 <blockquote>
@@ -599,10 +599,6 @@
 
 
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
 
 
 

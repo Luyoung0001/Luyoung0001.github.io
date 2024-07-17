@@ -76,7 +76,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -348,7 +348,7 @@
 <li>Xv6 allocates one page for each stack in the xv6 kernel at PAGE-aligned address. You can compute the top and bottom address of the stack page by using <code>PGROUNDDOWN(fp)</code> and <code>PGROUNDUP(fp)</code> (see <code>kernel/riscv.h</code>. These number are helpful for backtrace to terminate its loop.</li>
 </ul>
 <p>Once your backtrace is working, call it from panic in <code>kernel/printf.c</code> so that you see the kernel’s backtrace when it panics.</p>
-<p>做这个实验，需要对函数调用栈有点了解。<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/3aa59c94df994ea2abf94ed26a00eb40_1720253710031.png?token=ANB4BCOA4PPU2SPL7RZ22UTGRD6UW" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"><br><a target="_blank" rel="noopener" href="https://mit-public-courses-cn-translatio.gitbook.io/mit6-s081/lec05-calling-conventions-and-stack-frames-risc-v/5.5-stack">【原文】</a>每一次我们调用一个函数，函数都会为自己创建一个<strong>Stack Frame</strong>，并且只给自己用。函数通过移动<strong>Stack Pointer</strong>来完成<strong>Stack Frame</strong>的空间分配。</p>
+<p>做这个实验，需要对函数调用栈有点了解。<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/3aa59c94df994ea2abf94ed26a00eb40_1720253710031.png?token=ANB4BCOA4PPU2SPL7RZ22UTGRD6UW" alt="在这里插入图片描述"><br><a target="_blank" rel="noopener" href="https://mit-public-courses-cn-translatio.gitbook.io/mit6-s081/lec05-calling-conventions-and-stack-frames-risc-v/5.5-stack">【原文】</a>每一次我们调用一个函数，函数都会为自己创建一个<strong>Stack Frame</strong>，并且只给自己用。函数通过移动<strong>Stack Pointer</strong>来完成<strong>Stack Frame</strong>的空间分配。</p>
 <p>对于<strong>Stack</strong>来说，是从<strong>高地址开始向低地址使用</strong>。所以栈总是向下增长。当我们想要创建一个新的<strong>Stack Frame</strong>的时候，总是对当前的<strong>Stack Pointer</strong>做<strong>减法</strong>。一个函数的<strong>Stack Frame</strong>包含了保存的寄存器，本地变量，并且，如果函数的参数多于8个，额外的参数会出现在<strong>Stack</strong>中。所以<strong>Stack Frame</strong>大小并不总是一样，即使在这个图里面看起来是一样大的。不同的函数有不同数量的本地变量，不同的寄存器，所以<strong>Stack Frame</strong>的大小是不一样的。但是有关<strong>Stack Frame</strong>有两件事情是确定的：</p>
 <ul>
 <li><strong>Return address</strong>总是会出现在<strong>Stack Frame</strong>的第一位</li>
@@ -672,10 +672,6 @@
 
 
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
 
 
 

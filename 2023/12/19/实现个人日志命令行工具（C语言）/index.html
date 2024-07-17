@@ -78,7 +78,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -284,7 +284,7 @@
                 
                 <span id="more"></span>
 
-<h2 id="〇、前言"><a href="#〇、前言" class="headerlink" title="〇、前言"></a>〇、前言</h2><p>中午上课的时候，打开 github 看了一下个人主页，虽然最近很忙，但是这个活动记录有点过于冷清：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/783d3101c6ca4eb7b170c1ea7ea11ad5_1720253679644.png?token=ANB4BCJSYJLQJ6I54RSWTN3GRD6TC" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"><br>于是我就想着写一个日志命令行工具，输入以下命令就能将我的日志立即同步到 github 上：</p>
+<h2 id="〇、前言"><a href="#〇、前言" class="headerlink" title="〇、前言"></a>〇、前言</h2><p>中午上课的时候，打开 github 看了一下个人主页，虽然最近很忙，但是这个活动记录有点过于冷清：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/783d3101c6ca4eb7b170c1ea7ea11ad5_1720253679644.png?token=ANB4BCJSYJLQJ6I54RSWTN3GRD6TC" alt="在这里插入图片描述"><br>于是我就想着写一个日志命令行工具，输入以下命令就能将我的日志立即同步到 github 上：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">mylog today is really a long day!<br></code></pre></td></tr></table></figure>
 <p>之后 <strong>today is really a long day!</strong>  这句话就会被同步到 github 上的今天的文件中了。</p>
 <h2 id="一、思路以及实现"><a href="#一、思路以及实现" class="headerlink" title="一、思路以及实现"></a>一、思路以及实现</h2><p>思路很简单：</p>
@@ -302,7 +302,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">sudo <span class="hljs-built_in">mv</span> ./mylog /usr/local/bin/<br></code></pre></td></tr></table></figure>
 <p>运行一下：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs bash">~ mylog today I created a interesting mylog tool!<br>文件已创建成功!<br>目录切换成功！<br>[main 511bdd4] 2023-12-19_log.txt<br> 1 file changed, 1 insertion(+), 1 deletion(-)<br>Enumerating objects: 5, <span class="hljs-keyword">done</span>.<br>Counting objects: 100% (5/5), <span class="hljs-keyword">done</span>.<br>Delta compression using up to 8 threads<br>Compressing objects: 100% (2/2), <span class="hljs-keyword">done</span>.<br>Writing objects: 100% (3/3), 306 bytes | 306.00 KiB/s, <span class="hljs-keyword">done</span>.<br>Total 3 (delta 1), reused 0 (delta 0), pack-reused 0<br>remote: Resolving deltas: 100% (1/1), completed with 1 <span class="hljs-built_in">local</span> object.<br>To github.com:******  main -&gt; main<br></code></pre></td></tr></table></figure>
-<p>结果符合预期，成功写入了一条日志，并同步到了远端：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/dd115a76918446aab331df8e660d8339_1720253679644.png?token=ANB4BCNY5XBTEQQR4TSAHQTGRD6TG" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"><br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/57c9d91af5b64b3b8d4c260c2ec43756_1720253687327.png?token=ANB4BCK2LDAUGD3QN4VUQRDGRD6TI" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<p>结果符合预期，成功写入了一条日志，并同步到了远端：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/dd115a76918446aab331df8e660d8339_1720253679644.png?token=ANB4BCNY5XBTEQQR4TSAHQTGRD6TG" alt="在这里插入图片描述"><br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/57c9d91af5b64b3b8d4c260c2ec43756_1720253687327.png?token=ANB4BCK2LDAUGD3QN4VUQRDGRD6TI" alt="在这里插入图片描述"></p>
 <p>我想，这可能就是编程的趣味性~</p>
 <p><em>全文完，感谢阅读！</em></p>
 
@@ -593,10 +593,6 @@
 
 
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
 
 
 

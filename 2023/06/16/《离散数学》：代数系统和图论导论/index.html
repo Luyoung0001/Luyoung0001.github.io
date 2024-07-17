@@ -77,7 +77,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -429,12 +429,12 @@
 <p><strong>定理：  有向图 G 是强连通的当且仅当其可达性矩阵 P 的所有元素均为１</strong>。</p>
 <p>是这么理解的：<em><strong>设 P 是图 G 的可达性矩阵，其元素为$p_i,_j$，$P^{T}$是 P 的转置矩阵。则图G的强分图可由P∧$P^{T}$求得。因为从$v_i$到$v_j$可达，则$p_i,_j$&#x3D;1；从$v_j$到$v_i$可达，则$p_i,_j$&#x3D;1。于是当且仅当vi与vj相互可达时，P∧$P^{T}$的第(i，j)元素的值为1</strong></em>。</p>
 <p>例1：求出下图所示图的强分图。</p>
-<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/9f1e096ef6b242a58204fe8a66782ce4_1720253767570.png?token=ANB4BCJXQWVWUX3VTQKW5QTGRD6YK" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"><br>求出它的可达矩阵与可达矩阵的转置，然后进行逻辑乘：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/ac0c90db0df9458b94e5bce62a37d644_1720253767570.png?token=ANB4BCMG635GVP3PR6MBRF3GRD6YM" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"><br> 例2：设 t 时刻的相关资源集为<code>R=&#123;r1, r2, r3, r4&#125;</code>，进程集为<code>P=&#123;p1, p2, p3, p4&#125;</code>，进程占据资源的情况为：</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/9f1e096ef6b242a58204fe8a66782ce4_1720253767570.png?token=ANB4BCJXQWVWUX3VTQKW5QTGRD6YK" alt="在这里插入图片描述"><br>求出它的可达矩阵与可达矩阵的转置，然后进行逻辑乘：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/ac0c90db0df9458b94e5bce62a37d644_1720253767570.png?token=ANB4BCMG635GVP3PR6MBRF3GRD6YM" alt="在这里插入图片描述"><br> 例2：设 t 时刻的相关资源集为<code>R=&#123;r1, r2, r3, r4&#125;</code>，进程集为<code>P=&#123;p1, p2, p3, p4&#125;</code>，进程占据资源的情况为：</p>
 <ul>
 <li>p1占据资源r4且请求资源r1；</li>
 <li>p2占据资源r1且请求资源r2和r3；</li>
 <li>p3占据资源r2且请求资源r3；</li>
-<li>p4占据资源r3且请求资源r1和r4。<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/cc8deb31b0004b189218a42fcf208d0e_1720253767570.png?token=ANB4BCMFN5YJYSCOBXIKXSTGRD6YO" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></li>
+<li>p4占据资源r3且请求资源r1和r4。<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/cc8deb31b0004b189218a42fcf208d0e_1720253767570.png?token=ANB4BCMFN5YJYSCOBXIKXSTGRD6YO" alt="在这里插入图片描述"></li>
 </ul>
 <p>对应的资源分布图如上图所示。这样我们就能根据这个有向图得到一个矩阵 A，再求出它的可达矩阵，得到强分图。<strong>只要这个强分图不是 E(大于 E)，那么就是死锁的</strong>。解决办法就是挂掉某些进程，使得可达矩阵某些元素为 0，这就会导致强分图为 E（<strong>自己到自己默认可达</strong>），从而解决死锁。</p>
 <p><em><strong>全文完，感谢阅读！</strong></em></p>
@@ -717,10 +717,6 @@
 
 
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
 
 
 

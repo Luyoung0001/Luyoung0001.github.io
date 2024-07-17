@@ -74,7 +74,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -622,7 +622,7 @@
 </tr>
 </tbody></table>
 <p><code>C</code> 的地址为 <code>0x5651e3311010</code>，而 <code>Y</code> 的地址为 <code>0x5651e3311018</code>。从 <code>C</code> 到 <code>Y</code> 的间隔是 <code>8</code> 个字节，而非 <code>4</code> 个字节。这表明编译器在 <code>C</code> 和 <code>Y</code> 之间插入了填充（padding），以确保 <code>Y</code> 能够在 8 字节边界上对齐。</p>
-<h2 id="三、总结"><a href="#三、总结" class="headerlink" title="三、总结"></a>三、总结</h2><p>我们可以看到可执行程序内部都是分段进行存储的：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/93aa44359ba942fcabbf50c03b8f004a_1720253671766.png?token=ANB4BCIWR6S5CECRDSLV4CDGRD6SW" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<h2 id="三、总结"><a href="#三、总结" class="headerlink" title="三、总结"></a>三、总结</h2><p>我们可以看到可执行程序内部都是分段进行存储的：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/93aa44359ba942fcabbf50c03b8f004a_1720253671766.png?token=ANB4BCIWR6S5CECRDSLV4CDGRD6SW" alt="在这里插入图片描述"></p>
 <ul>
 <li><p><code>.text section</code>：代码段。通常存放已编译程序的机器代码，一般操作系统加载后，这部分是只读的。</p>
 </li>
@@ -634,7 +634,7 @@
 </li>
 </ul>
 <p>操作系统在加载 ELF 文件时会将按照标准依次读取每个段中的内容，并将其加载到内存中，同时为该进程分配栈空间，并将 <code>pc</code> 寄存器指向代码段的起始位置，然后启动进程。</p>
-<p>从操作系统的本身来讲，以上存储区在该程序内存中的虚拟地址分布是如下形式（虚拟地址从低地址到高地址，实际的物理地址可能是随机的）：<code>.text→.data→.bss→heap→unused→stack→...</code>：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/ab6b61a46b554d9d9ea81b9930829204_1720253679644.png?token=ANB4BCPWLLOQJAMFBWNBT4LGRD6S2" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<p>从操作系统的本身来讲，以上存储区在该程序内存中的虚拟地址分布是如下形式（虚拟地址从低地址到高地址，实际的物理地址可能是随机的）：<code>.text→.data→.bss→heap→unused→stack→...</code>：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/ab6b61a46b554d9d9ea81b9930829204_1720253679644.png?token=ANB4BCPWLLOQJAMFBWNBT4LGRD6S2" alt="在这里插入图片描述"></p>
 <p><strong>C++ 程序在运行时也会按照不同的功能划分不同的段</strong>，C++ 程序使用的内存分区一般包括：<strong>栈、堆、全局&#x2F;静态存储区、常量存储区、代码区。</strong></p>
 <ul>
 <li><p>栈：目前绝大部分 </p>
@@ -929,10 +929,6 @@
 
 
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
 
 
 

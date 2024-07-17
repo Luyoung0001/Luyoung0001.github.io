@@ -75,7 +75,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -282,7 +282,7 @@
                 <span id="more"></span>
 
 <h2 id="〇、redis-配置"><a href="#〇、redis-配置" class="headerlink" title="〇、redis 配置"></a>〇、redis 配置</h2><h3 id="1、概况"><a href="#1、概况" class="headerlink" title="1、概况"></a>1、概况</h3><p>本文基于 Ubuntu20.04 云服务器配置Redis，且在本地进行 Redis 测试。</p>
-<h3 id="2、目录概况"><a href="#2、目录概况" class="headerlink" title="2、目录概况"></a>2、目录概况</h3><p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/b00269f787ab457b87dbff470e451601_1720253746882.png?token=ANB4BCNQZTBEHAWGDAD4JN3GRD6W6" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<h3 id="2、目录概况"><a href="#2、目录概况" class="headerlink" title="2、目录概况"></a>2、目录概况</h3><p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/b00269f787ab457b87dbff470e451601_1720253746882.png?token=ANB4BCNQZTBEHAWGDAD4JN3GRD6W6" alt="在这里插入图片描述"></p>
 <h2 id="一、配置文件"><a href="#一、配置文件" class="headerlink" title="一、配置文件"></a>一、配置文件</h2><p>位于 <code>/config/app.yml</code> 中，目的用于 Redis 初始化：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs bash">redis:<br>  addr: <span class="hljs-string">&quot;39.104.**.28:6379&quot;</span><br>  password: <span class="hljs-string">&quot;password&quot;</span><br>  DB: 0<br>  poolSize: 30<br>  minIdleConn: 30<br></code></pre></td></tr></table></figure>
 <h2 id="二、main-文件"><a href="#二、main-文件" class="headerlink" title="二、main 文件"></a>二、main 文件</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><br><span class="hljs-keyword">import</span> (<br>	<span class="hljs-string">&quot;ChatTest/router&quot;</span><br>	<span class="hljs-string">&quot;ChatTest/utils&quot;</span><br>	<span class="hljs-string">&quot;github.com/gin-gonic/gin&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>	utils.InitConfig()<br>	utils.InitRedis()<br>	r := gin.Default()<br>	r = router.Router()<br>	r.Run(<span class="hljs-string">&quot;:8000&quot;</span>)<br>&#125;<br><br></code></pre></td></tr></table></figure>
@@ -579,10 +579,6 @@
 
 
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
 
 
 

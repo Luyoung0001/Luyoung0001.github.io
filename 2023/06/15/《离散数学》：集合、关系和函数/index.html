@@ -76,7 +76,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -427,7 +427,7 @@
 <p>究竟怎么理解“可比较”？我的理解是，如果两个元素可比较的，那么<strong>它们就是线性</strong>的，<strong>不是平行</strong>的。如果是不可比较的，那么它们就是<strong>平级</strong>的。</p>
 <p>为了使得这种关系阐述起来更直观，书中介绍了“<strong>盖住</strong>”的概念，简单的说就是 <strong>a 如果有一个顶头上司 b，那么 b 就盖住了 a</strong>。</p>
 <p>对于一个偏序集，它的盖住关系是唯一的，所以可以用盖住的性质画出偏序集合图，或者哈斯图。</p>
-<p>比如这个哈斯图中，<code>&#123;4,6,15,10&#125;、&#123;2,3,5&#125;</code>就是<strong>反链</strong>，里面的元素都是不可比较的；<code>&#123;1,3,9&#125;、&#123;1,2,4&#125;</code>就是两个<strong>链</strong>。<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/0f2e285f01bb4942ba2e3665addaffd5_1720253767570.png?token=ANB4BCKWDJDQVJTVG57HTTDGRD6YQ" srcset="/img/loading.gif" lazyload alt="在这里插入图片描述"></p>
+<p>比如这个哈斯图中，<code>&#123;4,6,15,10&#125;、&#123;2,3,5&#125;</code>就是<strong>反链</strong>，里面的元素都是不可比较的；<code>&#123;1,3,9&#125;、&#123;1,2,4&#125;</code>就是两个<strong>链</strong>。<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/0f2e285f01bb4942ba2e3665addaffd5_1720253767570.png?token=ANB4BCKWDJDQVJTVG57HTTDGRD6YQ" alt="在这里插入图片描述"></p>
 <h4 id="1、极大元、极小元"><a href="#1、极大元、极小元" class="headerlink" title="1、极大元、极小元"></a>1、极大元、极小元</h4><p>换句话说，就是有一个集合 B 是集合 A 的子集，其中 A 构成一个偏序关系<code>&lt;A，&lt;&lt; &gt;</code>：</p>
 <ul>
 <li>如果 B 中没有一个元素能盖住 b，那么 b 就是极大元；</li>
@@ -735,10 +735,6 @@
 
 
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
 
 
 
