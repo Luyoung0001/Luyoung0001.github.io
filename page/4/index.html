@@ -228,6 +228,85 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2024/06/11/debugger%EF%BC%88%E4%BA%94%EF%BC%89%EF%BC%9Asource%20level%20stepping/" target="_self">
+          debugger（五）：source level stepping
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/11/debugger%EF%BC%88%E4%BA%94%EF%BC%89%EF%BC%9Asource%20level%20stepping/" target="_self">
+        <div>
+          〇、前言前面的源代码打印，利用了 DWARF 格式化的信息，现在我们更进一步，利用它分别进行 stepi、step_over、step_in、step_out。 一、stepi这个最简单，我们只需要利用 ptrace 就行： 1234567891011121314151617181920212223242526void Debugger::single_step_instruction() &
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-06-11 18:00" pubdate>
+              2024-06-11
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B/" class="category-chain-item">系统编程</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B/C/" class="category-chain-item">C++</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B/C/debugger/" class="category-chain-item">debugger</a>
+  
+  
+
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/c/">#c++</a>
+            
+              <a href="/tags/lldb/">#lldb</a>
+            
+              <a href="/tags/debugger/">#debugger</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2024/06/10/debugger%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%BA%90%E4%BB%A3%E7%A0%81/" target="_self">
           debugger（四）：源代码
         </a>
@@ -787,67 +866,6 @@
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
             <time datetime="2024-05-15 17:44" pubdate>
-              2024-05-15
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/C/" class="category-chain-item">C++</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/c/">#c++</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/05/15/C++%E5%B9%B6%E5%8F%91%EF%BC%9A%E7%AD%89%E5%BE%85%E6%9D%A1%E4%BB%B6%E6%88%90%E7%AB%8B/" target="_self">
-          C++并发：等待条件成立
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/05/15/C++%E5%B9%B6%E5%8F%91%EF%BC%9A%E7%AD%89%E5%BE%85%E6%9D%A1%E4%BB%B6%E6%88%90%E7%AB%8B/" target="_self">
-        <div>
-          一、用std::condition_variable等待处理数据伪代码如下： 123456789101112131415161718192021222324252627282930std::mutex mut;std::queue&lt;data_chunk&gt; data_queue;    ⇽---  ①std::condition_variable data_cond;void dat
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-05-15 16:10" pubdate>
               2024-05-15
             </time>
           </div>
