@@ -878,7 +878,7 @@
 <p>也只提升了一点点：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/3307e078f4a44a70934da1372d8d7826_1720253671766.png?token=ANB4BCITJTKONUIYRWAPXXDGRD6SQ" alt="在这里插入图片描述"></p>
 <p>事实上，可以直接构造，这是一道数学题，不过这不在本节讨论的范围，略过。</p>
 <h2 id="93-复原-IP-地址"><a href="#93-复原-IP-地址" class="headerlink" title="93. 复原 IP 地址"></a>93. 复原 IP 地址</h2><p>有效 IP 地址 正好由四个整数（每个整数位于 0 到 255 之间组成，且不能含有前导 0），整数之间用 ‘.’ 分隔。</p>
-<p>例如：”0.1.2.201” 和 “192.168.1.1” 是 有效 IP 地址，但是 “0.011.255.245”、”192.168.1.312” 和 “<a href="mailto:&#x31;&#x39;&#50;&#x2e;&#x31;&#x36;&#x38;&#x40;&#x31;&#46;&#x31;">&#x31;&#x39;&#50;&#x2e;&#x31;&#x36;&#x38;&#x40;&#x31;&#46;&#x31;</a>“ 是 无效 IP 地址。<br>给定一个只包含数字的字符串 s ，用以表示一个 IP 地址，返回所有可能的有效 IP 地址，这些地址可以通过在 s 中插入 ‘.’ 来形成。你 不能 重新排序或删除 s 中的任何数字。你可以按 任何 顺序返回答案。</p>
+<p>例如：”0.1.2.201” 和 “192.168.1.1” 是 有效 IP 地址，但是 “0.011.255.245”、”192.168.1.312” 和 “<a href="mailto:&#x31;&#57;&#x32;&#x2e;&#49;&#54;&#x38;&#64;&#x31;&#46;&#x31;">&#x31;&#57;&#x32;&#x2e;&#49;&#54;&#x38;&#64;&#x31;&#46;&#x31;</a>“ 是 无效 IP 地址。<br>给定一个只包含数字的字符串 s ，用以表示一个 IP 地址，返回所有可能的有效 IP 地址，这些地址可以通过在 s 中插入 ‘.’ 来形成。你 不能 重新排序或删除 s 中的任何数字。你可以按 任何 顺序返回答案。</p>
 <p>示例 1：</p>
 <blockquote>
 <p>输入：s &#x3D; “25525511135”<br>输出：[“255.255.11.135”,”255.255.111.35”]</p>
@@ -4634,6 +4634,136 @@
         <tag>java</tag>
         <tag>jvm</tag>
         <tag>servlet</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Linux101:最好的Linux 入门资料</title>
+    <url>/2024/08/07/Linux101/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>本文是对 Linux101 这本及其优秀的 Linux 入门的一些心得体会，链接:<a href="https://101.ustclug.org/">Linux101</a></p>
+<h2 id="软件安装和文件操作"><a href="#软件安装和文件操作" class="headerlink" title="软件安装和文件操作"></a>软件安装和文件操作</h2><h3 id="apt"><a href="#apt" class="headerlink" title="apt"></a>apt</h3><p>建议用 apt 安装，apt 作为前端，它会自动处理软件包之间的依赖关系、升级软件包以至升级发行版，自动处理升级发行版所需的依赖关系等等。但是需要明白，真正执行安装软件的是 dpkg。</p>
+<p>另外，dpkg -i 也可以安装软件，但是它不会处理依赖，如果安装报错，应该使用 apt -f install 来处理依赖。因此为了方便，建议 apt install 软件。</p>
+<h3 id="tar"><a href="#tar" class="headerlink" title="tar"></a>tar</h3><p>tar 是打包工具，常见的操作如：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ tar -c -f target.tar file1 file2 file3 <span class="hljs-comment"># 将 file1、file2、file3 打包为 target.tar</span><br>$ tar -cz -f target.tar.gz file1 file2 file3 <span class="hljs-comment"># 将 file1、file2、file3 打包，并使用 gzip 算法压缩，得到压缩文件 target.tar.gz</span><br>$ tar -xz -f target.tar.gz -C <span class="hljs-built_in">test</span>/ <span class="hljs-comment"># 将压缩文件 target.tar.gz 解压到 test 目录中</span><br></code></pre></td></tr></table></figure>
+<h3 id="man-tldr-too-long-didn’t-read"><a href="#man-tldr-too-long-didn’t-read" class="headerlink" title="man &amp; tldr(too long didn’t read)"></a>man &amp; tldr(too long didn’t read)</h3><p>这两个命令很好用，都是很好的命令解释工具。比如：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">tldr tldr<br>tldr<br>Display simple <span class="hljs-built_in">help</span> pages <span class="hljs-keyword">for</span> command-line tools from the tldr-pages project.Note: the --language and --list options are not required by the client specification, but most clients implement them.More information: https://github.com/tldr-pages/tldr/blob/main/CLIENT-SPECIFICATION.md<span class="hljs-comment">#command-line-interface.</span><br><br> - Print the tldr page <span class="hljs-keyword">for</span> a specific <span class="hljs-built_in">command</span> (hint: this is how you got here!):<br>   tldr &#123;&#123;<span class="hljs-built_in">command</span>&#125;&#125;<br><br> - Print the tldr page <span class="hljs-keyword">for</span> a specific subcommand:<br>   tldr &#123;&#123;<span class="hljs-built_in">command</span>&#125;&#125; &#123;&#123;subcommand&#125;&#125;<br><br> - Print the tldr page <span class="hljs-keyword">for</span> a <span class="hljs-built_in">command</span> <span class="hljs-keyword">in</span> the given [L]anguage (<span class="hljs-keyword">if</span> available, otherwise fall back to English):<br>   tldr --language &#123;&#123;language_code&#125;&#125; &#123;&#123;<span class="hljs-built_in">command</span>&#125;&#125;<br><br> - Print the tldr page <span class="hljs-keyword">for</span> a <span class="hljs-built_in">command</span> from a specific [p]latform:<br>   tldr --platform &#123;&#123;android|common|freebsd|linux|osx|netbsd|openbsd|sunos|windows&#125;&#125; &#123;&#123;<span class="hljs-built_in">command</span>&#125;&#125;<br><br> - [u]pdate the <span class="hljs-built_in">local</span> cache of tldr pages:<br>   tldr --update<br><br> - [l]ist all pages <span class="hljs-keyword">for</span> the current platform and common:<br>   tldr --list<br><br> - [l]ist all available subcommand pages <span class="hljs-keyword">for</span> a <span class="hljs-built_in">command</span>:<br>   tldr --list | grep &#123;&#123;<span class="hljs-built_in">command</span>&#125;&#125; | column<br></code></pre></td></tr></table></figure>
+<p>细节：为什么 apt 需要root 权限，因为在安装的时候，需要向系统目录写入二进制文件、用户手册等等，这里必须使用到 root 权限。同理 make install 一样，必须使用sudo:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ make<br>$ sudo make install<br></code></pre></td></tr></table></figure>
+<p>在这个过程中，make 命令会将编译好的二进制文件拷贝到相对应的安装目录，拷贝用户手册等。</p>
+<h3 id="vim"><a href="#vim" class="headerlink" title="vim"></a>vim</h3><p>这个只需要会用i、wq、q!、Esc就行了。</p>
+<h2 id="进程、前后台、服务与例行性任务"><a href="#进程、前后台、服务与例行性任务" class="headerlink" title="进程、前后台、服务与例行性任务"></a>进程、前后台、服务与例行性任务</h2><h3 id="常见的信号"><a href="#常见的信号" class="headerlink" title="常见的信号"></a>常见的信号</h3><ul>
+<li>SIGINT: 由 Ctrl c 产生</li>
+<li>SIGTERM: 由 kill <pid> or pkill <process name> 产生</li>
+<li>SIGKILL: 很强，kill -9</li>
+<li>SIGSTOP: Ctrl z 产生，停止进程</li>
+<li>SIGCOTN: fg、bg</li>
+<li>SIGHUP: 脱离会话的时候，会产生这个信号，要想继续执行，就必须得另开启会话</li>
+</ul>
+<p>另外需要注意的是，kill -9 并不能杀死僵尸进程，因为僵尸进程已经不是传统意义上的进程了，它只是一种数据存档，造成的影响就是占用 pid。</p>
+<h3 id="进程组"><a href="#进程组" class="headerlink" title="进程组"></a>进程组</h3><p>假设有一个 shell zsh，在 zsh 中输入 ls、cat等等命令，都会形成一个以 zsh 为组长的进程组。发给一个进程组的信号将被所有属于该组的进程接收，意义就是停止整个任务整体，比如终止掉 zsh，所有的进程都会收到 SIGHUP信号而终止，除非某些进程用 nohup 执行。</p>
+<h3 id="会话"><a href="#会话" class="headerlink" title="会话"></a>会话</h3><p>会话，是以用户登录而出现的概念。当用户进入shell，比如 zsh 中，就会以本 zsh 为会话首进程展开本次会话。事实上，zsh、进程组、会话组都是一个 id，这三个 id 相同。<br>前台 (foreground) 与后台 (background)，本质上决定了是否需要与用户交互，对于单独的一个 shell，只能有一个前台进程（组），其余进程只能在后台默默运行，上述中若干进程组，正是前台进程组和后台进程组的概称。这点很好理解，不能让两个进程同时占用前台，导致打印或者输入异常。</p>
+<h3 id="守护进程"><a href="#守护进程" class="headerlink" title="守护进程"></a>守护进程</h3><p>创建会话必须调用 setsid()。当登录到 zsh 中，zsh 本身就是一个 leader of this session，然而 zsh 中 fork 出来的其它进程是不能调用setsid()展开新的会话的：</p>
+<ul>
+<li>DESCRIPTION<br> setsid() creates a new session if the calling process is not a process group leader.  The calling<br> process is the leader of the new session (i.e., its session ID is made the same  as  its  process<br> ID).   The  calling  process  also becomes the process group leader of a new process group in the<br> session (i.e., its process group ID is made the same as its process ID).<br><br> The calling process will be the only process in the new process group and in the new session.<br><br> Initially, the new session has no controlling terminal.  For details of how a session acquires  a<br> controlling terminal, see credentials(7).</li>
+</ul>
+<p>所以想要创建一个独立的进程，方法就是在 shell 中创建一个进程 A，A 再创建一个 进程 B，然后 B 调用 setsid()开启新的会话，并成为绘画组组长，A 再退出。当然不打算退出 shell 的时候有更加直接的方法，比如：bash -c “ping localhost &amp;” &amp;。</p>
+<p>当 zsh fork 一个子进程 bash 的时候，bash 执行 ping localhost &amp; 之后退出，ping 由于 ping localhost &amp; 是 bash 的子进程，bash 退出后，按理说 ping localhost &amp; 也会结束，但是它是后台进程，后台进程并不会收到 bash 父进程退出的影响（在这种情况下，bash 并不是绘会话组组长，因此bash 退出，并不会影响它的后台子进程）。因此 ping 进程继续会执行，除非 zsh 结束。</p>
+<p>当在 Bash 或其他类 Unix 的 shell 中使用 <code>&amp;</code> 将命令置于后台运行时，这个后台进程具有一些特定的特点和行为模式。根据你的问题，我们主要关注后台进程的生命周期、它与父进程（如 Bash）的关系，以及父进程结束时会发生什么。这里是详细的解释：</p>
+<h3 id="后台进程的特点"><a href="#后台进程的特点" class="headerlink" title="后台进程的特点"></a>后台进程的特点</h3><ol>
+<li><p><strong>独立性</strong>：</p>
+<ul>
+<li>后台进程能够独立于终端运行，用户可以继续在同一个 shell 中执行其他命令，而后台进程则在不干扰前台（用户交互式）工作的情况下执行。</li>
+</ul>
+</li>
+<li><p><strong>与终端的关系</strong>：</p>
+<ul>
+<li>即使一个进程被放在后台执行，它通常仍然与启动它的 shell 绑定，接收同一个终端的输入和输出。这意味着它们依旧可以向终端输出数据（除非输出被重定向）。</li>
+</ul>
+</li>
+<li><p><strong>会话和进程组</strong>：</p>
+<ul>
+<li>后台进程通常属于启动它的 shell 所在的会话和进程组。这个会话管理着终端及其所有前台和后台进程，可以向它们发送信号。</li>
+</ul>
+</li>
+</ol>
+<h3 id="进程结束对后台进程的影响"><a href="#进程结束对后台进程的影响" class="headerlink" title="进程结束对后台进程的影响"></a>进程结束对后台进程的影响</h3><ul>
+<li><strong>父进程结束</strong>：<ul>
+<li>当启动后台进程的 Bash shell 正常结束时，通常对后台进程没有直接影响，因为后台进程已经在独立的子进程中运行。</li>
+<li>但是，如果终端的会话结束（例如关闭终端窗口），会话领导者（通常是最初启动的 shell）会收到 <code>SIGHUP</code>（挂断信号）。默认情况下，这会导致所有该会话下的子进程，包括后台进程，也接收到 <code>SIGHUP</code>，除非这些进程已经通过某种方式（如调用 <code>nohup</code> 或重写 <code>SIGHUP</code> 信号处理）明确地脱离了这种行为。</li>
+</ul>
+</li>
+</ul>
+<h3 id="使用-nohup-避免后台进程退出"><a href="#使用-nohup-避免后台进程退出" class="headerlink" title="使用 nohup 避免后台进程退出"></a>使用 <code>nohup</code> 避免后台进程退出</h3><ul>
+<li><strong><code>nohup</code> 命令</strong>：<ul>
+<li>如果你希望确保即使 Bash 结束或用户注销，后台进程如 <code>ping localhost</code> 也不会退出，可以使用 <code>nohup</code> 命令。<code>nohup</code> 可以防止进程接收到 <code>SIGHUP</code> 信号。</li>
+<li>示例命令：<code>nohup ping localhost &amp;</code></li>
+<li>这会启动 <code>ping localhost</code>，并确保即使终端关闭或用户注销，它也会继续运行。</li>
+</ul>
+</li>
+</ul>
+<p>当 Bash 执行 <code>ping localhost &amp;</code> 后，即使 Bash 结束，<code>ping localhost</code> 也不会自动退出，除非 Bash 所在的会话被关闭（例如关闭终端窗口）。在这种情况下，除非对 <code>SIGHUP</code> 信号有特别的处理，否则 <code>ping</code> 会因为接收到 <code>SIGHUP</code> 而退出。使用 <code>nohup</code> 是一种常见的防止这种情况发生的方法。</p>
+<h3 id="终端与控制台"><a href="#终端与控制台" class="headerlink" title="终端与控制台"></a>终端与控制台</h3><p>早期的终端：物理设备，控制台也是早期的概念，它是一种特殊的终端，它可以干其它终端不能干的事情，比如维修系统。</p>
+<p>现在的终端是指图形界面，用户要输入命令和接受信息必须使用终端模拟程序，比如 gnome_terminal。终端模拟器与 pty 建立联系，用户输入到终端模拟器中的字符转发给 pty的前端 、pty后端就是我们说的 tty，tty 拿到字符后，交给 shell 进行处理。具体看下：<br>进一步澄清这个过程中涉及的各个组件之间的关系和交互，以便更好地理解终端模拟器、pty（伪终端）、tty 和 shell 如何协同工作。</p>
+<h3 id="终端模拟器、pty、tty-和-shell-的关系"><a href="#终端模拟器、pty、tty-和-shell-的关系" class="headerlink" title="终端模拟器、pty、tty 和 shell 的关系"></a>终端模拟器、pty、tty 和 shell 的关系</h3><ol>
+<li><p><strong>终端模拟器（如 gnome-terminal）</strong>：</p>
+<ul>
+<li>终端模拟器是一个在图形用户界面中运行的应用程序，它模拟了传统的物理终端的功能。终端模拟器提供了用户与系统交互的界面，允许用户输入命令并显示输出。</li>
+</ul>
+</li>
+<li><p><strong>伪终端（pty）</strong>：</p>
+<ul>
+<li>伪终端是一种软件驱动的终端设备，它模拟了物理终端（tty）的行为。pty 通常分为主设备（pty master）和从设备（pty slave）。</li>
+<li>主设备由终端模拟器控制，而从设备提供一个接口，表现得像是一个真实的终端（tty）。</li>
+</ul>
+</li>
+<li><p><strong>连接 tty</strong>：</p>
+<ul>
+<li>在这里，tty 实际上是指由 pty 的从设备所模拟的那部分。在现代系统中，当我们通常谈论到 tty 时，往往实际上是指 pty 的从设备。</li>
+<li>终端模拟器通过 pty 与 shell 进行交互。用户在终端模拟器中的输入首先传递到 pty 的主设备，然后由主设备转发到从设备。</li>
+</ul>
+</li>
+<li><p><strong>Shell</strong>：</p>
+<ul>
+<li>Shell（如 bash、zsh 等）通常启动并运行在 pty 的从设备上。Shell 接收从 pty 从设备来的输入（用户的命令），执行这些命令，并将输出返回到同一个 pty 从设备。</li>
+<li>这些输出随后由 pty 的主设备接收，并通过终端模拟器显示给用户。</li>
+</ul>
+</li>
+</ol>
+<h3 id="过程概述"><a href="#过程概述" class="headerlink" title="过程概述"></a>过程概述</h3><ul>
+<li>当用户在终端模拟器（如 gnome-terminal）中键入命令时，这些输入数据被发送到伪终端的主设备。</li>
+<li>主设备将这些输入传递到从设备，从设备再将输入交给运行在其上的 shell。</li>
+<li>Shell 解析和执行命令，然后将结果输出回 pty 的从设备。</li>
+<li>输出数据由主设备接收，并通过终端模拟器展示给用户。</li>
+</ul>
+<p>需要明确，现代的 Linux&#x2F;Unix 系统中，通常说的 tty 实际上在很多情况下是指 pty 的从设备，特别是在涉及到图形界面中的终端模拟器时。通过这种方式，终端模拟器可以模拟出一个看似真实的终端（tty）环境，与用户的 shell 交互，而用户实际上是在使用由软件实现的伪终端。这个机制使得终端模拟器非常灵活和强大。</p>
+<h2 id="用户与用户组、文件权限、文件系统层次结构"><a href="#用户与用户组、文件权限、文件系统层次结构" class="headerlink" title="用户与用户组、文件权限、文件系统层次结构"></a>用户与用户组、文件权限、文件系统层次结构</h2><h3 id="用户"><a href="#用户" class="headerlink" title="用户"></a>用户</h3><p>可以在&#x2F;etc&#x2F;passwd 中修改用户登录的默认 shell，当然也可以用其它命令，比如 chsh：</p>
+<figure class="highlight txt"><table><tr><td class="code"><pre><code class="hljs txt">root:x:0:0:root:/root:/bin/bash<br>daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin<br>bin:x:2:2:bin:/bin:/usr/sbin/nologin<br>（中间内容省略）<br>sshd:x:110:65534::/run/sshd:/usr/sbin/nologin<br>ustc:x:1000:1000:ustc:/home/ustc:/bin/bash<br>lxd:x:998:100::/var/snap/lxd/common/lxd:/bin/false<br>mysql:x:111:116:MySQL Server,,,:/nonexistent:/bin/false<br></code></pre></td></tr></table></figure>
+
+<p>我当时以 sudo 用户安装 zsh 的时候，由于粗心，chsh 输入错了 zsh 的路径，导致退出后没办法ssh 连接，后来才发现是默认 shell zsh在指定路径找不到，还好我还有一个 root 用户，不然只能重置云服务器了。</p>
+<p>当 sudo 组的用户利用 sudo 提权操作时，默认指定的是 root 用户。sudo 用户可以通过 su 来将 shell 提权到 root 权限，因此可以限制某用户禁止使用 su 命令。</p>
+<p>事实上，你可以添加很多拥有root 权限的组，比如 admin、AAA，只要你在 sudoers 中定义：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># Allow members of group sudo to execute any command</span><br>%sudo   ALL=(ALL:ALL) ALL<br><br><span class="hljs-comment"># Allow members of group admin to execute any command</span><br>%admin   ALL=(ALL:ALL) ALL<br><br><span class="hljs-comment"># Allow members of group AAA to execute any command</span><br>%AAA   ALL=(ALL:ALL) ALL<br><br></code></pre></td></tr></table></figure>
+
+<p>当使用 sudo 提权时，其实使用的是root 用户的身份来执行命令的：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ ~<br>$ sudo <span class="hljs-built_in">whoami</span><br>root<br>$ ~<br>$ <span class="hljs-built_in">whoami</span><br>luyoung<br><br></code></pre></td></tr></table></figure>
+
+<h3 id="文件系统的特殊权限位"><a href="#文件系统的特殊权限位" class="headerlink" title="文件系统的特殊权限位"></a>文件系统的特殊权限位</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ <span class="hljs-built_in">ls</span> -l /usr/bin/passwd<br>-rwsr-xr-x 1 root root 59976 Feb  6  2024 /usr/bin/passwd<br><br></code></pre></td></tr></table></figure>
+<p>可以看到，该命令对于 root 用户有s 权限，事实上，还有一些命令也拥有 s 权限：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">luyoung at luyoungUbt <span class="hljs-keyword">in</span> /etc<br>$ <span class="hljs-built_in">ls</span> -l /usr/bin/su<br>-rwsr-xr-x 1 root root 55680 Apr  9 23:32 /usr/bin/su<br><br>luyoung at luyoungUbt <span class="hljs-keyword">in</span> /etc<br>$ <span class="hljs-built_in">ls</span> -l /usr/bin/sudo<br>-rwsr-xr-x 1 root root 232416 Apr  4  2023 /usr/bin/sudo<br></code></pre></td></tr></table></figure>
+
+<p>这代表此文件有 setuid 特殊权限位。在你执行 passwd 的时候，它的实际权限和 root 一样，只是它知道，执行它的人是你（而非 root），所以只提供修改你自己的密码的功能。</p>
+<h3 id="cd"><a href="#cd" class="headerlink" title="cd"></a>cd</h3><p>cd 是 shell 中的一个 build_in 命令，因此在 sudo cd 的时候，会提示找不到命令。cd 之所以会失败，是因为当前用户对该目录没有执行权限，想要 cd 进去，必须以 root 身份，ls 不是 build_in 命令，因此可以执行成功：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">luyoung at luyoungUbt <span class="hljs-keyword">in</span> /<br>$ <span class="hljs-built_in">ls</span> -l /root<br><span class="hljs-built_in">ls</span>: cannot open directory <span class="hljs-string">&#x27;/root&#x27;</span>: Permission denied<br><br>luyoung at luyoungUbt <span class="hljs-keyword">in</span> /<br>$ sudo <span class="hljs-built_in">ls</span> -l /root<br>total 4<br>drwx------ 5 root root 4096 May 18  2022 snap<br></code></pre></td></tr></table></figure>
+
+<p>另外，就算将 cd 设计成一个非 build in 命令也没用，shell 执行cd 后，改变的仅仅是子进程的目录，执行完成后返回 shell，依然在原目录。</p>
+]]></content>
+      <categories>
+        <category>Linux 基础</category>
+      </categories>
+      <tags>
+        <tag>Linux 入门</tag>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -8584,6 +8714,143 @@
       </tags>
   </entry>
   <entry>
+    <title>xv6 book Chapter6 中文翻译</title>
+    <url>/2023/12/04/xv6%20book%20Chapter6%20%E4%B8%AD%E6%96%87%E7%BF%BB%E8%AF%91/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="〇、前言"><a href="#〇、前言" class="headerlink" title="〇、前言"></a>〇、前言</h2><p>本文是 <strong>xv6 book</strong> 第六章的翻译，以下将开始翻译。</p>
+<h2 id="一、（翻译）第六章-锁"><a href="#一、（翻译）第六章-锁" class="headerlink" title="一、（翻译）第六章 锁"></a>一、（翻译）第六章 锁</h2><p>大多数内核，包括 xv6，在执行多个活动时会交错执行。一个交错的来源是多处理器硬件：拥有多个独立执行的CPU的计算机，例如 xv6 的 RISC-V。这些多个CPU共享物理<strong>RAM</strong>，而 xv6 利用这种共享来维护所有CPU都可以读写的数据结构。这种共享引发了一个可能性，即一个CPU在读取数据结构时，另一个CPU可能正在更新它，甚至多个CPU可能同时更新同一数据；如果没有仔细设计这样的并行访问，很可能会产生不正确的结果或破坏数据结构。即使在单处理器上，内核也可能在多个线程之间切换CPU，导致它们的执行被交错。最后，一个设备中断处理程序修改与一些可中断代码相同的数据可能在中断发生时损坏数据，如果中断发生的时间恰好不对的话。并发一词指的是多个指令流由于多处理器的并行性、线程切换或中断而交错执行的情况。</p>
+<p>内核中充满了被并发访问的数据。例如，两个CPU可以同时调用 <strong>kalloc</strong>，从空闲列表的头部并发弹出。内核设计者喜欢允许大量并发，因为它可以通过并行性提高性能，并增加响应性。然而，结果是内核设计者花费了大量的精力来确保即使在这种并发情况下也能正确运行。有许多方法可以得到正确的代码，其中一些比其他方法更容易理解。旨在在并发情况下保持正确性的策略和支持它们的抽象称为并发控制技术。</p>
+<p>Xv6根据情况使用了许多并发控制技术，还有许多其他可能的方法。本章重点介绍了一种广泛使用的技术：锁。锁提供互斥性，确保一次只有一个CPU可以持有锁。如果程序员将每个共享数据项与一个锁相关联，并且代码在使用数据项时始终持有相关联的锁，那么该数据项将一次只被一个CPU使用。在这种情况下，我们说该锁保护了数据项。虽然锁是一种易于理解的并发控制机制，但锁的缺点是它们可能会降低性能，因为它们使并发操作串行化。本章的其余部分解释了为什么 xv6 需要锁，以及 xv6 如何实现它们以及如何使用它们。<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/c619cc3b0a8742c99c1d237741591d10_1720253703115.png?token=ANB4BCOEGKYHVX256BOFRPTGRD6UQ" alt="在这里插入图片描述"></p>
+<center><b><font size ='3'>图 6.1：简化的对称多处理器架构</font></b></center></font>
+
+<h3 id="6-1-竞争条件"><a href="#6-1-竞争条件" class="headerlink" title="6.1 竞争条件"></a>6.1 竞争条件</h3><p>举例说明为什么我们需要锁，考虑两个进程在两个不同的 CPU 上调用 <strong>wait</strong>。<strong>wait</strong> 释放子进程的内存。因此，在每个 CPU 上，内核将调用 <strong>kfree</strong> 释放子进程的页面。内核分配器维护一个链表：<code>kalloc()</code> (<code>kernel/kalloc.c</code>:69) 从空闲页面列表中取出一个页面内存，而 <code>kfree()</code> (<code>kernel/kalloc.c</code>:47) 则将一个页面推送回空闲列表。为了获得最佳性能，我们可能希望这两个父进程的 <strong>kfree</strong> 操作并行执行，而不必等待对方，但是在 xv6 的 <strong>kfree</strong> 实现中这是不正确的。</p>
+<p><strong>图 6.1</strong> 更详细地说明了这种情况：链表存在于两个 CPU 共享的内存中，这两个 CPU 使用 <strong>load</strong> 和 <strong>store</strong> 指令来操作链表。（实际上，处理器有缓存，但在概念上，多处理器系统的行为就好像有一个单一的共享内存。）如果没有并发请求，您可以按以下方式实现列表的推送操作：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">element</span> &#123;</span><br>    <span class="hljs-type">int</span> data;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">element</span> *<span class="hljs-title">next</span>;</span><br>&#125;;<br><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">element</span> *<span class="hljs-title">list</span> =</span> <span class="hljs-number">0</span>;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">push</span><span class="hljs-params">(<span class="hljs-type">int</span> data)</span> &#123;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">element</span> *<span class="hljs-title">l</span>;</span><br><br>    l = <span class="hljs-built_in">malloc</span>(<span class="hljs-keyword">sizeof</span> *l);<br>    l-&gt;data = data;<br>    l-&gt;next = <span class="hljs-built_in">list</span>;<br>    <span class="hljs-built_in">list</span> = l;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/520d62d15fab40e18505b9cf2073e337_1720253703115.png?token=ANB4BCJTFH525GPTHIXNXP3GRD6US" alt="在这里插入图片描述"></p>
+<center><b><font size ='3'>图 6.2：竟态示例</font></b></center></font>
+
+<p>这个实现如果单独执行是正确的。然而，如果有多个副本同时执行，那么代码就不正确了。如果两个 CPU 同时执行 <strong>push</strong>，都可能在<strong>图6.1</strong>所示的方式执行第15行，而在执行第16行之前，这将导致一个不正确的结果，正如图6.2所示。这时会有两个列表元素的 <code>next</code> 都设置为 <code>list</code> 之前的值。当在第<strong>16</strong>行发生两次赋值时，第二次赋值会覆盖第一次赋值；参与第一次赋值的元素将会丢失。</p>
+<p>第<strong>16</strong>行的丢失更新是竞争条件的一个例子。竞争条件是指同时访问内存位置的情况，其中至少有一个访问是写操作。竞争通常是一个错误的迹象，要么是丢失更新（如果访问是写操作），要么是对尚未完全更新的数据结构进行读取。竞争的结果取决于涉及的两个 CPU 的确切时序以及它们的内存操作如何被内存系统排序，这可能使由竞争引起的错误难以重现和调试。例如，在调试 <strong>push</strong> 时添加打印语句可能会改变执行的时间，足以使竞争消失。</p>
+<p>避免竞争的通常方法是使用锁。锁确保互斥，因此只有一个 CPU 可以同时执行 <strong>push</strong> 的敏感行；这使得上述场景成为不可能。上述代码的正确加锁版本仅添加了几行代码（用黄色突出显示）：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">element</span> *<span class="hljs-title">list</span> =</span> <span class="hljs-number">0</span>;<br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">lock</span> <span class="hljs-title">listlock</span>;</span>	<span class="hljs-comment">// 黄色</span><br><span class="hljs-type">void</span><br><span class="hljs-title function_">push</span><span class="hljs-params">(<span class="hljs-type">int</span> data)</span><br>&#123;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">element</span> *<span class="hljs-title">l</span>;</span><br>    l = <span class="hljs-built_in">malloc</span>(<span class="hljs-keyword">sizeof</span> *l);<br>    l-&gt;data = data;<br>    acquire(&amp;listlock);	<span class="hljs-comment">// 黄色</span><br>    l-&gt;next = <span class="hljs-built_in">list</span>;<br>    <span class="hljs-built_in">list</span> = l;<br>    release(&amp;listlock);	<span class="hljs-comment">// 黄色</span><br>&#125;<br><br></code></pre></td></tr></table></figure>
+<p><strong>acquire</strong>和<strong>release</strong>之间的指令序列通常被称为临界区。通常说锁是在保护<strong>list</strong>。</p>
+<p>当我们说锁保护数据时，我们实际上是指锁保护了一些适用于数据的不变性集合。不变性是数据结构的属性，在操作中保持不变。通常情况下，操作的正确行为取决于不变性在操作开始时是正确的。操作可能会暂时违反不变性，但必须在完成之前重新确立它们。例如，在链表的情况下，不变性是<strong>list</strong>指向链表中的第一个元素，并且每个元素的<strong>next</strong>字段指向下一个元素。<strong>push</strong>的实现暂时违反了这个不变性：在第<strong>17</strong>行，<code>l</code>指向下一个列表元素，但是<code>list</code>还没有指向<code>l</code>（在第<strong>18</strong>行重新建立）。我们上面检查的竞争条件发生是因为第二个CPU执行了依赖于列表不变性的代码，而这些不变性（暂时）被违反。正确使用锁可以确保一次只有一个CPU可以在临界区上操作数据结构，因此当数据结构的不变性不成立时，不会有CPU执行数据结构操作。</p>
+<p>你可以将锁视为串行化并发的临界区，以便一次只运行一个临界区，并因此保持不变性（假设临界区在单独的情况下是正确的）。你也可以将由同一个锁保护的临界区视为相互原子化，因此每个临界区仅看到先前临界区的完整更改集，并且永远不会看到部分完成的更新。</p>
+<p>虽然正确使用锁可以使不正确的代码变得正确，但锁限制了性能。例如，如果两个进程同时调用<strong>kfree</strong>，锁将序列化这两个调用，我们将无法从在不同CPU上运行它们中获得任何好处。我们说多个进程发生冲突，如果它们在同一时间想要相同的锁，或者说锁遇到争用。内核设计的一个主要挑战是避免锁争用。xv6做得很少，但是复杂的内核专门组织数据结构和算法，以避免锁争用。在列表示例中，内核可以为每个CPU维护一个空闲列表，并且仅在CPU的列表为空且必须从另一个CPU窃取内存时才会访问另一个CPU的空闲列表。其他使用情况可能需要更复杂的设计。</p>
+<p>锁的放置对性能也很重要。例如，将<strong>acquire</strong>移到<strong>push</strong>中更早的位置是正确的：将<strong>acquire</strong>的调用移动到第<strong>13</strong>行之前是可以的。这可能会降低性能，因为然后对<strong>malloc</strong>的调用也被序列化了。下面的“使用锁”部分提供了一些关于在何处插入<strong>acquire</strong>和<strong>release</strong>调用的指导方针。</p>
+<h3 id="6-2-代码：锁"><a href="#6-2-代码：锁" class="headerlink" title="6.2 代码：锁"></a>6.2 代码：锁</h3><p>xv6有两种类型的锁：自旋锁（<strong>spinlocks</strong>）和睡眠锁（<strong>sleep-locks</strong>）。我们首先来看自旋锁。xv6将自旋锁表示为一个<code>struct spinlock</code>（<code>kernel/spinlock.h</code>:2）。结构中的一个重要字段是<code>locked</code>，这是一个字，当锁可用时为零，被持有时为非零。从逻辑上讲，xv6应该通过执行如下代码来获取锁：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">acquire</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> spinlock *lk)</span> <span class="hljs-comment">// does not work!</span><br>&#123;<br>    <span class="hljs-keyword">for</span>(;;) &#123;<br>        <span class="hljs-keyword">if</span>(lk-&gt;locked == <span class="hljs-number">0</span>) &#123;<br>            lk-&gt;locked = <span class="hljs-number">1</span>;<br>            <span class="hljs-keyword">break</span>;<br>        &#125;<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>很遗憾，这个实现在多处理器上无法保证互斥性。可能会出现两个 CPU 同时到达第 <strong>25</strong> 行，发现 <code>lk-&gt;locked</code> 是零，然后都执行第 <strong>26</strong> 行抢占锁。在这一刻，两个不同的 CPU 持有了这个锁，这违反了互斥性质。我们需要的是一种方法，使得第 <strong>25</strong> 和 <strong>26</strong> 行作为一个原子（即不可分割）步骤执行。</p>
+<p>由于锁被广泛使用，多核处理器通常提供了实现第 <strong>25</strong> 和 <strong>26</strong> 行的原子版本的指令。在 RISC-V 上，这个指令是 <code>amoswap r, a</code>。<code>amoswap</code> 读取内存地址 <code>a</code> 处的值，将寄存器 <code>r</code> 的内容写入该地址，并将它读取的值放入 <code>r</code> 中。也就是说，它交换了寄存器和内存地址的内容。它使用特殊的硬件以原子方式执行这个序列，防止其他 CPU 在读取和写入之间使用这个内存地址。</p>
+<p>xv6 的 <strong>acquire</strong>（<code>kernel/spinlock.c</code>:22）使用了可移植的 C 库调用 <code>__sync_lock_test_and_set</code>，它归结为 <strong>amoswap</strong> 指令；返回值是 <code>lk-&gt;locked</code> 的旧（交换过的）内容。<code>acquire</code> 函数将交换包装在一个循环中，重复（自旋）直到获得锁。每次迭代都将一个值交换到 <code>lk-&gt;locked</code> 中并检查先前的值；如果先前的值是零，那么我们已经获得了锁，交换将把 <code>lk-&gt;locked</code> 设置为一。如果先前的值是一，那么其他一些 CPU 拥有了这个锁，而我们原子性地将一交换到 <code>lk-&gt;locked</code> 中并没有改变它的值。</p>
+<p>一旦锁被获取，<strong>acquire</strong> 为调试记录了获取锁的 CPU。<code>lk-&gt;cpu</code> 字段由锁保护，必须在持有锁的情况下才能更改。<code>release</code> 函数（<code>kernel/spinlock.c</code>:47）是 <code>acquire</code> 的反向操作：它清除 <code>lk-&gt;cpu</code> 字段，然后释放锁。从概念上讲，释放只需要将零赋给 <code>lk-&gt;locked</code>。C 标准允许编译器使用多个存储指令来实现赋值，因此 C 赋值在并发代码方面可能是非原子的。相反，<strong>release</strong> 使用 C 库函数 <code>__sync_lock_release</code> 执行原子赋值。</p>
+<h3 id="6-3-Code-Using-locks"><a href="#6-3-Code-Using-locks" class="headerlink" title="6.3 Code: Using locks"></a>6.3 Code: Using locks</h3><p>xv6 在许多地方使用锁来避免竞争条件。正如上文所述，<code>kalloc</code>（<code>kernel/kalloc.c</code>:69）和 <code>kfree</code>（<code>kernel/kalloc.c</code>:47）是一个很好的例子。尝试练习1和2，看看如果这些函数省略了锁会发生什么。你可能会发现很难触发错误行为，这表明要可靠地测试代码是否没有锁定错误和竞态条件是很困难的。不排除 xv6 存在一些竞争条件的可能性。</p>
+<p>使用锁的一个难点是决定使用多少个锁以及每个锁应该保护哪些数据和不变量。有几个基本原则。首先，每当一个变量可以由一个 CPU 写入，并且同时另一个 CPU 可以读取或写入它时，应该使用锁来防止两个操作重叠。其次，记住锁保护不变量：如果一个不变量涉及多个内存位置，通常所有这些位置都需要由一个单独的锁来保护，以确保不变量被维护。</p>
+<p>上述规则说明了何时需要锁，但没有说明何时不需要锁，而且不锁定太多对于效率来说很重要，因为锁会减少并行性。如果并行性不重要，那么可以安排只有一个线程，并且不必担心锁。一个简单的内核可以在多处理器上通过拥有一个必须在进入内核时获取并在退出内核时释放的单个锁来实现（尽管管道读取或等待等系统调用可能会带来问题）。许多单处理器操作系统已经使用这种方法转换为在多处理器上运行，有时被称为“大内核锁”，但这种方法会牺牲并行性：一次只能有一个 CPU 在内核中执行。如果内核进行任何重型计算，使用更大的、更细粒度的锁集可能会更有效，这样内核就可以在多个 CPU 上同时执行。</p>
+<p>作为粗粒度锁的例子，xv6 的 <code>kalloc.c</code> 分配器具有一个由单个锁保护的自由列表。如果不同 CPU 上的多个进程同时尝试分配页面，每个进程都将通过在 <code>acquire</code> 中旋转来等待轮到自己。旋转会降低性能，因为这不是有用的工作。如果为了锁的争用浪费了大量 CPU 时间，也许通过更改分配器设计，使用多个带有自己锁的自由列表，来允许真正并行的分配，可以提高性能。</p>
+<p>作为细粒度锁的例子，xv6 每个文件都有一个单独的锁，因此操纵不同文件的进程通常可以在不等待对方锁定的情况下继续执行。如果希望允许进程同时写入同一文件的不同区域，文件锁定方案可以被做得更细粒度。最终，锁粒度的决策需要根据性能测量以及复杂性考虑来做出。</p>
+<p>随后的章节将解释 xv6 的各个部分，并提到 xv6 处理并发性的示例。作为预览，<strong>图 6.3</strong> 列出了 xv6 中的所有锁。</p>
+<h3 id="6-4-死锁和锁定顺序"><a href="#6-4-死锁和锁定顺序" class="headerlink" title="6.4 死锁和锁定顺序"></a>6.4 死锁和锁定顺序</h3><p>如果内核中的某个代码路径必须同时持有多个锁，重要的是所有代码路径以相同的顺序获取这些锁。如果不这样做，就有发生死锁的风险。假设 xv6 中有两个代码路径需要锁 <strong>A</strong> 和 <strong>B</strong>，但是代码路径 1 按照 <strong>A</strong> 然后 <strong>B</strong> 的顺序获取锁，而另一条路径按照 <strong>B</strong> 然后 <strong>A</strong> 的顺序获取。假设线程 <strong>T1</strong> 执行代码路径 1 并获取了锁 <strong>A</strong>，线程 <strong>T2</strong> 执行代码路径 2 并获取了锁 <strong>B</strong>。接下来 T1 将尝试获取锁 <strong>B</strong>，而 <strong>T2</strong> 将尝试获取锁 <strong>A</strong>。两次获取都会无限期地阻塞，因为在两种情况下，另一个线程持有所需的锁，且在其获取返回之前不会释放。为了避免这种死锁，所有代码路径必须以相同的顺序获取锁。全局锁获取顺序的需要意味着锁实际上是每个函数规范的一部分：调用者必须以使锁按约定的顺序获取的方式调用函数。</p>
+<table>
+<thead>
+<tr>
+<th>锁</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>bcache.lock</td>
+<td>保护块缓冲区缓存条目的分配</td>
+</tr>
+<tr>
+<td>cons.lock</td>
+<td>序列化对控制台硬件的访问，避免混合输出</td>
+</tr>
+<tr>
+<td>ftable.lock</td>
+<td>序列化文件表中 struct file 的分配</td>
+</tr>
+<tr>
+<td>icache.lock</td>
+<td>保护 inode 缓存条目的分配</td>
+</tr>
+<tr>
+<td>vdisk_lock</td>
+<td>序列化对磁盘硬件和 DMA 描述符队列的访问</td>
+</tr>
+<tr>
+<td>kmem.lock</td>
+<td>序列化内存分配</td>
+</tr>
+<tr>
+<td>log.lock</td>
+<td>序列化对事务日志的操作</td>
+</tr>
+<tr>
+<td>pipe’s pi-&gt;lock</td>
+<td>序列化对每个管道的操作</td>
+</tr>
+<tr>
+<td>pid_lock</td>
+<td>序列化对 next_pid 的增量操作</td>
+</tr>
+<tr>
+<td>proc’s p-&gt;lock</td>
+<td>序列化对进程状态的更改</td>
+</tr>
+<tr>
+<td>tickslock</td>
+<td>序列化对计时器 ticks 的操作</td>
+</tr>
+<tr>
+<td>inode’s ip-&gt;lock</td>
+<td>序列化对每个 inode 及其内容的操作</td>
+</tr>
+<tr>
+<td>buf’s b-&gt;lock</td>
+<td>序列化对每个块缓冲区的操作</td>
+</tr>
+</tbody></table>
+<center><b><font size ='3'>图 6.3：xv6 中的锁</font></b></center></font>
+
+
+<p>xv6 中涉及进程锁（每个 <code>struct proc</code> 中的锁）的长度为两的锁定顺序链非常多，这是因为 <strong>sleep</strong> 的工作方式（参见第 7 章）。例如，<code>consoleintr</code>（<code>kernel/console.c</code>:138）是处理输入字符的中断例程。当新行到达时，任何等待控制台输入的进程都应该被唤醒。为了做到这一点，<strong>consoleintr</strong> 在调用 <strong>wakeup</strong> 时持有 <strong>cons.lock</strong>，后者获取等待进程的锁以唤醒它。因此，全局避免死锁的锁定顺序包括一个规则，即在获取任何进程锁之前必须获取 <strong>cons.lock</strong>。文件系统代码包含了 xv6 最长的锁链。例如，创建文件需要同时持有目录锁、新文件的 <strong>inode</strong> 锁、磁盘块缓冲区的锁、磁盘驱动程序的 <strong>vdisk_lock</strong> 和调用进程的 <strong>p-&gt;lock</strong>。为避免死锁，文件系统代码始终按照前文提到的顺序获取锁。</p>
+<p>遵循全局避免死锁的顺序可能会出人意料地困难。有时锁定顺序与逻辑程序结构冲突，例如，可能代码模块 <strong>M1</strong> 调用模块 <strong>M2</strong>，但是锁定顺序要求在 <strong>M1</strong> 中的某个锁在 <strong>M2</strong> 之前获取。有时锁的身份事先不知道，也许是因为必须持有一个锁才能发现下一个要获取的锁的身份。这种情况在文件系统中查找路径名中的连续组件时以及 <strong>wait</strong> 和 <strong>exit</strong> 的代码中可能出现，因为它们在进程表中搜索子进程。</p>
+<p>最后，避免死锁的危险通常限制了锁定方案的粒度，因为更多的锁通常意味着更多的死锁可能性。避免死锁的需求通常是内核实现的一个主要因素。</p>
+<h3 id="6-5-锁和中断处理程序"><a href="#6-5-锁和中断处理程序" class="headerlink" title="6.5 锁和中断处理程序"></a>6.5 锁和中断处理程序</h3><p>一些 xv6 自旋锁保护着同时被线程和中断处理程序使用的数据。例如，<strong>clockintr</strong> 定时器中断处理程序可能会在大约相同的时间内增加 <code>ticks</code>（<code>kernel/trap.c</code>:163），而内核线程在 <code>sys_sleep</code>（<code>kernel/sysproc.c</code>:64）中读取<code> ticks</code>。锁 <code>tickslock</code> 串行化了这两个访问。</p>
+<p>自旋锁和中断的交互引发了潜在的危险。假设 <code>sys_sleep</code> 持有 <strong>tickslock</strong>，并且它的 CPU 被定时器中断打断。<strong>clockintr</strong> 将尝试获取 <strong>tickslock</strong>，发现它被持有，并等待释放。在这种情况下，<strong>tickslock</strong> 将永远不会被释放：只有 <strong>sys_sleep</strong> 可以释放它，但是 <strong>sys_sleep</strong> 不会继续运行直到 <strong>clockintr</strong> 返回。所以 CPU 会发生死锁，并且任何需要这两个锁的代码也会被冻结。</p>
+<p>为了避免这种情况，如果自旋锁被中断处理程序使用，CPU 不能在启用中断的情况下持有该锁。Xv6 更加保守：当一个 CPU 获取任何锁时，xv6 总是在该 CPU 上禁用中断。中断仍然可能发生在其他 CPU 上，因此中断的获取可以等待线程释放自旋锁，但不能在同一个 CPU 上。</p>
+<p>当 CPU 不持有自旋锁时，xv6 会重新启用中断；它必须做一些书面工作来应对嵌套的关键部分。<strong>acquire</strong> 调用 <code>push_off</code>（<code>kernel/spinlock.c</code>:89）和 <code>release</code> 调用 <code>pop_off</code>（<code>kernel/spinlock.c</code>:100）来跟踪当前 CPU 上锁的嵌套级别。当计数达到零时，<code>pop_off</code> 将恢复最外层关键部分开始时存在的中断使能状态。<code>intr_off</code> 和 <code>intr_on</code> 函数执行 RISC-V 指令来分别禁用和启用中断。</p>
+<p><strong>acquire</strong> 在设置 <code>lk-&gt;locked</code>（<code>kernel/spinlock.c</code>:28）之前严格调用 <code>push_off</code> 是很重要的。如果两者颠倒了，会存在一个短暂的窗口期，在这个时段锁被持有但中断被启用，一个不幸时机的中断会使系统发生死锁。同样地，<strong>release</strong> 在释放锁之后（<code>kernel/spinlock.c</code>:66）才调用 <code>pop_off</code> 也是很重要的。</p>
+<h3 id="6-6-指令和内存排序"><a href="#6-6-指令和内存排序" class="headerlink" title="6.6 指令和内存排序"></a>6.6 指令和内存排序</h3><p>我们自然地认为程序按照源代码语句的顺序执行。然而，许多编译器和 CPU 为了提高性能会乱序执行代码。如果一条指令需要很多周期才能完成，CPU 可能会提前发出该指令，这样可以与其他指令重叠执行，避免 CPU 停顿。例如，CPU 可能注意到在一个指令序列中，指令 <strong>A</strong> 和 <strong>B</strong> 之间没有相互依赖。CPU 可能先开始执行指令 <strong>B</strong>，要么是因为它的输入在指令 A 的输入之前就准备好了，要么是为了重叠执行 <strong>A</strong> 和 <strong>B</strong>。编译器也可以通过发出某个语句的指令来重排序，这些指令会比源代码中紧随其后的语句的指令更早地执行。</p>
+<p>当编译器和 CPU 重新排序时，它们会遵循规则，以确保不改变正确编写的串行代码的结果。然而，这些规则允许对并发代码进行更改，很容易在多处理器上导致不正确的行为 [2, 3]。CPU 的排序规则被称为内存模型。</p>
+<p>例如，在这段 <strong>push</strong> 代码中，如果编译器或 CPU 将与第 4 行相对应的存储移动到第 6 行的释放操作之后，那将是一个灾难：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c">l = <span class="hljs-built_in">malloc</span>(<span class="hljs-keyword">sizeof</span> *l);<br>l-&gt;data = data;<br>acquire(&amp;listlock);<br>l-&gt;next = <span class="hljs-built_in">list</span>;<br><span class="hljs-built_in">list</span> = l;<br>release(&amp;listlock);<br></code></pre></td></tr></table></figure>
+
+<p>如果发生这样的重排序，就会存在一个时间窗口，另一个 CPU 可以获取锁并观察到已更新的列表，但是看到了未初始化的 <code>list-&gt;next</code>。</p>
+<p>为了告诉硬件和编译器不要执行这种重新排序，xv6 在 <code>acquire</code>（<code>kernel/spinlock.c</code>:22）和 <code>release</code>（<code>kernel/spinlock.c</code>:47）中使用了 <code>__sync_synchronize()</code>。<code>__sync_synchronize()</code> 是一个内存屏障：它告诉编译器和 CPU 在屏障之间不要重新排序加载或存储操作。xv6 中 <strong>acquire</strong> 和 <strong>release</strong> 中的屏障在几乎所有重要情况下都强制排序，因为 xv6 在访问共享数据时使用了锁。第9章讨论了一些例外情况。</p>
+<h3 id="6-7-休眠锁"><a href="#6-7-休眠锁" class="headerlink" title="6.7 休眠锁"></a>6.7 休眠锁</h3><p>有时，xv6 需要长时间持有锁。例如，文件系统（第 8 章）在读写磁盘上的内容时会保持文件锁定，而这些磁盘操作可能需要数十毫秒的时间。如果长时间持有自旋锁，另一个进程想要获取它时会导致资源浪费，因为获取进程在自旋等待期间会长时间占用 CPU。自旋锁的另一个缺点是，进程在保持自旋锁的同时无法让出 CPU；我们希望这样做，这样其他进程可以在拥有锁的进程等待磁盘时使用 CPU。在持有自旋锁的同时放弃 CPU 控制是不允许的，因为如果第二个线程尝试获取自旋锁，这可能导致死锁；由于 <strong>acquire</strong> 操作不会让出 CPU，第二个线程的自旋可能会阻止第一个线程运行并释放锁。在持有锁的同时放弃 CPU 控制也会违反自旋锁持有期间必须关闭中断的要求。因此，我们希望有一种在等待获取锁时放弃 CPU 控制，并且在持有锁期间允许放弃 CPU 控制（和中断）的锁类型。</p>
+<p>xv6 提供了这种锁，称为休眠锁。<strong>acquiresleep</strong>（<code>kernel/sleeplock.c</code>:22）在等待期间放弃 CPU 控制，使用的技术将在第 7 章中解释。在高层次上，休眠锁有一个由自旋锁保护的 <code>locked</code> 字段，并且 <strong>acquiresleep</strong> 的调用在原子操作中放弃了 CPU 控制并释放了自旋锁。结果是，<strong>acquiresleep</strong> 在等待期间其他线程可以执行。</p>
+<p>因为休眠锁允许中断，所以它们不能在中断处理程序中使用。因为 <strong>acquiresleep</strong> 可能放弃 CPU 控制，所以不能在自旋锁关键区域内使用休眠锁（尽管自旋锁可以在休眠锁关键区域内使用）。</p>
+<p>自旋锁最适用于短期关键区域，因为等待它们会浪费 CPU 时间；而休眠锁适用于长时间操作。</p>
+<h3 id="6-8-现实世界"><a href="#6-8-现实世界" class="headerlink" title="6.8 现实世界"></a>6.8 现实世界</h3><p>尽管对并发原语和并行性进行了多年的研究，但使用锁进行编程仍然具有挑战性。通常最好将锁隐藏在诸如同步队列之类的更高级别结构内，尽管 xv6 没有这样做。如果您使用锁进行编程，最好使用一种工具来尝试识别竞态条件，因为很容易忽略需要锁定的不变量。大多数操作系统支持 <strong>POSIX</strong> 线程（<strong>Pthreads</strong>），它允许用户进程在不同 CPU 上并发运行多个线程。</p>
+<p><code>Pthreads</code> 支持用户级别的锁、屏障等。支持 <code>Pthreads</code> 需要操作系统的支持。例如，如果一个 <code>pthread</code> 在系统调用中阻塞，同一进程的另一个 <code>pthread</code> 应该能够在该 CPU 上运行。另一个例子是，如果一个 <code>pthread</code> 改变了其进程的地址空间（例如，映射或取消映射内存），内核必须安排其他运行同一进程线程的 CPU 更新其硬件页表，以反映地址空间的更改。</p>
+<p>有可能实现没有原子指令的锁，但这是昂贵的，大多数操作系统使用原子指令。</p>
+<p>如果许多 CPU 尝试在同一时间获取相同的锁，则锁可能很昂贵。如果一个 CPU 在其本地缓存中缓存了一个锁，而另一个 CPU 必须获取该锁，则用于更新保存锁的缓存行的原子指令必须将该行从一个 CPU 的缓存移动到另一个 CPU 的缓存，并可能使任何其他缓存行的副本无效。从另一个 CPU 的缓存中获取缓存行的成本可能比从本地缓存中获取的成本高出几个数量级。</p>
+<p>为了避免与锁相关的费用，许多操作系统使用无锁数据结构和算法[5, 10]。例如，可以实现类似本章开头的链表，而在列表搜索期间不需要锁，并且在列表中插入项目只需要一个原子指令。然而，无锁编程比使用锁更加复杂；例如，必须担心指令和内存重新排序。由于锁本身就已经很难，因此 xv6 避免了无锁编程的额外复杂性。</p>
+]]></content>
+      <categories>
+        <category>OS</category>
+      </categories>
+      <tags>
+        <tag>操作系统</tag>
+        <tag>xv6</tag>
+        <tag>翻译</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>xv6 book Chapter7 中文翻译</title>
     <url>/2023/12/04/xv6%20book%20Chapter7%20%E4%B8%AD%E6%96%87%E7%BF%BB%E8%AF%91/</url>
     <content><![CDATA[<span id="more"></span>
@@ -9557,140 +9824,300 @@
       </tags>
   </entry>
   <entry>
-    <title>xv6 book Chapter6 中文翻译</title>
-    <url>/2023/12/04/xv6%20book%20Chapter6%20%E4%B8%AD%E6%96%87%E7%BF%BB%E8%AF%91/</url>
+    <title>《离散数学》：特殊的图</title>
+    <url>/2023/06/17/%E3%80%8A%E7%A6%BB%E6%95%A3%E6%95%B0%E5%AD%A6%E3%80%8B%EF%BC%9A%E7%89%B9%E6%AE%8A%E7%9A%84%E5%9B%BE/</url>
     <content><![CDATA[<span id="more"></span>
 
-<h2 id="〇、前言"><a href="#〇、前言" class="headerlink" title="〇、前言"></a>〇、前言</h2><p>本文是 <strong>xv6 book</strong> 第六章的翻译，以下将开始翻译。</p>
-<h2 id="一、（翻译）第六章-锁"><a href="#一、（翻译）第六章-锁" class="headerlink" title="一、（翻译）第六章 锁"></a>一、（翻译）第六章 锁</h2><p>大多数内核，包括 xv6，在执行多个活动时会交错执行。一个交错的来源是多处理器硬件：拥有多个独立执行的CPU的计算机，例如 xv6 的 RISC-V。这些多个CPU共享物理<strong>RAM</strong>，而 xv6 利用这种共享来维护所有CPU都可以读写的数据结构。这种共享引发了一个可能性，即一个CPU在读取数据结构时，另一个CPU可能正在更新它，甚至多个CPU可能同时更新同一数据；如果没有仔细设计这样的并行访问，很可能会产生不正确的结果或破坏数据结构。即使在单处理器上，内核也可能在多个线程之间切换CPU，导致它们的执行被交错。最后，一个设备中断处理程序修改与一些可中断代码相同的数据可能在中断发生时损坏数据，如果中断发生的时间恰好不对的话。并发一词指的是多个指令流由于多处理器的并行性、线程切换或中断而交错执行的情况。</p>
-<p>内核中充满了被并发访问的数据。例如，两个CPU可以同时调用 <strong>kalloc</strong>，从空闲列表的头部并发弹出。内核设计者喜欢允许大量并发，因为它可以通过并行性提高性能，并增加响应性。然而，结果是内核设计者花费了大量的精力来确保即使在这种并发情况下也能正确运行。有许多方法可以得到正确的代码，其中一些比其他方法更容易理解。旨在在并发情况下保持正确性的策略和支持它们的抽象称为并发控制技术。</p>
-<p>Xv6根据情况使用了许多并发控制技术，还有许多其他可能的方法。本章重点介绍了一种广泛使用的技术：锁。锁提供互斥性，确保一次只有一个CPU可以持有锁。如果程序员将每个共享数据项与一个锁相关联，并且代码在使用数据项时始终持有相关联的锁，那么该数据项将一次只被一个CPU使用。在这种情况下，我们说该锁保护了数据项。虽然锁是一种易于理解的并发控制机制，但锁的缺点是它们可能会降低性能，因为它们使并发操作串行化。本章的其余部分解释了为什么 xv6 需要锁，以及 xv6 如何实现它们以及如何使用它们。<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/c619cc3b0a8742c99c1d237741591d10_1720253703115.png?token=ANB4BCOEGKYHVX256BOFRPTGRD6UQ" alt="在这里插入图片描述"></p>
-<center><b><font size ='3'>图 6.1：简化的对称多处理器架构</font></b></center></font>
-
-<h3 id="6-1-竞争条件"><a href="#6-1-竞争条件" class="headerlink" title="6.1 竞争条件"></a>6.1 竞争条件</h3><p>举例说明为什么我们需要锁，考虑两个进程在两个不同的 CPU 上调用 <strong>wait</strong>。<strong>wait</strong> 释放子进程的内存。因此，在每个 CPU 上，内核将调用 <strong>kfree</strong> 释放子进程的页面。内核分配器维护一个链表：<code>kalloc()</code> (<code>kernel/kalloc.c</code>:69) 从空闲页面列表中取出一个页面内存，而 <code>kfree()</code> (<code>kernel/kalloc.c</code>:47) 则将一个页面推送回空闲列表。为了获得最佳性能，我们可能希望这两个父进程的 <strong>kfree</strong> 操作并行执行，而不必等待对方，但是在 xv6 的 <strong>kfree</strong> 实现中这是不正确的。</p>
-<p><strong>图 6.1</strong> 更详细地说明了这种情况：链表存在于两个 CPU 共享的内存中，这两个 CPU 使用 <strong>load</strong> 和 <strong>store</strong> 指令来操作链表。（实际上，处理器有缓存，但在概念上，多处理器系统的行为就好像有一个单一的共享内存。）如果没有并发请求，您可以按以下方式实现列表的推送操作：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">element</span> &#123;</span><br>    <span class="hljs-type">int</span> data;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">element</span> *<span class="hljs-title">next</span>;</span><br>&#125;;<br><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">element</span> *<span class="hljs-title">list</span> =</span> <span class="hljs-number">0</span>;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">push</span><span class="hljs-params">(<span class="hljs-type">int</span> data)</span> &#123;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">element</span> *<span class="hljs-title">l</span>;</span><br><br>    l = <span class="hljs-built_in">malloc</span>(<span class="hljs-keyword">sizeof</span> *l);<br>    l-&gt;data = data;<br>    l-&gt;next = <span class="hljs-built_in">list</span>;<br>    <span class="hljs-built_in">list</span> = l;<br>&#125;<br><br></code></pre></td></tr></table></figure>
-<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/520d62d15fab40e18505b9cf2073e337_1720253703115.png?token=ANB4BCJTFH525GPTHIXNXP3GRD6US" alt="在这里插入图片描述"></p>
-<center><b><font size ='3'>图 6.2：竟态示例</font></b></center></font>
-
-<p>这个实现如果单独执行是正确的。然而，如果有多个副本同时执行，那么代码就不正确了。如果两个 CPU 同时执行 <strong>push</strong>，都可能在<strong>图6.1</strong>所示的方式执行第15行，而在执行第16行之前，这将导致一个不正确的结果，正如图6.2所示。这时会有两个列表元素的 <code>next</code> 都设置为 <code>list</code> 之前的值。当在第<strong>16</strong>行发生两次赋值时，第二次赋值会覆盖第一次赋值；参与第一次赋值的元素将会丢失。</p>
-<p>第<strong>16</strong>行的丢失更新是竞争条件的一个例子。竞争条件是指同时访问内存位置的情况，其中至少有一个访问是写操作。竞争通常是一个错误的迹象，要么是丢失更新（如果访问是写操作），要么是对尚未完全更新的数据结构进行读取。竞争的结果取决于涉及的两个 CPU 的确切时序以及它们的内存操作如何被内存系统排序，这可能使由竞争引起的错误难以重现和调试。例如，在调试 <strong>push</strong> 时添加打印语句可能会改变执行的时间，足以使竞争消失。</p>
-<p>避免竞争的通常方法是使用锁。锁确保互斥，因此只有一个 CPU 可以同时执行 <strong>push</strong> 的敏感行；这使得上述场景成为不可能。上述代码的正确加锁版本仅添加了几行代码（用黄色突出显示）：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">element</span> *<span class="hljs-title">list</span> =</span> <span class="hljs-number">0</span>;<br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">lock</span> <span class="hljs-title">listlock</span>;</span>	<span class="hljs-comment">// 黄色</span><br><span class="hljs-type">void</span><br><span class="hljs-title function_">push</span><span class="hljs-params">(<span class="hljs-type">int</span> data)</span><br>&#123;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">element</span> *<span class="hljs-title">l</span>;</span><br>    l = <span class="hljs-built_in">malloc</span>(<span class="hljs-keyword">sizeof</span> *l);<br>    l-&gt;data = data;<br>    acquire(&amp;listlock);	<span class="hljs-comment">// 黄色</span><br>    l-&gt;next = <span class="hljs-built_in">list</span>;<br>    <span class="hljs-built_in">list</span> = l;<br>    release(&amp;listlock);	<span class="hljs-comment">// 黄色</span><br>&#125;<br><br></code></pre></td></tr></table></figure>
-<p><strong>acquire</strong>和<strong>release</strong>之间的指令序列通常被称为临界区。通常说锁是在保护<strong>list</strong>。</p>
-<p>当我们说锁保护数据时，我们实际上是指锁保护了一些适用于数据的不变性集合。不变性是数据结构的属性，在操作中保持不变。通常情况下，操作的正确行为取决于不变性在操作开始时是正确的。操作可能会暂时违反不变性，但必须在完成之前重新确立它们。例如，在链表的情况下，不变性是<strong>list</strong>指向链表中的第一个元素，并且每个元素的<strong>next</strong>字段指向下一个元素。<strong>push</strong>的实现暂时违反了这个不变性：在第<strong>17</strong>行，<code>l</code>指向下一个列表元素，但是<code>list</code>还没有指向<code>l</code>（在第<strong>18</strong>行重新建立）。我们上面检查的竞争条件发生是因为第二个CPU执行了依赖于列表不变性的代码，而这些不变性（暂时）被违反。正确使用锁可以确保一次只有一个CPU可以在临界区上操作数据结构，因此当数据结构的不变性不成立时，不会有CPU执行数据结构操作。</p>
-<p>你可以将锁视为串行化并发的临界区，以便一次只运行一个临界区，并因此保持不变性（假设临界区在单独的情况下是正确的）。你也可以将由同一个锁保护的临界区视为相互原子化，因此每个临界区仅看到先前临界区的完整更改集，并且永远不会看到部分完成的更新。</p>
-<p>虽然正确使用锁可以使不正确的代码变得正确，但锁限制了性能。例如，如果两个进程同时调用<strong>kfree</strong>，锁将序列化这两个调用，我们将无法从在不同CPU上运行它们中获得任何好处。我们说多个进程发生冲突，如果它们在同一时间想要相同的锁，或者说锁遇到争用。内核设计的一个主要挑战是避免锁争用。xv6做得很少，但是复杂的内核专门组织数据结构和算法，以避免锁争用。在列表示例中，内核可以为每个CPU维护一个空闲列表，并且仅在CPU的列表为空且必须从另一个CPU窃取内存时才会访问另一个CPU的空闲列表。其他使用情况可能需要更复杂的设计。</p>
-<p>锁的放置对性能也很重要。例如，将<strong>acquire</strong>移到<strong>push</strong>中更早的位置是正确的：将<strong>acquire</strong>的调用移动到第<strong>13</strong>行之前是可以的。这可能会降低性能，因为然后对<strong>malloc</strong>的调用也被序列化了。下面的“使用锁”部分提供了一些关于在何处插入<strong>acquire</strong>和<strong>release</strong>调用的指导方针。</p>
-<h3 id="6-2-代码：锁"><a href="#6-2-代码：锁" class="headerlink" title="6.2 代码：锁"></a>6.2 代码：锁</h3><p>xv6有两种类型的锁：自旋锁（<strong>spinlocks</strong>）和睡眠锁（<strong>sleep-locks</strong>）。我们首先来看自旋锁。xv6将自旋锁表示为一个<code>struct spinlock</code>（<code>kernel/spinlock.h</code>:2）。结构中的一个重要字段是<code>locked</code>，这是一个字，当锁可用时为零，被持有时为非零。从逻辑上讲，xv6应该通过执行如下代码来获取锁：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">acquire</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> spinlock *lk)</span> <span class="hljs-comment">// does not work!</span><br>&#123;<br>    <span class="hljs-keyword">for</span>(;;) &#123;<br>        <span class="hljs-keyword">if</span>(lk-&gt;locked == <span class="hljs-number">0</span>) &#123;<br>            lk-&gt;locked = <span class="hljs-number">1</span>;<br>            <span class="hljs-keyword">break</span>;<br>        &#125;<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
-
-<p>很遗憾，这个实现在多处理器上无法保证互斥性。可能会出现两个 CPU 同时到达第 <strong>25</strong> 行，发现 <code>lk-&gt;locked</code> 是零，然后都执行第 <strong>26</strong> 行抢占锁。在这一刻，两个不同的 CPU 持有了这个锁，这违反了互斥性质。我们需要的是一种方法，使得第 <strong>25</strong> 和 <strong>26</strong> 行作为一个原子（即不可分割）步骤执行。</p>
-<p>由于锁被广泛使用，多核处理器通常提供了实现第 <strong>25</strong> 和 <strong>26</strong> 行的原子版本的指令。在 RISC-V 上，这个指令是 <code>amoswap r, a</code>。<code>amoswap</code> 读取内存地址 <code>a</code> 处的值，将寄存器 <code>r</code> 的内容写入该地址，并将它读取的值放入 <code>r</code> 中。也就是说，它交换了寄存器和内存地址的内容。它使用特殊的硬件以原子方式执行这个序列，防止其他 CPU 在读取和写入之间使用这个内存地址。</p>
-<p>xv6 的 <strong>acquire</strong>（<code>kernel/spinlock.c</code>:22）使用了可移植的 C 库调用 <code>__sync_lock_test_and_set</code>，它归结为 <strong>amoswap</strong> 指令；返回值是 <code>lk-&gt;locked</code> 的旧（交换过的）内容。<code>acquire</code> 函数将交换包装在一个循环中，重复（自旋）直到获得锁。每次迭代都将一个值交换到 <code>lk-&gt;locked</code> 中并检查先前的值；如果先前的值是零，那么我们已经获得了锁，交换将把 <code>lk-&gt;locked</code> 设置为一。如果先前的值是一，那么其他一些 CPU 拥有了这个锁，而我们原子性地将一交换到 <code>lk-&gt;locked</code> 中并没有改变它的值。</p>
-<p>一旦锁被获取，<strong>acquire</strong> 为调试记录了获取锁的 CPU。<code>lk-&gt;cpu</code> 字段由锁保护，必须在持有锁的情况下才能更改。<code>release</code> 函数（<code>kernel/spinlock.c</code>:47）是 <code>acquire</code> 的反向操作：它清除 <code>lk-&gt;cpu</code> 字段，然后释放锁。从概念上讲，释放只需要将零赋给 <code>lk-&gt;locked</code>。C 标准允许编译器使用多个存储指令来实现赋值，因此 C 赋值在并发代码方面可能是非原子的。相反，<strong>release</strong> 使用 C 库函数 <code>__sync_lock_release</code> 执行原子赋值。</p>
-<h3 id="6-3-Code-Using-locks"><a href="#6-3-Code-Using-locks" class="headerlink" title="6.3 Code: Using locks"></a>6.3 Code: Using locks</h3><p>xv6 在许多地方使用锁来避免竞争条件。正如上文所述，<code>kalloc</code>（<code>kernel/kalloc.c</code>:69）和 <code>kfree</code>（<code>kernel/kalloc.c</code>:47）是一个很好的例子。尝试练习1和2，看看如果这些函数省略了锁会发生什么。你可能会发现很难触发错误行为，这表明要可靠地测试代码是否没有锁定错误和竞态条件是很困难的。不排除 xv6 存在一些竞争条件的可能性。</p>
-<p>使用锁的一个难点是决定使用多少个锁以及每个锁应该保护哪些数据和不变量。有几个基本原则。首先，每当一个变量可以由一个 CPU 写入，并且同时另一个 CPU 可以读取或写入它时，应该使用锁来防止两个操作重叠。其次，记住锁保护不变量：如果一个不变量涉及多个内存位置，通常所有这些位置都需要由一个单独的锁来保护，以确保不变量被维护。</p>
-<p>上述规则说明了何时需要锁，但没有说明何时不需要锁，而且不锁定太多对于效率来说很重要，因为锁会减少并行性。如果并行性不重要，那么可以安排只有一个线程，并且不必担心锁。一个简单的内核可以在多处理器上通过拥有一个必须在进入内核时获取并在退出内核时释放的单个锁来实现（尽管管道读取或等待等系统调用可能会带来问题）。许多单处理器操作系统已经使用这种方法转换为在多处理器上运行，有时被称为“大内核锁”，但这种方法会牺牲并行性：一次只能有一个 CPU 在内核中执行。如果内核进行任何重型计算，使用更大的、更细粒度的锁集可能会更有效，这样内核就可以在多个 CPU 上同时执行。</p>
-<p>作为粗粒度锁的例子，xv6 的 <code>kalloc.c</code> 分配器具有一个由单个锁保护的自由列表。如果不同 CPU 上的多个进程同时尝试分配页面，每个进程都将通过在 <code>acquire</code> 中旋转来等待轮到自己。旋转会降低性能，因为这不是有用的工作。如果为了锁的争用浪费了大量 CPU 时间，也许通过更改分配器设计，使用多个带有自己锁的自由列表，来允许真正并行的分配，可以提高性能。</p>
-<p>作为细粒度锁的例子，xv6 每个文件都有一个单独的锁，因此操纵不同文件的进程通常可以在不等待对方锁定的情况下继续执行。如果希望允许进程同时写入同一文件的不同区域，文件锁定方案可以被做得更细粒度。最终，锁粒度的决策需要根据性能测量以及复杂性考虑来做出。</p>
-<p>随后的章节将解释 xv6 的各个部分，并提到 xv6 处理并发性的示例。作为预览，<strong>图 6.3</strong> 列出了 xv6 中的所有锁。</p>
-<h3 id="6-4-死锁和锁定顺序"><a href="#6-4-死锁和锁定顺序" class="headerlink" title="6.4 死锁和锁定顺序"></a>6.4 死锁和锁定顺序</h3><p>如果内核中的某个代码路径必须同时持有多个锁，重要的是所有代码路径以相同的顺序获取这些锁。如果不这样做，就有发生死锁的风险。假设 xv6 中有两个代码路径需要锁 <strong>A</strong> 和 <strong>B</strong>，但是代码路径 1 按照 <strong>A</strong> 然后 <strong>B</strong> 的顺序获取锁，而另一条路径按照 <strong>B</strong> 然后 <strong>A</strong> 的顺序获取。假设线程 <strong>T1</strong> 执行代码路径 1 并获取了锁 <strong>A</strong>，线程 <strong>T2</strong> 执行代码路径 2 并获取了锁 <strong>B</strong>。接下来 T1 将尝试获取锁 <strong>B</strong>，而 <strong>T2</strong> 将尝试获取锁 <strong>A</strong>。两次获取都会无限期地阻塞，因为在两种情况下，另一个线程持有所需的锁，且在其获取返回之前不会释放。为了避免这种死锁，所有代码路径必须以相同的顺序获取锁。全局锁获取顺序的需要意味着锁实际上是每个函数规范的一部分：调用者必须以使锁按约定的顺序获取的方式调用函数。</p>
-<table>
-<thead>
-<tr>
-<th>锁</th>
-<th>描述</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>bcache.lock</td>
-<td>保护块缓冲区缓存条目的分配</td>
-</tr>
-<tr>
-<td>cons.lock</td>
-<td>序列化对控制台硬件的访问，避免混合输出</td>
-</tr>
-<tr>
-<td>ftable.lock</td>
-<td>序列化文件表中 struct file 的分配</td>
-</tr>
-<tr>
-<td>icache.lock</td>
-<td>保护 inode 缓存条目的分配</td>
-</tr>
-<tr>
-<td>vdisk_lock</td>
-<td>序列化对磁盘硬件和 DMA 描述符队列的访问</td>
-</tr>
-<tr>
-<td>kmem.lock</td>
-<td>序列化内存分配</td>
-</tr>
-<tr>
-<td>log.lock</td>
-<td>序列化对事务日志的操作</td>
-</tr>
-<tr>
-<td>pipe’s pi-&gt;lock</td>
-<td>序列化对每个管道的操作</td>
-</tr>
-<tr>
-<td>pid_lock</td>
-<td>序列化对 next_pid 的增量操作</td>
-</tr>
-<tr>
-<td>proc’s p-&gt;lock</td>
-<td>序列化对进程状态的更改</td>
-</tr>
-<tr>
-<td>tickslock</td>
-<td>序列化对计时器 ticks 的操作</td>
-</tr>
-<tr>
-<td>inode’s ip-&gt;lock</td>
-<td>序列化对每个 inode 及其内容的操作</td>
-</tr>
-<tr>
-<td>buf’s b-&gt;lock</td>
-<td>序列化对每个块缓冲区的操作</td>
-</tr>
-</tbody></table>
-<center><b><font size ='3'>图 6.3：xv6 中的锁</font></b></center></font>
-
-
-<p>xv6 中涉及进程锁（每个 <code>struct proc</code> 中的锁）的长度为两的锁定顺序链非常多，这是因为 <strong>sleep</strong> 的工作方式（参见第 7 章）。例如，<code>consoleintr</code>（<code>kernel/console.c</code>:138）是处理输入字符的中断例程。当新行到达时，任何等待控制台输入的进程都应该被唤醒。为了做到这一点，<strong>consoleintr</strong> 在调用 <strong>wakeup</strong> 时持有 <strong>cons.lock</strong>，后者获取等待进程的锁以唤醒它。因此，全局避免死锁的锁定顺序包括一个规则，即在获取任何进程锁之前必须获取 <strong>cons.lock</strong>。文件系统代码包含了 xv6 最长的锁链。例如，创建文件需要同时持有目录锁、新文件的 <strong>inode</strong> 锁、磁盘块缓冲区的锁、磁盘驱动程序的 <strong>vdisk_lock</strong> 和调用进程的 <strong>p-&gt;lock</strong>。为避免死锁，文件系统代码始终按照前文提到的顺序获取锁。</p>
-<p>遵循全局避免死锁的顺序可能会出人意料地困难。有时锁定顺序与逻辑程序结构冲突，例如，可能代码模块 <strong>M1</strong> 调用模块 <strong>M2</strong>，但是锁定顺序要求在 <strong>M1</strong> 中的某个锁在 <strong>M2</strong> 之前获取。有时锁的身份事先不知道，也许是因为必须持有一个锁才能发现下一个要获取的锁的身份。这种情况在文件系统中查找路径名中的连续组件时以及 <strong>wait</strong> 和 <strong>exit</strong> 的代码中可能出现，因为它们在进程表中搜索子进程。</p>
-<p>最后，避免死锁的危险通常限制了锁定方案的粒度，因为更多的锁通常意味着更多的死锁可能性。避免死锁的需求通常是内核实现的一个主要因素。</p>
-<h3 id="6-5-锁和中断处理程序"><a href="#6-5-锁和中断处理程序" class="headerlink" title="6.5 锁和中断处理程序"></a>6.5 锁和中断处理程序</h3><p>一些 xv6 自旋锁保护着同时被线程和中断处理程序使用的数据。例如，<strong>clockintr</strong> 定时器中断处理程序可能会在大约相同的时间内增加 <code>ticks</code>（<code>kernel/trap.c</code>:163），而内核线程在 <code>sys_sleep</code>（<code>kernel/sysproc.c</code>:64）中读取<code> ticks</code>。锁 <code>tickslock</code> 串行化了这两个访问。</p>
-<p>自旋锁和中断的交互引发了潜在的危险。假设 <code>sys_sleep</code> 持有 <strong>tickslock</strong>，并且它的 CPU 被定时器中断打断。<strong>clockintr</strong> 将尝试获取 <strong>tickslock</strong>，发现它被持有，并等待释放。在这种情况下，<strong>tickslock</strong> 将永远不会被释放：只有 <strong>sys_sleep</strong> 可以释放它，但是 <strong>sys_sleep</strong> 不会继续运行直到 <strong>clockintr</strong> 返回。所以 CPU 会发生死锁，并且任何需要这两个锁的代码也会被冻结。</p>
-<p>为了避免这种情况，如果自旋锁被中断处理程序使用，CPU 不能在启用中断的情况下持有该锁。Xv6 更加保守：当一个 CPU 获取任何锁时，xv6 总是在该 CPU 上禁用中断。中断仍然可能发生在其他 CPU 上，因此中断的获取可以等待线程释放自旋锁，但不能在同一个 CPU 上。</p>
-<p>当 CPU 不持有自旋锁时，xv6 会重新启用中断；它必须做一些书面工作来应对嵌套的关键部分。<strong>acquire</strong> 调用 <code>push_off</code>（<code>kernel/spinlock.c</code>:89）和 <code>release</code> 调用 <code>pop_off</code>（<code>kernel/spinlock.c</code>:100）来跟踪当前 CPU 上锁的嵌套级别。当计数达到零时，<code>pop_off</code> 将恢复最外层关键部分开始时存在的中断使能状态。<code>intr_off</code> 和 <code>intr_on</code> 函数执行 RISC-V 指令来分别禁用和启用中断。</p>
-<p><strong>acquire</strong> 在设置 <code>lk-&gt;locked</code>（<code>kernel/spinlock.c</code>:28）之前严格调用 <code>push_off</code> 是很重要的。如果两者颠倒了，会存在一个短暂的窗口期，在这个时段锁被持有但中断被启用，一个不幸时机的中断会使系统发生死锁。同样地，<strong>release</strong> 在释放锁之后（<code>kernel/spinlock.c</code>:66）才调用 <code>pop_off</code> 也是很重要的。</p>
-<h3 id="6-6-指令和内存排序"><a href="#6-6-指令和内存排序" class="headerlink" title="6.6 指令和内存排序"></a>6.6 指令和内存排序</h3><p>我们自然地认为程序按照源代码语句的顺序执行。然而，许多编译器和 CPU 为了提高性能会乱序执行代码。如果一条指令需要很多周期才能完成，CPU 可能会提前发出该指令，这样可以与其他指令重叠执行，避免 CPU 停顿。例如，CPU 可能注意到在一个指令序列中，指令 <strong>A</strong> 和 <strong>B</strong> 之间没有相互依赖。CPU 可能先开始执行指令 <strong>B</strong>，要么是因为它的输入在指令 A 的输入之前就准备好了，要么是为了重叠执行 <strong>A</strong> 和 <strong>B</strong>。编译器也可以通过发出某个语句的指令来重排序，这些指令会比源代码中紧随其后的语句的指令更早地执行。</p>
-<p>当编译器和 CPU 重新排序时，它们会遵循规则，以确保不改变正确编写的串行代码的结果。然而，这些规则允许对并发代码进行更改，很容易在多处理器上导致不正确的行为 [2, 3]。CPU 的排序规则被称为内存模型。</p>
-<p>例如，在这段 <strong>push</strong> 代码中，如果编译器或 CPU 将与第 4 行相对应的存储移动到第 6 行的释放操作之后，那将是一个灾难：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c">l = <span class="hljs-built_in">malloc</span>(<span class="hljs-keyword">sizeof</span> *l);<br>l-&gt;data = data;<br>acquire(&amp;listlock);<br>l-&gt;next = <span class="hljs-built_in">list</span>;<br><span class="hljs-built_in">list</span> = l;<br>release(&amp;listlock);<br></code></pre></td></tr></table></figure>
-
-<p>如果发生这样的重排序，就会存在一个时间窗口，另一个 CPU 可以获取锁并观察到已更新的列表，但是看到了未初始化的 <code>list-&gt;next</code>。</p>
-<p>为了告诉硬件和编译器不要执行这种重新排序，xv6 在 <code>acquire</code>（<code>kernel/spinlock.c</code>:22）和 <code>release</code>（<code>kernel/spinlock.c</code>:47）中使用了 <code>__sync_synchronize()</code>。<code>__sync_synchronize()</code> 是一个内存屏障：它告诉编译器和 CPU 在屏障之间不要重新排序加载或存储操作。xv6 中 <strong>acquire</strong> 和 <strong>release</strong> 中的屏障在几乎所有重要情况下都强制排序，因为 xv6 在访问共享数据时使用了锁。第9章讨论了一些例外情况。</p>
-<h3 id="6-7-休眠锁"><a href="#6-7-休眠锁" class="headerlink" title="6.7 休眠锁"></a>6.7 休眠锁</h3><p>有时，xv6 需要长时间持有锁。例如，文件系统（第 8 章）在读写磁盘上的内容时会保持文件锁定，而这些磁盘操作可能需要数十毫秒的时间。如果长时间持有自旋锁，另一个进程想要获取它时会导致资源浪费，因为获取进程在自旋等待期间会长时间占用 CPU。自旋锁的另一个缺点是，进程在保持自旋锁的同时无法让出 CPU；我们希望这样做，这样其他进程可以在拥有锁的进程等待磁盘时使用 CPU。在持有自旋锁的同时放弃 CPU 控制是不允许的，因为如果第二个线程尝试获取自旋锁，这可能导致死锁；由于 <strong>acquire</strong> 操作不会让出 CPU，第二个线程的自旋可能会阻止第一个线程运行并释放锁。在持有锁的同时放弃 CPU 控制也会违反自旋锁持有期间必须关闭中断的要求。因此，我们希望有一种在等待获取锁时放弃 CPU 控制，并且在持有锁期间允许放弃 CPU 控制（和中断）的锁类型。</p>
-<p>xv6 提供了这种锁，称为休眠锁。<strong>acquiresleep</strong>（<code>kernel/sleeplock.c</code>:22）在等待期间放弃 CPU 控制，使用的技术将在第 7 章中解释。在高层次上，休眠锁有一个由自旋锁保护的 <code>locked</code> 字段，并且 <strong>acquiresleep</strong> 的调用在原子操作中放弃了 CPU 控制并释放了自旋锁。结果是，<strong>acquiresleep</strong> 在等待期间其他线程可以执行。</p>
-<p>因为休眠锁允许中断，所以它们不能在中断处理程序中使用。因为 <strong>acquiresleep</strong> 可能放弃 CPU 控制，所以不能在自旋锁关键区域内使用休眠锁（尽管自旋锁可以在休眠锁关键区域内使用）。</p>
-<p>自旋锁最适用于短期关键区域，因为等待它们会浪费 CPU 时间；而休眠锁适用于长时间操作。</p>
-<h3 id="6-8-现实世界"><a href="#6-8-现实世界" class="headerlink" title="6.8 现实世界"></a>6.8 现实世界</h3><p>尽管对并发原语和并行性进行了多年的研究，但使用锁进行编程仍然具有挑战性。通常最好将锁隐藏在诸如同步队列之类的更高级别结构内，尽管 xv6 没有这样做。如果您使用锁进行编程，最好使用一种工具来尝试识别竞态条件，因为很容易忽略需要锁定的不变量。大多数操作系统支持 <strong>POSIX</strong> 线程（<strong>Pthreads</strong>），它允许用户进程在不同 CPU 上并发运行多个线程。</p>
-<p><code>Pthreads</code> 支持用户级别的锁、屏障等。支持 <code>Pthreads</code> 需要操作系统的支持。例如，如果一个 <code>pthread</code> 在系统调用中阻塞，同一进程的另一个 <code>pthread</code> 应该能够在该 CPU 上运行。另一个例子是，如果一个 <code>pthread</code> 改变了其进程的地址空间（例如，映射或取消映射内存），内核必须安排其他运行同一进程线程的 CPU 更新其硬件页表，以反映地址空间的更改。</p>
-<p>有可能实现没有原子指令的锁，但这是昂贵的，大多数操作系统使用原子指令。</p>
-<p>如果许多 CPU 尝试在同一时间获取相同的锁，则锁可能很昂贵。如果一个 CPU 在其本地缓存中缓存了一个锁，而另一个 CPU 必须获取该锁，则用于更新保存锁的缓存行的原子指令必须将该行从一个 CPU 的缓存移动到另一个 CPU 的缓存，并可能使任何其他缓存行的副本无效。从另一个 CPU 的缓存中获取缓存行的成本可能比从本地缓存中获取的成本高出几个数量级。</p>
-<p>为了避免与锁相关的费用，许多操作系统使用无锁数据结构和算法[5, 10]。例如，可以实现类似本章开头的链表，而在列表搜索期间不需要锁，并且在列表中插入项目只需要一个原子指令。然而，无锁编程比使用锁更加复杂；例如，必须担心指令和内存重新排序。由于锁本身就已经很难，因此 xv6 避免了无锁编程的额外复杂性。</p>
+<h2 id="〇、前言"><a href="#〇、前言" class="headerlink" title="〇、前言"></a>〇、前言</h2><p>这一节会重点讨论一下一些<strong>特殊的图</strong>，这些图会解决一些特殊的问题。</p>
+<h2 id="一、欧拉图"><a href="#一、欧拉图" class="headerlink" title="一、欧拉图"></a>一、欧拉图</h2><p>给定无向连通图 G，若存在一条路经过 G 中每边一次且仅一次，则该路为欧拉路。若存在一条回路经过 G 中每边一次且仅一次，则该回路称为欧拉回路。</p>
+<ul>
+<li>具有欧拉路的图称为<strong>半欧拉图</strong>。</li>
+<li>具有欧拉回路的图称为<strong>欧拉图</strong>。</li>
+</ul>
+<h3 id="1、（半）欧拉图的判定"><a href="#1、（半）欧拉图的判定" class="headerlink" title="1、（半）欧拉图的判定"></a>1、（半）欧拉图的判定</h3><p>这些判定很简单，我们可以找一个<strong>欧拉图</strong>的充要条件：<strong>G的所有结点的度数都是偶数</strong>。<br>同样，我们也可以找一个<strong>半欧拉图</strong>的充要条件：<strong>连通图 G 具有一条连接顶点 u 和 v 的欧拉通路当且仅当 u 和 v 是 G 中仅有的奇数度顶点</strong>。</p>
+<h3 id="2、有向（半）欧拉图"><a href="#2、有向（半）欧拉图" class="headerlink" title="2、有向（半）欧拉图"></a>2、有向（半）欧拉图</h3><p>一个<strong>连通有向图</strong>具有（单向）<strong>欧拉回路</strong>的充要条件是<em><strong>图中每个结点的入度等于出度</strong></em>。<br> 一个<strong>连通有向图</strong>具有<strong>单向欧拉路</strong>的充要条件是<em><strong>最多除两个结点外的每个结点的入度等于出度，但在这两个结点中，一个结点的入度比出度大1，另一个结点的入度比出度少1</strong></em>。</p>
+<h3 id="3、应用欧拉回路的一个经典例子：中国邮递员问题"><a href="#3、应用欧拉回路的一个经典例子：中国邮递员问题" class="headerlink" title="3、应用欧拉回路的一个经典例子：中国邮递员问题"></a>3、应用欧拉回路的一个经典例子：中国邮递员问题</h3><p>问题是这样叙述的：邮递员从邮局出发，走遍他负责的街区投递邮件，最后回到邮局。问如何走才能使他走的路最短？<br>从图论的观点来看，该问题就是：<strong>给定一个带权无向图，其中每条边的权为非负实数，求每条边至少经过一次的最短回路</strong>。<br>这个问题是我国管梅谷教授1962年提出的，故被称为中国邮递员问题。</p>
+<p>注意：<em><strong>每条边至少走一遍，可以走多遍，只要遍历完后路程最短就是该问题的解。</strong></em></p>
+<p>邮递员负责的街区如下图所示，长度单位是百米，邮局位于 a 处。试设计邮递员的最短投递路线：</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/d55bfe974cf8406c9bed4b8f5c988d79_1720253746882.png?token=ANB4BCLLCNTV7EDOMQURXCTGRD6XI" alt="在这里插入图片描述"><br>解：如果图中有欧拉回路，显然<strong>欧拉回路就是最短</strong>的投递路线。<br>图中有 4 个奇数度顶点b, c, e, j，<strong>不存在欧拉回路，因此邮递员必须重复走某些边</strong>。<br>为此，只需把 4 个奇数度顶点<strong>分成两对</strong>，在每对顶点之间沿着某些<strong>路重复走一遍，要求重复走的路线最短，以使投递的路线最短</strong>。这样就得到了解：</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/af8ae74992954cad9dc7204e3ec39bdb_1720253746882.png?token=ANB4BCKLM3SRN5SSRYD6YVTGRD6XK" alt="在这里插入图片描述"></p>
+<h2 id="二、哈密尔顿图"><a href="#二、哈密尔顿图" class="headerlink" title="二、哈密尔顿图"></a>二、哈密尔顿图</h2><p>和欧拉图类似，人们想要寻找一个能<strong>同时遍历图中所有结点，且只遍历一次的回路</strong>。如果该回路存在，那么就是一个哈密尔顿图。看起来很简单，其实<strong>哈密尔顿图比欧拉图复杂得多</strong>，完全不是一个等级。</p>
+<p>1859年英国数学家威廉-汉密尔顿图爵士发明了一个小玩具，这个小玩具是一个木刻的<strong>正十二面体</strong>，每面系正五角形，共有20个顶点，每个顶点标有世界上一个重要城市。他提出一个问题：<strong>要求沿正十二面体的边寻找一条路通过20个城市，而每个城市只通过一次，最后返回原地</strong>。</p>
+<p>事实上，任何一个凸多面体都能“平铺”在平面上，并形成一个“<strong>平面图</strong>”。</p>
+<p>汉密尔顿问题既应用广泛又具有实际价值。</p>
+<p><strong>若给无向图的每一条边带上不同的权重，问题又转化为在多条路线中寻找最优路线使得既能实现遍游，又代价最小的最优化问题</strong>。</p>
+<p>结果不唯一：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/637ba6d4023f4f6f95161a3d1957b27b_1720253754080.png?token=ANB4BCLR3VT7PMXO2NIDBKLGRD6XQ" alt="在这里插入图片描述"><br> 严格的定义：给定图G，若有一条路通过 G 中每个顶点恰好一次，则这样的路称为汉密尔顿路； 若有一个圈，通过 G 个每个顶点恰好一次，这样的圈称为<strong>汉密尔顿回路</strong>（或汉密尔顿圈）。 具有汉密尔顿路的图称为<strong>半汉密尔顿图</strong>。具有汉密尔顿回路的图称为<strong>汉密尔顿图</strong>。</p>
+<h3 id="1、哈密尔图的判定"><a href="#1、哈密尔图的判定" class="headerlink" title="1、哈密尔图的判定"></a>1、哈密尔图的判定</h3><p>但是到目前为止还<strong>找不到一个图为汉密尔顿图的充要条件</strong>，寻找该充要条件仍是图论中尚未解决的主要问题之一。下面先给出一个简单而有用的必要条件：<br>定理一：<strong>设图G＝〈V ,E〉是汉密尔顿图， 则对于V 的每个非空子集 S，  均有 W(G－S )≤|S| 。</strong></p>
+<p>这个定理是在说，对于哈密尔顿图 G，如果删去结点集合 S，那么形成的子图的个数（连通分支）一定少于删去的点集数目。</p>
+<p>推论  <strong>设图G＝〈V ,E〉是半哈密顿图， 则对于V 的每个非空子集 S，均有 P(G－S )≤|S|+1。</strong></p>
+<p>比如：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/173977e7b6fe4eb594d4e8880fbe300e_1720253754080.png?token=ANB4BCLZNWSR4Z6UUC3IZDLGRD6XS" alt="在这里插入图片描述"><br>若取<code>S＝&#123;v1, v4&#125;</code>，则<code>G－S</code> 有<code>3</code>个连通分支故，该图不是哈密顿图。</p>
+<p>因为这是一个必要条件，即 <strong>P-&gt;Q</strong>，那么我们是能通过<strong>非 Q -&gt;非 P</strong>，来<strong>证明一个图不是哈密尔顿图</strong>，即只能用来证否。因此如果一个图满足 Q，那么它什么都不能证明。</p>
+<p>比如<strong>彼得森图</strong>：任意删除 1 个顶点或者 2 个顶点都连通，任意删除 3 个顶点最多产生两个连通分支。可以进行实验，彼得森图总能满足：W(G－S )≤|S|。</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/4414871a83dc4ffb9aa88d2ae26cb3ef_1720253754080.png?token=ANB4BCIBHTQ4IZJRW2WIZJDGRD6XU" alt="在这里插入图片描述"><br><strong>该定理不能证明彼得森图是哈密尔顿图，实际上彼得森图不是哈密尔顿图。</strong></p>
+<h3 id="2、哈密尔顿图的充分条件"><a href="#2、哈密尔顿图的充分条件" class="headerlink" title="2、哈密尔顿图的充分条件"></a>2、哈密尔顿图的充分条件</h3><p>定理：设 <code>G＝〈V ,E〉</code>是有 n 个结点的简单图，</p>
+<ul>
+<li>(1) 如果任两结点u，v∈V， 均有<code>deg(u)＋deg(v)≥ n－1</code>，则在G中存在一条哈密尔顿路；</li>
+<li>(2) 如果对任两结点u，v∈V， 均有<code>deg(u)＋deg(v)≥ n</code>，则G是哈密尔顿图。</li>
+</ul>
+<p>这些是<strong>充分条件</strong>，即 P-&gt;Q，但是<strong>非P</strong> 什么都推不出来。</p>
+<p>例1： 某地有5个风景点。若每个景点均有两条道路与其他景点相通，问是否可经过每个景点恰好一次而游完这5处？</p>
+<blockquote>
+<p>解   将景点作为结点，道路作为边，则得到一个有5个结点的无向图。<br>由题意，对每个结点vi，有deg(vi)＝2（i∈N5）。<br>则对任两点vi，vj（i，j∈N5）均有<br>                deg(vi)＋deg(vj)＝2＋2＝4＝5－1<br>可知此图一定有一条汉密尔顿路，本题有解。</p>
+</blockquote>
+<p>例 2：考虑在七天内安排七门课程的考试，使得同一位老师所任的<strong>两门课程的考试不排在接连的两天</strong>中，试证明如果没有老师担任多于四门课程，则符合上述要求的考试安排总是可能的。</p>
+<blockquote>
+<p>如果一个老师担任了四门课，那么显然可以满足要求；但是如果一个老师担任了 5 门课以及以上的课程，那么7 天中至少有两门课相邻，不符合要求。那么怎么用图论来解决呢？</p>
+</blockquote>
+<blockquote>
+<p>假设 A 老师担任了四门课，每个顶点的度数至少是3，任意两个顶点的度数至少是6，故存在哈密顿路：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/93c7c11e45bb4a7e93d40f4a3bdbdb55_1720253754080.png?token=ANB4BCO6GFXH2WCFH23KTCLGRD6XW" alt="在这里插入图片描述"><br>假设 A 老师担任了五门课，每个顶点的度数至少是2，任意两个顶点的度数至少是4，4 &lt; 6，故不存在哈密顿路：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/f3e5c818711640e1a5cfed9b46d97799_1720253754080.png?token=ANB4BCOBXU5RYGMZ33UR2ILGRD6XY" alt="在这里插入图片描述"></p>
+</blockquote>
+<p>例3：货郎担问题</p>
+<blockquote>
+<p>作为汉密尔顿回路的自然推广是著名的货郎担问题。问题是这样叙述的：设有一个货郎，从他所在的城镇出发去n-1个城镇。要求经过每个城镇恰好一次，然后返回原地，问他的旅行路线怎样安排才最经济？从图论的观点来看，该问题就是：<strong>在一个带权完全图中找一条权最小的汉密尔顿回路</strong>。</p>
+</blockquote>
+<p>解答：</p>
+<blockquote>
+<p>根据上面的充分性定理，完全图一定是一个哈密尔顿图。<br>因此步骤如下：<br>(1)由任意选择的结点开始，找与该点最靠近（即权最小）的点， 形成有一条边的初始路径。<br>(2)设x表示最新加到这条路上的结点，从不在路上的所有结点中选一个与x最靠近的结点， 把连接x与这一结点的边加到这条路上。重复这一步，直到G中所有结点包含在路上。<br>(3)将连接起始点与最后加入的结点之间的边加到这条路上，就得到一个圈，即为问题的近似解。<br>遗憾的是，这个方法得到的并不是最小回路，因为贪心法在这个问题中并不能得到最值。</p>
+</blockquote>
+<p>以上就是哈密尔顿图的一些讨论。</p>
+<h2 id="三、二分图"><a href="#三、二分图" class="headerlink" title="三、二分图"></a>三、二分图</h2><p>二分图的概念很简单，本质上来说，这就是在研究图与图之间的关系。</p>
+<h3 id="1、二分图的判定"><a href="#1、二分图的判定" class="headerlink" title="1、二分图的判定"></a>1、二分图的判定</h3><p>定理： 一个无向图 G 是二分图，<strong>当且仅当</strong> G 中所有回路的长度均为<strong>偶数</strong>。这是一个充要条件，因此判断起来就很简单。</p>
+<h3 id="2、匹配问题"><a href="#2、匹配问题" class="headerlink" title="2、匹配问题"></a>2、匹配问题</h3><p>定义：  无向图 G&#x3D;&lt;V，E&gt; ，M 为 E 的子集。若 M 中任意两条边都不相邻，则称 M 为 E 中的匹配。若 M 中再添加任意一条边就不是 G 中的匹配了，则称 M 为<strong>极大匹配</strong>。边数最多的匹配称为<strong>最大匹配</strong>，<strong>最大匹配中边的条数称为 G 的匹配数</strong>。其中，M 中的点就是<strong>饱和点</strong>，若 G 中每个结点都是M饱和点，则称 M 为<strong>完美匹配</strong>。</p>
+<p>鉴于此，有以下结论：</p>
+<ul>
+<li>（1）极大匹配不是任何其它匹配的子集。</li>
+<li>（2）一个图的极大匹配可能是不唯一的。</li>
+<li>（3）一个图的最大匹配可能是不唯一的。</li>
+<li>（4）每个最大匹配都是极大匹配，反之不真。</li>
+<li>（5）在完美匹配中，图    中的每个结点都关联匹配中的一条边。</li>
+<li>（6）如果图    存在完美匹配，则图    的匹配数为图    的阶数的一半，且图    为偶数阶。</li>
+<li>（7）每一个完美匹配都是最大匹配，反之不真。</li>
+</ul>
+<h3 id="3、完备匹配"><a href="#3、完备匹配" class="headerlink" title="3、完备匹配"></a>3、完备匹配</h3><p>定义：设  $G&#x3D;&lt;V_1,V_2,E&gt;$ 是一个二分图，|V1| $\le$ |V2|，M为 G 的一个最大匹配，若|M| &#x3D; |V1|，则M 为G 中V1 到V2 的<strong>完备匹配</strong>。如果|V2| &#x3D; |V1|，那么就是<strong>完备匹配</strong>。</p>
+<p>一个<strong>充要条件</strong>（相异性条件）： $G&#x3D;&lt;V_1,V_2,E&gt;$ 是一个二分图，|V1| $\le$ |V2|，   $G$中存在$V_1$到 $V_2$ 的完备匹配当<strong>且仅当</strong> $V_1$ 中任何k个结点至少邻接$V_2$中的k个结点。</p>
+<p>一个<strong>充分条件</strong>：设二分图 $G&#x3D;&lt;V_1,V_2,E&gt;$ ，如果存在 $t&gt;0$，使得：</p>
+<ul>
+<li>(1)   中每个结点至少关联  条边；</li>
+<li>(2)   中每个结点至多关联  条边。</li>
+</ul>
+<p>则$G$中存在$V_1$到$V_2$的完备匹配。</p>
+<p>例1：</p>
+<blockquote>
+<p>某学校有3个课外小组：物理组、化学组、生物组。有张、王、李、赵、陈5名同学。问在以下3种情况下能否选出3名不兼任的组长？<br>已知： 张、王为物理组成员，张、李、赵为化学组成员，李、赵、陈为生物组成员；</p>
+</blockquote>
+<p>解答：</p>
+<blockquote>
+<p>设$V_1，V_2，V_3，V_4，V_5$分别表示张、王、李、赵、陈5名同学。$U_1，U_2，U_3$ 分别表示物理组、化学组、生物组。<br>这个问题就可以转化为，二分图中 $G&lt;V，U，E&gt;$ 是否存在一个 U到 V 的完备匹配。<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/7b976798c551432d9b5a1aaa86e45f9c_1720253760767.png?token=ANB4BCJS3LEVKOV63FYW4Q3GRD6X2" alt="在这里插入图片描述"><br>答案是显然。</p>
+</blockquote>
+<h2 id="四、平面图"><a href="#四、平面图" class="headerlink" title="四、平面图"></a>四、平面图</h2><p>平面图是一种很特殊的图，并且很具有应用的价值，比如设计单层电路板的时候，为了减少感抗、电感等，就使得电器原件之间的走线成为一个平面图。</p>
+<p><strong>定义</strong>：  设图 $G＝〈V ,E〉$是一个无向图，如果能把图 G 的所有结点和边画在平面上，且使得任何两条边除了端点外<strong>没有其它的交点</strong>，就称图G是一个平面图，否则称图G为<strong>非平面图</strong>。</p>
+<p>以下两个图为最简单的非平面图：$K_3,_3$<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/e883ea8546b4405cafcaa7459c0e1d4e_1720253760767.png?token=ANB4BCOV4N4OYSLKFYJWWOTGRD6X6"><br>$K_5$:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/810e48b84d3b47c3aaa4a4a2f865ebef_1720253760767.png?token=ANB4BCNPE2K3VGJ35M65XUDGRD6YA" alt="在这里插入图片描述"><br>前者是<strong>变数最少</strong>的非平面图，后者是<strong>点数最少</strong>的非平面图，这两个图也是<strong>最基本</strong>的非平面图。称为<strong>Kuratowski图</strong>。</p>
+<p>定义：设G是一个平面图，由G的边所包围的区域（其内部不包含图的结点，也不包含图的边）称为G的一个<strong>面</strong>(Facet)，包围一个面$r$的所有边所组成的回路称面$r$的边界，边界的长度称为该面的次数，记为$deg(r)$。如果面的面积有限，则称该面为<strong>有限面</strong>，否则称为<strong>无限面</strong>。如果两个面的边界<strong>至少</strong>有一条公共边，则称这两个面是<strong>相邻</strong>的，否则是不相邻的。</p>
+<p>定理：<strong>一个有限平面图G&#x3D;〈V，E〉，面的次数之和等于其边数的两倍</strong>。</p>
+<p>定理（Euler定理)：<strong>设图G是连通平面图，有v个结点e条边和r个面，则Euler公式 $v-e+r&#x3D;2$  成立。</strong></p>
+<p>欧拉公式是凸多面体的公式，为什么能用在这里？</p>
+<blockquote>
+<p>前面说了，任何一个凸多面体都能铺在平面上，并且在平面上形成的是一个平面图，而且，任何一个平面图，只要满足了一些<strong>基本条件</strong>都一定能映射出一个凸多面体。不满足<strong>基本条件</strong>的平面图，人们发现它们恰好也是满足欧拉公式的，因此欧拉公式就能用在平面图上了~</p>
+</blockquote>
+<p>关于映射：</p>
+<p>对于任何一个平面图（Planar Graph），<strong>并不一定</strong>能够映射出一个凸多面体（Convex Polyhedron）。</p>
+<p>虽然平面图可以在平面上进行绘制，其中顶点由点表示，边由线段表示，并且没有边交叉，但<strong>并非所有的平面图都能对应到一个凸多面体</strong>。</p>
+<p>为了能够映射出一个凸多面体，平面图需要满足一些特定的性质，即<strong>必须是一个平面图的特例</strong>，称为平面图的<strong>平面嵌入</strong>（Planar Embedding）。</p>
+<p>一个平面嵌入要求满足以下条件：</p>
+<ul>
+<li>图的边不能交叉。</li>
+<li>每个面都是一个多边形，包括外部的无限面。</li>
+<li>每个面的边界由一条简单封闭曲线组成。</li>
+<li>每个面的边界经过的顶点和边都是连续的，没有间断。</li>
+</ul>
+<p>在平面图的<strong>平面嵌入满足上述条件</strong>的情况下，可以使用多种算法将平面图转换为凸多面体，例如使用<strong>凸包算法</strong>（Convex Hull Algorithm）或<strong>平面图嵌入算法</strong>（Planar Embedding Algorithm）。</p>
+<p>定理：Euler公式的推广形式：对于任何具有p个连通分支的平面图，有 $v-e+r&#x3D;p+1$。</p>
+<p>定理：设图$G$是有 $v$ 个结点 $e$ 条边的<strong>连通简单平面图</strong>，若 $v≥3$，则 $e≤3v-6$。</p>
+<blockquote>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/b463fe37eab14442b2d6dee834c680a5_1720253760767.png?token=ANB4BCLEBR73SAZJ6A3GMSLGRD6YC" alt="在这里插入图片描述"></p>
+</blockquote>
+<p>注意：</p>
+<ul>
+<li><strong>以上只是连通平面图的必要条件，即 $P-&gt;Q$，只能用来证否</strong>；</li>
+<li>当结点数和边数较多时，应用Euler公式等判别一个图是非平面图会相当困难。</li>
+</ul>
+<p>因此，1930年，Kuratowski给出了判断一个图为平面图的<strong>充要条件</strong>，这极大地推动了平面图的研究。</p>
+<p>定义：给定两图G1和G2，如果它们是同构的，或者通过<strong>反复插入或除去度数为2</strong>的结点，使<strong>G1和G2</strong>同构，则称G1和G2是在2度<strong>结点内同构</strong>的（或称G1和G2<strong>同胚</strong>）。</p>
+<p>例如以下两组图都是<strong>同胚</strong>的：</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/3d5df69b194d4c7fb7dc41c1048e60fd_1720253760767.png?token=ANB4BCOSP2ZFXUBYKCPUKKLGRD6YG" alt="在这里插入图片描述"></p>
+<p><strong>充要条件</strong>：一个图是平面图的充要条件是它不包含与$K_3,_3$ 或 $K_5$同胚的子图。</p>
+<p>一般地，判定图G是否为平面图的<strong>步骤</strong>如下：</p>
+<ul>
+<li>①若$e&lt;9或v&lt;5$，则G是平面图；如果$e&gt;3v-6$，则G是非平面图；</li>
+<li>②如果 G 是不连通的，则分别检测每个分图；当且仅当每个分图都是平面图时，G是平面图；</li>
+<li>③如果G中存在割点，可把图G的割点删除，构成若干个不含割点的连通子图。显然，G是平面图当且仅当每个连通子图是平面图；</li>
+<li>④移去自回路；</li>
+<li>⑤否则利用Kuratowski定理检测，或尝试看能否画一个相应的边不相交的图解；</li>
+<li>⑥移去平行边。</li>
+<li>反复运用⑤ 和⑥，并结合①进行检测。</li>
+</ul>
+<p><em><strong>以上就是关于几种常见特殊的图的讨论，全文完，感谢阅读。</strong></em></p>
 ]]></content>
       <categories>
-        <category>OS</category>
+        <category>离散数学</category>
       </categories>
       <tags>
-        <tag>操作系统</tag>
-        <tag>xv6</tag>
-        <tag>翻译</tag>
+        <tag>图论</tag>
+        <tag>离散数学</tag>
+        <tag>特殊的图</tag>
+        <tag>数学</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>《离散数学》：逻辑</title>
+    <url>/2023/06/14/%E3%80%8A%E7%A6%BB%E6%95%A3%E6%95%B0%E5%AD%A6%E3%80%8B%EF%BC%9A%E9%80%BB%E8%BE%91/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="〇、前言"><a href="#〇、前言" class="headerlink" title="〇、前言"></a>〇、前言</h2><p><strong>离散数学</strong>是数学的一个分支，研究<strong>离散对象</strong>和<strong>离散结构</strong>的数学理论和方法。这学期学校开了离散数学的课程，我受益颇丰，感觉到了离散数学真正的魅力，也被开创离散数学各个分支的人的聪明与才智深深折服。与连续数学不同，离散数学关注的是<strong>离散的</strong>、<strong>离散化的数学对象</strong>，而不是连续的数值或函数。离散数学关注<strong>更多</strong>的是研究对象之间的关系或者对象之间的组织结构，甚至结合线性代数来完成一系列计算。</p>
+<p>我印象最深的一些内容是关于<strong>关系</strong>的研究，在研究关系时，里面大量应用了线性代数中矩阵的知识。究其原因，是因为矩阵运算与关系运算达到了很深的<strong>耦合</strong>，因此可以利用矩阵运算的结果来解释关系运算的结果。但是矩阵的其它性质，比如<strong>特征值、秩、特征向量、特征空间</strong>等，在关系运算中<strong>没有</strong>明确的意义，我想，这应该是可以继续深入研究的，并且<strong>一定</strong>会有某种结果。</p>
+<p>离散数学中有大量的公式，但是在这篇博客中，我尽量使用最少的公式来发表自己的看法，因为不用公式能将某件事情说明是一件很爽的事情，这表明已经理解的差不多了。公式是对知识的抽象，更像是点睛之笔。因此，某些关键点上，我会用专业的工具编辑好一个完美的、漂亮的公式作为展示。</p>
+<p>离散数学的研究领域包括但不限于以下几个方面：</p>
+<ul>
+<li><p>集合论：集合论是离散数学的基础，研究集合及其运算、关系和函数。它提供了一套严谨的描述和操作集合的方法，是离散数学的基础工具。集合的概念相对简单，但它是很基本的数学对象，在代数论、关系论、图论中都有非常重要的地位。</p>
+</li>
+<li><p>图论：图论研究图及其性质和应用。图由节点（顶点）和边组成，研究它们之间的连接关系、路径、循环等。图论在计算机科学、网络分析、社交网络等领域有广泛的应用，我会给出一些案例来展示图论的威力。</p>
+</li>
+<li><p>逻辑与命题演算：逻辑是研究推理和论证的学科。离散数学中的逻辑研究命题逻辑、谓词逻辑和命题演算等形式系统，研究命题之间的逻辑关系和推理规则。这里的核心思想是将自然语言抽象画，并且抽象成抽象的数学语言，在约定的系统中进行等值演算或者非等值演算，从而导出某种等价命题或者令人意想不到的结论。</p>
+</li>
+<li><p>组合数学：组合数学研究离散对象的排列组合和计数问题。它包括排列、组合、图论中的组合问题等，以及应用于密码学、组合优化等领域。</p>
+</li>
+<li><p>概率论与离散随机变量：概率论研究随机事件的概率和统计规律。在离散数学中，研究离散随机变量及其概率分布、期望、方差等离散概率模型。</p>
+</li>
+</ul>
+<p>离散数学在计算机科学、信息科学、密码学、运筹学、人工智能等领域具有重要的应用。它提供了分析和解决离散问题的数学工具和方法，为算法设计、数据结构、图像处理、网络分析等问题提供了<strong>理论基础</strong>。同时，离散数学的逻辑思维和证明技巧也对培养抽象思维和问题解决能力有很大帮助。</p>
+<h2 id="一、命题逻辑"><a href="#一、命题逻辑" class="headerlink" title="一、命题逻辑"></a>一、命题逻辑</h2><h3 id="（一）基本概念"><a href="#（一）基本概念" class="headerlink" title="（一）基本概念"></a>（一）基本概念</h3><p>命题逻辑是逻辑学的一个分支，研究的是命题和它们之间的逻辑关系。在命题逻辑中，命题是指可以判断为真或为假的陈述句，而不考虑其具体内容。</p>
+<p>命题逻辑主要关注以下几个方面：</p>
+<ul>
+<li><p>命题：命题是命题逻辑的基本概念，它可以是简单的陈述句，也可以是由其他命题通过逻辑运算符组合而成的复合命题，但是该命题一定要有一个<strong>确定的真假</strong>。例如，”太阳是圆的”和”2加2等于5”都是命题，”1+1&#x3D;10”就不是命题，因为在二进制计算下为真，在 5 进制或者 10 进制下为假。</p>
+</li>
+<li><p>逻辑运算符：命题逻辑引入了几个逻辑运算符，用于组合和操作命题。常见的逻辑运算符包括否定（~）、合取（∧）、析取（∨）、条件（→）和双条件（↔）。通过逻辑运算符的组合，可以构造出更复杂的命题。</p>
+</li>
+<li><p>真值表：真值表是用来表示命题和逻辑运算符的真值取值情况的表格。通过真值表，可以确定命题和逻辑表达式的真假情况。</p>
+</li>
+<li><p>逻辑等价和蕴含：命题逻辑研究命题之间的逻辑等价关系和蕴含关系。两个命题在逻辑上等价意味着它们有相同的真值，而一个命题蕴含另一个命题表示前者的真值为真时，后者的真值也一定为真。</p>
+</li>
+<li><p>推理和证明：命题逻辑研究推理和证明的规则和方法。通过逻辑的推理和证明，可以从已知命题推导出新的命题。</p>
+</li>
+</ul>
+<h3 id="（二）符号化"><a href="#（二）符号化" class="headerlink" title="（二）符号化"></a>（二）符号化</h3><p>这一章节最重要的是理解<strong>命题的符号化</strong>。因此就要深入思考，命题的符号化究竟做了什么样的事情。我的理解是，命题的符号化工作，简化了表达，且将人类语言的二义性彻底消除。消除之后，命题就是特定的，这样在此之上的讨论才是有意义的。此外，命题符号化将具体的语言表达抽象为符号形式，使得我们能够关注于命题的<strong>结构和逻辑</strong>关系，而不受具体语言表达的干扰。这使得我们能够研究和比较不同命题之间的共性和一般性规律。</p>
+<p>总结一下就是如下：</p>
+<ul>
+<li><p>精确性和简洁性：自然语言中的句子通常存在<strong>歧义和模糊性</strong>，而命题符号化通过使用精确的逻辑符号和规则来消除歧义，使得命题的含义更加明确和精确。符号化后的命题更加简洁，减少了冗余信息，更便于<strong>逻辑分析和推理</strong>。</p>
+</li>
+<li><p>抽象和一般化：命题符号化将具体的语言表达<strong>抽象为符号形式</strong>，使得我们能够关注于命题的结构和逻辑关系，而不受具体语言表达的干扰。这使得我们能够研究和比较不同命题之间的共性和一般性规律。</p>
+</li>
+<li><p>逻辑推理和证明：命题符号化提供了逻辑推理和证明的形式化<strong>基础</strong>。通过将命题转化为逻辑符号，我们可以应用逻辑规则和推理规则进行推理和证明。符号化使得推理过程更加形式化和系统化，减少了主观和语义的干扰。</p>
+</li>
+<li><p>自动化处理：命题符号化为<strong>自动化处理</strong>提供了基础。在计算机科学和人工智能领域，通过将命题符号化，我们可以使用计算机程序进行自动化的逻辑推理、知识表示和问题求解。符号化使得命题可以在计算机系统中进行处理和操作。</p>
+</li>
+</ul>
+<h3 id="（三）真值表和等价公式"><a href="#（三）真值表和等价公式" class="headerlink" title="（三）真值表和等价公式"></a>（三）真值表和等价公式</h3><p>接下来就要研究真值表了，此时我们已经不再满足于某个<strong>特定的命题</strong>的符号化了。我们设置了一组<strong>命题变元</strong>，然后用一系列连接词连接起来，形成一个公式。此时就可以进行各种真值指派，如果有 N 个命题变元，那么就一共有2^N种赋值，接着就形成了真值表。</p>
+<p>有时候一个命题公式A 和一个命题公式 B 有相同的真值表，那么我就可以认为这两个命题公式看起来不一样，其实是等价的。如果我们每次都要写出两个命题的真值表才能看出来其是否等价，那么也太麻烦了！既然是公式，那么一定可以进行演算！所以第二种证明两个命题公式等价的手段就是<strong>等值演算</strong>，这里一定要用命题定律进行等值演算，这样才能算出等价的命题。否则是能算出它的必要条件！</p>
+<p>课程中介绍了 13 种 <strong>命题定律</strong>，包括结合律、吸收律、逆否律等等。这里需要注意的是逆否律，比如 <em><strong>A-&gt;B</strong></em>，那么等价于<em><strong>非 B-&gt;非 A</strong></em>，但是 <em><strong>B</strong></em> 什么也蕴含不了，同理，<em><strong>非非 B</strong></em> 什么也蕴含不了。</p>
+<h3 id="（四）重言与蕴含"><a href="#（四）重言与蕴含" class="headerlink" title="（四）重言与蕴含"></a>（四）重言与蕴含</h3><p>人们发现某个命题公式很神奇，就是<strong>无论进行什么样子的真值指派</strong>，它都为<strong>真</strong>，这样的命题就是<strong>重言式或者永真式</strong>。同样，还有<strong>永假式或者矛盾式</strong>。</p>
+<p>因此对于任何一命题公式，都可以分为三类：</p>
+<ul>
+<li>重言式</li>
+<li>永假式</li>
+<li>偶然式子：可以为假，可以为真</li>
+</ul>
+<p>还有可满足式：这是对上面的一些总结：当命题不是矛盾式时，就是可满足式。<br>用图示来解释就是：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/582378129d614a3c85b4310fad1200f1_1720253767570.png?token=ANB4BCMPWNIDUPNSEYKYFZTGRD6YU" alt="在这里插入图片描述"><br>判断一个命题到底属于哪一类，有两种方法：</p>
+<ul>
+<li>真值表</li>
+<li>等值演算法</li>
+</ul>
+<h3 id="（五）对偶与范式"><a href="#（五）对偶与范式" class="headerlink" title="（五）对偶与范式"></a>（五）对偶与范式</h3><p>关于对偶，是人们的经验总结，只有一些少得可怜的特定的性质。当一个命题公式 A 中仅含有连接词~、∧、∨时，可以将∧、∨、T、F分别换成对立面，就可以得到一个新的公式 B，B就是A 的对偶式。A和 B 的真值表可以不一样，因此它们没有特定的关系。有一个著名的对偶定理，就是 <em><strong>A等价于 B</strong></em>的话，那么 <em><strong>A 的对偶和 B 的对偶也等价</strong></em>。这也是目前接触到的唯一一个对偶定理。</p>
+<p>注意：上面的讨论，对连接词进行了限制，仅含有~、∧、∨。</p>
+<p>关于范式，课上讨论了析取范式、合取范式、主合取范式、主析取范式。核心思想就是用基本的元素构造出了一个公式，这个公式有特定的模式。实际上，任何一个命题都等价于且能通<strong>过通用方法找到</strong>一个主合取范式以及主析取范式。</p>
+<h3 id="（六）命题逻辑的推理"><a href="#（六）命题逻辑的推理" class="headerlink" title="（六）命题逻辑的推理"></a>（六）命题逻辑的推理</h3><p>有时候，我们可以从命题公式 A 推出一个命题公式 B：</p>
+<ul>
+<li>如果是等价推出，B 就是等价式，即 A 和 B 能相互推出；</li>
+<li>如果不是等价推出，是必要推出，就是蕴含式，就是说，如果A为真，那么一定能推出 B 为真。</li>
+</ul>
+<p>课程中一共给出了 22 个等价公式，16 个蕴含公式。</p>
+<p>之后就可以利用这些公式，进行命题逻辑的推理了，比如会给出一组前提条件，然后证明结论 B，那么很容易想到，最简单的方法就是通过有限的步骤、利用前提条件进行一步步验算，一直推出 B 或者 B 的等价公式。</p>
+<p>一共有两种证明方法：</p>
+<ul>
+<li>直接证明：可以利用 P、T 规则进行；</li>
+<li>间接证明：反证法（附加前提，推出矛盾）、CP 规则。</li>
+</ul>
+<p>这都是很简单的概念，要想熟练掌握，就得多加练习。</p>
+<h2 id="二、谓词逻辑"><a href="#二、谓词逻辑" class="headerlink" title="二、谓词逻辑"></a>二、谓词逻辑</h2><p>谓词逻辑是逻辑学的一个分支，也被称为一阶逻辑或一阶谓词演算。它是对命题逻辑的扩展，引入了<strong>谓词</strong>和<strong>量词</strong>的概念，可以用于描述关于个体对象和属性关系的陈述。</p>
+<p>谓词逻辑主要关注以下几个方面：</p>
+<ul>
+<li><p>个体和谓词：谓词逻辑引入了谓词，它用来描述个体对象的性质、关系或状态。谓词可以是一元谓词（描述一个个体对象的<strong>性质</strong>）、二元谓词（描述两个个体对象之间的<strong>关系</strong>）或多元谓词（描述多个个体对象之间的关系，这个很少见）。</p>
+</li>
+<li><p>量词：谓词逻辑引入了全称量词（∀）和存在量词（∃）。全称量词表示命题对所有个体都成立，存在量词表示命题对某个个体存在至少一个成立。全程量词和存在量词可以相互转化，这表明它们就有一定的<strong>相关性</strong>。</p>
+</li>
+<li><p>谓词符号化：谓词逻辑使用符号化表示，通过谓词符号、变量和量词来表示谓词逻辑表达式。谓词逻辑的符号化使得可以进行形式化的逻辑分析和推理。</p>
+</li>
+<li><p>语义和模型论：谓词逻辑研究谓词逻辑表达式的语义解释和模型论基础。通过给定一个逻辑语言的模型，可以确定谓词逻辑表达式的真值。</p>
+</li>
+<li><p>推理和证明：谓词逻辑提供了推理和证明的规则和方法。它包括逻辑公式的推导、一致性的判定、等价式的推导等。</p>
+</li>
+</ul>
+<p>谓词逻辑的提出，主要是为了解决前一节中必须要解决的问题：命题 A 无法被研究内部具体细节，因此需要将 A 分解。<br>例如，苏格拉底可能会使用以下的三段论形式：</p>
+<ul>
+<li>主题命题：人类都是有限的生命体。</li>
+<li>前提命题：苏格拉底是人类。</li>
+<li>结论命题：苏格拉底是有限的生命体。</li>
+</ul>
+<p>事实上，这就不是一个证明过程，因此主题命题 A、前提命题 B、结论命题 C，这三者从形式上看，根本无法参与运算，但是把这些命题分解以后，就可以成功地推导出 C 了。<br>可见谓词逻辑解决的主要问题就是<em><strong>深入到命题内部、分解命题、证明命题</strong></em>。</p>
+<h3 id="（一）谓词与量词"><a href="#（一）谓词与量词" class="headerlink" title="（一）谓词与量词"></a>（一）谓词与量词</h3><p>谓词就是描述对象的<strong>性质</strong>或者描述<strong>对象之间的关系</strong>，量词就是有多少对象，就是在讨论的对象的<strong>域</strong>。</p>
+<p>至于命题函数，这个和我们对于函数的印象几乎一致。比如 “L(X)：x是个动物。”就是一个命题函数，命题函数不是命题，当函数里面的 x 代表一个确定的对象时，命题函数才变成了一个命题。这样才能确定真假~</p>
+<h3 id="（二）谓词公式与翻译"><a href="#（二）谓词公式与翻译" class="headerlink" title="（二）谓词公式与翻译"></a>（二）谓词公式与翻译</h3><p>这个谓词公式和前面的命题公式具有很高的相似性，命题公式的真值指派对应于谓词公式的个体变元的具体对象的带入。这里的重点在于是对自然语言的翻译，翻译成等价的谓词公式。</p>
+<h3 id="（三）变元的约束"><a href="#（三）变元的约束" class="headerlink" title="（三）变元的约束"></a>（三）变元的约束</h3><p>当我们对于 x 进行限制时，比如用全程量词或者存在量词进行修饰时，它就是一个约束的变元 x，但是此时由于 x 还是一个非具体的对象，它只受到了部分限制，因此还是一个个体变元！如果x没有任何修饰，那么就是一个自由变元！</p>
+<h3 id="（四）谓词演算的等价式与蕴含式"><a href="#（四）谓词演算的等价式与蕴含式" class="headerlink" title="（四）谓词演算的等价式与蕴含式"></a>（四）谓词演算的等价式与蕴含式</h3><p>谓词公式的解释：类似于命题逻辑中的对命题公式的真值指派行为，对谓词公式进行带入，就可以构成一个公式的解释或者赋值。</p>
+<p>这个很好理解，就是带特定确定域上，带上特定的解释，结形成了谓词公式在 A 下的解释！<br>这时，很容易想到，如果一个公式 A 永真或者永假的意义就是，不管在哪种解释下，都为真或者都为假。这里就牵扯到了<strong>谓词公式的判定问题</strong>：<strong>即是否存在一个通法，使得可以获知任意一个谓词公式的是否有效性</strong>。</p>
+<p>在命题公式中，任何一个命题变元只有两种指派，因此可以简单得进行各种真值指派，轻松得得到真值表。但是谓词公式失去了这样的性质，我们无法知道这个谓词公式 A 是否总是为真或者总是为假。这就是 Church—Turing定理：<em><strong>谓词公式是不可判定的</strong></em>。这句话不是在说，所有的谓词公式都是不可判定的，它只是说，不存在一个通法能够判定谓词公式。</p>
+<p>但是我们仍然找到了一些方法，来判定部分谓词公式：<br>比如：<strong>代换实例</strong>概念的提出。比如命题公式 “A:p-&gt;q”中，它的一个代换实例是 “B:P(x)-&gt;Q(x)”。</p>
+<p>这样就产生了一个极其重要的定理：<em><strong>命题公式中的重言式的代换实例都是逻辑有效式，在谓词公式中仍然可以称为重言式；命题公式中的矛盾式的代换实例全都是矛盾式</strong></em>。</p>
+<p>同样，有些谓词公式的表达形式不止一种，但是说得其实是一种东西，这就是谓词逻辑中的<strong>等价概念</strong>。</p>
+<p>有了等价概念以后，就可以完成对一个谓词公式各种转换：</p>
+<ul>
+<li>量词否定转化率</li>
+<li>量词辖域收缩或扩张</li>
+<li>量词分配</li>
+<li>两次交换律等等</li>
+</ul>
+<h3 id="（五）前束范式"><a href="#（五）前束范式" class="headerlink" title="（五）前束范式"></a>（五）前束范式</h3><p>与命题公式类似，谓词公式也有标准形式，即前束范式。前束范式的特点如下：</p>
+<ul>
+<li>量词前置：在前束范式中，所有的量词（全称量词∀和存在量词∃）都被移到逻辑表达式的最前面，并且量词的作用范围仅限于后面的一个子句。这样做的目的是清晰地标明量化变量的范围。</li>
+<li>谓词子句：在量词前面，前束范式通常包含一个或多个谓词子句。谓词子句由一个谓词和它的参数构成，表示一个具体的陈述。</li>
+</ul>
+<p>转化为前束范式的过程通常包括以下步骤：</p>
+<ul>
+<li><p>否定深入；</p>
+</li>
+<li><p>改名；</p>
+</li>
+<li><p>量词前移。</p>
+</li>
+</ul>
+<p>同样也有前束合取范式、前束析取范式等。</p>
+<h3 id="（六）谓词演算的推理理论"><a href="#（六）谓词演算的推理理论" class="headerlink" title="（六）谓词演算的推理理论"></a>（六）谓词演算的推理理论</h3><p>因为我们没有谓词公式的等价公式也没有蕴含式，因此我们不能直接推理。要想推理，<strong>我们必须要对谓词公式命题化</strong>，这就是谓词演算的核心。</p>
+<p>这里遵循了一些简单的规则：</p>
+<ul>
+<li>全程量词消去规则（US或 UI 规则）；</li>
+<li>存在量词消去规则（ES或 EI 规则）；</li>
+<li>全程量词产生规则（UG 规则）；</li>
+<li>存在量词产生规则（EG 规则）。</li>
+</ul>
+<p>有了这些转化规则，就可以进行谓词演算了！</p>
+<p><em>以上就是关于《离散数学》中对“逻辑”的感悟，全文完，感谢阅读！</em></p>
+]]></content>
+      <categories>
+        <category>离散数学</category>
+      </categories>
+      <tags>
+        <tag>离散数学</tag>
+        <tag>数学</tag>
+        <tag>逻辑推理</tag>
       </tags>
   </entry>
   <entry>
@@ -9879,303 +10306,6 @@
         <tag>数学</tag>
         <tag>关系</tag>
         <tag>集合</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>《离散数学》：逻辑</title>
-    <url>/2023/06/14/%E3%80%8A%E7%A6%BB%E6%95%A3%E6%95%B0%E5%AD%A6%E3%80%8B%EF%BC%9A%E9%80%BB%E8%BE%91/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="〇、前言"><a href="#〇、前言" class="headerlink" title="〇、前言"></a>〇、前言</h2><p><strong>离散数学</strong>是数学的一个分支，研究<strong>离散对象</strong>和<strong>离散结构</strong>的数学理论和方法。这学期学校开了离散数学的课程，我受益颇丰，感觉到了离散数学真正的魅力，也被开创离散数学各个分支的人的聪明与才智深深折服。与连续数学不同，离散数学关注的是<strong>离散的</strong>、<strong>离散化的数学对象</strong>，而不是连续的数值或函数。离散数学关注<strong>更多</strong>的是研究对象之间的关系或者对象之间的组织结构，甚至结合线性代数来完成一系列计算。</p>
-<p>我印象最深的一些内容是关于<strong>关系</strong>的研究，在研究关系时，里面大量应用了线性代数中矩阵的知识。究其原因，是因为矩阵运算与关系运算达到了很深的<strong>耦合</strong>，因此可以利用矩阵运算的结果来解释关系运算的结果。但是矩阵的其它性质，比如<strong>特征值、秩、特征向量、特征空间</strong>等，在关系运算中<strong>没有</strong>明确的意义，我想，这应该是可以继续深入研究的，并且<strong>一定</strong>会有某种结果。</p>
-<p>离散数学中有大量的公式，但是在这篇博客中，我尽量使用最少的公式来发表自己的看法，因为不用公式能将某件事情说明是一件很爽的事情，这表明已经理解的差不多了。公式是对知识的抽象，更像是点睛之笔。因此，某些关键点上，我会用专业的工具编辑好一个完美的、漂亮的公式作为展示。</p>
-<p>离散数学的研究领域包括但不限于以下几个方面：</p>
-<ul>
-<li><p>集合论：集合论是离散数学的基础，研究集合及其运算、关系和函数。它提供了一套严谨的描述和操作集合的方法，是离散数学的基础工具。集合的概念相对简单，但它是很基本的数学对象，在代数论、关系论、图论中都有非常重要的地位。</p>
-</li>
-<li><p>图论：图论研究图及其性质和应用。图由节点（顶点）和边组成，研究它们之间的连接关系、路径、循环等。图论在计算机科学、网络分析、社交网络等领域有广泛的应用，我会给出一些案例来展示图论的威力。</p>
-</li>
-<li><p>逻辑与命题演算：逻辑是研究推理和论证的学科。离散数学中的逻辑研究命题逻辑、谓词逻辑和命题演算等形式系统，研究命题之间的逻辑关系和推理规则。这里的核心思想是将自然语言抽象画，并且抽象成抽象的数学语言，在约定的系统中进行等值演算或者非等值演算，从而导出某种等价命题或者令人意想不到的结论。</p>
-</li>
-<li><p>组合数学：组合数学研究离散对象的排列组合和计数问题。它包括排列、组合、图论中的组合问题等，以及应用于密码学、组合优化等领域。</p>
-</li>
-<li><p>概率论与离散随机变量：概率论研究随机事件的概率和统计规律。在离散数学中，研究离散随机变量及其概率分布、期望、方差等离散概率模型。</p>
-</li>
-</ul>
-<p>离散数学在计算机科学、信息科学、密码学、运筹学、人工智能等领域具有重要的应用。它提供了分析和解决离散问题的数学工具和方法，为算法设计、数据结构、图像处理、网络分析等问题提供了<strong>理论基础</strong>。同时，离散数学的逻辑思维和证明技巧也对培养抽象思维和问题解决能力有很大帮助。</p>
-<h2 id="一、命题逻辑"><a href="#一、命题逻辑" class="headerlink" title="一、命题逻辑"></a>一、命题逻辑</h2><h3 id="（一）基本概念"><a href="#（一）基本概念" class="headerlink" title="（一）基本概念"></a>（一）基本概念</h3><p>命题逻辑是逻辑学的一个分支，研究的是命题和它们之间的逻辑关系。在命题逻辑中，命题是指可以判断为真或为假的陈述句，而不考虑其具体内容。</p>
-<p>命题逻辑主要关注以下几个方面：</p>
-<ul>
-<li><p>命题：命题是命题逻辑的基本概念，它可以是简单的陈述句，也可以是由其他命题通过逻辑运算符组合而成的复合命题，但是该命题一定要有一个<strong>确定的真假</strong>。例如，”太阳是圆的”和”2加2等于5”都是命题，”1+1&#x3D;10”就不是命题，因为在二进制计算下为真，在 5 进制或者 10 进制下为假。</p>
-</li>
-<li><p>逻辑运算符：命题逻辑引入了几个逻辑运算符，用于组合和操作命题。常见的逻辑运算符包括否定（~）、合取（∧）、析取（∨）、条件（→）和双条件（↔）。通过逻辑运算符的组合，可以构造出更复杂的命题。</p>
-</li>
-<li><p>真值表：真值表是用来表示命题和逻辑运算符的真值取值情况的表格。通过真值表，可以确定命题和逻辑表达式的真假情况。</p>
-</li>
-<li><p>逻辑等价和蕴含：命题逻辑研究命题之间的逻辑等价关系和蕴含关系。两个命题在逻辑上等价意味着它们有相同的真值，而一个命题蕴含另一个命题表示前者的真值为真时，后者的真值也一定为真。</p>
-</li>
-<li><p>推理和证明：命题逻辑研究推理和证明的规则和方法。通过逻辑的推理和证明，可以从已知命题推导出新的命题。</p>
-</li>
-</ul>
-<h3 id="（二）符号化"><a href="#（二）符号化" class="headerlink" title="（二）符号化"></a>（二）符号化</h3><p>这一章节最重要的是理解<strong>命题的符号化</strong>。因此就要深入思考，命题的符号化究竟做了什么样的事情。我的理解是，命题的符号化工作，简化了表达，且将人类语言的二义性彻底消除。消除之后，命题就是特定的，这样在此之上的讨论才是有意义的。此外，命题符号化将具体的语言表达抽象为符号形式，使得我们能够关注于命题的<strong>结构和逻辑</strong>关系，而不受具体语言表达的干扰。这使得我们能够研究和比较不同命题之间的共性和一般性规律。</p>
-<p>总结一下就是如下：</p>
-<ul>
-<li><p>精确性和简洁性：自然语言中的句子通常存在<strong>歧义和模糊性</strong>，而命题符号化通过使用精确的逻辑符号和规则来消除歧义，使得命题的含义更加明确和精确。符号化后的命题更加简洁，减少了冗余信息，更便于<strong>逻辑分析和推理</strong>。</p>
-</li>
-<li><p>抽象和一般化：命题符号化将具体的语言表达<strong>抽象为符号形式</strong>，使得我们能够关注于命题的结构和逻辑关系，而不受具体语言表达的干扰。这使得我们能够研究和比较不同命题之间的共性和一般性规律。</p>
-</li>
-<li><p>逻辑推理和证明：命题符号化提供了逻辑推理和证明的形式化<strong>基础</strong>。通过将命题转化为逻辑符号，我们可以应用逻辑规则和推理规则进行推理和证明。符号化使得推理过程更加形式化和系统化，减少了主观和语义的干扰。</p>
-</li>
-<li><p>自动化处理：命题符号化为<strong>自动化处理</strong>提供了基础。在计算机科学和人工智能领域，通过将命题符号化，我们可以使用计算机程序进行自动化的逻辑推理、知识表示和问题求解。符号化使得命题可以在计算机系统中进行处理和操作。</p>
-</li>
-</ul>
-<h3 id="（三）真值表和等价公式"><a href="#（三）真值表和等价公式" class="headerlink" title="（三）真值表和等价公式"></a>（三）真值表和等价公式</h3><p>接下来就要研究真值表了，此时我们已经不再满足于某个<strong>特定的命题</strong>的符号化了。我们设置了一组<strong>命题变元</strong>，然后用一系列连接词连接起来，形成一个公式。此时就可以进行各种真值指派，如果有 N 个命题变元，那么就一共有2^N种赋值，接着就形成了真值表。</p>
-<p>有时候一个命题公式A 和一个命题公式 B 有相同的真值表，那么我就可以认为这两个命题公式看起来不一样，其实是等价的。如果我们每次都要写出两个命题的真值表才能看出来其是否等价，那么也太麻烦了！既然是公式，那么一定可以进行演算！所以第二种证明两个命题公式等价的手段就是<strong>等值演算</strong>，这里一定要用命题定律进行等值演算，这样才能算出等价的命题。否则是能算出它的必要条件！</p>
-<p>课程中介绍了 13 种 <strong>命题定律</strong>，包括结合律、吸收律、逆否律等等。这里需要注意的是逆否律，比如 <em><strong>A-&gt;B</strong></em>，那么等价于<em><strong>非 B-&gt;非 A</strong></em>，但是 <em><strong>B</strong></em> 什么也蕴含不了，同理，<em><strong>非非 B</strong></em> 什么也蕴含不了。</p>
-<h3 id="（四）重言与蕴含"><a href="#（四）重言与蕴含" class="headerlink" title="（四）重言与蕴含"></a>（四）重言与蕴含</h3><p>人们发现某个命题公式很神奇，就是<strong>无论进行什么样子的真值指派</strong>，它都为<strong>真</strong>，这样的命题就是<strong>重言式或者永真式</strong>。同样，还有<strong>永假式或者矛盾式</strong>。</p>
-<p>因此对于任何一命题公式，都可以分为三类：</p>
-<ul>
-<li>重言式</li>
-<li>永假式</li>
-<li>偶然式子：可以为假，可以为真</li>
-</ul>
-<p>还有可满足式：这是对上面的一些总结：当命题不是矛盾式时，就是可满足式。<br>用图示来解释就是：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/582378129d614a3c85b4310fad1200f1_1720253767570.png?token=ANB4BCMPWNIDUPNSEYKYFZTGRD6YU" alt="在这里插入图片描述"><br>判断一个命题到底属于哪一类，有两种方法：</p>
-<ul>
-<li>真值表</li>
-<li>等值演算法</li>
-</ul>
-<h3 id="（五）对偶与范式"><a href="#（五）对偶与范式" class="headerlink" title="（五）对偶与范式"></a>（五）对偶与范式</h3><p>关于对偶，是人们的经验总结，只有一些少得可怜的特定的性质。当一个命题公式 A 中仅含有连接词~、∧、∨时，可以将∧、∨、T、F分别换成对立面，就可以得到一个新的公式 B，B就是A 的对偶式。A和 B 的真值表可以不一样，因此它们没有特定的关系。有一个著名的对偶定理，就是 <em><strong>A等价于 B</strong></em>的话，那么 <em><strong>A 的对偶和 B 的对偶也等价</strong></em>。这也是目前接触到的唯一一个对偶定理。</p>
-<p>注意：上面的讨论，对连接词进行了限制，仅含有~、∧、∨。</p>
-<p>关于范式，课上讨论了析取范式、合取范式、主合取范式、主析取范式。核心思想就是用基本的元素构造出了一个公式，这个公式有特定的模式。实际上，任何一个命题都等价于且能通<strong>过通用方法找到</strong>一个主合取范式以及主析取范式。</p>
-<h3 id="（六）命题逻辑的推理"><a href="#（六）命题逻辑的推理" class="headerlink" title="（六）命题逻辑的推理"></a>（六）命题逻辑的推理</h3><p>有时候，我们可以从命题公式 A 推出一个命题公式 B：</p>
-<ul>
-<li>如果是等价推出，B 就是等价式，即 A 和 B 能相互推出；</li>
-<li>如果不是等价推出，是必要推出，就是蕴含式，就是说，如果A为真，那么一定能推出 B 为真。</li>
-</ul>
-<p>课程中一共给出了 22 个等价公式，16 个蕴含公式。</p>
-<p>之后就可以利用这些公式，进行命题逻辑的推理了，比如会给出一组前提条件，然后证明结论 B，那么很容易想到，最简单的方法就是通过有限的步骤、利用前提条件进行一步步验算，一直推出 B 或者 B 的等价公式。</p>
-<p>一共有两种证明方法：</p>
-<ul>
-<li>直接证明：可以利用 P、T 规则进行；</li>
-<li>间接证明：反证法（附加前提，推出矛盾）、CP 规则。</li>
-</ul>
-<p>这都是很简单的概念，要想熟练掌握，就得多加练习。</p>
-<h2 id="二、谓词逻辑"><a href="#二、谓词逻辑" class="headerlink" title="二、谓词逻辑"></a>二、谓词逻辑</h2><p>谓词逻辑是逻辑学的一个分支，也被称为一阶逻辑或一阶谓词演算。它是对命题逻辑的扩展，引入了<strong>谓词</strong>和<strong>量词</strong>的概念，可以用于描述关于个体对象和属性关系的陈述。</p>
-<p>谓词逻辑主要关注以下几个方面：</p>
-<ul>
-<li><p>个体和谓词：谓词逻辑引入了谓词，它用来描述个体对象的性质、关系或状态。谓词可以是一元谓词（描述一个个体对象的<strong>性质</strong>）、二元谓词（描述两个个体对象之间的<strong>关系</strong>）或多元谓词（描述多个个体对象之间的关系，这个很少见）。</p>
-</li>
-<li><p>量词：谓词逻辑引入了全称量词（∀）和存在量词（∃）。全称量词表示命题对所有个体都成立，存在量词表示命题对某个个体存在至少一个成立。全程量词和存在量词可以相互转化，这表明它们就有一定的<strong>相关性</strong>。</p>
-</li>
-<li><p>谓词符号化：谓词逻辑使用符号化表示，通过谓词符号、变量和量词来表示谓词逻辑表达式。谓词逻辑的符号化使得可以进行形式化的逻辑分析和推理。</p>
-</li>
-<li><p>语义和模型论：谓词逻辑研究谓词逻辑表达式的语义解释和模型论基础。通过给定一个逻辑语言的模型，可以确定谓词逻辑表达式的真值。</p>
-</li>
-<li><p>推理和证明：谓词逻辑提供了推理和证明的规则和方法。它包括逻辑公式的推导、一致性的判定、等价式的推导等。</p>
-</li>
-</ul>
-<p>谓词逻辑的提出，主要是为了解决前一节中必须要解决的问题：命题 A 无法被研究内部具体细节，因此需要将 A 分解。<br>例如，苏格拉底可能会使用以下的三段论形式：</p>
-<ul>
-<li>主题命题：人类都是有限的生命体。</li>
-<li>前提命题：苏格拉底是人类。</li>
-<li>结论命题：苏格拉底是有限的生命体。</li>
-</ul>
-<p>事实上，这就不是一个证明过程，因此主题命题 A、前提命题 B、结论命题 C，这三者从形式上看，根本无法参与运算，但是把这些命题分解以后，就可以成功地推导出 C 了。<br>可见谓词逻辑解决的主要问题就是<em><strong>深入到命题内部、分解命题、证明命题</strong></em>。</p>
-<h3 id="（一）谓词与量词"><a href="#（一）谓词与量词" class="headerlink" title="（一）谓词与量词"></a>（一）谓词与量词</h3><p>谓词就是描述对象的<strong>性质</strong>或者描述<strong>对象之间的关系</strong>，量词就是有多少对象，就是在讨论的对象的<strong>域</strong>。</p>
-<p>至于命题函数，这个和我们对于函数的印象几乎一致。比如 “L(X)：x是个动物。”就是一个命题函数，命题函数不是命题，当函数里面的 x 代表一个确定的对象时，命题函数才变成了一个命题。这样才能确定真假~</p>
-<h3 id="（二）谓词公式与翻译"><a href="#（二）谓词公式与翻译" class="headerlink" title="（二）谓词公式与翻译"></a>（二）谓词公式与翻译</h3><p>这个谓词公式和前面的命题公式具有很高的相似性，命题公式的真值指派对应于谓词公式的个体变元的具体对象的带入。这里的重点在于是对自然语言的翻译，翻译成等价的谓词公式。</p>
-<h3 id="（三）变元的约束"><a href="#（三）变元的约束" class="headerlink" title="（三）变元的约束"></a>（三）变元的约束</h3><p>当我们对于 x 进行限制时，比如用全程量词或者存在量词进行修饰时，它就是一个约束的变元 x，但是此时由于 x 还是一个非具体的对象，它只受到了部分限制，因此还是一个个体变元！如果x没有任何修饰，那么就是一个自由变元！</p>
-<h3 id="（四）谓词演算的等价式与蕴含式"><a href="#（四）谓词演算的等价式与蕴含式" class="headerlink" title="（四）谓词演算的等价式与蕴含式"></a>（四）谓词演算的等价式与蕴含式</h3><p>谓词公式的解释：类似于命题逻辑中的对命题公式的真值指派行为，对谓词公式进行带入，就可以构成一个公式的解释或者赋值。</p>
-<p>这个很好理解，就是带特定确定域上，带上特定的解释，结形成了谓词公式在 A 下的解释！<br>这时，很容易想到，如果一个公式 A 永真或者永假的意义就是，不管在哪种解释下，都为真或者都为假。这里就牵扯到了<strong>谓词公式的判定问题</strong>：<strong>即是否存在一个通法，使得可以获知任意一个谓词公式的是否有效性</strong>。</p>
-<p>在命题公式中，任何一个命题变元只有两种指派，因此可以简单得进行各种真值指派，轻松得得到真值表。但是谓词公式失去了这样的性质，我们无法知道这个谓词公式 A 是否总是为真或者总是为假。这就是 Church—Turing定理：<em><strong>谓词公式是不可判定的</strong></em>。这句话不是在说，所有的谓词公式都是不可判定的，它只是说，不存在一个通法能够判定谓词公式。</p>
-<p>但是我们仍然找到了一些方法，来判定部分谓词公式：<br>比如：<strong>代换实例</strong>概念的提出。比如命题公式 “A:p-&gt;q”中，它的一个代换实例是 “B:P(x)-&gt;Q(x)”。</p>
-<p>这样就产生了一个极其重要的定理：<em><strong>命题公式中的重言式的代换实例都是逻辑有效式，在谓词公式中仍然可以称为重言式；命题公式中的矛盾式的代换实例全都是矛盾式</strong></em>。</p>
-<p>同样，有些谓词公式的表达形式不止一种，但是说得其实是一种东西，这就是谓词逻辑中的<strong>等价概念</strong>。</p>
-<p>有了等价概念以后，就可以完成对一个谓词公式各种转换：</p>
-<ul>
-<li>量词否定转化率</li>
-<li>量词辖域收缩或扩张</li>
-<li>量词分配</li>
-<li>两次交换律等等</li>
-</ul>
-<h3 id="（五）前束范式"><a href="#（五）前束范式" class="headerlink" title="（五）前束范式"></a>（五）前束范式</h3><p>与命题公式类似，谓词公式也有标准形式，即前束范式。前束范式的特点如下：</p>
-<ul>
-<li>量词前置：在前束范式中，所有的量词（全称量词∀和存在量词∃）都被移到逻辑表达式的最前面，并且量词的作用范围仅限于后面的一个子句。这样做的目的是清晰地标明量化变量的范围。</li>
-<li>谓词子句：在量词前面，前束范式通常包含一个或多个谓词子句。谓词子句由一个谓词和它的参数构成，表示一个具体的陈述。</li>
-</ul>
-<p>转化为前束范式的过程通常包括以下步骤：</p>
-<ul>
-<li><p>否定深入；</p>
-</li>
-<li><p>改名；</p>
-</li>
-<li><p>量词前移。</p>
-</li>
-</ul>
-<p>同样也有前束合取范式、前束析取范式等。</p>
-<h3 id="（六）谓词演算的推理理论"><a href="#（六）谓词演算的推理理论" class="headerlink" title="（六）谓词演算的推理理论"></a>（六）谓词演算的推理理论</h3><p>因为我们没有谓词公式的等价公式也没有蕴含式，因此我们不能直接推理。要想推理，<strong>我们必须要对谓词公式命题化</strong>，这就是谓词演算的核心。</p>
-<p>这里遵循了一些简单的规则：</p>
-<ul>
-<li>全程量词消去规则（US或 UI 规则）；</li>
-<li>存在量词消去规则（ES或 EI 规则）；</li>
-<li>全程量词产生规则（UG 规则）；</li>
-<li>存在量词产生规则（EG 规则）。</li>
-</ul>
-<p>有了这些转化规则，就可以进行谓词演算了！</p>
-<p><em>以上就是关于《离散数学》中对“逻辑”的感悟，全文完，感谢阅读！</em></p>
-]]></content>
-      <categories>
-        <category>离散数学</category>
-      </categories>
-      <tags>
-        <tag>离散数学</tag>
-        <tag>数学</tag>
-        <tag>逻辑推理</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>《离散数学》：特殊的图</title>
-    <url>/2023/06/17/%E3%80%8A%E7%A6%BB%E6%95%A3%E6%95%B0%E5%AD%A6%E3%80%8B%EF%BC%9A%E7%89%B9%E6%AE%8A%E7%9A%84%E5%9B%BE/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="〇、前言"><a href="#〇、前言" class="headerlink" title="〇、前言"></a>〇、前言</h2><p>这一节会重点讨论一下一些<strong>特殊的图</strong>，这些图会解决一些特殊的问题。</p>
-<h2 id="一、欧拉图"><a href="#一、欧拉图" class="headerlink" title="一、欧拉图"></a>一、欧拉图</h2><p>给定无向连通图 G，若存在一条路经过 G 中每边一次且仅一次，则该路为欧拉路。若存在一条回路经过 G 中每边一次且仅一次，则该回路称为欧拉回路。</p>
-<ul>
-<li>具有欧拉路的图称为<strong>半欧拉图</strong>。</li>
-<li>具有欧拉回路的图称为<strong>欧拉图</strong>。</li>
-</ul>
-<h3 id="1、（半）欧拉图的判定"><a href="#1、（半）欧拉图的判定" class="headerlink" title="1、（半）欧拉图的判定"></a>1、（半）欧拉图的判定</h3><p>这些判定很简单，我们可以找一个<strong>欧拉图</strong>的充要条件：<strong>G的所有结点的度数都是偶数</strong>。<br>同样，我们也可以找一个<strong>半欧拉图</strong>的充要条件：<strong>连通图 G 具有一条连接顶点 u 和 v 的欧拉通路当且仅当 u 和 v 是 G 中仅有的奇数度顶点</strong>。</p>
-<h3 id="2、有向（半）欧拉图"><a href="#2、有向（半）欧拉图" class="headerlink" title="2、有向（半）欧拉图"></a>2、有向（半）欧拉图</h3><p>一个<strong>连通有向图</strong>具有（单向）<strong>欧拉回路</strong>的充要条件是<em><strong>图中每个结点的入度等于出度</strong></em>。<br> 一个<strong>连通有向图</strong>具有<strong>单向欧拉路</strong>的充要条件是<em><strong>最多除两个结点外的每个结点的入度等于出度，但在这两个结点中，一个结点的入度比出度大1，另一个结点的入度比出度少1</strong></em>。</p>
-<h3 id="3、应用欧拉回路的一个经典例子：中国邮递员问题"><a href="#3、应用欧拉回路的一个经典例子：中国邮递员问题" class="headerlink" title="3、应用欧拉回路的一个经典例子：中国邮递员问题"></a>3、应用欧拉回路的一个经典例子：中国邮递员问题</h3><p>问题是这样叙述的：邮递员从邮局出发，走遍他负责的街区投递邮件，最后回到邮局。问如何走才能使他走的路最短？<br>从图论的观点来看，该问题就是：<strong>给定一个带权无向图，其中每条边的权为非负实数，求每条边至少经过一次的最短回路</strong>。<br>这个问题是我国管梅谷教授1962年提出的，故被称为中国邮递员问题。</p>
-<p>注意：<em><strong>每条边至少走一遍，可以走多遍，只要遍历完后路程最短就是该问题的解。</strong></em></p>
-<p>邮递员负责的街区如下图所示，长度单位是百米，邮局位于 a 处。试设计邮递员的最短投递路线：</p>
-<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/d55bfe974cf8406c9bed4b8f5c988d79_1720253746882.png?token=ANB4BCLLCNTV7EDOMQURXCTGRD6XI" alt="在这里插入图片描述"><br>解：如果图中有欧拉回路，显然<strong>欧拉回路就是最短</strong>的投递路线。<br>图中有 4 个奇数度顶点b, c, e, j，<strong>不存在欧拉回路，因此邮递员必须重复走某些边</strong>。<br>为此，只需把 4 个奇数度顶点<strong>分成两对</strong>，在每对顶点之间沿着某些<strong>路重复走一遍，要求重复走的路线最短，以使投递的路线最短</strong>。这样就得到了解：</p>
-<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/af8ae74992954cad9dc7204e3ec39bdb_1720253746882.png?token=ANB4BCKLM3SRN5SSRYD6YVTGRD6XK" alt="在这里插入图片描述"></p>
-<h2 id="二、哈密尔顿图"><a href="#二、哈密尔顿图" class="headerlink" title="二、哈密尔顿图"></a>二、哈密尔顿图</h2><p>和欧拉图类似，人们想要寻找一个能<strong>同时遍历图中所有结点，且只遍历一次的回路</strong>。如果该回路存在，那么就是一个哈密尔顿图。看起来很简单，其实<strong>哈密尔顿图比欧拉图复杂得多</strong>，完全不是一个等级。</p>
-<p>1859年英国数学家威廉-汉密尔顿图爵士发明了一个小玩具，这个小玩具是一个木刻的<strong>正十二面体</strong>，每面系正五角形，共有20个顶点，每个顶点标有世界上一个重要城市。他提出一个问题：<strong>要求沿正十二面体的边寻找一条路通过20个城市，而每个城市只通过一次，最后返回原地</strong>。</p>
-<p>事实上，任何一个凸多面体都能“平铺”在平面上，并形成一个“<strong>平面图</strong>”。</p>
-<p>汉密尔顿问题既应用广泛又具有实际价值。</p>
-<p><strong>若给无向图的每一条边带上不同的权重，问题又转化为在多条路线中寻找最优路线使得既能实现遍游，又代价最小的最优化问题</strong>。</p>
-<p>结果不唯一：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/637ba6d4023f4f6f95161a3d1957b27b_1720253754080.png?token=ANB4BCLR3VT7PMXO2NIDBKLGRD6XQ" alt="在这里插入图片描述"><br> 严格的定义：给定图G，若有一条路通过 G 中每个顶点恰好一次，则这样的路称为汉密尔顿路； 若有一个圈，通过 G 个每个顶点恰好一次，这样的圈称为<strong>汉密尔顿回路</strong>（或汉密尔顿圈）。 具有汉密尔顿路的图称为<strong>半汉密尔顿图</strong>。具有汉密尔顿回路的图称为<strong>汉密尔顿图</strong>。</p>
-<h3 id="1、哈密尔图的判定"><a href="#1、哈密尔图的判定" class="headerlink" title="1、哈密尔图的判定"></a>1、哈密尔图的判定</h3><p>但是到目前为止还<strong>找不到一个图为汉密尔顿图的充要条件</strong>，寻找该充要条件仍是图论中尚未解决的主要问题之一。下面先给出一个简单而有用的必要条件：<br>定理一：<strong>设图G＝〈V ,E〉是汉密尔顿图， 则对于V 的每个非空子集 S，  均有 W(G－S )≤|S| 。</strong></p>
-<p>这个定理是在说，对于哈密尔顿图 G，如果删去结点集合 S，那么形成的子图的个数（连通分支）一定少于删去的点集数目。</p>
-<p>推论  <strong>设图G＝〈V ,E〉是半哈密顿图， 则对于V 的每个非空子集 S，均有 P(G－S )≤|S|+1。</strong></p>
-<p>比如：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/173977e7b6fe4eb594d4e8880fbe300e_1720253754080.png?token=ANB4BCLZNWSR4Z6UUC3IZDLGRD6XS" alt="在这里插入图片描述"><br>若取<code>S＝&#123;v1, v4&#125;</code>，则<code>G－S</code> 有<code>3</code>个连通分支故，该图不是哈密顿图。</p>
-<p>因为这是一个必要条件，即 <strong>P-&gt;Q</strong>，那么我们是能通过<strong>非 Q -&gt;非 P</strong>，来<strong>证明一个图不是哈密尔顿图</strong>，即只能用来证否。因此如果一个图满足 Q，那么它什么都不能证明。</p>
-<p>比如<strong>彼得森图</strong>：任意删除 1 个顶点或者 2 个顶点都连通，任意删除 3 个顶点最多产生两个连通分支。可以进行实验，彼得森图总能满足：W(G－S )≤|S|。</p>
-<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/4414871a83dc4ffb9aa88d2ae26cb3ef_1720253754080.png?token=ANB4BCIBHTQ4IZJRW2WIZJDGRD6XU" alt="在这里插入图片描述"><br><strong>该定理不能证明彼得森图是哈密尔顿图，实际上彼得森图不是哈密尔顿图。</strong></p>
-<h3 id="2、哈密尔顿图的充分条件"><a href="#2、哈密尔顿图的充分条件" class="headerlink" title="2、哈密尔顿图的充分条件"></a>2、哈密尔顿图的充分条件</h3><p>定理：设 <code>G＝〈V ,E〉</code>是有 n 个结点的简单图，</p>
-<ul>
-<li>(1) 如果任两结点u，v∈V， 均有<code>deg(u)＋deg(v)≥ n－1</code>，则在G中存在一条哈密尔顿路；</li>
-<li>(2) 如果对任两结点u，v∈V， 均有<code>deg(u)＋deg(v)≥ n</code>，则G是哈密尔顿图。</li>
-</ul>
-<p>这些是<strong>充分条件</strong>，即 P-&gt;Q，但是<strong>非P</strong> 什么都推不出来。</p>
-<p>例1： 某地有5个风景点。若每个景点均有两条道路与其他景点相通，问是否可经过每个景点恰好一次而游完这5处？</p>
-<blockquote>
-<p>解   将景点作为结点，道路作为边，则得到一个有5个结点的无向图。<br>由题意，对每个结点vi，有deg(vi)＝2（i∈N5）。<br>则对任两点vi，vj（i，j∈N5）均有<br>                deg(vi)＋deg(vj)＝2＋2＝4＝5－1<br>可知此图一定有一条汉密尔顿路，本题有解。</p>
-</blockquote>
-<p>例 2：考虑在七天内安排七门课程的考试，使得同一位老师所任的<strong>两门课程的考试不排在接连的两天</strong>中，试证明如果没有老师担任多于四门课程，则符合上述要求的考试安排总是可能的。</p>
-<blockquote>
-<p>如果一个老师担任了四门课，那么显然可以满足要求；但是如果一个老师担任了 5 门课以及以上的课程，那么7 天中至少有两门课相邻，不符合要求。那么怎么用图论来解决呢？</p>
-</blockquote>
-<blockquote>
-<p>假设 A 老师担任了四门课，每个顶点的度数至少是3，任意两个顶点的度数至少是6，故存在哈密顿路：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/93c7c11e45bb4a7e93d40f4a3bdbdb55_1720253754080.png?token=ANB4BCO6GFXH2WCFH23KTCLGRD6XW" alt="在这里插入图片描述"><br>假设 A 老师担任了五门课，每个顶点的度数至少是2，任意两个顶点的度数至少是4，4 &lt; 6，故不存在哈密顿路：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/f3e5c818711640e1a5cfed9b46d97799_1720253754080.png?token=ANB4BCOBXU5RYGMZ33UR2ILGRD6XY" alt="在这里插入图片描述"></p>
-</blockquote>
-<p>例3：货郎担问题</p>
-<blockquote>
-<p>作为汉密尔顿回路的自然推广是著名的货郎担问题。问题是这样叙述的：设有一个货郎，从他所在的城镇出发去n-1个城镇。要求经过每个城镇恰好一次，然后返回原地，问他的旅行路线怎样安排才最经济？从图论的观点来看，该问题就是：<strong>在一个带权完全图中找一条权最小的汉密尔顿回路</strong>。</p>
-</blockquote>
-<p>解答：</p>
-<blockquote>
-<p>根据上面的充分性定理，完全图一定是一个哈密尔顿图。<br>因此步骤如下：<br>(1)由任意选择的结点开始，找与该点最靠近（即权最小）的点， 形成有一条边的初始路径。<br>(2)设x表示最新加到这条路上的结点，从不在路上的所有结点中选一个与x最靠近的结点， 把连接x与这一结点的边加到这条路上。重复这一步，直到G中所有结点包含在路上。<br>(3)将连接起始点与最后加入的结点之间的边加到这条路上，就得到一个圈，即为问题的近似解。<br>遗憾的是，这个方法得到的并不是最小回路，因为贪心法在这个问题中并不能得到最值。</p>
-</blockquote>
-<p>以上就是哈密尔顿图的一些讨论。</p>
-<h2 id="三、二分图"><a href="#三、二分图" class="headerlink" title="三、二分图"></a>三、二分图</h2><p>二分图的概念很简单，本质上来说，这就是在研究图与图之间的关系。</p>
-<h3 id="1、二分图的判定"><a href="#1、二分图的判定" class="headerlink" title="1、二分图的判定"></a>1、二分图的判定</h3><p>定理： 一个无向图 G 是二分图，<strong>当且仅当</strong> G 中所有回路的长度均为<strong>偶数</strong>。这是一个充要条件，因此判断起来就很简单。</p>
-<h3 id="2、匹配问题"><a href="#2、匹配问题" class="headerlink" title="2、匹配问题"></a>2、匹配问题</h3><p>定义：  无向图 G&#x3D;&lt;V，E&gt; ，M 为 E 的子集。若 M 中任意两条边都不相邻，则称 M 为 E 中的匹配。若 M 中再添加任意一条边就不是 G 中的匹配了，则称 M 为<strong>极大匹配</strong>。边数最多的匹配称为<strong>最大匹配</strong>，<strong>最大匹配中边的条数称为 G 的匹配数</strong>。其中，M 中的点就是<strong>饱和点</strong>，若 G 中每个结点都是M饱和点，则称 M 为<strong>完美匹配</strong>。</p>
-<p>鉴于此，有以下结论：</p>
-<ul>
-<li>（1）极大匹配不是任何其它匹配的子集。</li>
-<li>（2）一个图的极大匹配可能是不唯一的。</li>
-<li>（3）一个图的最大匹配可能是不唯一的。</li>
-<li>（4）每个最大匹配都是极大匹配，反之不真。</li>
-<li>（5）在完美匹配中，图    中的每个结点都关联匹配中的一条边。</li>
-<li>（6）如果图    存在完美匹配，则图    的匹配数为图    的阶数的一半，且图    为偶数阶。</li>
-<li>（7）每一个完美匹配都是最大匹配，反之不真。</li>
-</ul>
-<h3 id="3、完备匹配"><a href="#3、完备匹配" class="headerlink" title="3、完备匹配"></a>3、完备匹配</h3><p>定义：设  $G&#x3D;&lt;V_1,V_2,E&gt;$ 是一个二分图，|V1| $\le$ |V2|，M为 G 的一个最大匹配，若|M| &#x3D; |V1|，则M 为G 中V1 到V2 的<strong>完备匹配</strong>。如果|V2| &#x3D; |V1|，那么就是<strong>完备匹配</strong>。</p>
-<p>一个<strong>充要条件</strong>（相异性条件）： $G&#x3D;&lt;V_1,V_2,E&gt;$ 是一个二分图，|V1| $\le$ |V2|，   $G$中存在$V_1$到 $V_2$ 的完备匹配当<strong>且仅当</strong> $V_1$ 中任何k个结点至少邻接$V_2$中的k个结点。</p>
-<p>一个<strong>充分条件</strong>：设二分图 $G&#x3D;&lt;V_1,V_2,E&gt;$ ，如果存在 $t&gt;0$，使得：</p>
-<ul>
-<li>(1)   中每个结点至少关联  条边；</li>
-<li>(2)   中每个结点至多关联  条边。</li>
-</ul>
-<p>则$G$中存在$V_1$到$V_2$的完备匹配。</p>
-<p>例1：</p>
-<blockquote>
-<p>某学校有3个课外小组：物理组、化学组、生物组。有张、王、李、赵、陈5名同学。问在以下3种情况下能否选出3名不兼任的组长？<br>已知： 张、王为物理组成员，张、李、赵为化学组成员，李、赵、陈为生物组成员；</p>
-</blockquote>
-<p>解答：</p>
-<blockquote>
-<p>设$V_1，V_2，V_3，V_4，V_5$分别表示张、王、李、赵、陈5名同学。$U_1，U_2，U_3$ 分别表示物理组、化学组、生物组。<br>这个问题就可以转化为，二分图中 $G&lt;V，U，E&gt;$ 是否存在一个 U到 V 的完备匹配。<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/7b976798c551432d9b5a1aaa86e45f9c_1720253760767.png?token=ANB4BCJS3LEVKOV63FYW4Q3GRD6X2" alt="在这里插入图片描述"><br>答案是显然。</p>
-</blockquote>
-<h2 id="四、平面图"><a href="#四、平面图" class="headerlink" title="四、平面图"></a>四、平面图</h2><p>平面图是一种很特殊的图，并且很具有应用的价值，比如设计单层电路板的时候，为了减少感抗、电感等，就使得电器原件之间的走线成为一个平面图。</p>
-<p><strong>定义</strong>：  设图 $G＝〈V ,E〉$是一个无向图，如果能把图 G 的所有结点和边画在平面上，且使得任何两条边除了端点外<strong>没有其它的交点</strong>，就称图G是一个平面图，否则称图G为<strong>非平面图</strong>。</p>
-<p>以下两个图为最简单的非平面图：$K_3,_3$<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/e883ea8546b4405cafcaa7459c0e1d4e_1720253760767.png?token=ANB4BCOV4N4OYSLKFYJWWOTGRD6X6"><br>$K_5$:<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/810e48b84d3b47c3aaa4a4a2f865ebef_1720253760767.png?token=ANB4BCNPE2K3VGJ35M65XUDGRD6YA" alt="在这里插入图片描述"><br>前者是<strong>变数最少</strong>的非平面图，后者是<strong>点数最少</strong>的非平面图，这两个图也是<strong>最基本</strong>的非平面图。称为<strong>Kuratowski图</strong>。</p>
-<p>定义：设G是一个平面图，由G的边所包围的区域（其内部不包含图的结点，也不包含图的边）称为G的一个<strong>面</strong>(Facet)，包围一个面$r$的所有边所组成的回路称面$r$的边界，边界的长度称为该面的次数，记为$deg(r)$。如果面的面积有限，则称该面为<strong>有限面</strong>，否则称为<strong>无限面</strong>。如果两个面的边界<strong>至少</strong>有一条公共边，则称这两个面是<strong>相邻</strong>的，否则是不相邻的。</p>
-<p>定理：<strong>一个有限平面图G&#x3D;〈V，E〉，面的次数之和等于其边数的两倍</strong>。</p>
-<p>定理（Euler定理)：<strong>设图G是连通平面图，有v个结点e条边和r个面，则Euler公式 $v-e+r&#x3D;2$  成立。</strong></p>
-<p>欧拉公式是凸多面体的公式，为什么能用在这里？</p>
-<blockquote>
-<p>前面说了，任何一个凸多面体都能铺在平面上，并且在平面上形成的是一个平面图，而且，任何一个平面图，只要满足了一些<strong>基本条件</strong>都一定能映射出一个凸多面体。不满足<strong>基本条件</strong>的平面图，人们发现它们恰好也是满足欧拉公式的，因此欧拉公式就能用在平面图上了~</p>
-</blockquote>
-<p>关于映射：</p>
-<p>对于任何一个平面图（Planar Graph），<strong>并不一定</strong>能够映射出一个凸多面体（Convex Polyhedron）。</p>
-<p>虽然平面图可以在平面上进行绘制，其中顶点由点表示，边由线段表示，并且没有边交叉，但<strong>并非所有的平面图都能对应到一个凸多面体</strong>。</p>
-<p>为了能够映射出一个凸多面体，平面图需要满足一些特定的性质，即<strong>必须是一个平面图的特例</strong>，称为平面图的<strong>平面嵌入</strong>（Planar Embedding）。</p>
-<p>一个平面嵌入要求满足以下条件：</p>
-<ul>
-<li>图的边不能交叉。</li>
-<li>每个面都是一个多边形，包括外部的无限面。</li>
-<li>每个面的边界由一条简单封闭曲线组成。</li>
-<li>每个面的边界经过的顶点和边都是连续的，没有间断。</li>
-</ul>
-<p>在平面图的<strong>平面嵌入满足上述条件</strong>的情况下，可以使用多种算法将平面图转换为凸多面体，例如使用<strong>凸包算法</strong>（Convex Hull Algorithm）或<strong>平面图嵌入算法</strong>（Planar Embedding Algorithm）。</p>
-<p>定理：Euler公式的推广形式：对于任何具有p个连通分支的平面图，有 $v-e+r&#x3D;p+1$。</p>
-<p>定理：设图$G$是有 $v$ 个结点 $e$ 条边的<strong>连通简单平面图</strong>，若 $v≥3$，则 $e≤3v-6$。</p>
-<blockquote>
-<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/b463fe37eab14442b2d6dee834c680a5_1720253760767.png?token=ANB4BCLEBR73SAZJ6A3GMSLGRD6YC" alt="在这里插入图片描述"></p>
-</blockquote>
-<p>注意：</p>
-<ul>
-<li><strong>以上只是连通平面图的必要条件，即 $P-&gt;Q$，只能用来证否</strong>；</li>
-<li>当结点数和边数较多时，应用Euler公式等判别一个图是非平面图会相当困难。</li>
-</ul>
-<p>因此，1930年，Kuratowski给出了判断一个图为平面图的<strong>充要条件</strong>，这极大地推动了平面图的研究。</p>
-<p>定义：给定两图G1和G2，如果它们是同构的，或者通过<strong>反复插入或除去度数为2</strong>的结点，使<strong>G1和G2</strong>同构，则称G1和G2是在2度<strong>结点内同构</strong>的（或称G1和G2<strong>同胚</strong>）。</p>
-<p>例如以下两组图都是<strong>同胚</strong>的：</p>
-<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/3d5df69b194d4c7fb7dc41c1048e60fd_1720253760767.png?token=ANB4BCOSP2ZFXUBYKCPUKKLGRD6YG" alt="在这里插入图片描述"></p>
-<p><strong>充要条件</strong>：一个图是平面图的充要条件是它不包含与$K_3,_3$ 或 $K_5$同胚的子图。</p>
-<p>一般地，判定图G是否为平面图的<strong>步骤</strong>如下：</p>
-<ul>
-<li>①若$e&lt;9或v&lt;5$，则G是平面图；如果$e&gt;3v-6$，则G是非平面图；</li>
-<li>②如果 G 是不连通的，则分别检测每个分图；当且仅当每个分图都是平面图时，G是平面图；</li>
-<li>③如果G中存在割点，可把图G的割点删除，构成若干个不含割点的连通子图。显然，G是平面图当且仅当每个连通子图是平面图；</li>
-<li>④移去自回路；</li>
-<li>⑤否则利用Kuratowski定理检测，或尝试看能否画一个相应的边不相交的图解；</li>
-<li>⑥移去平行边。</li>
-<li>反复运用⑤ 和⑥，并结合①进行检测。</li>
-</ul>
-<p><em><strong>以上就是关于几种常见特殊的图的讨论，全文完，感谢阅读。</strong></em></p>
-]]></content>
-      <categories>
-        <category>离散数学</category>
-      </categories>
-      <tags>
-        <tag>图论</tag>
-        <tag>离散数学</tag>
-        <tag>数学</tag>
-        <tag>特殊的图</tag>
       </tags>
   </entry>
   <entry>
