@@ -243,64 +243,6 @@
       </tags>
   </entry>
   <entry>
-    <title>2024.06.16 刷题日记</title>
-    <url>/2024/06/16/2024.06.16%20%E5%88%B7%E9%A2%98%E6%97%A5%E8%AE%B0/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>今天刷了大概两个半小时，一边刷一边学，一边吃零食。效率有点低了~</p>
-<p>以后每天都会刷，并且写刷题日记，题目标题有题目序号以及题目名称，方便以后查询。</p>
-<h2 id="1-两数之和"><a href="#1-两数之和" class="headerlink" title="1. 两数之和"></a>1. 两数之和</h2><p>重点是要降低时间复杂度，所以用哈希表了，由于不能重复出现，所以是先查询后插入：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function">vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">twoSum</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; nums, <span class="hljs-type">int</span> target)</span> </span>&#123;<br>        unordered_map&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt; map;<br>        <span class="hljs-type">int</span> t;<br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; nums.<span class="hljs-built_in">size</span>(); i++)&#123;<br>            t = target-nums[i];<br>            <span class="hljs-keyword">if</span>(map.<span class="hljs-built_in">find</span>(t) != map.<span class="hljs-built_in">end</span>())&#123;<br>                <span class="hljs-keyword">return</span> &#123;i,map[t]&#125;;<br>            &#125;<span class="hljs-keyword">else</span>&#123;<br>                map[nums[i]] = i;<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> &#123;&#125;;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
-<h2 id="49-字母异位词分组"><a href="#49-字母异位词分组" class="headerlink" title="49. 字母异位词分组"></a>49. 字母异位词分组</h2><p>这道题目思考了一会儿，每一个单词都以抽象为一个有序的序列，因此要对字符串进行排序，然后排序后的字符串为key，<code>vector&lt;string&gt;</code> 为 value。这里需要注意的是利用移动语义提高性能：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    vector&lt;vector&lt;string&gt;&gt; <span class="hljs-built_in">groupAnagrams</span>(vector&lt;string&gt;&amp; strs) &#123;<br>        unordered_map&lt;string, vector&lt;string&gt;&gt; map;<br>        vector&lt;vector&lt;string&gt;&gt; ans;<br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">const</span> <span class="hljs-keyword">auto</span> &amp;s:strs)&#123;<br>            string key = s;<br>            <span class="hljs-built_in">sort</span>(key.<span class="hljs-built_in">begin</span>(), key.<span class="hljs-built_in">end</span>());<br>            map[key].<span class="hljs-built_in">push_back</span>(s);<br>        &#125;<br>        <span class="hljs-keyword">for</span>(<span class="hljs-keyword">auto</span> &amp;v:map)&#123;<br>            ans.<span class="hljs-built_in">push_back</span>(std::<span class="hljs-built_in">move</span>(v.second));<br>        &#125;<br>        <span class="hljs-keyword">return</span> ans;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
-<h2 id="128-最长连续序列"><a href="#128-最长连续序列" class="headerlink" title="128. 最长连续序列"></a>128. 最长连续序列</h2><p>这个题目也想了一会儿，重点是现将这些值放到 set 中降低时间复杂度。然后将每一个 num 判断是否为开始的元素，如果是，就查询 num+1：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">longestConsecutive</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; nums)</span> </span>&#123;<br>        <span class="hljs-function">unordered_set&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">set</span><span class="hljs-params">(nums.begin(), nums.end())</span></span>;<br>        <span class="hljs-type">int</span> max_len = <span class="hljs-number">0</span>, temp, len;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> num : set) &#123;<br>            <span class="hljs-keyword">if</span> (!set.<span class="hljs-built_in">count</span>(num - <span class="hljs-number">1</span>)) &#123;<br>                len = <span class="hljs-number">0</span>;<br>                temp = num;<br>                <span class="hljs-keyword">while</span> (set.<span class="hljs-built_in">count</span>(temp)) &#123;<br>                    temp++;<br>                    len++;<br>                &#125;<br>                max_len = <span class="hljs-built_in">max</span>(len, max_len);<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> max_len;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
-<h2 id="283-移动零"><a href="#283-移动零" class="headerlink" title="283. 移动零"></a>283. 移动零</h2><p>这个题目还挺难，虽然标着简单，这是经典的双指针问题。用两个指针，一个维护当前数组，另一个用于搜索非零元素，找到之后，将右指针的值赋值给零元素，然后右指针指向的值赋为 0：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">moveZeroes</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; nums)</span> </span>&#123;<br>        <span class="hljs-type">int</span> left = <span class="hljs-number">0</span>;<br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> r = <span class="hljs-number">0</span>; r &lt; nums.<span class="hljs-built_in">size</span>(); r++)&#123;<br>            <span class="hljs-keyword">if</span>(nums[r] != <span class="hljs-number">0</span>)&#123;<br>                <span class="hljs-keyword">if</span>(r != left)&#123;<br>                    nums[left] = nums[r];<br>                    nums[r] = <span class="hljs-number">0</span>;<br>                &#125;<br>                left++;<br>            &#125;<br>        &#125;<br><br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
-<h2 id="11-盛最多水的容器"><a href="#11-盛最多水的容器" class="headerlink" title="11. 盛最多水的容器"></a>11. 盛最多水的容器</h2><p>这个依然是双指针，然后贪心，从两边向中间紧靠。紧靠的原则是，哪边低哪边向中间靠：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">maxArea</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; height)</span> </span>&#123;<br>        <span class="hljs-type">int</span> left = <span class="hljs-number">0</span>, right = height.<span class="hljs-built_in">size</span>() - <span class="hljs-number">1</span>;<br>        <span class="hljs-type">int</span> max = <span class="hljs-number">0</span>;<br>        <span class="hljs-keyword">while</span> (left &lt; right) &#123;<br>            max = std::<span class="hljs-built_in">max</span>(max,<br>                           (right - left) * <span class="hljs-built_in">min</span>(height[left], height[right]));<br>            <span class="hljs-keyword">if</span>(height[left] &lt; height[right])&#123;<br>                left++;<br>            &#125;<span class="hljs-keyword">else</span>&#123;<br>                right--;<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> max;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
-<h2 id="15-三数之和"><a href="#15-三数之和" class="headerlink" title="15. 三数之和"></a>15. 三数之和</h2><p>首先排序，然后利用三指针。<code>nums[i]</code>为第一个，第二个指针为 <code>nums[i+1]</code>，下一个指针为 <code>nums[len-1]</code>，判断这三个值知否为 0。然后遍历 <code>nums[i]</code>，为了不重复，需要跳过 <code>nums[i] when nums[i] == nums[i+1]</code>：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    vector&lt;vector&lt;<span class="hljs-type">int</span>&gt;&gt; <span class="hljs-built_in">threeSum</span>(vector&lt;<span class="hljs-type">int</span>&gt;&amp; nums) &#123;<br>        <span class="hljs-built_in">sort</span>(nums.<span class="hljs-built_in">begin</span>(), nums.<span class="hljs-built_in">end</span>());<br>        vector&lt;vector&lt;<span class="hljs-type">int</span>&gt;&gt; result;<br>        <span class="hljs-type">int</span> len = nums.<span class="hljs-built_in">size</span>(), left, right;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; len; i++) &#123;<br>            <span class="hljs-keyword">if</span> (nums[i] &gt; <span class="hljs-number">0</span>)<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">if</span> (i &gt; <span class="hljs-number">0</span> &amp;&amp; nums[i] == nums[i - <span class="hljs-number">1</span>])<br>                <span class="hljs-keyword">continue</span>;<br>            left = i + <span class="hljs-number">1</span>;<br>            right = len - <span class="hljs-number">1</span>;<br>            <span class="hljs-keyword">while</span> (left &lt; right) &#123;<br>                <span class="hljs-type">int</span> sum = nums[i] + nums[left] + nums[right];<br>                <span class="hljs-keyword">if</span> (sum == <span class="hljs-number">0</span>) &#123;<br>                    result.<span class="hljs-built_in">push_back</span>(&#123;nums[i], nums[left], nums[right]&#125;);<br>                    <span class="hljs-keyword">while</span> (left &lt; right &amp;&amp; nums[left] == nums[left + <span class="hljs-number">1</span>])<br>                        ++left;<br>                    <span class="hljs-keyword">while</span> (left &lt; right &amp;&amp; nums[right] == nums[right - <span class="hljs-number">1</span>])<br>                        --right;<br>                    ++left;<br>                    --right;<br>                &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (sum &lt; <span class="hljs-number">0</span>) &#123;<br>                    ++left;<br>                &#125; <span class="hljs-keyword">else</span> &#123;<br>                    --right;<br>                &#125;<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> result;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
-<h2 id="每日总结（gpt4）"><a href="#每日总结（gpt4）" class="headerlink" title="每日总结（gpt4）"></a>每日总结（gpt4）</h2><h3 id="1-两数之和-1"><a href="#1-两数之和-1" class="headerlink" title="1. 两数之和"></a>1. 两数之和</h3><ul>
-<li><strong>关键点</strong>：使用哈希表来优化查找过程，从而将时间复杂度降低到O(n)。</li>
-<li><strong>策略</strong>：通过存储每个数字和它的索引，我们可以快速检查目标值减去当前数字是否已经在哈希表中，这样避免了二次循环。</li>
-</ul>
-<h3 id="49-字母异位词分组-1"><a href="#49-字母异位词分组-1" class="headerlink" title="49. 字母异位词分组"></a>49. 字母异位词分组</h3><ul>
-<li><strong>关键点</strong>：将每个字符串排序，使用排序后的结果作为键值来组织哈希表。</li>
-<li><strong>策略</strong>：排序字符串以标准化字母异位词，确保所有异位词都映射到相同的键下。使用移动语义优化性能。</li>
-</ul>
-<h3 id="128-最长连续序列-1"><a href="#128-最长连续序列-1" class="headerlink" title="128. 最长连续序列"></a>128. 最长连续序列</h3><ul>
-<li><strong>关键点</strong>：使用集合（Set）来存储所有数字，快速判断数字连续性。</li>
-<li><strong>策略</strong>：只从序列的可能开始位置检查（即当前数字的前一个数字不在集合中），避免重复计算。</li>
-</ul>
-<h3 id="283-移动零-1"><a href="#283-移动零-1" class="headerlink" title="283. 移动零"></a>283. 移动零</h3><ul>
-<li><strong>关键点</strong>：使用双指针技术高效解决问题，一个指针用于迭代，一个指针用于维护非零数组的当前边界。</li>
-<li><strong>策略</strong>：当遇到非零元素时，将其移动到左边已处理区域的末尾，保持零元素在右边。</li>
-</ul>
-<h3 id="11-盛最多水的容器-1"><a href="#11-盛最多水的容器-1" class="headerlink" title="11. 盛最多水的容器"></a>11. 盛最多水的容器</h3><ul>
-<li><strong>关键点</strong>：使用双指针从数组两端向中心移动，选择合适的策略来尽可能扩大容积。</li>
-<li><strong>策畓</strong>：根据两边柱子的高度决定移动哪一个指针，总是试图通过移动较短的那个来寻找可能的更大容积。</li>
-</ul>
-<h3 id="15-三数之和-1"><a href="#15-三数之和-1" class="headerlink" title="15. 三数之和"></a>15. 三数之和</h3><ul>
-<li><strong>关键点</strong>：首先排序数组，然后使用三个指针分别指向当前元素、当前元素后的下一个元素以及数组的最后一个元素，以便对数组进行遍历和匹配。</li>
-<li><strong>策略</strong>：在保证不重复的基础上找到三个数的和为零的所有组合，注意在移动指针时跳过重复的值。</li>
-</ul>
-]]></content>
-      <categories>
-        <category>LeetCode</category>
-      </categories>
-      <tags>
-        <tag>算法</tag>
-        <tag>数据结构</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>2024.06.17 刷题日记</title>
     <url>/2024/06/18/2024.06.17%20%E5%88%B7%E9%A2%98%E6%97%A5%E8%AE%B0/</url>
     <content><![CDATA[<span id="more"></span>
@@ -391,6 +333,64 @@
         <tag>算法</tag>
         <tag>数据结构</tag>
         <tag>leetcode</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>2024.06.16 刷题日记</title>
+    <url>/2024/06/16/2024.06.16%20%E5%88%B7%E9%A2%98%E6%97%A5%E8%AE%B0/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>今天刷了大概两个半小时，一边刷一边学，一边吃零食。效率有点低了~</p>
+<p>以后每天都会刷，并且写刷题日记，题目标题有题目序号以及题目名称，方便以后查询。</p>
+<h2 id="1-两数之和"><a href="#1-两数之和" class="headerlink" title="1. 两数之和"></a>1. 两数之和</h2><p>重点是要降低时间复杂度，所以用哈希表了，由于不能重复出现，所以是先查询后插入：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function">vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">twoSum</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; nums, <span class="hljs-type">int</span> target)</span> </span>&#123;<br>        unordered_map&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt; map;<br>        <span class="hljs-type">int</span> t;<br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; nums.<span class="hljs-built_in">size</span>(); i++)&#123;<br>            t = target-nums[i];<br>            <span class="hljs-keyword">if</span>(map.<span class="hljs-built_in">find</span>(t) != map.<span class="hljs-built_in">end</span>())&#123;<br>                <span class="hljs-keyword">return</span> &#123;i,map[t]&#125;;<br>            &#125;<span class="hljs-keyword">else</span>&#123;<br>                map[nums[i]] = i;<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> &#123;&#125;;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="49-字母异位词分组"><a href="#49-字母异位词分组" class="headerlink" title="49. 字母异位词分组"></a>49. 字母异位词分组</h2><p>这道题目思考了一会儿，每一个单词都以抽象为一个有序的序列，因此要对字符串进行排序，然后排序后的字符串为key，<code>vector&lt;string&gt;</code> 为 value。这里需要注意的是利用移动语义提高性能：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    vector&lt;vector&lt;string&gt;&gt; <span class="hljs-built_in">groupAnagrams</span>(vector&lt;string&gt;&amp; strs) &#123;<br>        unordered_map&lt;string, vector&lt;string&gt;&gt; map;<br>        vector&lt;vector&lt;string&gt;&gt; ans;<br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">const</span> <span class="hljs-keyword">auto</span> &amp;s:strs)&#123;<br>            string key = s;<br>            <span class="hljs-built_in">sort</span>(key.<span class="hljs-built_in">begin</span>(), key.<span class="hljs-built_in">end</span>());<br>            map[key].<span class="hljs-built_in">push_back</span>(s);<br>        &#125;<br>        <span class="hljs-keyword">for</span>(<span class="hljs-keyword">auto</span> &amp;v:map)&#123;<br>            ans.<span class="hljs-built_in">push_back</span>(std::<span class="hljs-built_in">move</span>(v.second));<br>        &#125;<br>        <span class="hljs-keyword">return</span> ans;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="128-最长连续序列"><a href="#128-最长连续序列" class="headerlink" title="128. 最长连续序列"></a>128. 最长连续序列</h2><p>这个题目也想了一会儿，重点是现将这些值放到 set 中降低时间复杂度。然后将每一个 num 判断是否为开始的元素，如果是，就查询 num+1：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">longestConsecutive</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; nums)</span> </span>&#123;<br>        <span class="hljs-function">unordered_set&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">set</span><span class="hljs-params">(nums.begin(), nums.end())</span></span>;<br>        <span class="hljs-type">int</span> max_len = <span class="hljs-number">0</span>, temp, len;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> num : set) &#123;<br>            <span class="hljs-keyword">if</span> (!set.<span class="hljs-built_in">count</span>(num - <span class="hljs-number">1</span>)) &#123;<br>                len = <span class="hljs-number">0</span>;<br>                temp = num;<br>                <span class="hljs-keyword">while</span> (set.<span class="hljs-built_in">count</span>(temp)) &#123;<br>                    temp++;<br>                    len++;<br>                &#125;<br>                max_len = <span class="hljs-built_in">max</span>(len, max_len);<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> max_len;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="283-移动零"><a href="#283-移动零" class="headerlink" title="283. 移动零"></a>283. 移动零</h2><p>这个题目还挺难，虽然标着简单，这是经典的双指针问题。用两个指针，一个维护当前数组，另一个用于搜索非零元素，找到之后，将右指针的值赋值给零元素，然后右指针指向的值赋为 0：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">moveZeroes</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; nums)</span> </span>&#123;<br>        <span class="hljs-type">int</span> left = <span class="hljs-number">0</span>;<br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> r = <span class="hljs-number">0</span>; r &lt; nums.<span class="hljs-built_in">size</span>(); r++)&#123;<br>            <span class="hljs-keyword">if</span>(nums[r] != <span class="hljs-number">0</span>)&#123;<br>                <span class="hljs-keyword">if</span>(r != left)&#123;<br>                    nums[left] = nums[r];<br>                    nums[r] = <span class="hljs-number">0</span>;<br>                &#125;<br>                left++;<br>            &#125;<br>        &#125;<br><br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="11-盛最多水的容器"><a href="#11-盛最多水的容器" class="headerlink" title="11. 盛最多水的容器"></a>11. 盛最多水的容器</h2><p>这个依然是双指针，然后贪心，从两边向中间紧靠。紧靠的原则是，哪边低哪边向中间靠：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">maxArea</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; height)</span> </span>&#123;<br>        <span class="hljs-type">int</span> left = <span class="hljs-number">0</span>, right = height.<span class="hljs-built_in">size</span>() - <span class="hljs-number">1</span>;<br>        <span class="hljs-type">int</span> max = <span class="hljs-number">0</span>;<br>        <span class="hljs-keyword">while</span> (left &lt; right) &#123;<br>            max = std::<span class="hljs-built_in">max</span>(max,<br>                           (right - left) * <span class="hljs-built_in">min</span>(height[left], height[right]));<br>            <span class="hljs-keyword">if</span>(height[left] &lt; height[right])&#123;<br>                left++;<br>            &#125;<span class="hljs-keyword">else</span>&#123;<br>                right--;<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> max;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="15-三数之和"><a href="#15-三数之和" class="headerlink" title="15. 三数之和"></a>15. 三数之和</h2><p>首先排序，然后利用三指针。<code>nums[i]</code>为第一个，第二个指针为 <code>nums[i+1]</code>，下一个指针为 <code>nums[len-1]</code>，判断这三个值知否为 0。然后遍历 <code>nums[i]</code>，为了不重复，需要跳过 <code>nums[i] when nums[i] == nums[i+1]</code>：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    vector&lt;vector&lt;<span class="hljs-type">int</span>&gt;&gt; <span class="hljs-built_in">threeSum</span>(vector&lt;<span class="hljs-type">int</span>&gt;&amp; nums) &#123;<br>        <span class="hljs-built_in">sort</span>(nums.<span class="hljs-built_in">begin</span>(), nums.<span class="hljs-built_in">end</span>());<br>        vector&lt;vector&lt;<span class="hljs-type">int</span>&gt;&gt; result;<br>        <span class="hljs-type">int</span> len = nums.<span class="hljs-built_in">size</span>(), left, right;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; len; i++) &#123;<br>            <span class="hljs-keyword">if</span> (nums[i] &gt; <span class="hljs-number">0</span>)<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">if</span> (i &gt; <span class="hljs-number">0</span> &amp;&amp; nums[i] == nums[i - <span class="hljs-number">1</span>])<br>                <span class="hljs-keyword">continue</span>;<br>            left = i + <span class="hljs-number">1</span>;<br>            right = len - <span class="hljs-number">1</span>;<br>            <span class="hljs-keyword">while</span> (left &lt; right) &#123;<br>                <span class="hljs-type">int</span> sum = nums[i] + nums[left] + nums[right];<br>                <span class="hljs-keyword">if</span> (sum == <span class="hljs-number">0</span>) &#123;<br>                    result.<span class="hljs-built_in">push_back</span>(&#123;nums[i], nums[left], nums[right]&#125;);<br>                    <span class="hljs-keyword">while</span> (left &lt; right &amp;&amp; nums[left] == nums[left + <span class="hljs-number">1</span>])<br>                        ++left;<br>                    <span class="hljs-keyword">while</span> (left &lt; right &amp;&amp; nums[right] == nums[right - <span class="hljs-number">1</span>])<br>                        --right;<br>                    ++left;<br>                    --right;<br>                &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (sum &lt; <span class="hljs-number">0</span>) &#123;<br>                    ++left;<br>                &#125; <span class="hljs-keyword">else</span> &#123;<br>                    --right;<br>                &#125;<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> result;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="每日总结（gpt4）"><a href="#每日总结（gpt4）" class="headerlink" title="每日总结（gpt4）"></a>每日总结（gpt4）</h2><h3 id="1-两数之和-1"><a href="#1-两数之和-1" class="headerlink" title="1. 两数之和"></a>1. 两数之和</h3><ul>
+<li><strong>关键点</strong>：使用哈希表来优化查找过程，从而将时间复杂度降低到O(n)。</li>
+<li><strong>策略</strong>：通过存储每个数字和它的索引，我们可以快速检查目标值减去当前数字是否已经在哈希表中，这样避免了二次循环。</li>
+</ul>
+<h3 id="49-字母异位词分组-1"><a href="#49-字母异位词分组-1" class="headerlink" title="49. 字母异位词分组"></a>49. 字母异位词分组</h3><ul>
+<li><strong>关键点</strong>：将每个字符串排序，使用排序后的结果作为键值来组织哈希表。</li>
+<li><strong>策略</strong>：排序字符串以标准化字母异位词，确保所有异位词都映射到相同的键下。使用移动语义优化性能。</li>
+</ul>
+<h3 id="128-最长连续序列-1"><a href="#128-最长连续序列-1" class="headerlink" title="128. 最长连续序列"></a>128. 最长连续序列</h3><ul>
+<li><strong>关键点</strong>：使用集合（Set）来存储所有数字，快速判断数字连续性。</li>
+<li><strong>策略</strong>：只从序列的可能开始位置检查（即当前数字的前一个数字不在集合中），避免重复计算。</li>
+</ul>
+<h3 id="283-移动零-1"><a href="#283-移动零-1" class="headerlink" title="283. 移动零"></a>283. 移动零</h3><ul>
+<li><strong>关键点</strong>：使用双指针技术高效解决问题，一个指针用于迭代，一个指针用于维护非零数组的当前边界。</li>
+<li><strong>策略</strong>：当遇到非零元素时，将其移动到左边已处理区域的末尾，保持零元素在右边。</li>
+</ul>
+<h3 id="11-盛最多水的容器-1"><a href="#11-盛最多水的容器-1" class="headerlink" title="11. 盛最多水的容器"></a>11. 盛最多水的容器</h3><ul>
+<li><strong>关键点</strong>：使用双指针从数组两端向中心移动，选择合适的策略来尽可能扩大容积。</li>
+<li><strong>策畓</strong>：根据两边柱子的高度决定移动哪一个指针，总是试图通过移动较短的那个来寻找可能的更大容积。</li>
+</ul>
+<h3 id="15-三数之和-1"><a href="#15-三数之和-1" class="headerlink" title="15. 三数之和"></a>15. 三数之和</h3><ul>
+<li><strong>关键点</strong>：首先排序数组，然后使用三个指针分别指向当前元素、当前元素后的下一个元素以及数组的最后一个元素，以便对数组进行遍历和匹配。</li>
+<li><strong>策略</strong>：在保证不重复的基础上找到三个数的和为零的所有组合，注意在移动指针时跳过重复的值。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>LeetCode</category>
+      </categories>
+      <tags>
+        <tag>算法</tag>
+        <tag>数据结构</tag>
       </tags>
   </entry>
   <entry>
@@ -878,7 +878,7 @@
 <p>也只提升了一点点：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/3307e078f4a44a70934da1372d8d7826_1720253671766.png?token=ANB4BCITJTKONUIYRWAPXXDGRD6SQ" alt="在这里插入图片描述"></p>
 <p>事实上，可以直接构造，这是一道数学题，不过这不在本节讨论的范围，略过。</p>
 <h2 id="93-复原-IP-地址"><a href="#93-复原-IP-地址" class="headerlink" title="93. 复原 IP 地址"></a>93. 复原 IP 地址</h2><p>有效 IP 地址 正好由四个整数（每个整数位于 0 到 255 之间组成，且不能含有前导 0），整数之间用 ‘.’ 分隔。</p>
-<p>例如：”0.1.2.201” 和 “192.168.1.1” 是 有效 IP 地址，但是 “0.011.255.245”、”192.168.1.312” 和 “<a href="mailto:&#x31;&#x39;&#50;&#x2e;&#x31;&#54;&#x38;&#64;&#49;&#46;&#x31;">&#x31;&#x39;&#50;&#x2e;&#x31;&#54;&#x38;&#64;&#49;&#46;&#x31;</a>“ 是 无效 IP 地址。<br>给定一个只包含数字的字符串 s ，用以表示一个 IP 地址，返回所有可能的有效 IP 地址，这些地址可以通过在 s 中插入 ‘.’ 来形成。你 不能 重新排序或删除 s 中的任何数字。你可以按 任何 顺序返回答案。</p>
+<p>例如：”0.1.2.201” 和 “192.168.1.1” 是 有效 IP 地址，但是 “0.011.255.245”、”192.168.1.312” 和 “<a href="mailto:&#x31;&#x39;&#x32;&#46;&#49;&#x36;&#56;&#x40;&#49;&#46;&#x31;">&#x31;&#x39;&#x32;&#46;&#49;&#x36;&#56;&#x40;&#49;&#46;&#x31;</a>“ 是 无效 IP 地址。<br>给定一个只包含数字的字符串 s ，用以表示一个 IP 地址，返回所有可能的有效 IP 地址，这些地址可以通过在 s 中插入 ‘.’ 来形成。你 不能 重新排序或删除 s 中的任何数字。你可以按 任何 顺序返回答案。</p>
 <p>示例 1：</p>
 <blockquote>
 <p>输入：s &#x3D; “25525511135”<br>输出：[“255.255.11.135”,”255.255.111.35”]</p>
@@ -3656,38 +3656,6 @@
       </tags>
   </entry>
   <entry>
-    <title>C++：适配器</title>
-    <url>/2024/04/24/C++%EF%BC%9A%E9%80%82%E9%85%8D%E5%99%A8/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h2><p>当两个类的接口不兼容时，可以使用适配器模式将一个类的接口适配成另一个类的接口，使它们可以协同工作。下面是一个简单的示例，展示<strong>如何使用适配器模式将一个旧的类的接口适配成一个新的类的接口</strong>：</p>
-<p>假设有一个旧的类 <code>OldClass</code>，它有一个名为 <code>oldMethod</code> 的方法，但我们希望将其适配成一个新的类 <code>NewClass</code>，并且新类中有一个名为 <code>newMethod</code> 的方法。我们可以使用适配器模式来实现这个转换：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// 旧的类</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">OldClass</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">oldMethod</span><span class="hljs-params">()</span> </span>&#123;<br>        std::cout &lt;&lt; <span class="hljs-string">&quot;Old method is called.&quot;</span> &lt;&lt; std::endl;<br>    &#125;<br>&#125;;<br><br><span class="hljs-comment">// 新的类</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">NewClass</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">newMethod</span><span class="hljs-params">()</span> </span>&#123;<br>        std::cout &lt;&lt; <span class="hljs-string">&quot;New method is called.&quot;</span> &lt;&lt; std::endl;<br>    &#125;<br>&#125;;<br><br><span class="hljs-comment">// 适配器类，将 OldClass 的接口适配成 NewClass 的接口</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">Adapter</span> &#123;<br><span class="hljs-keyword">private</span>:<br>    OldClass oldObj;<br><br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">newMethod</span><span class="hljs-params">()</span> </span>&#123;<br>        oldObj.<span class="hljs-built_in">oldMethod</span>(); <span class="hljs-comment">// 调用旧类的方法</span><br>    &#125;<br>&#125;;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    Adapter adapter;<br>    adapter.<span class="hljs-built_in">newMethod</span>(); <span class="hljs-comment">// 调用适配后的新类方法，实际上会调用旧类的方法</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>在上面的示例中，<code>OldClass</code> 是旧的类，<code>NewClass</code> 是新的类，它们的接口不兼容（假设不兼容，嘻嘻）。通过创建一个适配器类 <code>Adapter</code>，在适配器类中调用旧类的方法，从而实现将旧类的接口适配成新类的接口。在 <code>main</code> 函数中，我们创建了一个适配器对象，并调用了适配后的新类方法，实际上会调用旧类的方法。</p>
-<p>事实上，适配器的概念在 STL 中非常重要，很多的适配器都是基于 STL 提供的容器来实现。换句话说，就是通过 STL 提供的容器来构造要求更高的容器。</p>
-<p>在 C++ STL（标准模板库）中，有许多适配器类模板，用于基于不同的容器类型来实现不同的数据结构。这些适配器类模板提供了统一的接口，使得可以通过适配器来构造具有特定功能的容器，从而满足不同的需求。</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span>&lt;<span class="hljs-keyword">typename</span> _Tp, <span class="hljs-keyword">typename</span> _Sequence = deque&lt;_Tp&gt; &gt;<br><span class="hljs-keyword">class</span> stack<br>&#123;<br><br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::value_type                value_type;<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::reference                 reference;<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::const_reference           const_reference;<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::size_type                 size_type;<br>    <span class="hljs-keyword">typedef</span>          _Sequence                            container_type;<br><br><span class="hljs-keyword">protected</span>:<br>    <span class="hljs-comment">//  See queue::c for notes on this name.</span><br>    _Sequence c;<br><br><span class="hljs-keyword">public</span>:<br>     <span class="hljs-function">reference</span><br><span class="hljs-function">      <span class="hljs-title">top</span><span class="hljs-params">()</span></span><br><span class="hljs-function">      </span>&#123;<br>        __glibcxx_requires_nonempty();<br>        <span class="hljs-keyword">return</span> c.<span class="hljs-built_in">back</span>();<br>      &#125;<br>    <span class="hljs-function"><span class="hljs-type">void</span></span><br><span class="hljs-function">      <span class="hljs-title">push</span><span class="hljs-params">(<span class="hljs-type">const</span> value_type&amp; __x)</span></span><br><span class="hljs-function">      </span>&#123; c.<span class="hljs-built_in">push_back</span>(__x); &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
-
-<p>例如，<code>std::stack</code> 是一个栈适配器，它基于其他容器实现的栈数据结构。默认情况下，<code>std::stack</code> 使用 <code>std::deque</code>（双端队列）作为其底层容器，但也可以通过模板参数指定其他容器类型，如 <code>std::vector</code> 或 <code>std::list</code>。</p>
-<p>类似地，<code>std::queue</code> 是一个队列适配器，它基于其他容器实现的队列数据结构。默认情况下，<code>std::queue</code> 使用 <code>std::deque</code> 作为其底层容器：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span>&lt;<span class="hljs-keyword">typename</span> _Tp, <span class="hljs-keyword">typename</span> _Sequence = deque&lt;_Tp&gt; &gt;<br><span class="hljs-keyword">class</span> queue<br>&#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::value_type                value_type;<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::reference                 reference;<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::const_reference           const_reference;<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::size_type                 size_type;<br>    <span class="hljs-keyword">typedef</span>          _Sequence                            container_type;<br><br><span class="hljs-keyword">protected</span>:<br><br>    _Sequence c;<br><br><span class="hljs-keyword">public</span>:<br><br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">push</span><span class="hljs-params">(<span class="hljs-type">const</span> value_type&amp; __x)</span></span><br><span class="hljs-function">    </span>&#123; c.<span class="hljs-built_in">push_back</span>(__x); &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">pop</span><span class="hljs-params">()</span></span><br><span class="hljs-function">    </span>&#123;<br>        __glibcxx_requires_nonempty();<br>      c.<span class="hljs-built_in">pop_front</span>();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-
-<p>另外，<code>std::priority_queue</code> 是一个优先队列适配器，它基于其他容器实现的优先队列数据结构。默认情况下，<code>std::priority_queue</code> 使用 <code>std::vector</code> 作为其底层容器，但也可以通过模板参数指定其他容器类型：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span>&lt;<span class="hljs-keyword">typename</span> _Tp, <span class="hljs-keyword">typename</span> _Sequence = vector&lt;_Tp&gt;,<br><span class="hljs-keyword">typename</span> _Compare  = less&lt;<span class="hljs-keyword">typename</span> _Sequence::value_type&gt; &gt;<br><span class="hljs-keyword">class</span> priority_queue<br>&#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::value_type                value_type;<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::reference                 reference;<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::const_reference           const_reference;<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::size_type                 size_type;<br>    <span class="hljs-keyword">typedef</span>          _Sequence                            container_type;<br><br><span class="hljs-keyword">protected</span>:<br>    <span class="hljs-comment">//  See queue::c for notes on these names.</span><br>    _Sequence  c;<br>    _Compare   comp;<br><br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function">reference</span><br><span class="hljs-function">    <span class="hljs-title">top</span><span class="hljs-params">()</span></span><br><span class="hljs-function">    </span>&#123;<br>	    __glibcxx_requires_nonempty();<br>	    <span class="hljs-keyword">return</span> c.<span class="hljs-built_in">front</span>();<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">void</span></span><br><span class="hljs-function">    <span class="hljs-title">push</span><span class="hljs-params">(<span class="hljs-type">const</span> value_type&amp; __x)</span></span><br><span class="hljs-function">    </span>&#123;<br>	    c.<span class="hljs-built_in">push_back</span>(__x);<br>	    std::<span class="hljs-built_in">push_heap</span>(c.<span class="hljs-built_in">begin</span>(), c.<span class="hljs-built_in">end</span>(), comp);<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>这些适配器类模板使得在不同场景下可以方便地使用不同的容器实现，同时提供了统一的接口，使得代码更加灵活和可复用。通过使用 STL 提供的适配器，可以更加方便地构造具有特定功能的容器，满足不同的需求。因此，stack、queue、priority_queue不被称为容器， 把它称为容器配接器。</p>
-]]></content>
-      <categories>
-        <category>C++</category>
-      </categories>
-      <tags>
-        <tag>c++</tag>
-        <tag>开发语言</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>C++：迭代器</title>
     <url>/2024/04/23/C++%EF%BC%9A%E8%BF%AD%E4%BB%A3%E5%99%A8/</url>
     <content><![CDATA[<span id="more"></span>
@@ -3750,6 +3718,38 @@
 <figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">./main<br>fine fish fashion fate<br>fine fish fashion fate busy bats<br>silly singers fine fish fashion fate busy bats<br></code></pre></td></tr></table></figure>
 
 <p>如果程序试图使用<code>words.end( )</code>（尾插）和 <code>words.begin( )</code>（头插）作为迭代器，将 s2 和 s3 复制到<strong>words</strong> 中，<strong>words</strong> 将没有空间来存储新数据，程序可能会由于内存违规而异常终止。</p>
+]]></content>
+      <categories>
+        <category>C++</category>
+      </categories>
+      <tags>
+        <tag>c++</tag>
+        <tag>开发语言</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C++：适配器</title>
+    <url>/2024/04/24/C++%EF%BC%9A%E9%80%82%E9%85%8D%E5%99%A8/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h2><p>当两个类的接口不兼容时，可以使用适配器模式将一个类的接口适配成另一个类的接口，使它们可以协同工作。下面是一个简单的示例，展示<strong>如何使用适配器模式将一个旧的类的接口适配成一个新的类的接口</strong>：</p>
+<p>假设有一个旧的类 <code>OldClass</code>，它有一个名为 <code>oldMethod</code> 的方法，但我们希望将其适配成一个新的类 <code>NewClass</code>，并且新类中有一个名为 <code>newMethod</code> 的方法。我们可以使用适配器模式来实现这个转换：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// 旧的类</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">OldClass</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">oldMethod</span><span class="hljs-params">()</span> </span>&#123;<br>        std::cout &lt;&lt; <span class="hljs-string">&quot;Old method is called.&quot;</span> &lt;&lt; std::endl;<br>    &#125;<br>&#125;;<br><br><span class="hljs-comment">// 新的类</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">NewClass</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">newMethod</span><span class="hljs-params">()</span> </span>&#123;<br>        std::cout &lt;&lt; <span class="hljs-string">&quot;New method is called.&quot;</span> &lt;&lt; std::endl;<br>    &#125;<br>&#125;;<br><br><span class="hljs-comment">// 适配器类，将 OldClass 的接口适配成 NewClass 的接口</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">Adapter</span> &#123;<br><span class="hljs-keyword">private</span>:<br>    OldClass oldObj;<br><br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">newMethod</span><span class="hljs-params">()</span> </span>&#123;<br>        oldObj.<span class="hljs-built_in">oldMethod</span>(); <span class="hljs-comment">// 调用旧类的方法</span><br>    &#125;<br>&#125;;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    Adapter adapter;<br>    adapter.<span class="hljs-built_in">newMethod</span>(); <span class="hljs-comment">// 调用适配后的新类方法，实际上会调用旧类的方法</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>在上面的示例中，<code>OldClass</code> 是旧的类，<code>NewClass</code> 是新的类，它们的接口不兼容（假设不兼容，嘻嘻）。通过创建一个适配器类 <code>Adapter</code>，在适配器类中调用旧类的方法，从而实现将旧类的接口适配成新类的接口。在 <code>main</code> 函数中，我们创建了一个适配器对象，并调用了适配后的新类方法，实际上会调用旧类的方法。</p>
+<p>事实上，适配器的概念在 STL 中非常重要，很多的适配器都是基于 STL 提供的容器来实现。换句话说，就是通过 STL 提供的容器来构造要求更高的容器。</p>
+<p>在 C++ STL（标准模板库）中，有许多适配器类模板，用于基于不同的容器类型来实现不同的数据结构。这些适配器类模板提供了统一的接口，使得可以通过适配器来构造具有特定功能的容器，从而满足不同的需求。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span>&lt;<span class="hljs-keyword">typename</span> _Tp, <span class="hljs-keyword">typename</span> _Sequence = deque&lt;_Tp&gt; &gt;<br><span class="hljs-keyword">class</span> stack<br>&#123;<br><br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::value_type                value_type;<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::reference                 reference;<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::const_reference           const_reference;<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::size_type                 size_type;<br>    <span class="hljs-keyword">typedef</span>          _Sequence                            container_type;<br><br><span class="hljs-keyword">protected</span>:<br>    <span class="hljs-comment">//  See queue::c for notes on this name.</span><br>    _Sequence c;<br><br><span class="hljs-keyword">public</span>:<br>     <span class="hljs-function">reference</span><br><span class="hljs-function">      <span class="hljs-title">top</span><span class="hljs-params">()</span></span><br><span class="hljs-function">      </span>&#123;<br>        __glibcxx_requires_nonempty();<br>        <span class="hljs-keyword">return</span> c.<span class="hljs-built_in">back</span>();<br>      &#125;<br>    <span class="hljs-function"><span class="hljs-type">void</span></span><br><span class="hljs-function">      <span class="hljs-title">push</span><span class="hljs-params">(<span class="hljs-type">const</span> value_type&amp; __x)</span></span><br><span class="hljs-function">      </span>&#123; c.<span class="hljs-built_in">push_back</span>(__x); &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>例如，<code>std::stack</code> 是一个栈适配器，它基于其他容器实现的栈数据结构。默认情况下，<code>std::stack</code> 使用 <code>std::deque</code>（双端队列）作为其底层容器，但也可以通过模板参数指定其他容器类型，如 <code>std::vector</code> 或 <code>std::list</code>。</p>
+<p>类似地，<code>std::queue</code> 是一个队列适配器，它基于其他容器实现的队列数据结构。默认情况下，<code>std::queue</code> 使用 <code>std::deque</code> 作为其底层容器：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span>&lt;<span class="hljs-keyword">typename</span> _Tp, <span class="hljs-keyword">typename</span> _Sequence = deque&lt;_Tp&gt; &gt;<br><span class="hljs-keyword">class</span> queue<br>&#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::value_type                value_type;<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::reference                 reference;<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::const_reference           const_reference;<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::size_type                 size_type;<br>    <span class="hljs-keyword">typedef</span>          _Sequence                            container_type;<br><br><span class="hljs-keyword">protected</span>:<br><br>    _Sequence c;<br><br><span class="hljs-keyword">public</span>:<br><br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">push</span><span class="hljs-params">(<span class="hljs-type">const</span> value_type&amp; __x)</span></span><br><span class="hljs-function">    </span>&#123; c.<span class="hljs-built_in">push_back</span>(__x); &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">pop</span><span class="hljs-params">()</span></span><br><span class="hljs-function">    </span>&#123;<br>        __glibcxx_requires_nonempty();<br>      c.<span class="hljs-built_in">pop_front</span>();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+<p>另外，<code>std::priority_queue</code> 是一个优先队列适配器，它基于其他容器实现的优先队列数据结构。默认情况下，<code>std::priority_queue</code> 使用 <code>std::vector</code> 作为其底层容器，但也可以通过模板参数指定其他容器类型：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span>&lt;<span class="hljs-keyword">typename</span> _Tp, <span class="hljs-keyword">typename</span> _Sequence = vector&lt;_Tp&gt;,<br><span class="hljs-keyword">typename</span> _Compare  = less&lt;<span class="hljs-keyword">typename</span> _Sequence::value_type&gt; &gt;<br><span class="hljs-keyword">class</span> priority_queue<br>&#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::value_type                value_type;<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::reference                 reference;<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::const_reference           const_reference;<br>    <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> _Sequence::size_type                 size_type;<br>    <span class="hljs-keyword">typedef</span>          _Sequence                            container_type;<br><br><span class="hljs-keyword">protected</span>:<br>    <span class="hljs-comment">//  See queue::c for notes on these names.</span><br>    _Sequence  c;<br>    _Compare   comp;<br><br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function">reference</span><br><span class="hljs-function">    <span class="hljs-title">top</span><span class="hljs-params">()</span></span><br><span class="hljs-function">    </span>&#123;<br>	    __glibcxx_requires_nonempty();<br>	    <span class="hljs-keyword">return</span> c.<span class="hljs-built_in">front</span>();<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">void</span></span><br><span class="hljs-function">    <span class="hljs-title">push</span><span class="hljs-params">(<span class="hljs-type">const</span> value_type&amp; __x)</span></span><br><span class="hljs-function">    </span>&#123;<br>	    c.<span class="hljs-built_in">push_back</span>(__x);<br>	    std::<span class="hljs-built_in">push_heap</span>(c.<span class="hljs-built_in">begin</span>(), c.<span class="hljs-built_in">end</span>(), comp);<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这些适配器类模板使得在不同场景下可以方便地使用不同的容器实现，同时提供了统一的接口，使得代码更加灵活和可复用。通过使用 STL 提供的适配器，可以更加方便地构造具有特定功能的容器，满足不同的需求。因此，stack、queue、priority_queue不被称为容器， 把它称为容器配接器。</p>
 ]]></content>
       <categories>
         <category>C++</category>
@@ -7350,40 +7350,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Redis （一）消息订阅和发送测试</title>
-    <url>/2023/07/31/Redis%20%EF%BC%88%E4%B8%80%EF%BC%89%E6%B6%88%E6%81%AF%E8%AE%A2%E9%98%85%E5%92%8C%E5%8F%91%E9%80%81%E6%B5%8B%E8%AF%95/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="〇、redis-配置"><a href="#〇、redis-配置" class="headerlink" title="〇、redis 配置"></a>〇、redis 配置</h2><h3 id="1、概况"><a href="#1、概况" class="headerlink" title="1、概况"></a>1、概况</h3><p>本文基于 Ubuntu20.04 云服务器配置Redis，且在本地进行 Redis 测试。</p>
-<h3 id="2、目录概况"><a href="#2、目录概况" class="headerlink" title="2、目录概况"></a>2、目录概况</h3><p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/b00269f787ab457b87dbff470e451601_1720253746882.png?token=ANB4BCNQZTBEHAWGDAD4JN3GRD6W6" alt="在这里插入图片描述"></p>
-<h2 id="一、配置文件"><a href="#一、配置文件" class="headerlink" title="一、配置文件"></a>一、配置文件</h2><p>位于 <code>/config/app.yml</code> 中，目的用于 Redis 初始化：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">redis:<br>  addr: <span class="hljs-string">&quot;39.104.**.28:6379&quot;</span><br>  password: <span class="hljs-string">&quot;password&quot;</span><br>  DB: 0<br>  poolSize: 30<br>  minIdleConn: 30<br></code></pre></td></tr></table></figure>
-<h2 id="二、main-文件"><a href="#二、main-文件" class="headerlink" title="二、main 文件"></a>二、main 文件</h2><figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><br><span class="hljs-keyword">import</span> (<br>	<span class="hljs-string">&quot;ChatTest/router&quot;</span><br>	<span class="hljs-string">&quot;ChatTest/utils&quot;</span><br>	<span class="hljs-string">&quot;github.com/gin-gonic/gin&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>	utils.InitConfig()<br>	utils.InitRedis()<br>	r := gin.Default()<br>	r = router.Router()<br>	r.Run(<span class="hljs-string">&quot;:8000&quot;</span>)<br>&#125;<br><br></code></pre></td></tr></table></figure>
-<h2 id="二、初始化文件"><a href="#二、初始化文件" class="headerlink" title="二、初始化文件"></a>二、初始化文件</h2><p>位于 <code>/utils/system_init.go</code> 文件中，目的用于初始化相关：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">package utils<br><br>import (<br>	<span class="hljs-string">&quot;fmt&quot;</span><br>	<span class="hljs-string">&quot;github.com/go-redis/redis/v8&quot;</span><br>	<span class="hljs-string">&quot;github.com/spf13/viper&quot;</span><br>)<br><br>var (<br>	Red *redis.Client<br>)<br><br>// 初始化初始化文件<br><br>func <span class="hljs-function"><span class="hljs-title">InitConfig</span></span>() &#123;<br>	viper.SetConfigName(<span class="hljs-string">&quot;app&quot;</span>)<br>	viper.AddConfigPath(<span class="hljs-string">&quot;/Users/luliang/GoLand/ChatTest/config&quot;</span>) //带绝对路径<br>	err := viper.ReadInConfig()<br>	<span class="hljs-keyword">if</span> err != nil &#123;<br>		fmt.Println(err)<br>	&#125;<br>&#125;<br><br>// 初始化 Redis<br><br>func <span class="hljs-function"><span class="hljs-title">InitRedis</span></span>() &#123;<br>	Red = redis.NewClient(&amp;redis.Options&#123;<br>		Addr:         viper.GetString(<span class="hljs-string">&quot;redis.addr&quot;</span>),<br>		Password:     viper.GetString(<span class="hljs-string">&quot;redis.password&quot;</span>),<br>		DB:           viper.GetInt(<span class="hljs-string">&quot;redis.DB&quot;</span>),<br>		PoolSize:     viper.GetInt(<span class="hljs-string">&quot;redis.minIdleConn&quot;</span>),<br>		MinIdleConns: viper.GetInt(<span class="hljs-string">&quot;redis.minIdleConn&quot;</span>),<br>	&#125;)<br>	fmt.Println(<span class="hljs-string">&quot;config Redis:&quot;</span>, viper.Get(<span class="hljs-string">&quot;redis&quot;</span>))<br>&#125;<br><br></code></pre></td></tr></table></figure>
-<h2 id="三、路由文件"><a href="#三、路由文件" class="headerlink" title="三、路由文件"></a>三、路由文件</h2><p>路由文件位于 <code>/router/app.go</code> 中，目的是建立路由：</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> router<br><br><span class="hljs-keyword">import</span> (<br>	<span class="hljs-string">&quot;ChatTest/service&quot;</span><br>	<span class="hljs-string">&quot;github.com/gin-gonic/gin&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">Router</span><span class="hljs-params">()</span></span> *gin.Engine &#123;<br>	r := gin.Default()<br>	r.GET(<span class="hljs-string">&quot;/send&quot;</span>, service.SendMsg)<br>	r.GET(<span class="hljs-string">&quot;/recv&quot;</span>, service.RecvMsg)<br>	<span class="hljs-keyword">return</span> r<br>&#125;<br></code></pre></td></tr></table></figure>
-<h2 id="四、实现服务"><a href="#四、实现服务" class="headerlink" title="四、实现服务"></a>四、实现服务</h2><p>位于<code>/service/message.go</code>中，是 HandlerFunc，且实现服务:</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> service<br><br><span class="hljs-keyword">import</span> (<br>	<span class="hljs-string">&quot;ChatTest/utils&quot;</span><br>	<span class="hljs-string">&quot;context&quot;</span><br>	<span class="hljs-string">&quot;github.com/gin-gonic/gin&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">SendMsg</span><span class="hljs-params">(c *gin.Context)</span></span> &#123;<br>	cmd := utils.Red.Publish(context.Background(), <span class="hljs-string">&quot;myRedis&quot;</span>, <span class="hljs-string">&quot;Hello, MyRedis0001!&quot;</span>)<br>	<span class="hljs-keyword">if</span> cmd != <span class="hljs-literal">nil</span> &#123;<br>		c.JSON(<span class="hljs-number">200</span>, gin.H&#123;<br>			<span class="hljs-string">&quot;code&quot;</span>:    <span class="hljs-number">0</span>,<br>			<span class="hljs-string">&quot;message&quot;</span>: <span class="hljs-string">&quot;发送成功!&quot;</span>,<br>		&#125;)<br>		<span class="hljs-keyword">return</span><br>	&#125;<br>	c.JSON(<span class="hljs-number">200</span>, gin.H&#123;<br>		<span class="hljs-string">&quot;code&quot;</span>:    <span class="hljs-number">-1</span>,<br>		<span class="hljs-string">&quot;message&quot;</span>: <span class="hljs-string">&quot;发送失败!&quot;</span>,<br>	&#125;)<br><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">RecvMsg</span><span class="hljs-params">(c *gin.Context)</span></span> &#123;<br>	pubSub := utils.Red.Subscribe(context.Background(), <span class="hljs-string">&quot;myRedis&quot;</span>)<br>	<span class="hljs-keyword">defer</span> pubSub.Close()<br><br>	ch := pubSub.Channel()<br><br>	<span class="hljs-keyword">for</span> msg := <span class="hljs-keyword">range</span> ch &#123;<br>		c.JSON(<span class="hljs-number">200</span>, gin.H&#123;<br>			<span class="hljs-string">&quot;code&quot;</span>:    <span class="hljs-number">0</span>,<br>			<span class="hljs-string">&quot;message&quot;</span>: msg.Payload,<br>		&#125;)<br>		<span class="hljs-comment">// 根据业务逻辑决定是否终止循环并返回响应</span><br>		<span class="hljs-keyword">return</span><br>	&#125;<br><br>	<span class="hljs-comment">// 如果没有接收到消息，可以根据需要返回响应</span><br>	c.JSON(<span class="hljs-number">200</span>, gin.H&#123;<br>		<span class="hljs-string">&quot;code&quot;</span>:    <span class="hljs-number">-1</span>,<br>		<span class="hljs-string">&quot;message&quot;</span>: <span class="hljs-string">&quot;接受失败!&quot;</span>,<br>	&#125;)<br>&#125;<br><br></code></pre></td></tr></table></figure>
-
-<h2 id="五、运行流程"><a href="#五、运行流程" class="headerlink" title="五、运行流程"></a>五、运行流程</h2><p>这里面的核心就是Redis 的连接，以及在 Redis 中发布消息和订阅消息了。</p>
-<h3 id="1、消息的发布"><a href="#1、消息的发布" class="headerlink" title="1、消息的发布"></a>1、消息的发布</h3><figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go">cmd := utils.Red.Publish(context.Background(), <span class="hljs-string">&quot;myRedis&quot;</span>, <span class="hljs-string">&quot;Hello, MyRedis0001!&quot;</span>)<br></code></pre></td></tr></table></figure>
-<p>调用Publish() 函数发布一条消息，这个 Publish() 是 go-redis中封装好的方法。</p>
-<h3 id="2、消息的订阅"><a href="#2、消息的订阅" class="headerlink" title="2、消息的订阅"></a>2、消息的订阅</h3><figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go">pubSub := utils.Red.Subscribe(context.Background(), <span class="hljs-string">&quot;myRedis&quot;</span>)<br></code></pre></td></tr></table></figure>
-
-<p>可以看到，go-redis 中使用消息的订阅和发布功能，可以使得消息发送和接受的过程异常简单！</p>
-<p><em>全文完，感谢阅读！</em></p>
-]]></content>
-      <categories>
-        <category>Golang Web</category>
-      </categories>
-      <tags>
-        <tag>redis</tag>
-        <tag>bootstrap</tag>
-        <tag>数据库</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>PA1 感悟与过程</title>
     <url>/2024/08/05/PA1%E6%89%80%E6%9C%89%E6%84%9F%E6%82%9F%E4%B8%8E%E8%BF%87%E7%A8%8B/</url>
     <content><![CDATA[<span id="more"></span>
@@ -7529,6 +7495,40 @@
         <tag>ysyx</tag>
         <tag>PA1</tag>
         <tag>sbd</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Redis （一）消息订阅和发送测试</title>
+    <url>/2023/07/31/Redis%20%EF%BC%88%E4%B8%80%EF%BC%89%E6%B6%88%E6%81%AF%E8%AE%A2%E9%98%85%E5%92%8C%E5%8F%91%E9%80%81%E6%B5%8B%E8%AF%95/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="〇、redis-配置"><a href="#〇、redis-配置" class="headerlink" title="〇、redis 配置"></a>〇、redis 配置</h2><h3 id="1、概况"><a href="#1、概况" class="headerlink" title="1、概况"></a>1、概况</h3><p>本文基于 Ubuntu20.04 云服务器配置Redis，且在本地进行 Redis 测试。</p>
+<h3 id="2、目录概况"><a href="#2、目录概况" class="headerlink" title="2、目录概况"></a>2、目录概况</h3><p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/b00269f787ab457b87dbff470e451601_1720253746882.png?token=ANB4BCNQZTBEHAWGDAD4JN3GRD6W6" alt="在这里插入图片描述"></p>
+<h2 id="一、配置文件"><a href="#一、配置文件" class="headerlink" title="一、配置文件"></a>一、配置文件</h2><p>位于 <code>/config/app.yml</code> 中，目的用于 Redis 初始化：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">redis:<br>  addr: <span class="hljs-string">&quot;39.104.**.28:6379&quot;</span><br>  password: <span class="hljs-string">&quot;password&quot;</span><br>  DB: 0<br>  poolSize: 30<br>  minIdleConn: 30<br></code></pre></td></tr></table></figure>
+<h2 id="二、main-文件"><a href="#二、main-文件" class="headerlink" title="二、main 文件"></a>二、main 文件</h2><figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><br><span class="hljs-keyword">import</span> (<br>	<span class="hljs-string">&quot;ChatTest/router&quot;</span><br>	<span class="hljs-string">&quot;ChatTest/utils&quot;</span><br>	<span class="hljs-string">&quot;github.com/gin-gonic/gin&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>	utils.InitConfig()<br>	utils.InitRedis()<br>	r := gin.Default()<br>	r = router.Router()<br>	r.Run(<span class="hljs-string">&quot;:8000&quot;</span>)<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<h2 id="二、初始化文件"><a href="#二、初始化文件" class="headerlink" title="二、初始化文件"></a>二、初始化文件</h2><p>位于 <code>/utils/system_init.go</code> 文件中，目的用于初始化相关：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">package utils<br><br>import (<br>	<span class="hljs-string">&quot;fmt&quot;</span><br>	<span class="hljs-string">&quot;github.com/go-redis/redis/v8&quot;</span><br>	<span class="hljs-string">&quot;github.com/spf13/viper&quot;</span><br>)<br><br>var (<br>	Red *redis.Client<br>)<br><br>// 初始化初始化文件<br><br>func <span class="hljs-function"><span class="hljs-title">InitConfig</span></span>() &#123;<br>	viper.SetConfigName(<span class="hljs-string">&quot;app&quot;</span>)<br>	viper.AddConfigPath(<span class="hljs-string">&quot;/Users/luliang/GoLand/ChatTest/config&quot;</span>) //带绝对路径<br>	err := viper.ReadInConfig()<br>	<span class="hljs-keyword">if</span> err != nil &#123;<br>		fmt.Println(err)<br>	&#125;<br>&#125;<br><br>// 初始化 Redis<br><br>func <span class="hljs-function"><span class="hljs-title">InitRedis</span></span>() &#123;<br>	Red = redis.NewClient(&amp;redis.Options&#123;<br>		Addr:         viper.GetString(<span class="hljs-string">&quot;redis.addr&quot;</span>),<br>		Password:     viper.GetString(<span class="hljs-string">&quot;redis.password&quot;</span>),<br>		DB:           viper.GetInt(<span class="hljs-string">&quot;redis.DB&quot;</span>),<br>		PoolSize:     viper.GetInt(<span class="hljs-string">&quot;redis.minIdleConn&quot;</span>),<br>		MinIdleConns: viper.GetInt(<span class="hljs-string">&quot;redis.minIdleConn&quot;</span>),<br>	&#125;)<br>	fmt.Println(<span class="hljs-string">&quot;config Redis:&quot;</span>, viper.Get(<span class="hljs-string">&quot;redis&quot;</span>))<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<h2 id="三、路由文件"><a href="#三、路由文件" class="headerlink" title="三、路由文件"></a>三、路由文件</h2><p>路由文件位于 <code>/router/app.go</code> 中，目的是建立路由：</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> router<br><br><span class="hljs-keyword">import</span> (<br>	<span class="hljs-string">&quot;ChatTest/service&quot;</span><br>	<span class="hljs-string">&quot;github.com/gin-gonic/gin&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">Router</span><span class="hljs-params">()</span></span> *gin.Engine &#123;<br>	r := gin.Default()<br>	r.GET(<span class="hljs-string">&quot;/send&quot;</span>, service.SendMsg)<br>	r.GET(<span class="hljs-string">&quot;/recv&quot;</span>, service.RecvMsg)<br>	<span class="hljs-keyword">return</span> r<br>&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="四、实现服务"><a href="#四、实现服务" class="headerlink" title="四、实现服务"></a>四、实现服务</h2><p>位于<code>/service/message.go</code>中，是 HandlerFunc，且实现服务:</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> service<br><br><span class="hljs-keyword">import</span> (<br>	<span class="hljs-string">&quot;ChatTest/utils&quot;</span><br>	<span class="hljs-string">&quot;context&quot;</span><br>	<span class="hljs-string">&quot;github.com/gin-gonic/gin&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">SendMsg</span><span class="hljs-params">(c *gin.Context)</span></span> &#123;<br>	cmd := utils.Red.Publish(context.Background(), <span class="hljs-string">&quot;myRedis&quot;</span>, <span class="hljs-string">&quot;Hello, MyRedis0001!&quot;</span>)<br>	<span class="hljs-keyword">if</span> cmd != <span class="hljs-literal">nil</span> &#123;<br>		c.JSON(<span class="hljs-number">200</span>, gin.H&#123;<br>			<span class="hljs-string">&quot;code&quot;</span>:    <span class="hljs-number">0</span>,<br>			<span class="hljs-string">&quot;message&quot;</span>: <span class="hljs-string">&quot;发送成功!&quot;</span>,<br>		&#125;)<br>		<span class="hljs-keyword">return</span><br>	&#125;<br>	c.JSON(<span class="hljs-number">200</span>, gin.H&#123;<br>		<span class="hljs-string">&quot;code&quot;</span>:    <span class="hljs-number">-1</span>,<br>		<span class="hljs-string">&quot;message&quot;</span>: <span class="hljs-string">&quot;发送失败!&quot;</span>,<br>	&#125;)<br><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">RecvMsg</span><span class="hljs-params">(c *gin.Context)</span></span> &#123;<br>	pubSub := utils.Red.Subscribe(context.Background(), <span class="hljs-string">&quot;myRedis&quot;</span>)<br>	<span class="hljs-keyword">defer</span> pubSub.Close()<br><br>	ch := pubSub.Channel()<br><br>	<span class="hljs-keyword">for</span> msg := <span class="hljs-keyword">range</span> ch &#123;<br>		c.JSON(<span class="hljs-number">200</span>, gin.H&#123;<br>			<span class="hljs-string">&quot;code&quot;</span>:    <span class="hljs-number">0</span>,<br>			<span class="hljs-string">&quot;message&quot;</span>: msg.Payload,<br>		&#125;)<br>		<span class="hljs-comment">// 根据业务逻辑决定是否终止循环并返回响应</span><br>		<span class="hljs-keyword">return</span><br>	&#125;<br><br>	<span class="hljs-comment">// 如果没有接收到消息，可以根据需要返回响应</span><br>	c.JSON(<span class="hljs-number">200</span>, gin.H&#123;<br>		<span class="hljs-string">&quot;code&quot;</span>:    <span class="hljs-number">-1</span>,<br>		<span class="hljs-string">&quot;message&quot;</span>: <span class="hljs-string">&quot;接受失败!&quot;</span>,<br>	&#125;)<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<h2 id="五、运行流程"><a href="#五、运行流程" class="headerlink" title="五、运行流程"></a>五、运行流程</h2><p>这里面的核心就是Redis 的连接，以及在 Redis 中发布消息和订阅消息了。</p>
+<h3 id="1、消息的发布"><a href="#1、消息的发布" class="headerlink" title="1、消息的发布"></a>1、消息的发布</h3><figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go">cmd := utils.Red.Publish(context.Background(), <span class="hljs-string">&quot;myRedis&quot;</span>, <span class="hljs-string">&quot;Hello, MyRedis0001!&quot;</span>)<br></code></pre></td></tr></table></figure>
+<p>调用Publish() 函数发布一条消息，这个 Publish() 是 go-redis中封装好的方法。</p>
+<h3 id="2、消息的订阅"><a href="#2、消息的订阅" class="headerlink" title="2、消息的订阅"></a>2、消息的订阅</h3><figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go">pubSub := utils.Red.Subscribe(context.Background(), <span class="hljs-string">&quot;myRedis&quot;</span>)<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，go-redis 中使用消息的订阅和发布功能，可以使得消息发送和接受的过程异常简单！</p>
+<p><em>全文完，感谢阅读！</em></p>
+]]></content>
+      <categories>
+        <category>Golang Web</category>
+      </categories>
+      <tags>
+        <tag>redis</tag>
+        <tag>bootstrap</tag>
+        <tag>数据库</tag>
       </tags>
   </entry>
   <entry>
@@ -8479,6 +8479,7 @@
 <li>远程桌面访问（目前只能在同一局域网下，内网穿透失效）</li>
 <li>换软件源</li>
 <li>开机启动脚本</li>
+<li>hexo &amp; npm</li>
 </ul>
 <h2 id="ssh-远程免密访问"><a href="#ssh-远程免密访问" class="headerlink" title="ssh 远程免密访问"></a>ssh 远程免密访问</h2><p>因为这台电脑的角色是一台服务器，但是我安装的是桌面版，主要考虑到的可能会偶尔用到桌面，比如做仿真实验的时候，虽然 99% 的时间都不到桌面。ssh 远程访问就很重要。<br>在 server 上 安装 openssh-server：</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">sudo apt-get install openssh-server<br></code></pre></td></tr></table></figure>
@@ -8541,6 +8542,21 @@
 </ol>
 <p>通过这种方式，<code>systemd</code> 将负责启动和守护 <code>frpc</code> 进程，不需要 <code>nohup</code> 或 <code>&amp;</code>。这也使得服务管理（如启动、停止、重启和查看状态）更为一致和标准化。</p>
 <p>直接 reboot，就可以了。</p>
+<h2 id="npm"><a href="#npm" class="headerlink" title="npm"></a>npm</h2><p>npm 由于某些问题下载很慢，这里可以这样做(一般安装软件都需要 sudo 权限，因为要写入系统目录)：</p>
+<p>下载 cnpm:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">sudo npm install -g cnpm --registry=https://registry.npmmirror.com<br><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">sudo cnpm install [name]<br></code></pre></td></tr></table></figure>
+
+<p>然后利用 cnpm 来安装 hexo:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">sudo cnpm install -g hexo-cli<br></code></pre></td></tr></table></figure>
+
+
+
+
+
+
+
 ]]></content>
       <categories>
         <category>Ubuntu</category>
@@ -9075,6 +9091,39 @@
       </tags>
   </entry>
   <entry>
+    <title>debugger（四）：源代码</title>
+    <url>/2024/06/10/debugger%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%BA%90%E4%BB%A3%E7%A0%81/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="〇、前言"><a href="#〇、前言" class="headerlink" title="〇、前言"></a>〇、前言</h2><p>终于来到令人激动的源代码 level 了，这里将会有一些很有意思的算法，来实现源代码级别的调试，这将会非常有趣。</p>
+<h2 id="一、使用-libelfin-库"><a href="#一、使用-libelfin-库" class="headerlink" title="一、使用 libelfin 库"></a>一、使用 libelfin 库</h2><p>我们不可能直接去读取整个 .debug info 段来进行设置，这是没有必要的，可以使用现成的库。首先初始化 debugger 对象：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">debugger</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-built_in">debugger</span> (std::string prog_name, <span class="hljs-type">pid_t</span> pid)<br>         : m_prog_name&#123;std::<span class="hljs-built_in">move</span>(prog_name)&#125;, m_pid&#123;pid&#125; &#123;<br>        <span class="hljs-keyword">auto</span> fd = <span class="hljs-built_in">open</span>(m_prog_name.<span class="hljs-built_in">c_str</span>(), O_RDONLY);<br><br>        m_elf = elf::elf&#123;elf::<span class="hljs-built_in">create_mmap_loader</span>(fd)&#125;;<br>        m_dwarf = dwarf::dwarf&#123;dwarf::elf::<span class="hljs-built_in">create_loader</span>(m_elf)&#125;;<br>    &#125;<br>    <span class="hljs-comment">//...</span><br><br><span class="hljs-keyword">private</span>:<br>    <span class="hljs-comment">//...</span><br>    dwarf::dwarf m_dwarf;<br>    elf::elf m_elf;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>不必太过关注这里函数的细节，只需要关注它们做了什么。事实上，m_dwarf、m_elf 和 文件名 m_prog_name 关联起来了，然后就交给它们进行处理了。我们还需要知道 load_addr，这非常重要，因为debuf info 只会提供静态的信息，load_addr 取决于运行时，因此得想办法在 <code>/proc</code> 中获取：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">Debugger::initialise_load_address</span><span class="hljs-params">()</span> </span>&#123;<br>   <span class="hljs-keyword">if</span> (m_elf.<span class="hljs-built_in">get_hdr</span>().type == elf::et::dyn) &#123;<br>      <span class="hljs-function">std::ifstream <span class="hljs-title">map</span><span class="hljs-params">(<span class="hljs-string">&quot;/proc/&quot;</span> + std::to_string(m_pid) + <span class="hljs-string">&quot;/maps&quot;</span>)</span></span>;<br><br>      <span class="hljs-comment">//Read the first address from the file</span><br>      std::string addr;<br>      std::<span class="hljs-built_in">getline</span>(map, addr, <span class="hljs-string">&#x27;-&#x27;</span>);<br>      m_load_address = std::<span class="hljs-built_in">stoi</span>(addr, <span class="hljs-number">0</span>, <span class="hljs-number">16</span>);<br>   &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、获取信息"><a href="#二、获取信息" class="headerlink" title="二、获取信息"></a>二、获取信息</h2><p>通过一个 <strong>pc</strong> 怎么获取函数名呢？注意这个 <strong>pc</strong> 是一个 <strong>offset addr</strong>，传参的时候一定要转换。思路很简单，首先遍历所有的 <strong>cu</strong>，然后判断 <strong>cu</strong> 的 <strong>low_pc</strong> 和 <strong>high_pc</strong>，如果在这个 <strong>cu</strong> 符合，那么就通过 <strong>cu</strong> 拿到 <strong>cu.root</strong>。<strong>cu.root</strong> 是一个根 <strong>die</strong>，通过它可以遍历所有的 <strong>die</strong>。之后再判断 <strong>die</strong>的 <strong>tag</strong> 是不是一个函数，如果是且包含 <strong>pc</strong>，那么就是我们要找的函数。实现如下：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">dwarf::die <span class="hljs-title">Debugger::get_function_from_pc</span><span class="hljs-params">(std::<span class="hljs-type">intptr_t</span> pc)</span> </span>&#123;<br>  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> &amp;cu : m_dwarf.<span class="hljs-built_in">compilation_units</span>()) &#123; <span class="hljs-comment">// 循环遍历所有cu</span><br>    <span class="hljs-keyword">if</span> (<span class="hljs-built_in">die_pc_range</span>(cu.<span class="hljs-built_in">root</span>()).<span class="hljs-built_in">contains</span>(pc)) &#123;<br>      <span class="hljs-keyword">for</span> (<span class="hljs-type">const</span> <span class="hljs-keyword">auto</span> &amp;die :<br>           cu.<span class="hljs-built_in">root</span>()) &#123;<br>        <span class="hljs-keyword">if</span> (die.tag ==<br>            dwarf::DW_TAG::subprogram) &#123;<br>          <span class="hljs-keyword">if</span> (<span class="hljs-built_in">die_pc_range</span>(die).<span class="hljs-built_in">contains</span>(pc)) &#123;<br>            <span class="hljs-keyword">return</span> die;<br>          &#125;<br>        &#125;<br>      &#125;<br>    &#125;<br>  &#125;<br>  <span class="hljs-keyword">throw</span> std::out_of_range&#123;<span class="hljs-string">&quot;Cannot find function&quot;</span>&#125;;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>接着通过 pc 来获取 line entry：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp">dwarf::<span class="hljs-function">line_table::iterator <span class="hljs-title">Debugger::get_line_entry_from_pc</span><span class="hljs-params">(<span class="hljs-type">uint64_t</span> pc)</span> </span>&#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> &amp;cu : m_dwarf.<span class="hljs-built_in">compilation_units</span>()) &#123;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-built_in">die_pc_range</span>(cu.<span class="hljs-built_in">root</span>()).<span class="hljs-built_in">contains</span>(pc)) &#123;<br>            <span class="hljs-keyword">auto</span> &amp;lt = cu.<span class="hljs-built_in">get_line_table</span>();<br>            <span class="hljs-keyword">auto</span> it = lt.<span class="hljs-built_in">find_address</span>(pc);<br>            <span class="hljs-keyword">if</span> (it == lt.<span class="hljs-built_in">end</span>()) &#123;<br>                <span class="hljs-keyword">throw</span> std::out_of_range&#123;<span class="hljs-string">&quot;Cannot find line entry&quot;</span>&#125;;<br>            &#125;<br>            <span class="hljs-keyword">else</span> &#123;<br>                <span class="hljs-keyword">return</span> it;<br>            &#125;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">throw</span> std::out_of_range&#123;<span class="hljs-string">&quot;Cannot find line entry&quot;</span>&#125;;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>接着我们打印源代码。思路是通过 debug info 中的源代码路径和 line table 来获取，好消息是，我们不必做更多的底层实现：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">Debugger::print_source</span><span class="hljs-params">(<span class="hljs-type">const</span> std::string&amp; file_name, <span class="hljs-type">unsigned</span> line, <span class="hljs-type">unsigned</span> n_lines_context)</span> </span>&#123;<br>    std::ifstream file &#123;file_name&#125;;<br><br>    <span class="hljs-keyword">auto</span> start_line = line &lt;= n_lines_context ? <span class="hljs-number">1</span> : line - n_lines_context;<br>    <span class="hljs-keyword">auto</span> end_line = line + n_lines_context + (line &lt; n_lines_context ? n_lines_context - line : <span class="hljs-number">0</span>) + <span class="hljs-number">1</span>;<br><br>    <span class="hljs-type">char</span> c&#123;&#125;;<br>    <span class="hljs-keyword">auto</span> current_line = <span class="hljs-number">1u</span>;<br>    <span class="hljs-keyword">while</span> (current_line != start_line &amp;&amp; file.<span class="hljs-built_in">get</span>(c)) &#123;<br>        <span class="hljs-keyword">if</span> (c == <span class="hljs-string">&#x27;\n&#x27;</span>) &#123;<br>            ++current_line;<br>        &#125;<br>    &#125;<br>    std::cout &lt;&lt; (current_line==line ? <span class="hljs-string">&quot;&gt; &quot;</span> : <span class="hljs-string">&quot;  &quot;</span>);<br><br>    <span class="hljs-keyword">while</span> (current_line &lt;= end_line &amp;&amp; file.<span class="hljs-built_in">get</span>(c)) &#123;<br>        std::cout &lt;&lt; c;<br>        <span class="hljs-keyword">if</span> (c == <span class="hljs-string">&#x27;\n&#x27;</span>) &#123;<br>            ++current_line;<br>            std::cout &lt;&lt; (current_line==line ? <span class="hljs-string">&quot;&gt; &quot;</span> : <span class="hljs-string">&quot;  &quot;</span>);<br>        &#125;<br>    &#125;<br>    std::cout &lt;&lt; std::endl;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、测试"><a href="#三、测试" class="headerlink" title="三、测试"></a>三、测试</h2><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">minidbg&gt; <span class="hljs-built_in">break</span> 0x555555555191<br>Set breakpoint at address 0x555555555191<br>minidbg&gt; conti<br>Hit breakpoint at adsress 0x555555555191<br>  <span class="hljs-comment">#include &lt;iostream&gt;</span><br>  int <span class="hljs-function"><span class="hljs-title">main</span></span>() &#123;<br>&gt;   std::cerr &lt;&lt; <span class="hljs-string">&quot;hello,world0.\n&quot;</span>;<br>    <span class="hljs-built_in">return</span> 0;<br>  &#125;<br></code></pre></td></tr></table></figure>
+
+<p>我们确实成功的打印出了源代码。上述基本的信息获取，基本思路就是对 DWARF 的理解，然后利用库函数接口获取我们想要的信息。</p>
+]]></content>
+      <categories>
+        <category>C++ debugger</category>
+      </categories>
+      <tags>
+        <tag>c++</tag>
+        <tag>lldb</tag>
+        <tag>debugger</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>exec()函数家族详细</title>
     <url>/2023/03/11/exec()%E5%87%BD%E6%95%B0%E5%AE%B6%E6%97%8F%E8%AF%A6%E7%BB%86/</url>
     <content><![CDATA[<span id="more"></span>
@@ -9130,39 +9179,6 @@
       </categories>
       <tags>
         <tag>linux</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>debugger（四）：源代码</title>
-    <url>/2024/06/10/debugger%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%BA%90%E4%BB%A3%E7%A0%81/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="〇、前言"><a href="#〇、前言" class="headerlink" title="〇、前言"></a>〇、前言</h2><p>终于来到令人激动的源代码 level 了，这里将会有一些很有意思的算法，来实现源代码级别的调试，这将会非常有趣。</p>
-<h2 id="一、使用-libelfin-库"><a href="#一、使用-libelfin-库" class="headerlink" title="一、使用 libelfin 库"></a>一、使用 libelfin 库</h2><p>我们不可能直接去读取整个 .debug info 段来进行设置，这是没有必要的，可以使用现成的库。首先初始化 debugger 对象：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">debugger</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-built_in">debugger</span> (std::string prog_name, <span class="hljs-type">pid_t</span> pid)<br>         : m_prog_name&#123;std::<span class="hljs-built_in">move</span>(prog_name)&#125;, m_pid&#123;pid&#125; &#123;<br>        <span class="hljs-keyword">auto</span> fd = <span class="hljs-built_in">open</span>(m_prog_name.<span class="hljs-built_in">c_str</span>(), O_RDONLY);<br><br>        m_elf = elf::elf&#123;elf::<span class="hljs-built_in">create_mmap_loader</span>(fd)&#125;;<br>        m_dwarf = dwarf::dwarf&#123;dwarf::elf::<span class="hljs-built_in">create_loader</span>(m_elf)&#125;;<br>    &#125;<br>    <span class="hljs-comment">//...</span><br><br><span class="hljs-keyword">private</span>:<br>    <span class="hljs-comment">//...</span><br>    dwarf::dwarf m_dwarf;<br>    elf::elf m_elf;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
-<p>不必太过关注这里函数的细节，只需要关注它们做了什么。事实上，m_dwarf、m_elf 和 文件名 m_prog_name 关联起来了，然后就交给它们进行处理了。我们还需要知道 load_addr，这非常重要，因为debuf info 只会提供静态的信息，load_addr 取决于运行时，因此得想办法在 <code>/proc</code> 中获取：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">Debugger::initialise_load_address</span><span class="hljs-params">()</span> </span>&#123;<br>   <span class="hljs-keyword">if</span> (m_elf.<span class="hljs-built_in">get_hdr</span>().type == elf::et::dyn) &#123;<br>      <span class="hljs-function">std::ifstream <span class="hljs-title">map</span><span class="hljs-params">(<span class="hljs-string">&quot;/proc/&quot;</span> + std::to_string(m_pid) + <span class="hljs-string">&quot;/maps&quot;</span>)</span></span>;<br><br>      <span class="hljs-comment">//Read the first address from the file</span><br>      std::string addr;<br>      std::<span class="hljs-built_in">getline</span>(map, addr, <span class="hljs-string">&#x27;-&#x27;</span>);<br>      m_load_address = std::<span class="hljs-built_in">stoi</span>(addr, <span class="hljs-number">0</span>, <span class="hljs-number">16</span>);<br>   &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<h2 id="二、获取信息"><a href="#二、获取信息" class="headerlink" title="二、获取信息"></a>二、获取信息</h2><p>通过一个 <strong>pc</strong> 怎么获取函数名呢？注意这个 <strong>pc</strong> 是一个 <strong>offset addr</strong>，传参的时候一定要转换。思路很简单，首先遍历所有的 <strong>cu</strong>，然后判断 <strong>cu</strong> 的 <strong>low_pc</strong> 和 <strong>high_pc</strong>，如果在这个 <strong>cu</strong> 符合，那么就通过 <strong>cu</strong> 拿到 <strong>cu.root</strong>。<strong>cu.root</strong> 是一个根 <strong>die</strong>，通过它可以遍历所有的 <strong>die</strong>。之后再判断 <strong>die</strong>的 <strong>tag</strong> 是不是一个函数，如果是且包含 <strong>pc</strong>，那么就是我们要找的函数。实现如下：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">dwarf::die <span class="hljs-title">Debugger::get_function_from_pc</span><span class="hljs-params">(std::<span class="hljs-type">intptr_t</span> pc)</span> </span>&#123;<br>  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> &amp;cu : m_dwarf.<span class="hljs-built_in">compilation_units</span>()) &#123; <span class="hljs-comment">// 循环遍历所有cu</span><br>    <span class="hljs-keyword">if</span> (<span class="hljs-built_in">die_pc_range</span>(cu.<span class="hljs-built_in">root</span>()).<span class="hljs-built_in">contains</span>(pc)) &#123;<br>      <span class="hljs-keyword">for</span> (<span class="hljs-type">const</span> <span class="hljs-keyword">auto</span> &amp;die :<br>           cu.<span class="hljs-built_in">root</span>()) &#123;<br>        <span class="hljs-keyword">if</span> (die.tag ==<br>            dwarf::DW_TAG::subprogram) &#123;<br>          <span class="hljs-keyword">if</span> (<span class="hljs-built_in">die_pc_range</span>(die).<span class="hljs-built_in">contains</span>(pc)) &#123;<br>            <span class="hljs-keyword">return</span> die;<br>          &#125;<br>        &#125;<br>      &#125;<br>    &#125;<br>  &#125;<br>  <span class="hljs-keyword">throw</span> std::out_of_range&#123;<span class="hljs-string">&quot;Cannot find function&quot;</span>&#125;;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>接着通过 pc 来获取 line entry：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp">dwarf::<span class="hljs-function">line_table::iterator <span class="hljs-title">Debugger::get_line_entry_from_pc</span><span class="hljs-params">(<span class="hljs-type">uint64_t</span> pc)</span> </span>&#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> &amp;cu : m_dwarf.<span class="hljs-built_in">compilation_units</span>()) &#123;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-built_in">die_pc_range</span>(cu.<span class="hljs-built_in">root</span>()).<span class="hljs-built_in">contains</span>(pc)) &#123;<br>            <span class="hljs-keyword">auto</span> &amp;lt = cu.<span class="hljs-built_in">get_line_table</span>();<br>            <span class="hljs-keyword">auto</span> it = lt.<span class="hljs-built_in">find_address</span>(pc);<br>            <span class="hljs-keyword">if</span> (it == lt.<span class="hljs-built_in">end</span>()) &#123;<br>                <span class="hljs-keyword">throw</span> std::out_of_range&#123;<span class="hljs-string">&quot;Cannot find line entry&quot;</span>&#125;;<br>            &#125;<br>            <span class="hljs-keyword">else</span> &#123;<br>                <span class="hljs-keyword">return</span> it;<br>            &#125;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">throw</span> std::out_of_range&#123;<span class="hljs-string">&quot;Cannot find line entry&quot;</span>&#125;;<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>接着我们打印源代码。思路是通过 debug info 中的源代码路径和 line table 来获取，好消息是，我们不必做更多的底层实现：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">Debugger::print_source</span><span class="hljs-params">(<span class="hljs-type">const</span> std::string&amp; file_name, <span class="hljs-type">unsigned</span> line, <span class="hljs-type">unsigned</span> n_lines_context)</span> </span>&#123;<br>    std::ifstream file &#123;file_name&#125;;<br><br>    <span class="hljs-keyword">auto</span> start_line = line &lt;= n_lines_context ? <span class="hljs-number">1</span> : line - n_lines_context;<br>    <span class="hljs-keyword">auto</span> end_line = line + n_lines_context + (line &lt; n_lines_context ? n_lines_context - line : <span class="hljs-number">0</span>) + <span class="hljs-number">1</span>;<br><br>    <span class="hljs-type">char</span> c&#123;&#125;;<br>    <span class="hljs-keyword">auto</span> current_line = <span class="hljs-number">1u</span>;<br>    <span class="hljs-keyword">while</span> (current_line != start_line &amp;&amp; file.<span class="hljs-built_in">get</span>(c)) &#123;<br>        <span class="hljs-keyword">if</span> (c == <span class="hljs-string">&#x27;\n&#x27;</span>) &#123;<br>            ++current_line;<br>        &#125;<br>    &#125;<br>    std::cout &lt;&lt; (current_line==line ? <span class="hljs-string">&quot;&gt; &quot;</span> : <span class="hljs-string">&quot;  &quot;</span>);<br><br>    <span class="hljs-keyword">while</span> (current_line &lt;= end_line &amp;&amp; file.<span class="hljs-built_in">get</span>(c)) &#123;<br>        std::cout &lt;&lt; c;<br>        <span class="hljs-keyword">if</span> (c == <span class="hljs-string">&#x27;\n&#x27;</span>) &#123;<br>            ++current_line;<br>            std::cout &lt;&lt; (current_line==line ? <span class="hljs-string">&quot;&gt; &quot;</span> : <span class="hljs-string">&quot;  &quot;</span>);<br>        &#125;<br>    &#125;<br>    std::cout &lt;&lt; std::endl;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<h2 id="三、测试"><a href="#三、测试" class="headerlink" title="三、测试"></a>三、测试</h2><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">minidbg&gt; <span class="hljs-built_in">break</span> 0x555555555191<br>Set breakpoint at address 0x555555555191<br>minidbg&gt; conti<br>Hit breakpoint at adsress 0x555555555191<br>  <span class="hljs-comment">#include &lt;iostream&gt;</span><br>  int <span class="hljs-function"><span class="hljs-title">main</span></span>() &#123;<br>&gt;   std::cerr &lt;&lt; <span class="hljs-string">&quot;hello,world0.\n&quot;</span>;<br>    <span class="hljs-built_in">return</span> 0;<br>  &#125;<br></code></pre></td></tr></table></figure>
-
-<p>我们确实成功的打印出了源代码。上述基本的信息获取，基本思路就是对 DWARF 的理解，然后利用库函数接口获取我们想要的信息。</p>
-]]></content>
-      <categories>
-        <category>C++ debugger</category>
-      </categories>
-      <tags>
-        <tag>c++</tag>
-        <tag>lldb</tag>
-        <tag>debugger</tag>
       </tags>
   </entry>
   <entry>
@@ -9732,47 +9748,6 @@
       </tags>
   </entry>
   <entry>
-    <title>nemu框架细节研究（二）</title>
-    <url>/2024/09/08/nemu%E6%A1%86%E6%9E%B6%E7%BB%86%E8%8A%82%E7%A0%94%E7%A9%B6(%E4%BA%8C)/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h2><p>前文细致地研究了命令 <code>make ARCH=native ALL=add run</code> 的运行过程，对于Makefile中的行为有了很准确地把握（没有任何疑点，可以随意修改 Makefile 且保证不会出错）。这篇文章继续研究命令<code>make ARCH=riscv32-nemu ALL=add run</code>的行为。</p>
-<h2 id="二、riscv32-nemu-开始的地方"><a href="#二、riscv32-nemu-开始的地方" class="headerlink" title="二、riscv32-nemu 开始的地方"></a>二、riscv32-nemu 开始的地方</h2><p>由于 <code>ARCH=riscv32-nemu</code>，因此 <code>ISA=riscv32</code>，<code>PLATFORM=nemu</code>。我们来看看它新包含了哪些 可以包含到Makefile中的文件:</p>
-<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-keyword">-include</span> <span class="hljs-variable">$(AM_HOME)</span>/scripts/<span class="hljs-variable">$(ARCH)</span>.mk<br></code></pre></td></tr></table></figure>
-
-<p>这里的 <code>ARCH=riscv32-nemu</code>，因此它会包含<code>$(AM_HOME)/scripts/riscv32-nemu.mk</code>:</p>
-<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-keyword">include</span> <span class="hljs-variable">$(AM_HOME)</span>/scripts/isa/riscv.mk<br><span class="hljs-keyword">include</span> <span class="hljs-variable">$(AM_HOME)</span>/scripts/platform/nemu.mk<br>CFLAGS  += -DISA_H=\<span class="hljs-string">&quot;riscv/riscv.h\&quot;</span><br><span class="hljs-string">COMMON_CFLAGS += -march=rv32im_zicsr -mabi=ilp32   # overwrite</span><br><span class="hljs-string">LDFLAGS       += -melf32lriscv                     # overwrite</span><br><span class="hljs-string"></span><br><span class="hljs-string">AM_SRCS += riscv/nemu/start.S \</span><br><span class="hljs-string">           riscv/nemu/cte.c \</span><br><span class="hljs-string">           riscv/nemu/trap.S \</span><br><span class="hljs-string">           riscv/nemu/vme.c</span><br><span class="hljs-string"></span><br></code></pre></td></tr></table></figure>
-<p>这个文件就复杂多了，看起来它将 <code>isa</code> 和 <code>platform</code> 解耦了，单独包含了两个可包含文件；还定义了一个可以传递到.c 文件中的宏<code>ISA_H</code>，看来它引入了 riscv 的一些符号。</p>
-<p>后面，它更新了 <code>COMMON_CFLAGS</code>、<code>LDFLAGS</code> 等变量。</p>
-<h2 id="目标构建"><a href="#目标构建" class="headerlink" title="目标构建"></a>目标构建</h2><p>执行<code>make ARCH=riscv32-nemu ALL=add run</code>。</p>
-<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-section">run: image</span><br>	<span class="hljs-variable">$(MAKE)</span> -C <span class="hljs-variable">$(NEMU_HOME)</span> ISA=<span class="hljs-variable">$(ISA)</span> run ARGS=<span class="hljs-string">&quot;<span class="hljs-variable">$(NEMUFLAGS)</span>&quot;</span> IMG=<span class="hljs-variable">$(IMAGE)</span>.bin<br></code></pre></td></tr></table></figure>
-
-<p>依赖 <code>image</code> 的依赖：<code>$(IMAGE).elf</code>、<code>image-dep</code>，这两个依赖依次执行。</p>
-<h3 id="一、-IMAGE-elf"><a href="#一、-IMAGE-elf" class="headerlink" title="一、$(IMAGE).elf"></a>一、$(IMAGE).elf</h3><figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-variable">$(IMAGE)</span>.elf: <span class="hljs-variable">$(OBJS)</span> <span class="hljs-variable">$(LIBS)</span><br>	@echo + LD <span class="hljs-string">&quot;-&gt;&quot;</span> <span class="hljs-variable">$(IMAGE_REL)</span>.elf<br>	@<span class="hljs-variable">$(LD)</span> <span class="hljs-variable">$(LDFLAGS)</span> -o <span class="hljs-variable">$(IMAGE)</span>.elf --start-group <span class="hljs-variable">$(LINKAGE)</span> --end-group<br></code></pre></td></tr></table></figure>
-
-<p>这里将会编译 <code>string.c</code>、以及 <code>kilb.a</code>、<code>am.a</code>。</p>
-<p>之后，就会链接成<code>$(IMAGE).elf</code>。</p>
-<h3 id="二、image-dep"><a href="#二、image-dep" class="headerlink" title="二、image-dep"></a>二、image-dep</h3><figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-section">image-dep: <span class="hljs-variable">$(OBJS)</span> <span class="hljs-variable">$(LIBS)</span></span><br>	@echo \<span class="hljs-comment"># Creating image [$(ARCH)]</span><br></code></pre></td></tr></table></figure>
-
-<p>依赖在上面已经编译结束了，这里直接打印一个信息就结束了。这样 image 的依赖就解决完了。接着：</p>
-<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-section">image: <span class="hljs-variable">$(IMAGE)</span>.elf</span><br>	@<span class="hljs-variable">$(OBJDUMP)</span> -d <span class="hljs-variable">$(IMAGE)</span>.elf &gt; <span class="hljs-variable">$(IMAGE)</span>.txt<br>	@echo + OBJCOPY <span class="hljs-string">&quot;-&gt;&quot;</span> <span class="hljs-variable">$(IMAGE_REL)</span>.bin<br>	@<span class="hljs-variable">$(OBJCOPY)</span> -S --set-section-flags .bss=alloc,contents -O binary <span class="hljs-variable">$(IMAGE)</span>.elf <span class="hljs-variable">$(IMAGE)</span>.bin<br></code></pre></td></tr></table></figure>
-<p>这里是将 $(IMAGE).elf 的二进制代码抽取出来，以供在 nemu 上运行。</p>
-<p>这时候，继续执行：</p>
-<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-section">run: image</span><br>	<span class="hljs-variable">$(MAKE)</span> -C <span class="hljs-variable">$(NEMU_HOME)</span> ISA=<span class="hljs-variable">$(ISA)</span> run ARGS=<span class="hljs-string">&quot;<span class="hljs-variable">$(NEMUFLAGS)</span>&quot;</span> IMG=<span class="hljs-variable">$(IMAGE)</span>.bin<br></code></pre></td></tr></table></figure>
-
-<p>这个命令表明，接下来将会继续编译 nemu，并且传入了一些参数。</p>
-]]></content>
-      <categories>
-        <category>RISCV</category>
-        <category>PA</category>
-        <category>虚拟机</category>
-      </categories>
-      <tags>
-        <tag>NEMU</tag>
-        <tag>PA2</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>nemu框架细节研究（一）</title>
     <url>/2024/09/07/nemu%E6%A1%86%E6%9E%B6%E7%BB%86%E8%8A%82%E7%A0%94%E7%A9%B6(%E4%B8%80)/</url>
     <content><![CDATA[<span id="more"></span>
@@ -10091,6 +10066,47 @@
 <li><code>INC_PATH</code>: 符号搜索路径，影响编译是否成功。</li>
 </ul>
 <p>以上就是对<code>make ARCH=native ALL=add run</code>的解析。</p>
+]]></content>
+      <categories>
+        <category>RISCV</category>
+        <category>PA</category>
+        <category>虚拟机</category>
+      </categories>
+      <tags>
+        <tag>NEMU</tag>
+        <tag>PA2</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>nemu框架细节研究（二）</title>
+    <url>/2024/09/08/nemu%E6%A1%86%E6%9E%B6%E7%BB%86%E8%8A%82%E7%A0%94%E7%A9%B6(%E4%BA%8C)/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h2><p>前文细致地研究了命令 <code>make ARCH=native ALL=add run</code> 的运行过程，对于Makefile中的行为有了很准确地把握（没有任何疑点，可以随意修改 Makefile 且保证不会出错）。这篇文章继续研究命令<code>make ARCH=riscv32-nemu ALL=add run</code>的行为。</p>
+<h2 id="二、riscv32-nemu-开始的地方"><a href="#二、riscv32-nemu-开始的地方" class="headerlink" title="二、riscv32-nemu 开始的地方"></a>二、riscv32-nemu 开始的地方</h2><p>由于 <code>ARCH=riscv32-nemu</code>，因此 <code>ISA=riscv32</code>，<code>PLATFORM=nemu</code>。我们来看看它新包含了哪些 可以包含到Makefile中的文件:</p>
+<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-keyword">-include</span> <span class="hljs-variable">$(AM_HOME)</span>/scripts/<span class="hljs-variable">$(ARCH)</span>.mk<br></code></pre></td></tr></table></figure>
+
+<p>这里的 <code>ARCH=riscv32-nemu</code>，因此它会包含<code>$(AM_HOME)/scripts/riscv32-nemu.mk</code>:</p>
+<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-keyword">include</span> <span class="hljs-variable">$(AM_HOME)</span>/scripts/isa/riscv.mk<br><span class="hljs-keyword">include</span> <span class="hljs-variable">$(AM_HOME)</span>/scripts/platform/nemu.mk<br>CFLAGS  += -DISA_H=\<span class="hljs-string">&quot;riscv/riscv.h\&quot;</span><br><span class="hljs-string">COMMON_CFLAGS += -march=rv32im_zicsr -mabi=ilp32   # overwrite</span><br><span class="hljs-string">LDFLAGS       += -melf32lriscv                     # overwrite</span><br><span class="hljs-string"></span><br><span class="hljs-string">AM_SRCS += riscv/nemu/start.S \</span><br><span class="hljs-string">           riscv/nemu/cte.c \</span><br><span class="hljs-string">           riscv/nemu/trap.S \</span><br><span class="hljs-string">           riscv/nemu/vme.c</span><br><span class="hljs-string"></span><br></code></pre></td></tr></table></figure>
+<p>这个文件就复杂多了，看起来它将 <code>isa</code> 和 <code>platform</code> 解耦了，单独包含了两个可包含文件；还定义了一个可以传递到.c 文件中的宏<code>ISA_H</code>，看来它引入了 riscv 的一些符号。</p>
+<p>后面，它更新了 <code>COMMON_CFLAGS</code>、<code>LDFLAGS</code> 等变量。</p>
+<h2 id="目标构建"><a href="#目标构建" class="headerlink" title="目标构建"></a>目标构建</h2><p>执行<code>make ARCH=riscv32-nemu ALL=add run</code>。</p>
+<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-section">run: image</span><br>	<span class="hljs-variable">$(MAKE)</span> -C <span class="hljs-variable">$(NEMU_HOME)</span> ISA=<span class="hljs-variable">$(ISA)</span> run ARGS=<span class="hljs-string">&quot;<span class="hljs-variable">$(NEMUFLAGS)</span>&quot;</span> IMG=<span class="hljs-variable">$(IMAGE)</span>.bin<br></code></pre></td></tr></table></figure>
+
+<p>依赖 <code>image</code> 的依赖：<code>$(IMAGE).elf</code>、<code>image-dep</code>，这两个依赖依次执行。</p>
+<h3 id="一、-IMAGE-elf"><a href="#一、-IMAGE-elf" class="headerlink" title="一、$(IMAGE).elf"></a>一、$(IMAGE).elf</h3><figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-variable">$(IMAGE)</span>.elf: <span class="hljs-variable">$(OBJS)</span> <span class="hljs-variable">$(LIBS)</span><br>	@echo + LD <span class="hljs-string">&quot;-&gt;&quot;</span> <span class="hljs-variable">$(IMAGE_REL)</span>.elf<br>	@<span class="hljs-variable">$(LD)</span> <span class="hljs-variable">$(LDFLAGS)</span> -o <span class="hljs-variable">$(IMAGE)</span>.elf --start-group <span class="hljs-variable">$(LINKAGE)</span> --end-group<br></code></pre></td></tr></table></figure>
+
+<p>这里将会编译 <code>string.c</code>、以及 <code>kilb.a</code>、<code>am.a</code>。</p>
+<p>之后，就会链接成<code>$(IMAGE).elf</code>。</p>
+<h3 id="二、image-dep"><a href="#二、image-dep" class="headerlink" title="二、image-dep"></a>二、image-dep</h3><figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-section">image-dep: <span class="hljs-variable">$(OBJS)</span> <span class="hljs-variable">$(LIBS)</span></span><br>	@echo \<span class="hljs-comment"># Creating image [$(ARCH)]</span><br></code></pre></td></tr></table></figure>
+
+<p>依赖在上面已经编译结束了，这里直接打印一个信息就结束了。这样 image 的依赖就解决完了。接着：</p>
+<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-section">image: <span class="hljs-variable">$(IMAGE)</span>.elf</span><br>	@<span class="hljs-variable">$(OBJDUMP)</span> -d <span class="hljs-variable">$(IMAGE)</span>.elf &gt; <span class="hljs-variable">$(IMAGE)</span>.txt<br>	@echo + OBJCOPY <span class="hljs-string">&quot;-&gt;&quot;</span> <span class="hljs-variable">$(IMAGE_REL)</span>.bin<br>	@<span class="hljs-variable">$(OBJCOPY)</span> -S --set-section-flags .bss=alloc,contents -O binary <span class="hljs-variable">$(IMAGE)</span>.elf <span class="hljs-variable">$(IMAGE)</span>.bin<br></code></pre></td></tr></table></figure>
+<p>这里是将 $(IMAGE).elf 的二进制代码抽取出来，以供在 nemu 上运行。</p>
+<p>这时候，继续执行：</p>
+<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-section">run: image</span><br>	<span class="hljs-variable">$(MAKE)</span> -C <span class="hljs-variable">$(NEMU_HOME)</span> ISA=<span class="hljs-variable">$(ISA)</span> run ARGS=<span class="hljs-string">&quot;<span class="hljs-variable">$(NEMUFLAGS)</span>&quot;</span> IMG=<span class="hljs-variable">$(IMAGE)</span>.bin<br></code></pre></td></tr></table></figure>
+
+<p>这个命令表明，接下来将会继续编译 nemu，并且传入了一些参数。</p>
 ]]></content>
       <categories>
         <category>RISCV</category>
@@ -13797,30 +13813,6 @@
       </tags>
   </entry>
   <entry>
-    <title>数字电路实验1</title>
-    <url>/2024/07/13/%E6%95%B0%E5%AD%97%E7%94%B5%E8%B7%AF%E5%9F%BA%E7%A1%80%E5%AE%9E%E9%AA%8C1/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="实验过程"><a href="#实验过程" class="headerlink" title="实验过程"></a>实验过程</h2><p>本实验采用行为建模，top.v 代码如下：</p>
-<figure class="highlight verilog"><table><tr><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">module</span> c41(X0,X1,X2,X3,Y,F);<br><span class="hljs-keyword">input</span> [<span class="hljs-number">1</span>:<span class="hljs-number">0</span>] Y;<br><span class="hljs-keyword">input</span> [<span class="hljs-number">1</span>:<span class="hljs-number">0</span>] X0;<br><span class="hljs-keyword">input</span> [<span class="hljs-number">1</span>:<span class="hljs-number">0</span>] X1;<br><span class="hljs-keyword">input</span> [<span class="hljs-number">1</span>:<span class="hljs-number">0</span>] X2;<br><span class="hljs-keyword">input</span> [<span class="hljs-number">1</span>:<span class="hljs-number">0</span>] X3;<br><br><span class="hljs-keyword">output</span> <span class="hljs-keyword">reg</span> [<span class="hljs-number">1</span>:<span class="hljs-number">0</span>] F;<br><span class="hljs-keyword">always</span> @ (Y <span class="hljs-keyword">or</span> X0 <span class="hljs-keyword">or</span> X1 <span class="hljs-keyword">or</span> X2 <span class="hljs-keyword">or</span> X3)<br>    <span class="hljs-keyword">case</span>(Y)<br>        <span class="hljs-number">0</span>: F = X0;<br>        <span class="hljs-number">1</span>: F = X1;<br>        <span class="hljs-number">2</span>: F = X2;<br>        <span class="hljs-number">3</span>: F = X3;<br>        <span class="hljs-keyword">default</span>: F = <span class="hljs-number">2&#x27;b00</span>;<br>    <span class="hljs-keyword">endcase</span><br><span class="hljs-keyword">endmodule</span><br><br><span class="hljs-keyword">module</span> top(<br>    <span class="hljs-keyword">input</span> clk,<br>    <span class="hljs-keyword">input</span> rst,<br>    <span class="hljs-keyword">input</span> [<span class="hljs-number">4</span>:<span class="hljs-number">0</span>] btn,<br>    <span class="hljs-keyword">input</span> [<span class="hljs-number">9</span>:<span class="hljs-number">0</span>] sw,<br>    <span class="hljs-keyword">input</span> ps2_clk,<br>    <span class="hljs-keyword">input</span> ps2_data,<br>    <span class="hljs-keyword">input</span> uart_rx,<br>    <span class="hljs-keyword">output</span> uart_tx,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">15</span>:<span class="hljs-number">0</span>] ledr,<br>    <span class="hljs-keyword">output</span> VGA_CLK,<br>    <span class="hljs-keyword">output</span> VGA_HSYNC,<br>    <span class="hljs-keyword">output</span> VGA_VSYNC,<br>    <span class="hljs-keyword">output</span> VGA_BLANK_N,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] VGA_R,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] VGA_G,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] VGA_B,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] seg0,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] seg1,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] seg2,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] seg3,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] seg4,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] seg5,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] seg6,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] seg7<br>);<br><br>c41 my_41(<br>    <span class="hljs-variable">.Y</span>(sw[<span class="hljs-number">1</span>:<span class="hljs-number">0</span>]),<br>    <span class="hljs-variable">.X0</span>(sw[<span class="hljs-number">3</span>:<span class="hljs-number">2</span>]),<br>    <span class="hljs-variable">.X1</span>(sw[<span class="hljs-number">5</span>:<span class="hljs-number">4</span>]),<br>    <span class="hljs-variable">.X2</span>(sw[<span class="hljs-number">7</span>:<span class="hljs-number">6</span>]),<br>    <span class="hljs-variable">.X3</span>(sw[<span class="hljs-number">9</span>:<span class="hljs-number">8</span>]),<br>    <span class="hljs-variable">.F</span>(ledr[<span class="hljs-number">1</span>:<span class="hljs-number">0</span>])<br>);<br><br><span class="hljs-keyword">assign</span> VGA_CLK = clk;<br><br><span class="hljs-keyword">wire</span> [<span class="hljs-number">9</span>:<span class="hljs-number">0</span>] h_addr;<br><span class="hljs-keyword">wire</span> [<span class="hljs-number">9</span>:<span class="hljs-number">0</span>] v_addr;<br><span class="hljs-keyword">wire</span> [<span class="hljs-number">23</span>:<span class="hljs-number">0</span>] vga_data;<br><br><br><br>vmem my_vmem(<br>    <span class="hljs-variable">.h_addr</span>(h_addr),<br>    <span class="hljs-variable">.v_addr</span>(v_addr[<span class="hljs-number">8</span>:<span class="hljs-number">0</span>]),<br>    <span class="hljs-variable">.vga_data</span>(vga_data)<br>);<br><br><br><br><span class="hljs-keyword">endmodule</span><br><br><span class="hljs-keyword">module</span> vmem(<br>    <span class="hljs-keyword">input</span> [<span class="hljs-number">9</span>:<span class="hljs-number">0</span>] h_addr,<br>    <span class="hljs-keyword">input</span> [<span class="hljs-number">8</span>:<span class="hljs-number">0</span>] v_addr,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">23</span>:<span class="hljs-number">0</span>] vga_data<br>);<br><br><span class="hljs-keyword">reg</span> [<span class="hljs-number">23</span>:<span class="hljs-number">0</span>] vga_mem [<span class="hljs-number">524287</span>:<span class="hljs-number">0</span>];<br><br><span class="hljs-keyword">initial</span> <span class="hljs-keyword">begin</span><br>    <span class="hljs-built_in">$readmemh</span>(<span class="hljs-string">&quot;resource/picture.hex&quot;</span>, vga_mem);<br><span class="hljs-keyword">end</span><br><br><span class="hljs-keyword">assign</span> vga_data = vga_mem[&#123;h_addr, v_addr&#125;];<br><br><span class="hljs-keyword">endmodule</span><br><br></code></pre></td></tr></table></figure>
-
-<p>这里需要注意的是，原来的 example 中的 top.v 代码的按钮只有 8 个，因此得修改一下。并且还得修改 绑定函数：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">nvboard_bind_all_pins</span><span class="hljs-params">(Vtop* top)</span> </span>&#123;<br>	...<br>	<span class="hljs-built_in">nvboard_bind_pin</span>( &amp;top-&gt;sw, <span class="hljs-number">10</span>, SW9, SW8, SW7, SW6, SW5, SW4, SW3, SW2, SW1, SW0);<br>	...<br>&#125;<br><br></code></pre></td></tr></table></figure>
-
-<p>之后就可以愉快地按按钮了：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/buttons.png"></p>
-<p>以上就是这个实验的全部内容了~</p>
-]]></content>
-      <categories>
-        <category>ysyx</category>
-        <category>数字电路实验</category>
-      </categories>
-      <tags>
-        <tag>ysyx</tag>
-        <tag>NVBoard</tag>
-        <tag>二位四选一选择器</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>教师工资管理系统之随机产生教师详细信息</title>
     <url>/2023/02/28/%E6%95%99%E5%B8%88%E5%B7%A5%E8%B5%84%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F%E4%B9%8B%E9%9A%8F%E6%9C%BA%E4%BA%A7%E7%94%9F%E6%95%99%E5%B8%88%E8%AF%A6%E7%BB%86%E4%BF%A1%E6%81%AF/</url>
     <content><![CDATA[<span id="more"></span>
@@ -13843,6 +13835,30 @@
       <tags>
         <tag>c++</tag>
         <tag>开发语言</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>数字电路实验1</title>
+    <url>/2024/07/13/%E6%95%B0%E5%AD%97%E7%94%B5%E8%B7%AF%E5%9F%BA%E7%A1%80%E5%AE%9E%E9%AA%8C1/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="实验过程"><a href="#实验过程" class="headerlink" title="实验过程"></a>实验过程</h2><p>本实验采用行为建模，top.v 代码如下：</p>
+<figure class="highlight verilog"><table><tr><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">module</span> c41(X0,X1,X2,X3,Y,F);<br><span class="hljs-keyword">input</span> [<span class="hljs-number">1</span>:<span class="hljs-number">0</span>] Y;<br><span class="hljs-keyword">input</span> [<span class="hljs-number">1</span>:<span class="hljs-number">0</span>] X0;<br><span class="hljs-keyword">input</span> [<span class="hljs-number">1</span>:<span class="hljs-number">0</span>] X1;<br><span class="hljs-keyword">input</span> [<span class="hljs-number">1</span>:<span class="hljs-number">0</span>] X2;<br><span class="hljs-keyword">input</span> [<span class="hljs-number">1</span>:<span class="hljs-number">0</span>] X3;<br><br><span class="hljs-keyword">output</span> <span class="hljs-keyword">reg</span> [<span class="hljs-number">1</span>:<span class="hljs-number">0</span>] F;<br><span class="hljs-keyword">always</span> @ (Y <span class="hljs-keyword">or</span> X0 <span class="hljs-keyword">or</span> X1 <span class="hljs-keyword">or</span> X2 <span class="hljs-keyword">or</span> X3)<br>    <span class="hljs-keyword">case</span>(Y)<br>        <span class="hljs-number">0</span>: F = X0;<br>        <span class="hljs-number">1</span>: F = X1;<br>        <span class="hljs-number">2</span>: F = X2;<br>        <span class="hljs-number">3</span>: F = X3;<br>        <span class="hljs-keyword">default</span>: F = <span class="hljs-number">2&#x27;b00</span>;<br>    <span class="hljs-keyword">endcase</span><br><span class="hljs-keyword">endmodule</span><br><br><span class="hljs-keyword">module</span> top(<br>    <span class="hljs-keyword">input</span> clk,<br>    <span class="hljs-keyword">input</span> rst,<br>    <span class="hljs-keyword">input</span> [<span class="hljs-number">4</span>:<span class="hljs-number">0</span>] btn,<br>    <span class="hljs-keyword">input</span> [<span class="hljs-number">9</span>:<span class="hljs-number">0</span>] sw,<br>    <span class="hljs-keyword">input</span> ps2_clk,<br>    <span class="hljs-keyword">input</span> ps2_data,<br>    <span class="hljs-keyword">input</span> uart_rx,<br>    <span class="hljs-keyword">output</span> uart_tx,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">15</span>:<span class="hljs-number">0</span>] ledr,<br>    <span class="hljs-keyword">output</span> VGA_CLK,<br>    <span class="hljs-keyword">output</span> VGA_HSYNC,<br>    <span class="hljs-keyword">output</span> VGA_VSYNC,<br>    <span class="hljs-keyword">output</span> VGA_BLANK_N,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] VGA_R,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] VGA_G,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] VGA_B,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] seg0,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] seg1,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] seg2,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] seg3,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] seg4,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] seg5,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] seg6,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] seg7<br>);<br><br>c41 my_41(<br>    <span class="hljs-variable">.Y</span>(sw[<span class="hljs-number">1</span>:<span class="hljs-number">0</span>]),<br>    <span class="hljs-variable">.X0</span>(sw[<span class="hljs-number">3</span>:<span class="hljs-number">2</span>]),<br>    <span class="hljs-variable">.X1</span>(sw[<span class="hljs-number">5</span>:<span class="hljs-number">4</span>]),<br>    <span class="hljs-variable">.X2</span>(sw[<span class="hljs-number">7</span>:<span class="hljs-number">6</span>]),<br>    <span class="hljs-variable">.X3</span>(sw[<span class="hljs-number">9</span>:<span class="hljs-number">8</span>]),<br>    <span class="hljs-variable">.F</span>(ledr[<span class="hljs-number">1</span>:<span class="hljs-number">0</span>])<br>);<br><br><span class="hljs-keyword">assign</span> VGA_CLK = clk;<br><br><span class="hljs-keyword">wire</span> [<span class="hljs-number">9</span>:<span class="hljs-number">0</span>] h_addr;<br><span class="hljs-keyword">wire</span> [<span class="hljs-number">9</span>:<span class="hljs-number">0</span>] v_addr;<br><span class="hljs-keyword">wire</span> [<span class="hljs-number">23</span>:<span class="hljs-number">0</span>] vga_data;<br><br><br><br>vmem my_vmem(<br>    <span class="hljs-variable">.h_addr</span>(h_addr),<br>    <span class="hljs-variable">.v_addr</span>(v_addr[<span class="hljs-number">8</span>:<span class="hljs-number">0</span>]),<br>    <span class="hljs-variable">.vga_data</span>(vga_data)<br>);<br><br><br><br><span class="hljs-keyword">endmodule</span><br><br><span class="hljs-keyword">module</span> vmem(<br>    <span class="hljs-keyword">input</span> [<span class="hljs-number">9</span>:<span class="hljs-number">0</span>] h_addr,<br>    <span class="hljs-keyword">input</span> [<span class="hljs-number">8</span>:<span class="hljs-number">0</span>] v_addr,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">23</span>:<span class="hljs-number">0</span>] vga_data<br>);<br><br><span class="hljs-keyword">reg</span> [<span class="hljs-number">23</span>:<span class="hljs-number">0</span>] vga_mem [<span class="hljs-number">524287</span>:<span class="hljs-number">0</span>];<br><br><span class="hljs-keyword">initial</span> <span class="hljs-keyword">begin</span><br>    <span class="hljs-built_in">$readmemh</span>(<span class="hljs-string">&quot;resource/picture.hex&quot;</span>, vga_mem);<br><span class="hljs-keyword">end</span><br><br><span class="hljs-keyword">assign</span> vga_data = vga_mem[&#123;h_addr, v_addr&#125;];<br><br><span class="hljs-keyword">endmodule</span><br><br></code></pre></td></tr></table></figure>
+
+<p>这里需要注意的是，原来的 example 中的 top.v 代码的按钮只有 8 个，因此得修改一下。并且还得修改 绑定函数：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">nvboard_bind_all_pins</span><span class="hljs-params">(Vtop* top)</span> </span>&#123;<br>	...<br>	<span class="hljs-built_in">nvboard_bind_pin</span>( &amp;top-&gt;sw, <span class="hljs-number">10</span>, SW9, SW8, SW7, SW6, SW5, SW4, SW3, SW2, SW1, SW0);<br>	...<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>之后就可以愉快地按按钮了：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/buttons.png"></p>
+<p>以上就是这个实验的全部内容了~</p>
+]]></content>
+      <categories>
+        <category>ysyx</category>
+        <category>数字电路实验</category>
+      </categories>
+      <tags>
+        <tag>ysyx</tag>
+        <tag>NVBoard</tag>
+        <tag>二位四选一选择器</tag>
       </tags>
   </entry>
   <entry>
@@ -14071,108 +14087,6 @@
       </tags>
   </entry>
   <entry>
-    <title>泡利矩阵（一）</title>
-    <url>/2023/06/01/%E6%B3%A1%E5%88%A9%E7%9F%A9%E9%98%B5%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="〇、厄米矩阵"><a href="#〇、厄米矩阵" class="headerlink" title="〇、厄米矩阵"></a>〇、厄米矩阵</h2><p>厄米矩阵（Hermitian Matrix），也称为自共轭矩阵（Self-adjoint Matrix），是线性代数中的一个重要概念。它是指<strong>一个复数域上的方阵，其转置矩阵与共轭矩阵相等</strong>。</p>
-<p>具体来说，设A为一个n×n的复数矩阵，如果满足A的转置矩阵A等于A的共轭矩阵A<em>，即A^T &#x3D; A</em>，则矩阵A被称为厄米矩阵。</p>
-<p>换句话说，厄米矩阵的每个元素a_ij满足两个条件：</p>
-<ul>
-<li>共轭对称性：a_ij &#x3D; a_ji*，即矩阵元素关于主对角线对称，并且共轭关系成立。</li>
-<li>实数性：对于主对角线上的元素，a_ii &#x3D; a_ii*，即主对角线上的元素是实数。</li>
-</ul>
-<p>厄米矩阵在<strong>量子力学</strong>和<strong>数学物理</strong>等领域中具有重要的应用。在量子力学中，厄米矩阵用于描述量子系统的物理量（如能量、角动量等）的观测值。厄米矩阵的性质保证了它的特征值都是实数，且对应的特征向量是正交的（由两个不等的特征值保证），这与量子力学中观测物理量时的实验结果相符。</p>
-<p>厄米矩阵还具有一些重要的性质，例如它的特征值都是实数、它可以对角化为实对角矩阵、它的特征向量可以<strong>构成</strong>（施密特正交化）一组正交完备的基等。</p>
-<p>总结来说，厄米矩阵是一种特殊的复数方阵，具有共轭对称性和实数性质，它在量子力学和数学物理等领域中扮演着重要的角色。</p>
-<h2 id="一、酉矩阵或幺正矩阵"><a href="#一、酉矩阵或幺正矩阵" class="headerlink" title="一、酉矩阵或幺正矩阵"></a>一、酉矩阵或幺正矩阵</h2><p>幺正矩阵（Unitary Matrix）是线性代数中的一个重要概念，它是指一个复数域上的方阵，其共轭转置矩阵与逆矩阵相等，也称为酉矩阵。</p>
-<p>具体来说，设U为一个n×n的复数矩阵，如果满足U的共轭转置矩阵U^†等于U的逆矩阵U^(-1)，即U^† &#x3D; U^(-1)，则矩阵U被称为幺正矩阵。</p>
-<p>换句话说，幺正矩阵的每个元素u_ij满足两个条件：</p>
-<ul>
-<li>单位正交性：U^†U &#x3D; UU^† &#x3D; I，其中I是单位矩阵。</li>
-<li>行列式模长为1：|det(U)| &#x3D; 1，即幺正矩阵的行列式的模长等于1。</li>
-</ul>
-<p>幺正矩阵在量子力学和数学物理等领域中具有重要的应用。在量子力学中，幺正矩阵用于描述量子系统的幺正演化，它保持向量的内积和模长不变，从而保持量子态的归一性和相对相位关系。幺正矩阵也用于描述量子门操作，即量子计算中的基本逻辑门，如Hadamard门、CNOT门等。</p>
-<p>幺正矩阵还具有一些重要的性质，例如它的特征值的模长都等于1，它可以对角化为对角矩阵，且其特征向量构成一组正交完备的基等。</p>
-<p>总结来说，幺正矩阵是一种特殊的复数方阵，具有<strong>单位正交性</strong>和<strong>行列式模长为1</strong>的性质。它在量子力学和数学物理中被广泛应用，用于描述量子系统的演化和操作。</p>
-<h2 id="二、幺正矩阵的性质"><a href="#二、幺正矩阵的性质" class="headerlink" title="二、幺正矩阵的性质"></a>二、幺正矩阵的性质</h2><p>酉矩阵（Unitary Matrix）具有许多重要的性质，这些性质在线性代数和量子力学中起着关键的作用。以下是酉矩阵的主要性质：</p>
-<ul>
-<li><p>正交性：酉矩阵的转置矩阵和共轭矩阵相等，即U^† &#x3D; U^T。这意味着酉矩阵的每一列都是一个单位向量且两两正交。</p>
-</li>
-<li><p>逆矩阵：酉矩阵的逆矩阵也是酉矩阵，即U^†的逆矩阵等于U，即(U^†)^(-1) &#x3D; U。</p>
-</li>
-<li><p>行列式性质：酉矩阵的行列式的模长等于1，即|det(U)| &#x3D; 1。这意味着酉矩阵保持了线性空间的体积。</p>
-</li>
-<li><p>特征值性质：酉矩阵的特征值的模长都等于1。这表示酉矩阵的特征值处于复数单位圆上，它们对应的特征向量是正交的。</p>
-</li>
-<li><p>对角化：任何一个n×n的酉矩阵都可以对角化为一个对角矩阵，其<strong>对角线上的元素都是复数单位模长为1的特征值</strong>。</p>
-</li>
-<li><p>内积保持：对于两个向量x和y，酉矩阵U保持它们的内积不变，即(x, y) &#x3D; (Ux, Uy)。</p>
-</li>
-<li><p>幺正演化：酉矩阵用于描述量子系统的幺正演化，保持量子态的归一性和相对相位关系。</p>
-</li>
-</ul>
-<p>这些性质使得酉矩阵在量子力学中具有重要的应用。酉矩阵用于描述量子系统的演化和操作，例如量子门操作和量子态的变换。在量子计算和量子信息领域，酉矩阵被广泛应用于量子电路设计和量子算法的实现。</p>
-<h2 id="三、张量"><a href="#三、张量" class="headerlink" title="三、张量"></a>三、张量</h2><p>张量（Tensor）是线性代数和多线性代数中的一个重要概念，用于描述多维数组的扩展。在一维情况下，张量可以被视为向量。然而，在更高维度的情况下，张量可以具有更复杂的结构。</p>
-<p>形式上，一个r阶张量可以表示为一个具有r个指标的多维数组，每个指标对应于一个维度。每个维度可以具有不同的长度。</p>
-<p>例如，一个2阶张量可以表示为一个矩阵，其中有两个指标（行和列）。一个3阶张量可以表示为一个立方体或一个由多个矩阵组成的集合，其中有三个指标（行、列和高度）。</p>
-<p>张量具有一些重要的性质和运算规则，包括张量的加法、乘法、收缩等。根据运算规则和性质，可以定义张量的转置、逆、对称性等概念。</p>
-<p>总结来说，张量是用于表示多维数组的扩展概念。它在线性代数、多线性代数和各种科学领域中都具有重要的应用，是描述和处理多维数据的有力工具。</p>
-<h2 id="四、希尔伯特空间"><a href="#四、希尔伯特空间" class="headerlink" title="四、希尔伯特空间"></a>四、希尔伯特空间</h2><p>希尔伯特空间（Hilbert Space）是数学中的一个重要概念，它是一个<strong>完备的内积空间</strong>。希尔伯特空间在量子力学和函数分析等领域中具有重要的应用。</p>
-<p>一个希尔伯特空间H是一个向量空间，其中定义了一个内积运算，满足以下性质：</p>
-<ul>
-<li>线性性：对于任意的向量x, y, z ∈ H和任意的标量a, b，有内积的线性性质：⟨ax + by, z⟩ &#x3D; a⟨x, z⟩ + b⟨y, z⟩。</li>
-<li>共轭对称性：对于任意的向量x, y ∈ H，有共轭对称性：⟨x, y⟩ &#x3D; ⟨y, x⟩，其中表示复数的共轭。</li>
-<li>正定性：对于任意的非零向量x ∈ H，有正定性：⟨x, x⟩ &gt; 0，且当且仅当x &#x3D; 0时等号成立。</li>
-</ul>
-<p>在希尔伯特空间中，我们可以定义向量的模长（或范数），即向量x的模长为∥x∥ &#x3D; √⟨x, x⟩。这个模长定义了希尔伯特空间的度量结构。</p>
-<p>希尔伯特空间的一个重要特性是完备性。一个向量序列{xn}在希尔伯特空间H中是收敛的，当且仅当存在一个向量x ∈ H，使得序列{xn}收敛于x。这意味着希尔伯特空间中的任何柯西序列都收敛于一个向量。</p>
-<p>希尔伯特空间在量子力学中起着重要的作用，<strong>量子态可以视为希尔伯特空间中的向量</strong>，<strong>量子力学中的算符可以表示为希尔伯特空间上的线性算符</strong>。<strong>希尔伯特空间为量子力学提供了一个数学框架，用于描述和分析量子系统的态和算符</strong>。</p>
-<p>总结来说，希尔伯特空间是一个完备的内积空间，具有线性性、共轭对称性和正定性。它在量子力学和函数分析等领域中广泛应用，用于描述和分析向量、算符和量子系统的态。</p>
-<h2 id="五、张量积"><a href="#五、张量积" class="headerlink" title="五、张量积"></a>五、张量积</h2><p>张量积（Tensor Product）是线性代数中的一种运算，用于将两个向量空间的向量组合成一个更大的向量空间。<br>设V和W是两个向量空间，分别由基向量{v₁, v₂, …, vₙ}和{w₁, w₂, …, wₘ}生成。那么它们的张量积V ⊗ W定义为由所有可能的对积向量(vᵢ ⊗ wⱼ)组成的向量空间生成。</p>
-<p>具体来说，张量积的定义如下：</p>
-<ul>
-<li>V ⊗ W &#x3D; Span{(vᵢ ⊗ wⱼ) | 1 ≤ i ≤ n, 1 ≤ j ≤ m}</li>
-</ul>
-<p>其中，⊗ 表示张量积运算，vᵢ ⊗ wⱼ表示向量vᵢ和wⱼ的张量积。张量积的结果是一个新的向量空间，其维度为V的维度乘以W的维度。</p>
-<p>张量积有以下性质：</p>
-<ul>
-<li><p>分配律：对于向量空间V, W, X，有(V ⊗ (W + X)) &#x3D; (V ⊗ W) + (V ⊗ X)和((V + W) ⊗ X) &#x3D; (V ⊗ X) + (W ⊗ X)。</p>
-</li>
-<li><p>结合律：对于向量空间V, W, X，有(V ⊗ (W ⊗ X)) &#x3D; ((V ⊗ W) ⊗ X)。</p>
-</li>
-<li><p>基向量的张量积：如果V由基向量{v₁, v₂, …, vₙ}生成，W由基向量{w₁, w₂, …, wₘ}生成，那么它们的基向量的张量积为{(vᵢ ⊗ wⱼ) | 1 ≤ i ≤ n, 1 ≤ j ≤ m}，生成了V ⊗ W。</p>
-</li>
-</ul>
-<p>张量积在多线性代数、量子力学和计算机科学等领域中有广泛应用。在量子力学中，张量积用于描述多粒子系统的态空间，以及计算复合系统的态和操作。在计算机科学中，张量积被用于构建神经网络模型和处理多维数据。</p>
-<p>总结来说，张量积是将两个向量空间的向量组合成一个更大的向量空间的运算。它具有分配律和结合律等性质，用于<strong>描述多粒子系统、构建神经网络和处理多维数据</strong>。</p>
-<h2 id="六、泡利矩阵"><a href="#六、泡利矩阵" class="headerlink" title="六、泡利矩阵"></a>六、泡利矩阵</h2><p>泡利矩阵（Pauli Matrices）是一组重要的2×2复数矩阵，在量子力学和量子信息理论中经常使用。它们由物理学家维尔纳·泡利（Werner Pauli）在20世纪早期引入，以描述<strong>自旋系统</strong>的性质。</p>
-<p>泡利矩阵一共有三个，分别记为σ₁、σ₂和σ₃。它们的具体定义如下：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/4bfe88599e18472bb7febce60475cd7b_1720253795679.png?token=ANB4BCJOJBJUO5X5DUCT7N3GRD62C" alt="在这里插入图片描述"></p>
-<p>其中，i是虚数单位。这里的0和1代表2×2单位矩阵的元素。</p>
-<p>这些矩阵具有以下性质：</p>
-<ul>
-<li>Hermite性：泡利矩阵是厄米矩阵，即它们与自身的共轭转置相等。</li>
-<li>幺正矩阵。</li>
-<li>幂等性：每个泡利矩阵的平方等于单位矩阵，即σ₁² &#x3D; σ₂² &#x3D; σ₃² &#x3D; I，其中I是2×2单位矩阵。</li>
-<li>对易性：任意两个不同的泡利矩阵之间是对易的，即[σᵢ, σⱼ] &#x3D; 0，其中[i, j]表示i不等于j。</li>
-<li>归一性：泡利矩阵的模长为1，即|σ₁| &#x3D; |σ₂| &#x3D; |σ₃| &#x3D; 1。</li>
-</ul>
-<p>泡利矩阵在量子力学中有广泛的应用。它们是<strong>描述自旋1&#x2F;2粒子的自旋矩阵</strong>，用于计算<strong>自旋态的变换和测量</strong>。它们也是构成<strong>量子比特的基本门操作的泡利算符</strong>。在量子计算和量子信息理论中，泡利矩阵用于描述<strong>量子比特的操作和态的变换</strong>，以及构建量子门和量子算法。</p>
-<p>总之，泡利矩阵是一组重要的2×2复数矩阵，用<strong>于描述自旋系统和量子比特的性质，在量子力学和量子信息理论中起着重要的作用</strong>。</p>
-<h2 id="七、克罗内克函数"><a href="#七、克罗内克函数" class="headerlink" title="七、克罗内克函数"></a>七、克罗内克函数</h2><p>在数学中，Kronecker delta（以 Leopold Kronecker 命名）是两个变量的函数，通常只是非负整数。 如果变量相等，则函数为1，否则为0：</p>
-<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/0c63f9323ca14c15ab2d21471ec05b14_1720253795679.png?token=ANB4BCLMI66SSY2OVQ55K2DGRD62E" alt="在这里插入图片描述"></p>
-]]></content>
-      <categories>
-        <category>代数基础</category>
-        <category>量子计算导论</category>
-      </categories>
-      <tags>
-        <tag>算法</tag>
-        <tag>矩阵</tag>
-        <tag>线性代数</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>数字电路实验7</title>
     <url>/2024/07/19/%E6%95%B0%E5%AD%97%E7%94%B5%E8%B7%AF%E5%AE%9E%E9%AA%8C7/</url>
     <content><![CDATA[<span id="more"></span>
@@ -14278,6 +14192,108 @@
         <tag>状态机</tag>
         <tag>ps/2接口</tag>
         <tag>键盘</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>泡利矩阵（一）</title>
+    <url>/2023/06/01/%E6%B3%A1%E5%88%A9%E7%9F%A9%E9%98%B5%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="〇、厄米矩阵"><a href="#〇、厄米矩阵" class="headerlink" title="〇、厄米矩阵"></a>〇、厄米矩阵</h2><p>厄米矩阵（Hermitian Matrix），也称为自共轭矩阵（Self-adjoint Matrix），是线性代数中的一个重要概念。它是指<strong>一个复数域上的方阵，其转置矩阵与共轭矩阵相等</strong>。</p>
+<p>具体来说，设A为一个n×n的复数矩阵，如果满足A的转置矩阵A等于A的共轭矩阵A<em>，即A^T &#x3D; A</em>，则矩阵A被称为厄米矩阵。</p>
+<p>换句话说，厄米矩阵的每个元素a_ij满足两个条件：</p>
+<ul>
+<li>共轭对称性：a_ij &#x3D; a_ji*，即矩阵元素关于主对角线对称，并且共轭关系成立。</li>
+<li>实数性：对于主对角线上的元素，a_ii &#x3D; a_ii*，即主对角线上的元素是实数。</li>
+</ul>
+<p>厄米矩阵在<strong>量子力学</strong>和<strong>数学物理</strong>等领域中具有重要的应用。在量子力学中，厄米矩阵用于描述量子系统的物理量（如能量、角动量等）的观测值。厄米矩阵的性质保证了它的特征值都是实数，且对应的特征向量是正交的（由两个不等的特征值保证），这与量子力学中观测物理量时的实验结果相符。</p>
+<p>厄米矩阵还具有一些重要的性质，例如它的特征值都是实数、它可以对角化为实对角矩阵、它的特征向量可以<strong>构成</strong>（施密特正交化）一组正交完备的基等。</p>
+<p>总结来说，厄米矩阵是一种特殊的复数方阵，具有共轭对称性和实数性质，它在量子力学和数学物理等领域中扮演着重要的角色。</p>
+<h2 id="一、酉矩阵或幺正矩阵"><a href="#一、酉矩阵或幺正矩阵" class="headerlink" title="一、酉矩阵或幺正矩阵"></a>一、酉矩阵或幺正矩阵</h2><p>幺正矩阵（Unitary Matrix）是线性代数中的一个重要概念，它是指一个复数域上的方阵，其共轭转置矩阵与逆矩阵相等，也称为酉矩阵。</p>
+<p>具体来说，设U为一个n×n的复数矩阵，如果满足U的共轭转置矩阵U^†等于U的逆矩阵U^(-1)，即U^† &#x3D; U^(-1)，则矩阵U被称为幺正矩阵。</p>
+<p>换句话说，幺正矩阵的每个元素u_ij满足两个条件：</p>
+<ul>
+<li>单位正交性：U^†U &#x3D; UU^† &#x3D; I，其中I是单位矩阵。</li>
+<li>行列式模长为1：|det(U)| &#x3D; 1，即幺正矩阵的行列式的模长等于1。</li>
+</ul>
+<p>幺正矩阵在量子力学和数学物理等领域中具有重要的应用。在量子力学中，幺正矩阵用于描述量子系统的幺正演化，它保持向量的内积和模长不变，从而保持量子态的归一性和相对相位关系。幺正矩阵也用于描述量子门操作，即量子计算中的基本逻辑门，如Hadamard门、CNOT门等。</p>
+<p>幺正矩阵还具有一些重要的性质，例如它的特征值的模长都等于1，它可以对角化为对角矩阵，且其特征向量构成一组正交完备的基等。</p>
+<p>总结来说，幺正矩阵是一种特殊的复数方阵，具有<strong>单位正交性</strong>和<strong>行列式模长为1</strong>的性质。它在量子力学和数学物理中被广泛应用，用于描述量子系统的演化和操作。</p>
+<h2 id="二、幺正矩阵的性质"><a href="#二、幺正矩阵的性质" class="headerlink" title="二、幺正矩阵的性质"></a>二、幺正矩阵的性质</h2><p>酉矩阵（Unitary Matrix）具有许多重要的性质，这些性质在线性代数和量子力学中起着关键的作用。以下是酉矩阵的主要性质：</p>
+<ul>
+<li><p>正交性：酉矩阵的转置矩阵和共轭矩阵相等，即U^† &#x3D; U^T。这意味着酉矩阵的每一列都是一个单位向量且两两正交。</p>
+</li>
+<li><p>逆矩阵：酉矩阵的逆矩阵也是酉矩阵，即U^†的逆矩阵等于U，即(U^†)^(-1) &#x3D; U。</p>
+</li>
+<li><p>行列式性质：酉矩阵的行列式的模长等于1，即|det(U)| &#x3D; 1。这意味着酉矩阵保持了线性空间的体积。</p>
+</li>
+<li><p>特征值性质：酉矩阵的特征值的模长都等于1。这表示酉矩阵的特征值处于复数单位圆上，它们对应的特征向量是正交的。</p>
+</li>
+<li><p>对角化：任何一个n×n的酉矩阵都可以对角化为一个对角矩阵，其<strong>对角线上的元素都是复数单位模长为1的特征值</strong>。</p>
+</li>
+<li><p>内积保持：对于两个向量x和y，酉矩阵U保持它们的内积不变，即(x, y) &#x3D; (Ux, Uy)。</p>
+</li>
+<li><p>幺正演化：酉矩阵用于描述量子系统的幺正演化，保持量子态的归一性和相对相位关系。</p>
+</li>
+</ul>
+<p>这些性质使得酉矩阵在量子力学中具有重要的应用。酉矩阵用于描述量子系统的演化和操作，例如量子门操作和量子态的变换。在量子计算和量子信息领域，酉矩阵被广泛应用于量子电路设计和量子算法的实现。</p>
+<h2 id="三、张量"><a href="#三、张量" class="headerlink" title="三、张量"></a>三、张量</h2><p>张量（Tensor）是线性代数和多线性代数中的一个重要概念，用于描述多维数组的扩展。在一维情况下，张量可以被视为向量。然而，在更高维度的情况下，张量可以具有更复杂的结构。</p>
+<p>形式上，一个r阶张量可以表示为一个具有r个指标的多维数组，每个指标对应于一个维度。每个维度可以具有不同的长度。</p>
+<p>例如，一个2阶张量可以表示为一个矩阵，其中有两个指标（行和列）。一个3阶张量可以表示为一个立方体或一个由多个矩阵组成的集合，其中有三个指标（行、列和高度）。</p>
+<p>张量具有一些重要的性质和运算规则，包括张量的加法、乘法、收缩等。根据运算规则和性质，可以定义张量的转置、逆、对称性等概念。</p>
+<p>总结来说，张量是用于表示多维数组的扩展概念。它在线性代数、多线性代数和各种科学领域中都具有重要的应用，是描述和处理多维数据的有力工具。</p>
+<h2 id="四、希尔伯特空间"><a href="#四、希尔伯特空间" class="headerlink" title="四、希尔伯特空间"></a>四、希尔伯特空间</h2><p>希尔伯特空间（Hilbert Space）是数学中的一个重要概念，它是一个<strong>完备的内积空间</strong>。希尔伯特空间在量子力学和函数分析等领域中具有重要的应用。</p>
+<p>一个希尔伯特空间H是一个向量空间，其中定义了一个内积运算，满足以下性质：</p>
+<ul>
+<li>线性性：对于任意的向量x, y, z ∈ H和任意的标量a, b，有内积的线性性质：⟨ax + by, z⟩ &#x3D; a⟨x, z⟩ + b⟨y, z⟩。</li>
+<li>共轭对称性：对于任意的向量x, y ∈ H，有共轭对称性：⟨x, y⟩ &#x3D; ⟨y, x⟩，其中表示复数的共轭。</li>
+<li>正定性：对于任意的非零向量x ∈ H，有正定性：⟨x, x⟩ &gt; 0，且当且仅当x &#x3D; 0时等号成立。</li>
+</ul>
+<p>在希尔伯特空间中，我们可以定义向量的模长（或范数），即向量x的模长为∥x∥ &#x3D; √⟨x, x⟩。这个模长定义了希尔伯特空间的度量结构。</p>
+<p>希尔伯特空间的一个重要特性是完备性。一个向量序列{xn}在希尔伯特空间H中是收敛的，当且仅当存在一个向量x ∈ H，使得序列{xn}收敛于x。这意味着希尔伯特空间中的任何柯西序列都收敛于一个向量。</p>
+<p>希尔伯特空间在量子力学中起着重要的作用，<strong>量子态可以视为希尔伯特空间中的向量</strong>，<strong>量子力学中的算符可以表示为希尔伯特空间上的线性算符</strong>。<strong>希尔伯特空间为量子力学提供了一个数学框架，用于描述和分析量子系统的态和算符</strong>。</p>
+<p>总结来说，希尔伯特空间是一个完备的内积空间，具有线性性、共轭对称性和正定性。它在量子力学和函数分析等领域中广泛应用，用于描述和分析向量、算符和量子系统的态。</p>
+<h2 id="五、张量积"><a href="#五、张量积" class="headerlink" title="五、张量积"></a>五、张量积</h2><p>张量积（Tensor Product）是线性代数中的一种运算，用于将两个向量空间的向量组合成一个更大的向量空间。<br>设V和W是两个向量空间，分别由基向量{v₁, v₂, …, vₙ}和{w₁, w₂, …, wₘ}生成。那么它们的张量积V ⊗ W定义为由所有可能的对积向量(vᵢ ⊗ wⱼ)组成的向量空间生成。</p>
+<p>具体来说，张量积的定义如下：</p>
+<ul>
+<li>V ⊗ W &#x3D; Span{(vᵢ ⊗ wⱼ) | 1 ≤ i ≤ n, 1 ≤ j ≤ m}</li>
+</ul>
+<p>其中，⊗ 表示张量积运算，vᵢ ⊗ wⱼ表示向量vᵢ和wⱼ的张量积。张量积的结果是一个新的向量空间，其维度为V的维度乘以W的维度。</p>
+<p>张量积有以下性质：</p>
+<ul>
+<li><p>分配律：对于向量空间V, W, X，有(V ⊗ (W + X)) &#x3D; (V ⊗ W) + (V ⊗ X)和((V + W) ⊗ X) &#x3D; (V ⊗ X) + (W ⊗ X)。</p>
+</li>
+<li><p>结合律：对于向量空间V, W, X，有(V ⊗ (W ⊗ X)) &#x3D; ((V ⊗ W) ⊗ X)。</p>
+</li>
+<li><p>基向量的张量积：如果V由基向量{v₁, v₂, …, vₙ}生成，W由基向量{w₁, w₂, …, wₘ}生成，那么它们的基向量的张量积为{(vᵢ ⊗ wⱼ) | 1 ≤ i ≤ n, 1 ≤ j ≤ m}，生成了V ⊗ W。</p>
+</li>
+</ul>
+<p>张量积在多线性代数、量子力学和计算机科学等领域中有广泛应用。在量子力学中，张量积用于描述多粒子系统的态空间，以及计算复合系统的态和操作。在计算机科学中，张量积被用于构建神经网络模型和处理多维数据。</p>
+<p>总结来说，张量积是将两个向量空间的向量组合成一个更大的向量空间的运算。它具有分配律和结合律等性质，用于<strong>描述多粒子系统、构建神经网络和处理多维数据</strong>。</p>
+<h2 id="六、泡利矩阵"><a href="#六、泡利矩阵" class="headerlink" title="六、泡利矩阵"></a>六、泡利矩阵</h2><p>泡利矩阵（Pauli Matrices）是一组重要的2×2复数矩阵，在量子力学和量子信息理论中经常使用。它们由物理学家维尔纳·泡利（Werner Pauli）在20世纪早期引入，以描述<strong>自旋系统</strong>的性质。</p>
+<p>泡利矩阵一共有三个，分别记为σ₁、σ₂和σ₃。它们的具体定义如下：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/4bfe88599e18472bb7febce60475cd7b_1720253795679.png?token=ANB4BCJOJBJUO5X5DUCT7N3GRD62C" alt="在这里插入图片描述"></p>
+<p>其中，i是虚数单位。这里的0和1代表2×2单位矩阵的元素。</p>
+<p>这些矩阵具有以下性质：</p>
+<ul>
+<li>Hermite性：泡利矩阵是厄米矩阵，即它们与自身的共轭转置相等。</li>
+<li>幺正矩阵。</li>
+<li>幂等性：每个泡利矩阵的平方等于单位矩阵，即σ₁² &#x3D; σ₂² &#x3D; σ₃² &#x3D; I，其中I是2×2单位矩阵。</li>
+<li>对易性：任意两个不同的泡利矩阵之间是对易的，即[σᵢ, σⱼ] &#x3D; 0，其中[i, j]表示i不等于j。</li>
+<li>归一性：泡利矩阵的模长为1，即|σ₁| &#x3D; |σ₂| &#x3D; |σ₃| &#x3D; 1。</li>
+</ul>
+<p>泡利矩阵在量子力学中有广泛的应用。它们是<strong>描述自旋1&#x2F;2粒子的自旋矩阵</strong>，用于计算<strong>自旋态的变换和测量</strong>。它们也是构成<strong>量子比特的基本门操作的泡利算符</strong>。在量子计算和量子信息理论中，泡利矩阵用于描述<strong>量子比特的操作和态的变换</strong>，以及构建量子门和量子算法。</p>
+<p>总之，泡利矩阵是一组重要的2×2复数矩阵，用<strong>于描述自旋系统和量子比特的性质，在量子力学和量子信息理论中起着重要的作用</strong>。</p>
+<h2 id="七、克罗内克函数"><a href="#七、克罗内克函数" class="headerlink" title="七、克罗内克函数"></a>七、克罗内克函数</h2><p>在数学中，Kronecker delta（以 Leopold Kronecker 命名）是两个变量的函数，通常只是非负整数。 如果变量相等，则函数为1，否则为0：</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/0c63f9323ca14c15ab2d21471ec05b14_1720253795679.png?token=ANB4BCLMI66SSY2OVQ55K2DGRD62E" alt="在这里插入图片描述"></p>
+]]></content>
+      <categories>
+        <category>代数基础</category>
+        <category>量子计算导论</category>
+      </categories>
+      <tags>
+        <tag>算法</tag>
+        <tag>矩阵</tag>
+        <tag>线性代数</tag>
       </tags>
   </entry>
   <entry>
