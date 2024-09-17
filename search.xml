@@ -189,25 +189,6 @@
       </tags>
   </entry>
   <entry>
-    <title>2022 Personal Summary</title>
-    <url>/2023/01/10/2022%20Personal%20Summary/</url>
-    <content><![CDATA[<span id="more"></span>
-
-
-<h2 id="1-Write-in-Front"><a href="#1-Write-in-Front" class="headerlink" title="1. Write in Front"></a>1. Write in Front</h2><p>I had this idea very early on, to record myself every year, summarize the gains and shortcomings of this year, and compare whether I have made progress and whether my life has become better? Think about the direction of the future. Now (1:32 AM) I can finally calm myself down and write down the bits and pieces of this year.</p>
-<h2 id="2-Confused"><a href="#2-Confused" class="headerlink" title="2. Confused"></a>2. Confused</h2><p>Just entering a new field of study, especially computer science, I think everyone will be confused. Although the freshman year is not over yet, I can’t help but feel more pressure and motivation when I see people who are better than me.<br>When I first got in this campus, I wanted to learn C language as soon as possible, and my hard work paid off. After two months of study and persistent practice of solving problems (LeetCode+PTA), I think I probably have a good grasp. In addition, I also learned Java, and wrote a small game (snake) with Java with Jframe like, which also made me understand the essential difference between process-oriented and object-oriented programming.<br>However, I’m still lost.<br>I thought about learning some Linux kernel module programming skills during the winter vacation, but the knowledge system in this field is too complicated, and I don’t really want to be in this industry. My interest in Linux is to understand some underlying things. I want to understand how Linux works, specifically how computers work, which of course involves operating systems, and Linux is a great option, which really excites me! I like to get to the bottom of it, there is no doubt about it, but if I turn my interest into my future work, probably, this is how people’s passion will be destroyed.</p>
-<h2 id="3-Direction"><a href="#3-Direction" class="headerlink" title="3. Direction"></a>3. Direction</h2><p>A few days ago, I watched a sophomore blogger share his learning experience on CSDN. I was really excited. Maybe it was an article that changed a person’s fate. He’s doing Java, and he’s doing it very well and successfully, which makes me very excited. Because I heard before that it is generally better to start Java in the third year, and no one learns Java at the beginning. When I first heard this, I was really shocked, because I really like the design idea of ​​Java but I can’t learn it very deeply.<br>But now, I have no worries. I can freely soar in the Java world, and I want to put my energy and thinking on Java and the technologies involved.<br>One sentence is very good, if the knowledge learned is not used, it is equivalent to learning in vain. So I want to organize the knowledge I have learned into a blog. On the one hand, it can spread knowledge, on the other hand, it can increase my impression, thereby improving the learning effect. I think this is the significance of blogging. So, I will stick to blogging.</p>
-<h2 id="4-Conclusion"><a href="#4-Conclusion" class="headerlink" title="4. Conclusion"></a>4. Conclusion</h2><p>I hope that when I write my 2023 personal summary next year, I can write a lot!</p>
-<p><em>Last, Thanks for your reading!</em></p>
-]]></content>
-      <categories>
-        <category>Personal_Summary</category>
-      </categories>
-      <tags>
-        <tag>个人总结</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>2023 个人总结</title>
     <url>/2023/12/31/2023%20%E4%B8%AA%E4%BA%BA%E6%80%BB%E7%BB%93/</url>
     <content><![CDATA[<span id="more"></span>
@@ -234,6 +215,25 @@
 </ul>
 <h2 id="三、2024-展望"><a href="#三、2024-展望" class="headerlink" title="三、2024 展望"></a>三、2024 展望</h2><p>学习是一个类似于指数增长的过程，刚开始什么都不懂，学什么都很慢。后面在打好基础之后，学习起来很快。因此在 2024 年，我将会学习更多的关于算法（CS61B）、计算机网络（CS114）、 数据库、编译原理、Java（面向实习学习）、分布式等知识，争取能在暑假拿到offer。</p>
 <p>未来之路，就在脚下。</p>
+]]></content>
+      <categories>
+        <category>Personal_Summary</category>
+      </categories>
+      <tags>
+        <tag>个人总结</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>2022 Personal Summary</title>
+    <url>/2023/01/10/2022%20Personal%20Summary/</url>
+    <content><![CDATA[<span id="more"></span>
+
+
+<h2 id="1-Write-in-Front"><a href="#1-Write-in-Front" class="headerlink" title="1. Write in Front"></a>1. Write in Front</h2><p>I had this idea very early on, to record myself every year, summarize the gains and shortcomings of this year, and compare whether I have made progress and whether my life has become better? Think about the direction of the future. Now (1:32 AM) I can finally calm myself down and write down the bits and pieces of this year.</p>
+<h2 id="2-Confused"><a href="#2-Confused" class="headerlink" title="2. Confused"></a>2. Confused</h2><p>Just entering a new field of study, especially computer science, I think everyone will be confused. Although the freshman year is not over yet, I can’t help but feel more pressure and motivation when I see people who are better than me.<br>When I first got in this campus, I wanted to learn C language as soon as possible, and my hard work paid off. After two months of study and persistent practice of solving problems (LeetCode+PTA), I think I probably have a good grasp. In addition, I also learned Java, and wrote a small game (snake) with Java with Jframe like, which also made me understand the essential difference between process-oriented and object-oriented programming.<br>However, I’m still lost.<br>I thought about learning some Linux kernel module programming skills during the winter vacation, but the knowledge system in this field is too complicated, and I don’t really want to be in this industry. My interest in Linux is to understand some underlying things. I want to understand how Linux works, specifically how computers work, which of course involves operating systems, and Linux is a great option, which really excites me! I like to get to the bottom of it, there is no doubt about it, but if I turn my interest into my future work, probably, this is how people’s passion will be destroyed.</p>
+<h2 id="3-Direction"><a href="#3-Direction" class="headerlink" title="3. Direction"></a>3. Direction</h2><p>A few days ago, I watched a sophomore blogger share his learning experience on CSDN. I was really excited. Maybe it was an article that changed a person’s fate. He’s doing Java, and he’s doing it very well and successfully, which makes me very excited. Because I heard before that it is generally better to start Java in the third year, and no one learns Java at the beginning. When I first heard this, I was really shocked, because I really like the design idea of ​​Java but I can’t learn it very deeply.<br>But now, I have no worries. I can freely soar in the Java world, and I want to put my energy and thinking on Java and the technologies involved.<br>One sentence is very good, if the knowledge learned is not used, it is equivalent to learning in vain. So I want to organize the knowledge I have learned into a blog. On the one hand, it can spread knowledge, on the other hand, it can increase my impression, thereby improving the learning effect. I think this is the significance of blogging. So, I will stick to blogging.</p>
+<h2 id="4-Conclusion"><a href="#4-Conclusion" class="headerlink" title="4. Conclusion"></a>4. Conclusion</h2><p>I hope that when I write my 2023 personal summary next year, I can write a lot!</p>
+<p><em>Last, Thanks for your reading!</em></p>
 ]]></content>
       <categories>
         <category>Personal_Summary</category>
@@ -878,7 +878,7 @@
 <p>也只提升了一点点：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/3307e078f4a44a70934da1372d8d7826_1720253671766.png?token=ANB4BCITJTKONUIYRWAPXXDGRD6SQ" alt="在这里插入图片描述"></p>
 <p>事实上，可以直接构造，这是一道数学题，不过这不在本节讨论的范围，略过。</p>
 <h2 id="93-复原-IP-地址"><a href="#93-复原-IP-地址" class="headerlink" title="93. 复原 IP 地址"></a>93. 复原 IP 地址</h2><p>有效 IP 地址 正好由四个整数（每个整数位于 0 到 255 之间组成，且不能含有前导 0），整数之间用 ‘.’ 分隔。</p>
-<p>例如：”0.1.2.201” 和 “192.168.1.1” 是 有效 IP 地址，但是 “0.011.255.245”、”192.168.1.312” 和 “<a href="mailto:&#x31;&#57;&#x32;&#x2e;&#49;&#x36;&#56;&#x40;&#x31;&#x2e;&#x31;">&#x31;&#57;&#x32;&#x2e;&#49;&#x36;&#56;&#x40;&#x31;&#x2e;&#x31;</a>“ 是 无效 IP 地址。<br>给定一个只包含数字的字符串 s ，用以表示一个 IP 地址，返回所有可能的有效 IP 地址，这些地址可以通过在 s 中插入 ‘.’ 来形成。你 不能 重新排序或删除 s 中的任何数字。你可以按 任何 顺序返回答案。</p>
+<p>例如：”0.1.2.201” 和 “192.168.1.1” 是 有效 IP 地址，但是 “0.011.255.245”、”192.168.1.312” 和 “<a href="mailto:&#49;&#57;&#50;&#x2e;&#x31;&#x36;&#56;&#x40;&#x31;&#x2e;&#x31;">&#49;&#57;&#50;&#x2e;&#x31;&#x36;&#56;&#x40;&#x31;&#x2e;&#x31;</a>“ 是 无效 IP 地址。<br>给定一个只包含数字的字符串 s ，用以表示一个 IP 地址，返回所有可能的有效 IP 地址，这些地址可以通过在 s 中插入 ‘.’ 来形成。你 不能 重新排序或删除 s 中的任何数字。你可以按 任何 顺序返回答案。</p>
 <p>示例 1：</p>
 <blockquote>
 <p>输入：s &#x3D; “25525511135”<br>输出：[“255.255.11.135”,”255.255.111.35”]</p>
@@ -1387,92 +1387,6 @@
       </tags>
   </entry>
   <entry>
-    <title>2024.07.05 刷题日记</title>
-    <url>/2024/07/05/2024.07.05%20%E5%88%B7%E9%A2%98%E6%97%A5%E8%AE%B0/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="322-零钱兑换"><a href="#322-零钱兑换" class="headerlink" title="322. 零钱兑换"></a>322. 零钱兑换</h2><p>动态规划，dp[i] 的定义为 i 块钱兑换的最少硬币数。状态转移为：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> coin : coins) &#123;<br>             <span class="hljs-keyword">if</span> (i - coin &gt;= <span class="hljs-number">0</span>) &#123;<br>                 dp[i] = <span class="hljs-built_in">min</span>(dp[i], dp[i - coin] + <span class="hljs-number">1</span>);<br>             &#125;<br>         &#125;<br></code></pre></td></tr></table></figure>
-
-<p>因此代码为：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">coinChange</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; coins, <span class="hljs-type">int</span> amount)</span> </span>&#123;<br>        <span class="hljs-comment">// dp数组大小为amount+1，初始化为amount+1（一个较大的数）</span><br>        <span class="hljs-function">vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">dp</span><span class="hljs-params">(amount + <span class="hljs-number">1</span>, amount + <span class="hljs-number">1</span>)</span></span>;<br>        dp[<span class="hljs-number">0</span>] = <span class="hljs-number">0</span>; <span class="hljs-comment">// 凑成金额0所需的硬币数为0</span><br><br>        <span class="hljs-comment">// 从1到amount逐步计算每一个金额所需的最小硬币数量</span><br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= amount; ++i) &#123;<br>            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> coin : coins) &#123;<br>                <span class="hljs-keyword">if</span> (i - coin &gt;= <span class="hljs-number">0</span>) &#123;<br>                    dp[i] = <span class="hljs-built_in">min</span>(dp[i], dp[i - coin] + <span class="hljs-number">1</span>);<br>                &#125;<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> dp[amount] &gt; amount ? <span class="hljs-number">-1</span> : dp[amount];<br>    &#125;<br>&#125;;<br><br></code></pre></td></tr></table></figure>
-
-<h2 id="139-单词拆分"><a href="#139-单词拆分" class="headerlink" title="139. 单词拆分"></a>139. 单词拆分</h2><p>这道题还可以使用回溯：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">wordBreak</span><span class="hljs-params">(string s, vector&lt;string&gt;&amp; wordDict)</span> </span>&#123;<br>        <span class="hljs-comment">// 回溯</span><br>        vector&lt;string&gt; path;<br>        <span class="hljs-type">bool</span> ans = <span class="hljs-literal">false</span>;<br>        <span class="hljs-built_in">backtrace</span>(path, s, wordDict, ans);<br>        <span class="hljs-keyword">return</span> ans;<br>    &#125;<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">backtrace</span><span class="hljs-params">(vector&lt;string&gt;&amp; path, string&amp; s, vector&lt;string&gt;&amp; wordDict,</span></span><br><span class="hljs-params"><span class="hljs-function">                   <span class="hljs-type">bool</span>&amp; ans)</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-built_in">gatherString</span>(path) == s)<br>            ans = <span class="hljs-literal">true</span>;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; wordDict.<span class="hljs-built_in">size</span>(); i++) &#123;<br>            string temp = <span class="hljs-built_in">gatherString</span>(path);<br>            <span class="hljs-keyword">if</span> (<span class="hljs-built_in">isSubStr</span>(temp, s)) &#123;<br>                path.<span class="hljs-built_in">push_back</span>(wordDict[i]);<br>                <span class="hljs-built_in">backtrace</span>(path, s, wordDict, ans);<br>                path.<span class="hljs-built_in">pop_back</span>();<br>            &#125;<br>        &#125;<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">isSubStr</span><span class="hljs-params">(string&amp; sub, string&amp; str)</span> </span>&#123;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; sub.<span class="hljs-built_in">length</span>(); i++) &#123;<br>            <span class="hljs-keyword">if</span> (sub[i] != str[i])<br>                <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>        &#125;<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>    &#125;<br>    <span class="hljs-function">string <span class="hljs-title">gatherString</span><span class="hljs-params">(vector&lt;string&gt;&amp; path)</span> </span>&#123;<br>        string ans = <span class="hljs-string">&quot;&quot;</span>;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> str : path) &#123;<br>            ans += str;<br>        &#125;<br>        <span class="hljs-keyword">return</span> ans;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
-<p>但是时间复杂度太高，有的案例跑不过。可以修改成另一种回溯：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">wordBreak</span><span class="hljs-params">(std::string s, std::vector&lt;std::string&gt;&amp; wordDict)</span> </span>&#123;<br>        <span class="hljs-comment">// 创建字典集合，加快查找速度</span><br>        <span class="hljs-function">std::unordered_set&lt;std::string&gt; <span class="hljs-title">wordSet</span><span class="hljs-params">(wordDict.begin(), wordDict.end())</span></span>;<br>        <span class="hljs-comment">// 记录已经访问过的字符串组合</span><br>        std::unordered_map&lt;std::string, <span class="hljs-type">bool</span>&gt; memo;<br>        <span class="hljs-keyword">return</span> <span class="hljs-built_in">backtrace</span>(s, wordSet, memo);<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">backtrace</span><span class="hljs-params">(<span class="hljs-type">const</span> std::string&amp; s, std::unordered_set&lt;std::string&gt;&amp; wordSet, std::unordered_map&lt;std::string, <span class="hljs-type">bool</span>&gt;&amp; memo)</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> (s.<span class="hljs-built_in">empty</span>()) <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>; <span class="hljs-comment">// 当s为空时，说明所有单词都匹配完了</span><br>        <span class="hljs-keyword">if</span> (memo.<span class="hljs-built_in">find</span>(s) != memo.<span class="hljs-built_in">end</span>()) <span class="hljs-keyword">return</span> memo[s]; <span class="hljs-comment">// 查找记忆化结果</span><br><br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= s.<span class="hljs-built_in">size</span>(); ++i) &#123;<br>            std::string prefix = s.<span class="hljs-built_in">substr</span>(<span class="hljs-number">0</span>, i);<br>            <span class="hljs-keyword">if</span> (wordSet.<span class="hljs-built_in">find</span>(prefix) != wordSet.<span class="hljs-built_in">end</span>()) &#123;<br>                std::string suffix = s.<span class="hljs-built_in">substr</span>(i);<br>                <span class="hljs-keyword">if</span> (<span class="hljs-built_in">backtrace</span>(suffix, wordSet, memo)) &#123;<br>                    memo[s] = <span class="hljs-literal">true</span>;<br>                    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>                &#125;<br>            &#125;<br>        &#125;<br>        memo[s] = <span class="hljs-literal">false</span>; <span class="hljs-comment">// 记录结果</span><br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
-<p>也可以使用动态规划来解决这个问题。</p>
-<h3 id="动态规划解法"><a href="#动态规划解法" class="headerlink" title="动态规划解法"></a>动态规划解法</h3><p>我们定义一个布尔数组 <code>dp</code>，其中 <code>dp[i]</code> 表示字符串 <code>s</code> 的前 <code>i</code> 个字符能否用字典中的单词拼接成。我们需要初始化 <code>dp[0] = true</code>，表示空字符串可以被拼接。</p>
-<p>然后，对于每个位置 <code>i</code>，我们检查从位置 <code>j</code> 到 <code>i</code> 的子串 <code>s[j:i]</code> 是否在字典中，如果在字典中并且 <code>dp[j]</code> 为 <code>true</code>，则将 <code>dp[i]</code> 设为 <code>true</code>。</p>
-<h3 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h3><figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">wordBreak</span><span class="hljs-params">(std::string s, std::vector&lt;std::string&gt;&amp; wordDict)</span> </span>&#123;<br>        <span class="hljs-comment">// 创建字典集合，加快查找速度</span><br>        <span class="hljs-function">std::unordered_set&lt;std::string&gt; <span class="hljs-title">wordSet</span><span class="hljs-params">(wordDict.begin(), wordDict.end())</span></span>;<br>        <span class="hljs-comment">// 动态规划数组，初始值为false</span><br>        <span class="hljs-function">std::vector&lt;<span class="hljs-type">bool</span>&gt; <span class="hljs-title">dp</span><span class="hljs-params">(s.size() + <span class="hljs-number">1</span>, <span class="hljs-literal">false</span>)</span></span>;<br>        dp[<span class="hljs-number">0</span>] = <span class="hljs-literal">true</span>; <span class="hljs-comment">// 空字符串可以被拼接</span><br><br>        <span class="hljs-comment">// 动态规划填表</span><br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= s.<span class="hljs-built_in">size</span>(); ++i) &#123;<br>            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> j = <span class="hljs-number">0</span>; j &lt; i; ++j) &#123;<br>                <span class="hljs-comment">// 如果s[j:i]在字典中且dp[j]为true，则dp[i]为true</span><br>                <span class="hljs-keyword">if</span> (dp[j] &amp;&amp; wordSet.<span class="hljs-built_in">find</span>(s.<span class="hljs-built_in">substr</span>(j, i - j)) != wordSet.<span class="hljs-built_in">end</span>()) &#123;<br>                    dp[i] = <span class="hljs-literal">true</span>;<br>                    <span class="hljs-keyword">break</span>; <span class="hljs-comment">// 找到一个可行的拆分就可以退出内层循环</span><br>                &#125;<br>            &#125;<br>        &#125;<br><br>        <span class="hljs-comment">// 返回结果</span><br>        <span class="hljs-keyword">return</span> dp[s.<span class="hljs-built_in">size</span>()];<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
-<h3 id="详细解释"><a href="#详细解释" class="headerlink" title="详细解释"></a>详细解释</h3><ol>
-<li><p><strong>初始化字典集合</strong>：</p>
-<ul>
-<li>使用 <code>unordered_set</code> 存储字典中的单词，以加快查找速度。</li>
-</ul>
-</li>
-<li><p><strong>初始化动态规划数组</strong>：</p>
-<ul>
-<li><code>dp</code> 数组的长度为 <code>s.size() + 1</code>，初始值都为 <code>false</code>。</li>
-<li><code>dp[0] = true</code> 表示空字符串可以被拼接。</li>
-</ul>
-</li>
-<li><p><strong>动态规划填表</strong>：</p>
-<ul>
-<li>外层循环遍历字符串的每个位置 <code>i</code>。</li>
-<li>内层循环遍历位置 <code>j</code>，检查从 <code>j</code> 到 <code>i</code> 的子串 <code>s[j:i]</code> 是否在字典中且 <code>dp[j]</code> 为 <code>true</code>。</li>
-<li>如果满足条件，则将 <code>dp[i]</code> 设为 <code>true</code> 并退出内层循环。</li>
-</ul>
-</li>
-<li><p><strong>返回结果</strong>：</p>
-<ul>
-<li><code>dp[s.size()]</code> 表示整个字符串 <code>s</code> 是否可以被拼接成。</li>
-</ul>
-</li>
-</ol>
-]]></content>
-      <categories>
-        <category>LeetCode</category>
-      </categories>
-      <tags>
-        <tag>算法</tag>
-        <tag>数据结构</tag>
-        <tag>leetcode</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>大二下学期学习总结</title>
-    <url>/2024/08/26/4th_semester_%E6%80%BB%E7%BB%93/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="〇、前言"><a href="#〇、前言" class="headerlink" title="〇、前言"></a>〇、前言</h2><p>为什么这一年还没结束，就要总结一些事情呢？因为今天是大三开学的第一天，也是今天我今天来学校的第一天。这里讲一个小故事，今天下午 4 点 30 我准时来到学校，也就意味着我没有参与上午的课。尽管这样，我心中还是很窃喜。我原本打算昨天来到学校，这样我就能参与今天的课。但是昨天的温度很高，我上午看了一下天气预报，实时温度是 39 度。但是我认为绝对不仅仅是 39 度，真实室外温度可能超过 40 度，原因你懂得。所以我就改签了，决定不外出，防止中暑或者造成危害。</p>
-<p>我做这样的决定，我爸妈都很诧异。我很庆幸他们的诧异，因为这意味着我并没有和他们一样的思维，至少我没有受到环境的影响，或者说，人是环境的产物这句话在我身上并没有落实。这意味着我拥有着独立人格，并不像我父母那样的普通人一样被规矩死死绑定。</p>
-<p>当我察觉到这些后，我对我的很多行为产生了理解，并且变得很自信，因为我认为我已经活明白了。</p>
-<p>好了废话不说了，开始总结。</p>
-<h2 id="一、学习"><a href="#一、学习" class="headerlink" title="一、学习"></a>一、学习</h2><p>大二下学期主要学习了 C++。是的，我看完了 C++ Primer Plus，并且敲了一遍其中的90% 的代码，对 C++ 的基本思想有了深刻的理解，标记了 2140 个知识点，这里是 <a href="https://github.com/Luyoung0001/Cpp_Notes">github仓库</a>。</p>
-<p>之后立即做了两个 C++ 小项目，一个是学校的课程设计管理系统，我用的是 C++11，里面用了大量的移动语义；另一个是我重构了的mini debugger，这个项目很著名，里面我抛弃了Makefile，全部用 Cmake 构建。仓库分别是：<a href="https://github.com/Luyoung0001/minidbg">minidebug</a>、<a href="https://github.com/Luyoung0001/cpp_design">公司管理系统</a>。</p>
-<p>此外学校还开了一些嵌入式、微机原理等课程，这些课程让我认识到了程序是如何加载和执行的，还掌握了汇编代码编写。</p>
-<p>接着，这一学期就到头了。</p>
-<p>在学期的最后，我开始学习 ysyx，并且整个暑假都在学习 ysyx。现在学习到了 PA2第二阶段。确实不容易，期间学习了很多关于 Makefile 的知识，以及数字电路、Verilog、verilator，还有那抓着一个 CPU 啃的 NVBoard。不过确实有意思，ysyx 确实是不可多得的优秀学习案例。越学习就能感受到余博士的精巧的设计，以及计算机体系的奥妙。</p>
-<p>我认为收获最大的并不是那些知识，而是学习方法和习惯。我现在已经无所畏惧，任何知识我都有信心将它拿下。RTFM、RTFSC、STFW 搞定一切。</p>
-<h2 id="二、展望"><a href="#二、展望" class="headerlink" title="二、展望"></a>二、展望</h2><p>很简单，两点：</p>
-<ul>
-<li>ysyx 通关，争取流片；</li>
-<li>德语。</li>
-</ul>
-<p>我必全力以赴！</p>
-]]></content>
-      <categories>
-        <category>Personal_Summary</category>
-      </categories>
-      <tags>
-        <tag>个人总结</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>2024.06.30 刷题日记</title>
     <url>/2024/06/30/2024.06.30%20%E5%88%B7%E9%A2%98%E6%97%A5%E8%AE%B0/</url>
     <content><![CDATA[<span id="more"></span>
@@ -1609,6 +1523,92 @@
         <tag>算法</tag>
         <tag>数据结构</tag>
         <tag>leetcode</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>2024.07.05 刷题日记</title>
+    <url>/2024/07/05/2024.07.05%20%E5%88%B7%E9%A2%98%E6%97%A5%E8%AE%B0/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="322-零钱兑换"><a href="#322-零钱兑换" class="headerlink" title="322. 零钱兑换"></a>322. 零钱兑换</h2><p>动态规划，dp[i] 的定义为 i 块钱兑换的最少硬币数。状态转移为：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> coin : coins) &#123;<br>             <span class="hljs-keyword">if</span> (i - coin &gt;= <span class="hljs-number">0</span>) &#123;<br>                 dp[i] = <span class="hljs-built_in">min</span>(dp[i], dp[i - coin] + <span class="hljs-number">1</span>);<br>             &#125;<br>         &#125;<br></code></pre></td></tr></table></figure>
+
+<p>因此代码为：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">coinChange</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; coins, <span class="hljs-type">int</span> amount)</span> </span>&#123;<br>        <span class="hljs-comment">// dp数组大小为amount+1，初始化为amount+1（一个较大的数）</span><br>        <span class="hljs-function">vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">dp</span><span class="hljs-params">(amount + <span class="hljs-number">1</span>, amount + <span class="hljs-number">1</span>)</span></span>;<br>        dp[<span class="hljs-number">0</span>] = <span class="hljs-number">0</span>; <span class="hljs-comment">// 凑成金额0所需的硬币数为0</span><br><br>        <span class="hljs-comment">// 从1到amount逐步计算每一个金额所需的最小硬币数量</span><br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= amount; ++i) &#123;<br>            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> coin : coins) &#123;<br>                <span class="hljs-keyword">if</span> (i - coin &gt;= <span class="hljs-number">0</span>) &#123;<br>                    dp[i] = <span class="hljs-built_in">min</span>(dp[i], dp[i - coin] + <span class="hljs-number">1</span>);<br>                &#125;<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> dp[amount] &gt; amount ? <span class="hljs-number">-1</span> : dp[amount];<br>    &#125;<br>&#125;;<br><br></code></pre></td></tr></table></figure>
+
+<h2 id="139-单词拆分"><a href="#139-单词拆分" class="headerlink" title="139. 单词拆分"></a>139. 单词拆分</h2><p>这道题还可以使用回溯：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">wordBreak</span><span class="hljs-params">(string s, vector&lt;string&gt;&amp; wordDict)</span> </span>&#123;<br>        <span class="hljs-comment">// 回溯</span><br>        vector&lt;string&gt; path;<br>        <span class="hljs-type">bool</span> ans = <span class="hljs-literal">false</span>;<br>        <span class="hljs-built_in">backtrace</span>(path, s, wordDict, ans);<br>        <span class="hljs-keyword">return</span> ans;<br>    &#125;<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">backtrace</span><span class="hljs-params">(vector&lt;string&gt;&amp; path, string&amp; s, vector&lt;string&gt;&amp; wordDict,</span></span><br><span class="hljs-params"><span class="hljs-function">                   <span class="hljs-type">bool</span>&amp; ans)</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-built_in">gatherString</span>(path) == s)<br>            ans = <span class="hljs-literal">true</span>;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; wordDict.<span class="hljs-built_in">size</span>(); i++) &#123;<br>            string temp = <span class="hljs-built_in">gatherString</span>(path);<br>            <span class="hljs-keyword">if</span> (<span class="hljs-built_in">isSubStr</span>(temp, s)) &#123;<br>                path.<span class="hljs-built_in">push_back</span>(wordDict[i]);<br>                <span class="hljs-built_in">backtrace</span>(path, s, wordDict, ans);<br>                path.<span class="hljs-built_in">pop_back</span>();<br>            &#125;<br>        &#125;<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">isSubStr</span><span class="hljs-params">(string&amp; sub, string&amp; str)</span> </span>&#123;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; sub.<span class="hljs-built_in">length</span>(); i++) &#123;<br>            <span class="hljs-keyword">if</span> (sub[i] != str[i])<br>                <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>        &#125;<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>    &#125;<br>    <span class="hljs-function">string <span class="hljs-title">gatherString</span><span class="hljs-params">(vector&lt;string&gt;&amp; path)</span> </span>&#123;<br>        string ans = <span class="hljs-string">&quot;&quot;</span>;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> str : path) &#123;<br>            ans += str;<br>        &#125;<br>        <span class="hljs-keyword">return</span> ans;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>但是时间复杂度太高，有的案例跑不过。可以修改成另一种回溯：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">wordBreak</span><span class="hljs-params">(std::string s, std::vector&lt;std::string&gt;&amp; wordDict)</span> </span>&#123;<br>        <span class="hljs-comment">// 创建字典集合，加快查找速度</span><br>        <span class="hljs-function">std::unordered_set&lt;std::string&gt; <span class="hljs-title">wordSet</span><span class="hljs-params">(wordDict.begin(), wordDict.end())</span></span>;<br>        <span class="hljs-comment">// 记录已经访问过的字符串组合</span><br>        std::unordered_map&lt;std::string, <span class="hljs-type">bool</span>&gt; memo;<br>        <span class="hljs-keyword">return</span> <span class="hljs-built_in">backtrace</span>(s, wordSet, memo);<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">backtrace</span><span class="hljs-params">(<span class="hljs-type">const</span> std::string&amp; s, std::unordered_set&lt;std::string&gt;&amp; wordSet, std::unordered_map&lt;std::string, <span class="hljs-type">bool</span>&gt;&amp; memo)</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> (s.<span class="hljs-built_in">empty</span>()) <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>; <span class="hljs-comment">// 当s为空时，说明所有单词都匹配完了</span><br>        <span class="hljs-keyword">if</span> (memo.<span class="hljs-built_in">find</span>(s) != memo.<span class="hljs-built_in">end</span>()) <span class="hljs-keyword">return</span> memo[s]; <span class="hljs-comment">// 查找记忆化结果</span><br><br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= s.<span class="hljs-built_in">size</span>(); ++i) &#123;<br>            std::string prefix = s.<span class="hljs-built_in">substr</span>(<span class="hljs-number">0</span>, i);<br>            <span class="hljs-keyword">if</span> (wordSet.<span class="hljs-built_in">find</span>(prefix) != wordSet.<span class="hljs-built_in">end</span>()) &#123;<br>                std::string suffix = s.<span class="hljs-built_in">substr</span>(i);<br>                <span class="hljs-keyword">if</span> (<span class="hljs-built_in">backtrace</span>(suffix, wordSet, memo)) &#123;<br>                    memo[s] = <span class="hljs-literal">true</span>;<br>                    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>                &#125;<br>            &#125;<br>        &#125;<br>        memo[s] = <span class="hljs-literal">false</span>; <span class="hljs-comment">// 记录结果</span><br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>也可以使用动态规划来解决这个问题。</p>
+<h3 id="动态规划解法"><a href="#动态规划解法" class="headerlink" title="动态规划解法"></a>动态规划解法</h3><p>我们定义一个布尔数组 <code>dp</code>，其中 <code>dp[i]</code> 表示字符串 <code>s</code> 的前 <code>i</code> 个字符能否用字典中的单词拼接成。我们需要初始化 <code>dp[0] = true</code>，表示空字符串可以被拼接。</p>
+<p>然后，对于每个位置 <code>i</code>，我们检查从位置 <code>j</code> 到 <code>i</code> 的子串 <code>s[j:i]</code> 是否在字典中，如果在字典中并且 <code>dp[j]</code> 为 <code>true</code>，则将 <code>dp[i]</code> 设为 <code>true</code>。</p>
+<h3 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h3><figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">wordBreak</span><span class="hljs-params">(std::string s, std::vector&lt;std::string&gt;&amp; wordDict)</span> </span>&#123;<br>        <span class="hljs-comment">// 创建字典集合，加快查找速度</span><br>        <span class="hljs-function">std::unordered_set&lt;std::string&gt; <span class="hljs-title">wordSet</span><span class="hljs-params">(wordDict.begin(), wordDict.end())</span></span>;<br>        <span class="hljs-comment">// 动态规划数组，初始值为false</span><br>        <span class="hljs-function">std::vector&lt;<span class="hljs-type">bool</span>&gt; <span class="hljs-title">dp</span><span class="hljs-params">(s.size() + <span class="hljs-number">1</span>, <span class="hljs-literal">false</span>)</span></span>;<br>        dp[<span class="hljs-number">0</span>] = <span class="hljs-literal">true</span>; <span class="hljs-comment">// 空字符串可以被拼接</span><br><br>        <span class="hljs-comment">// 动态规划填表</span><br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= s.<span class="hljs-built_in">size</span>(); ++i) &#123;<br>            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> j = <span class="hljs-number">0</span>; j &lt; i; ++j) &#123;<br>                <span class="hljs-comment">// 如果s[j:i]在字典中且dp[j]为true，则dp[i]为true</span><br>                <span class="hljs-keyword">if</span> (dp[j] &amp;&amp; wordSet.<span class="hljs-built_in">find</span>(s.<span class="hljs-built_in">substr</span>(j, i - j)) != wordSet.<span class="hljs-built_in">end</span>()) &#123;<br>                    dp[i] = <span class="hljs-literal">true</span>;<br>                    <span class="hljs-keyword">break</span>; <span class="hljs-comment">// 找到一个可行的拆分就可以退出内层循环</span><br>                &#125;<br>            &#125;<br>        &#125;<br><br>        <span class="hljs-comment">// 返回结果</span><br>        <span class="hljs-keyword">return</span> dp[s.<span class="hljs-built_in">size</span>()];<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h3 id="详细解释"><a href="#详细解释" class="headerlink" title="详细解释"></a>详细解释</h3><ol>
+<li><p><strong>初始化字典集合</strong>：</p>
+<ul>
+<li>使用 <code>unordered_set</code> 存储字典中的单词，以加快查找速度。</li>
+</ul>
+</li>
+<li><p><strong>初始化动态规划数组</strong>：</p>
+<ul>
+<li><code>dp</code> 数组的长度为 <code>s.size() + 1</code>，初始值都为 <code>false</code>。</li>
+<li><code>dp[0] = true</code> 表示空字符串可以被拼接。</li>
+</ul>
+</li>
+<li><p><strong>动态规划填表</strong>：</p>
+<ul>
+<li>外层循环遍历字符串的每个位置 <code>i</code>。</li>
+<li>内层循环遍历位置 <code>j</code>，检查从 <code>j</code> 到 <code>i</code> 的子串 <code>s[j:i]</code> 是否在字典中且 <code>dp[j]</code> 为 <code>true</code>。</li>
+<li>如果满足条件，则将 <code>dp[i]</code> 设为 <code>true</code> 并退出内层循环。</li>
+</ul>
+</li>
+<li><p><strong>返回结果</strong>：</p>
+<ul>
+<li><code>dp[s.size()]</code> 表示整个字符串 <code>s</code> 是否可以被拼接成。</li>
+</ul>
+</li>
+</ol>
+]]></content>
+      <categories>
+        <category>LeetCode</category>
+      </categories>
+      <tags>
+        <tag>算法</tag>
+        <tag>数据结构</tag>
+        <tag>leetcode</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>大二下学期学习总结</title>
+    <url>/2024/08/26/4th_semester_%E6%80%BB%E7%BB%93/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="〇、前言"><a href="#〇、前言" class="headerlink" title="〇、前言"></a>〇、前言</h2><p>为什么这一年还没结束，就要总结一些事情呢？因为今天是大三开学的第一天，也是今天我今天来学校的第一天。这里讲一个小故事，今天下午 4 点 30 我准时来到学校，也就意味着我没有参与上午的课。尽管这样，我心中还是很窃喜。我原本打算昨天来到学校，这样我就能参与今天的课。但是昨天的温度很高，我上午看了一下天气预报，实时温度是 39 度。但是我认为绝对不仅仅是 39 度，真实室外温度可能超过 40 度，原因你懂得。所以我就改签了，决定不外出，防止中暑或者造成危害。</p>
+<p>我做这样的决定，我爸妈都很诧异。我很庆幸他们的诧异，因为这意味着我并没有和他们一样的思维，至少我没有受到环境的影响，或者说，人是环境的产物这句话在我身上并没有落实。这意味着我拥有着独立人格，并不像我父母那样的普通人一样被规矩死死绑定。</p>
+<p>当我察觉到这些后，我对我的很多行为产生了理解，并且变得很自信，因为我认为我已经活明白了。</p>
+<p>好了废话不说了，开始总结。</p>
+<h2 id="一、学习"><a href="#一、学习" class="headerlink" title="一、学习"></a>一、学习</h2><p>大二下学期主要学习了 C++。是的，我看完了 C++ Primer Plus，并且敲了一遍其中的90% 的代码，对 C++ 的基本思想有了深刻的理解，标记了 2140 个知识点，这里是 <a href="https://github.com/Luyoung0001/Cpp_Notes">github仓库</a>。</p>
+<p>之后立即做了两个 C++ 小项目，一个是学校的课程设计管理系统，我用的是 C++11，里面用了大量的移动语义；另一个是我重构了的mini debugger，这个项目很著名，里面我抛弃了Makefile，全部用 Cmake 构建。仓库分别是：<a href="https://github.com/Luyoung0001/minidbg">minidebug</a>、<a href="https://github.com/Luyoung0001/cpp_design">公司管理系统</a>。</p>
+<p>此外学校还开了一些嵌入式、微机原理等课程，这些课程让我认识到了程序是如何加载和执行的，还掌握了汇编代码编写。</p>
+<p>接着，这一学期就到头了。</p>
+<p>在学期的最后，我开始学习 ysyx，并且整个暑假都在学习 ysyx。现在学习到了 PA2第二阶段。确实不容易，期间学习了很多关于 Makefile 的知识，以及数字电路、Verilog、verilator，还有那抓着一个 CPU 啃的 NVBoard。不过确实有意思，ysyx 确实是不可多得的优秀学习案例。越学习就能感受到余博士的精巧的设计，以及计算机体系的奥妙。</p>
+<p>我认为收获最大的并不是那些知识，而是学习方法和习惯。我现在已经无所畏惧，任何知识我都有信心将它拿下。RTFM、RTFSC、STFW 搞定一切。</p>
+<h2 id="二、展望"><a href="#二、展望" class="headerlink" title="二、展望"></a>二、展望</h2><p>很简单，两点：</p>
+<ul>
+<li>ysyx 通关，争取流片；</li>
+<li>德语。</li>
+</ul>
+<p>我必全力以赴！</p>
+]]></content>
+      <categories>
+        <category>Personal_Summary</category>
+      </categories>
+      <tags>
+        <tag>个人总结</tag>
       </tags>
   </entry>
   <entry>
@@ -2219,6 +2219,33 @@
       </tags>
   </entry>
   <entry>
+    <title>C++并发：构建线程安全的队列</title>
+    <url>/2024/05/15/C++%E5%B9%B6%E5%8F%91%EF%BC%9A%E6%9E%84%E5%BB%BA%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E7%9A%84%E9%98%9F%E5%88%97/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h2><p>线程安全队列的完整的类定义，其中采用了条件变量：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;condition_variable&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;memory&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;mutex&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;queue&gt;</span></span><br><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> T&gt; <span class="hljs-keyword">class</span> <span class="hljs-title class_">threadsafe_queue</span> &#123;<br>  <span class="hljs-keyword">private</span>:<br>    <span class="hljs-keyword">mutable</span> std::mutex mut;<br>    std::queue&lt;T&gt; data_queue;<br>    std::condition_variable data_cond;<br><br>  <span class="hljs-keyword">public</span>:<br>    <span class="hljs-built_in">threadsafe_queue</span>() &#123;&#125;<br>    <span class="hljs-built_in">threadsafe_queue</span>(threadsafe_queue <span class="hljs-type">const</span> &amp;other) &#123;<br>        <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">lk</span><span class="hljs-params">(other.mut)</span></span>;<br>        data_queue = other.data_queue;<br>    &#125;<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">push</span><span class="hljs-params">(T new_value)</span> </span>&#123;<br>        <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">lk</span><span class="hljs-params">(mut)</span></span>;<br>        data_queue.<span class="hljs-built_in">push</span>(new_value);<br>        data_cond.<span class="hljs-built_in">notify_one</span>();<br>    &#125;<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">wait_and_pop</span><span class="hljs-params">(T &amp;value)</span> </span>&#123;<br>        <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lk</span><span class="hljs-params">(mut)</span></span>;<br>        data_cond.<span class="hljs-built_in">wait</span>(lk, [<span class="hljs-keyword">this</span>] &#123; <span class="hljs-keyword">return</span> !data_queue.<span class="hljs-built_in">empty</span>(); &#125;);<br>        value = data_queue.<span class="hljs-built_in">front</span>();<br>        data_queue.<span class="hljs-built_in">pop</span>();<br>    &#125;<br>    <span class="hljs-function">std::shared_ptr&lt;T&gt; <span class="hljs-title">wait_and_pop</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lk</span><span class="hljs-params">(mut)</span></span>;<br>        data_cond.<span class="hljs-built_in">wait</span>(lk, [<span class="hljs-keyword">this</span>] &#123; <span class="hljs-keyword">return</span> !data_queue.<span class="hljs-built_in">empty</span>(); &#125;);<br>        <span class="hljs-function">std::shared_ptr&lt;T&gt; <span class="hljs-title">res</span><span class="hljs-params">(std::make_shared&lt;T&gt;(data_queue.front()))</span></span>;<br>        data_queue.<span class="hljs-built_in">pop</span>();<br>        <span class="hljs-keyword">return</span> res;<br>    &#125;<br>    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">try_pop</span><span class="hljs-params">(T &amp;value)</span> </span>&#123;<br>        <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">lk</span><span class="hljs-params">(mut)</span></span>;<br>        <span class="hljs-keyword">if</span> (data_queue.<span class="hljs-built_in">empty</span>())<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>        value = data_queue.<span class="hljs-built_in">front</span>();<br>        data_queue.<span class="hljs-built_in">pop</span>();<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>    &#125;<br>    <span class="hljs-function">std::shared_ptr&lt;T&gt; <span class="hljs-title">try_pop</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">lk</span><span class="hljs-params">(mut)</span></span>;<br>        <span class="hljs-keyword">if</span> (data_queue.<span class="hljs-built_in">empty</span>())<br>            <span class="hljs-keyword">return</span> std::<span class="hljs-built_in">shared_ptr</span>&lt;T&gt;();<br>        <span class="hljs-function">std::shared_ptr&lt;T&gt; <span class="hljs-title">res</span><span class="hljs-params">(std::make_shared&lt;T&gt;(data_queue.front()))</span></span>;<br>        data_queue.<span class="hljs-built_in">pop</span>();<br>        <span class="hljs-keyword">return</span> res;<br>    &#125;<br>    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">empty</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123;<br>        <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">lk</span><span class="hljs-params">(mut)</span></span>;<br>        <span class="hljs-keyword">return</span> data_queue.<span class="hljs-built_in">empty</span>();<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>这个队列的设计允许多个生产者和消费者线程安全地向队列中添加或移除元素，而无需担心数据竞争或其他并发错误。通过 <code>std::condition_variable</code> 的使用，消费者线程可以有效地等待直到队列中有数据可用，从而优化资源使用和线程调。</p>
+<p>在多线程环境中，使用 <code>mutable</code> 关键字修饰 <code>std::mutex</code> 类型的成员变量是一种常见的做法，特别是在类设计中涉及到需要保护类成员不被多个线程同时修改的情况下。下面我们详细解释一下 <code>mutable</code> 的使用背景、意义以及为什么在 <code>threadsafe_queue</code> 类中应用它。</p>
+<h3 id="mutable的作用"><a href="#mutable的作用" class="headerlink" title="mutable的作用"></a>mutable的作用</h3><p><code>mutable</code> 修饰符用于C++中，表示即使在一个 <code>const</code> 成员函数中，该成员变量仍可被修改。<code>const</code> 成员函数承诺不修改对象的任何数据成员（不包括由 <code>mutable</code> 修饰的成员）。这个特性在处理需要修改类成员但又不改变对象状态的设计模式（如缓存、锁等）时非常有用。</p>
+<h3 id="应用于-threadsafe-queue"><a href="#应用于-threadsafe-queue" class="headerlink" title="应用于 threadsafe_queue"></a>应用于 threadsafe_queue</h3><p>在 <code>threadsafe_queue</code> 类中，成员函数 <code>empty</code> 被声明为 <code>const</code>，意味着这个函数不应修改对象的任何数据成员。然而，这个函数内部需要使用 <code>mutex</code> 来保证线程安全性，即使它只是检查队列是否为空。由于 <code>mutex</code> 通常会在锁定和解锁时修改其内部状态，所以正常情况下你不能在 <code>const</code> 函数中进行这些操作。</p>
+<p>为了解决这一问题，<code>mutex</code> 成员变量被声明为 <code>mutable</code>。这允许即使在 <code>const</code> 成员函数中，我们也可以锁定和解锁互斥量，而不违反函数的 <code>const</code> 性质。这样做确保了即使在多线程环境中，<code>empty</code> 函数执行时，队列的状态检查是线程安全的。</p>
+<h3 id="在构造函数中的应用"><a href="#在构造函数中的应用" class="headerlink" title="在构造函数中的应用"></a>在构造函数中的应用</h3><p>在 <code>threadsafe_queue</code> 的拷贝构造函数中，尽管传入的 <code>other</code> 对象是一个 <code>const</code> 引用，我们仍然需要从这个 <code>const</code> 对象中复制数据。拷贝构造函数需要访问 <code>other</code> 对象的 <code>data_queue</code>，而为了线程安全，必须先锁定 <code>other</code> 的互斥量。由于 <code>mut</code> 是 <code>mutable</code> 的，即使在 <code>const</code> 上下文中，也能执行锁定操作。</p>
+<h3 id="运行结果"><a href="#运行结果" class="headerlink" title="运行结果"></a>运行结果</h3><p>写一个多线程的测试程序：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">producer</span><span class="hljs-params">(threadsafe_queue&lt;<span class="hljs-type">int</span>&gt; &amp;queue, <span class="hljs-type">int</span> start_value)</span> </span>&#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">5</span>; ++i) &#123;<br>        queue.<span class="hljs-built_in">push</span>(start_value + i);<br>        std::this_thread::<span class="hljs-built_in">sleep_for</span>(<br>            std::chrono::<span class="hljs-built_in">milliseconds</span>(<span class="hljs-number">100</span>)); <span class="hljs-comment">// 模拟耗时操作</span><br>    &#125;<br>&#125;<br><br>std::mutex print_mutex; <span class="hljs-comment">// 保证打印有序，方便观察</span><br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">consumer</span><span class="hljs-params">(threadsafe_queue&lt;<span class="hljs-type">int</span>&gt; &amp;queue)</span> </span>&#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">5</span>; ++i) &#123;<br>        <span class="hljs-type">int</span> value;<br>        queue.<span class="hljs-built_in">wait_and_pop</span>(value);<br><br>        <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">lock</span><span class="hljs-params">(print_mutex)</span></span>;<br>        std::cout &lt;&lt; <span class="hljs-string">&quot;Consumer &quot;</span> &lt;&lt; std::this_thread::<span class="hljs-built_in">get_id</span>()<br>                  &lt;&lt; <span class="hljs-string">&quot; popped: &quot;</span> &lt;&lt; value &lt;&lt; std::endl;<br>    &#125;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    threadsafe_queue&lt;<span class="hljs-type">int</span>&gt; queue;<br><br>    std::thread producers[<span class="hljs-number">3</span>];<br>    std::thread consumers[<span class="hljs-number">3</span>];<br><br>    <span class="hljs-comment">// 启动生产者线程</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">3</span>; ++i) &#123;<br>        producers[i] = std::<span class="hljs-built_in">thread</span>(producer, std::<span class="hljs-built_in">ref</span>(queue),<br>                                   i * <span class="hljs-number">10</span>); <span class="hljs-comment">// 每个生产者推送不同范围的数字</span><br>    &#125;<br><br>    <span class="hljs-comment">// 启动消费者线程</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">3</span>; ++i) &#123;<br>        consumers[i] = std::<span class="hljs-built_in">thread</span>(consumer, std::<span class="hljs-built_in">ref</span>(queue));<br>    &#125;<br><br>    <span class="hljs-comment">// 等待所有生产者线程完成</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">3</span>; ++i) &#123;<br>        producers[i].<span class="hljs-built_in">join</span>();<br>    &#125;<br><br>    <span class="hljs-comment">// 等待所有消费者线程完成</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">3</span>; ++i) &#123;<br>        consumers[i].<span class="hljs-built_in">join</span>();<br>    &#125;<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>运行结果：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">./main <br>Consumer 0x16b333000 popped: 0<br>Consumer 0x16b333000 popped: 20<br>Consumer 0x16b3bf000 popped: 10<br>Consumer 0x16b44b000 popped: 1<br>Consumer 0x16b333000 popped: 11<br>Consumer 0x16b3bf000 popped: 21<br>Consumer 0x16b44b000 popped: 12<br>Consumer 0x16b333000 popped: 2<br>Consumer 0x16b3bf000 popped: 22<br>Consumer 0x16b44b000 popped: 13<br>Consumer 0x16b333000 popped: 3<br>Consumer 0x16b3bf000 popped: 23<br>Consumer 0x16b44b000 popped: 14<br>Consumer 0x16b3bf000 popped: 4<br>Consumer 0x16b44b000 popped: 24<br></code></pre></td></tr></table></figure>
+<p>这样，就实现了一个线程安全的队列。</p>
+]]></content>
+      <categories>
+        <category>C++</category>
+      </categories>
+      <tags>
+        <tag>c++</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>C++并发：等待条件成立</title>
     <url>/2024/05/15/C++%E5%B9%B6%E5%8F%91%EF%BC%9A%E7%AD%89%E5%BE%85%E6%9D%A1%E4%BB%B6%E6%88%90%E7%AB%8B/</url>
     <content><![CDATA[<span id="more"></span>
@@ -2291,33 +2318,6 @@
 
 <p>在这个模式中，即使发生了伪唤醒，谓词函数将检查条件是否真正满足，如果不满足，线程将会再次进入等待状态。</p>
 <p><strong>故此，若判定函数有副作用，则不建议选取它来查验条件。</strong> 倘若真的要这么做，就有可能多次产生副作用，所以必须准备好应对方法。譬如，每次被调用时，判定函数就顺带提高所属线程的优先级，该提升动作即产生的副作用。结果，多次伪唤醒可“意外地”令线程优先级变得非常高。</p>
-]]></content>
-      <categories>
-        <category>C++</category>
-      </categories>
-      <tags>
-        <tag>c++</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>C++并发：构建线程安全的队列</title>
-    <url>/2024/05/15/C++%E5%B9%B6%E5%8F%91%EF%BC%9A%E6%9E%84%E5%BB%BA%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E7%9A%84%E9%98%9F%E5%88%97/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h2><p>线程安全队列的完整的类定义，其中采用了条件变量：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;condition_variable&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;memory&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;mutex&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;queue&gt;</span></span><br><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> T&gt; <span class="hljs-keyword">class</span> <span class="hljs-title class_">threadsafe_queue</span> &#123;<br>  <span class="hljs-keyword">private</span>:<br>    <span class="hljs-keyword">mutable</span> std::mutex mut;<br>    std::queue&lt;T&gt; data_queue;<br>    std::condition_variable data_cond;<br><br>  <span class="hljs-keyword">public</span>:<br>    <span class="hljs-built_in">threadsafe_queue</span>() &#123;&#125;<br>    <span class="hljs-built_in">threadsafe_queue</span>(threadsafe_queue <span class="hljs-type">const</span> &amp;other) &#123;<br>        <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">lk</span><span class="hljs-params">(other.mut)</span></span>;<br>        data_queue = other.data_queue;<br>    &#125;<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">push</span><span class="hljs-params">(T new_value)</span> </span>&#123;<br>        <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">lk</span><span class="hljs-params">(mut)</span></span>;<br>        data_queue.<span class="hljs-built_in">push</span>(new_value);<br>        data_cond.<span class="hljs-built_in">notify_one</span>();<br>    &#125;<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">wait_and_pop</span><span class="hljs-params">(T &amp;value)</span> </span>&#123;<br>        <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lk</span><span class="hljs-params">(mut)</span></span>;<br>        data_cond.<span class="hljs-built_in">wait</span>(lk, [<span class="hljs-keyword">this</span>] &#123; <span class="hljs-keyword">return</span> !data_queue.<span class="hljs-built_in">empty</span>(); &#125;);<br>        value = data_queue.<span class="hljs-built_in">front</span>();<br>        data_queue.<span class="hljs-built_in">pop</span>();<br>    &#125;<br>    <span class="hljs-function">std::shared_ptr&lt;T&gt; <span class="hljs-title">wait_and_pop</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lk</span><span class="hljs-params">(mut)</span></span>;<br>        data_cond.<span class="hljs-built_in">wait</span>(lk, [<span class="hljs-keyword">this</span>] &#123; <span class="hljs-keyword">return</span> !data_queue.<span class="hljs-built_in">empty</span>(); &#125;);<br>        <span class="hljs-function">std::shared_ptr&lt;T&gt; <span class="hljs-title">res</span><span class="hljs-params">(std::make_shared&lt;T&gt;(data_queue.front()))</span></span>;<br>        data_queue.<span class="hljs-built_in">pop</span>();<br>        <span class="hljs-keyword">return</span> res;<br>    &#125;<br>    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">try_pop</span><span class="hljs-params">(T &amp;value)</span> </span>&#123;<br>        <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">lk</span><span class="hljs-params">(mut)</span></span>;<br>        <span class="hljs-keyword">if</span> (data_queue.<span class="hljs-built_in">empty</span>())<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>        value = data_queue.<span class="hljs-built_in">front</span>();<br>        data_queue.<span class="hljs-built_in">pop</span>();<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>    &#125;<br>    <span class="hljs-function">std::shared_ptr&lt;T&gt; <span class="hljs-title">try_pop</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">lk</span><span class="hljs-params">(mut)</span></span>;<br>        <span class="hljs-keyword">if</span> (data_queue.<span class="hljs-built_in">empty</span>())<br>            <span class="hljs-keyword">return</span> std::<span class="hljs-built_in">shared_ptr</span>&lt;T&gt;();<br>        <span class="hljs-function">std::shared_ptr&lt;T&gt; <span class="hljs-title">res</span><span class="hljs-params">(std::make_shared&lt;T&gt;(data_queue.front()))</span></span>;<br>        data_queue.<span class="hljs-built_in">pop</span>();<br>        <span class="hljs-keyword">return</span> res;<br>    &#125;<br>    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">empty</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123;<br>        <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">lk</span><span class="hljs-params">(mut)</span></span>;<br>        <span class="hljs-keyword">return</span> data_queue.<span class="hljs-built_in">empty</span>();<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
-<p>这个队列的设计允许多个生产者和消费者线程安全地向队列中添加或移除元素，而无需担心数据竞争或其他并发错误。通过 <code>std::condition_variable</code> 的使用，消费者线程可以有效地等待直到队列中有数据可用，从而优化资源使用和线程调。</p>
-<p>在多线程环境中，使用 <code>mutable</code> 关键字修饰 <code>std::mutex</code> 类型的成员变量是一种常见的做法，特别是在类设计中涉及到需要保护类成员不被多个线程同时修改的情况下。下面我们详细解释一下 <code>mutable</code> 的使用背景、意义以及为什么在 <code>threadsafe_queue</code> 类中应用它。</p>
-<h3 id="mutable的作用"><a href="#mutable的作用" class="headerlink" title="mutable的作用"></a>mutable的作用</h3><p><code>mutable</code> 修饰符用于C++中，表示即使在一个 <code>const</code> 成员函数中，该成员变量仍可被修改。<code>const</code> 成员函数承诺不修改对象的任何数据成员（不包括由 <code>mutable</code> 修饰的成员）。这个特性在处理需要修改类成员但又不改变对象状态的设计模式（如缓存、锁等）时非常有用。</p>
-<h3 id="应用于-threadsafe-queue"><a href="#应用于-threadsafe-queue" class="headerlink" title="应用于 threadsafe_queue"></a>应用于 threadsafe_queue</h3><p>在 <code>threadsafe_queue</code> 类中，成员函数 <code>empty</code> 被声明为 <code>const</code>，意味着这个函数不应修改对象的任何数据成员。然而，这个函数内部需要使用 <code>mutex</code> 来保证线程安全性，即使它只是检查队列是否为空。由于 <code>mutex</code> 通常会在锁定和解锁时修改其内部状态，所以正常情况下你不能在 <code>const</code> 函数中进行这些操作。</p>
-<p>为了解决这一问题，<code>mutex</code> 成员变量被声明为 <code>mutable</code>。这允许即使在 <code>const</code> 成员函数中，我们也可以锁定和解锁互斥量，而不违反函数的 <code>const</code> 性质。这样做确保了即使在多线程环境中，<code>empty</code> 函数执行时，队列的状态检查是线程安全的。</p>
-<h3 id="在构造函数中的应用"><a href="#在构造函数中的应用" class="headerlink" title="在构造函数中的应用"></a>在构造函数中的应用</h3><p>在 <code>threadsafe_queue</code> 的拷贝构造函数中，尽管传入的 <code>other</code> 对象是一个 <code>const</code> 引用，我们仍然需要从这个 <code>const</code> 对象中复制数据。拷贝构造函数需要访问 <code>other</code> 对象的 <code>data_queue</code>，而为了线程安全，必须先锁定 <code>other</code> 的互斥量。由于 <code>mut</code> 是 <code>mutable</code> 的，即使在 <code>const</code> 上下文中，也能执行锁定操作。</p>
-<h3 id="运行结果"><a href="#运行结果" class="headerlink" title="运行结果"></a>运行结果</h3><p>写一个多线程的测试程序：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">producer</span><span class="hljs-params">(threadsafe_queue&lt;<span class="hljs-type">int</span>&gt; &amp;queue, <span class="hljs-type">int</span> start_value)</span> </span>&#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">5</span>; ++i) &#123;<br>        queue.<span class="hljs-built_in">push</span>(start_value + i);<br>        std::this_thread::<span class="hljs-built_in">sleep_for</span>(<br>            std::chrono::<span class="hljs-built_in">milliseconds</span>(<span class="hljs-number">100</span>)); <span class="hljs-comment">// 模拟耗时操作</span><br>    &#125;<br>&#125;<br><br>std::mutex print_mutex; <span class="hljs-comment">// 保证打印有序，方便观察</span><br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">consumer</span><span class="hljs-params">(threadsafe_queue&lt;<span class="hljs-type">int</span>&gt; &amp;queue)</span> </span>&#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">5</span>; ++i) &#123;<br>        <span class="hljs-type">int</span> value;<br>        queue.<span class="hljs-built_in">wait_and_pop</span>(value);<br><br>        <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">lock</span><span class="hljs-params">(print_mutex)</span></span>;<br>        std::cout &lt;&lt; <span class="hljs-string">&quot;Consumer &quot;</span> &lt;&lt; std::this_thread::<span class="hljs-built_in">get_id</span>()<br>                  &lt;&lt; <span class="hljs-string">&quot; popped: &quot;</span> &lt;&lt; value &lt;&lt; std::endl;<br>    &#125;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    threadsafe_queue&lt;<span class="hljs-type">int</span>&gt; queue;<br><br>    std::thread producers[<span class="hljs-number">3</span>];<br>    std::thread consumers[<span class="hljs-number">3</span>];<br><br>    <span class="hljs-comment">// 启动生产者线程</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">3</span>; ++i) &#123;<br>        producers[i] = std::<span class="hljs-built_in">thread</span>(producer, std::<span class="hljs-built_in">ref</span>(queue),<br>                                   i * <span class="hljs-number">10</span>); <span class="hljs-comment">// 每个生产者推送不同范围的数字</span><br>    &#125;<br><br>    <span class="hljs-comment">// 启动消费者线程</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">3</span>; ++i) &#123;<br>        consumers[i] = std::<span class="hljs-built_in">thread</span>(consumer, std::<span class="hljs-built_in">ref</span>(queue));<br>    &#125;<br><br>    <span class="hljs-comment">// 等待所有生产者线程完成</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">3</span>; ++i) &#123;<br>        producers[i].<span class="hljs-built_in">join</span>();<br>    &#125;<br><br>    <span class="hljs-comment">// 等待所有消费者线程完成</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">3</span>; ++i) &#123;<br>        consumers[i].<span class="hljs-built_in">join</span>();<br>    &#125;<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>运行结果：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">./main <br>Consumer 0x16b333000 popped: 0<br>Consumer 0x16b333000 popped: 20<br>Consumer 0x16b3bf000 popped: 10<br>Consumer 0x16b44b000 popped: 1<br>Consumer 0x16b333000 popped: 11<br>Consumer 0x16b3bf000 popped: 21<br>Consumer 0x16b44b000 popped: 12<br>Consumer 0x16b333000 popped: 2<br>Consumer 0x16b3bf000 popped: 22<br>Consumer 0x16b44b000 popped: 13<br>Consumer 0x16b333000 popped: 3<br>Consumer 0x16b3bf000 popped: 23<br>Consumer 0x16b44b000 popped: 14<br>Consumer 0x16b3bf000 popped: 4<br>Consumer 0x16b44b000 popped: 24<br></code></pre></td></tr></table></figure>
-<p>这样，就实现了一个线程安全的队列。</p>
 ]]></content>
       <categories>
         <category>C++</category>
@@ -7350,40 +7350,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Redis （一）消息订阅和发送测试</title>
-    <url>/2023/07/31/Redis%20%EF%BC%88%E4%B8%80%EF%BC%89%E6%B6%88%E6%81%AF%E8%AE%A2%E9%98%85%E5%92%8C%E5%8F%91%E9%80%81%E6%B5%8B%E8%AF%95/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="〇、redis-配置"><a href="#〇、redis-配置" class="headerlink" title="〇、redis 配置"></a>〇、redis 配置</h2><h3 id="1、概况"><a href="#1、概况" class="headerlink" title="1、概况"></a>1、概况</h3><p>本文基于 Ubuntu20.04 云服务器配置Redis，且在本地进行 Redis 测试。</p>
-<h3 id="2、目录概况"><a href="#2、目录概况" class="headerlink" title="2、目录概况"></a>2、目录概况</h3><p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/b00269f787ab457b87dbff470e451601_1720253746882.png?token=ANB4BCNQZTBEHAWGDAD4JN3GRD6W6" alt="在这里插入图片描述"></p>
-<h2 id="一、配置文件"><a href="#一、配置文件" class="headerlink" title="一、配置文件"></a>一、配置文件</h2><p>位于 <code>/config/app.yml</code> 中，目的用于 Redis 初始化：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">redis:<br>  addr: <span class="hljs-string">&quot;39.104.**.28:6379&quot;</span><br>  password: <span class="hljs-string">&quot;password&quot;</span><br>  DB: 0<br>  poolSize: 30<br>  minIdleConn: 30<br></code></pre></td></tr></table></figure>
-<h2 id="二、main-文件"><a href="#二、main-文件" class="headerlink" title="二、main 文件"></a>二、main 文件</h2><figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><br><span class="hljs-keyword">import</span> (<br>	<span class="hljs-string">&quot;ChatTest/router&quot;</span><br>	<span class="hljs-string">&quot;ChatTest/utils&quot;</span><br>	<span class="hljs-string">&quot;github.com/gin-gonic/gin&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>	utils.InitConfig()<br>	utils.InitRedis()<br>	r := gin.Default()<br>	r = router.Router()<br>	r.Run(<span class="hljs-string">&quot;:8000&quot;</span>)<br>&#125;<br><br></code></pre></td></tr></table></figure>
-<h2 id="二、初始化文件"><a href="#二、初始化文件" class="headerlink" title="二、初始化文件"></a>二、初始化文件</h2><p>位于 <code>/utils/system_init.go</code> 文件中，目的用于初始化相关：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">package utils<br><br>import (<br>	<span class="hljs-string">&quot;fmt&quot;</span><br>	<span class="hljs-string">&quot;github.com/go-redis/redis/v8&quot;</span><br>	<span class="hljs-string">&quot;github.com/spf13/viper&quot;</span><br>)<br><br>var (<br>	Red *redis.Client<br>)<br><br>// 初始化初始化文件<br><br>func <span class="hljs-function"><span class="hljs-title">InitConfig</span></span>() &#123;<br>	viper.SetConfigName(<span class="hljs-string">&quot;app&quot;</span>)<br>	viper.AddConfigPath(<span class="hljs-string">&quot;/Users/luliang/GoLand/ChatTest/config&quot;</span>) //带绝对路径<br>	err := viper.ReadInConfig()<br>	<span class="hljs-keyword">if</span> err != nil &#123;<br>		fmt.Println(err)<br>	&#125;<br>&#125;<br><br>// 初始化 Redis<br><br>func <span class="hljs-function"><span class="hljs-title">InitRedis</span></span>() &#123;<br>	Red = redis.NewClient(&amp;redis.Options&#123;<br>		Addr:         viper.GetString(<span class="hljs-string">&quot;redis.addr&quot;</span>),<br>		Password:     viper.GetString(<span class="hljs-string">&quot;redis.password&quot;</span>),<br>		DB:           viper.GetInt(<span class="hljs-string">&quot;redis.DB&quot;</span>),<br>		PoolSize:     viper.GetInt(<span class="hljs-string">&quot;redis.minIdleConn&quot;</span>),<br>		MinIdleConns: viper.GetInt(<span class="hljs-string">&quot;redis.minIdleConn&quot;</span>),<br>	&#125;)<br>	fmt.Println(<span class="hljs-string">&quot;config Redis:&quot;</span>, viper.Get(<span class="hljs-string">&quot;redis&quot;</span>))<br>&#125;<br><br></code></pre></td></tr></table></figure>
-<h2 id="三、路由文件"><a href="#三、路由文件" class="headerlink" title="三、路由文件"></a>三、路由文件</h2><p>路由文件位于 <code>/router/app.go</code> 中，目的是建立路由：</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> router<br><br><span class="hljs-keyword">import</span> (<br>	<span class="hljs-string">&quot;ChatTest/service&quot;</span><br>	<span class="hljs-string">&quot;github.com/gin-gonic/gin&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">Router</span><span class="hljs-params">()</span></span> *gin.Engine &#123;<br>	r := gin.Default()<br>	r.GET(<span class="hljs-string">&quot;/send&quot;</span>, service.SendMsg)<br>	r.GET(<span class="hljs-string">&quot;/recv&quot;</span>, service.RecvMsg)<br>	<span class="hljs-keyword">return</span> r<br>&#125;<br></code></pre></td></tr></table></figure>
-<h2 id="四、实现服务"><a href="#四、实现服务" class="headerlink" title="四、实现服务"></a>四、实现服务</h2><p>位于<code>/service/message.go</code>中，是 HandlerFunc，且实现服务:</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> service<br><br><span class="hljs-keyword">import</span> (<br>	<span class="hljs-string">&quot;ChatTest/utils&quot;</span><br>	<span class="hljs-string">&quot;context&quot;</span><br>	<span class="hljs-string">&quot;github.com/gin-gonic/gin&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">SendMsg</span><span class="hljs-params">(c *gin.Context)</span></span> &#123;<br>	cmd := utils.Red.Publish(context.Background(), <span class="hljs-string">&quot;myRedis&quot;</span>, <span class="hljs-string">&quot;Hello, MyRedis0001!&quot;</span>)<br>	<span class="hljs-keyword">if</span> cmd != <span class="hljs-literal">nil</span> &#123;<br>		c.JSON(<span class="hljs-number">200</span>, gin.H&#123;<br>			<span class="hljs-string">&quot;code&quot;</span>:    <span class="hljs-number">0</span>,<br>			<span class="hljs-string">&quot;message&quot;</span>: <span class="hljs-string">&quot;发送成功!&quot;</span>,<br>		&#125;)<br>		<span class="hljs-keyword">return</span><br>	&#125;<br>	c.JSON(<span class="hljs-number">200</span>, gin.H&#123;<br>		<span class="hljs-string">&quot;code&quot;</span>:    <span class="hljs-number">-1</span>,<br>		<span class="hljs-string">&quot;message&quot;</span>: <span class="hljs-string">&quot;发送失败!&quot;</span>,<br>	&#125;)<br><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">RecvMsg</span><span class="hljs-params">(c *gin.Context)</span></span> &#123;<br>	pubSub := utils.Red.Subscribe(context.Background(), <span class="hljs-string">&quot;myRedis&quot;</span>)<br>	<span class="hljs-keyword">defer</span> pubSub.Close()<br><br>	ch := pubSub.Channel()<br><br>	<span class="hljs-keyword">for</span> msg := <span class="hljs-keyword">range</span> ch &#123;<br>		c.JSON(<span class="hljs-number">200</span>, gin.H&#123;<br>			<span class="hljs-string">&quot;code&quot;</span>:    <span class="hljs-number">0</span>,<br>			<span class="hljs-string">&quot;message&quot;</span>: msg.Payload,<br>		&#125;)<br>		<span class="hljs-comment">// 根据业务逻辑决定是否终止循环并返回响应</span><br>		<span class="hljs-keyword">return</span><br>	&#125;<br><br>	<span class="hljs-comment">// 如果没有接收到消息，可以根据需要返回响应</span><br>	c.JSON(<span class="hljs-number">200</span>, gin.H&#123;<br>		<span class="hljs-string">&quot;code&quot;</span>:    <span class="hljs-number">-1</span>,<br>		<span class="hljs-string">&quot;message&quot;</span>: <span class="hljs-string">&quot;接受失败!&quot;</span>,<br>	&#125;)<br>&#125;<br><br></code></pre></td></tr></table></figure>
-
-<h2 id="五、运行流程"><a href="#五、运行流程" class="headerlink" title="五、运行流程"></a>五、运行流程</h2><p>这里面的核心就是Redis 的连接，以及在 Redis 中发布消息和订阅消息了。</p>
-<h3 id="1、消息的发布"><a href="#1、消息的发布" class="headerlink" title="1、消息的发布"></a>1、消息的发布</h3><figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go">cmd := utils.Red.Publish(context.Background(), <span class="hljs-string">&quot;myRedis&quot;</span>, <span class="hljs-string">&quot;Hello, MyRedis0001!&quot;</span>)<br></code></pre></td></tr></table></figure>
-<p>调用Publish() 函数发布一条消息，这个 Publish() 是 go-redis中封装好的方法。</p>
-<h3 id="2、消息的订阅"><a href="#2、消息的订阅" class="headerlink" title="2、消息的订阅"></a>2、消息的订阅</h3><figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go">pubSub := utils.Red.Subscribe(context.Background(), <span class="hljs-string">&quot;myRedis&quot;</span>)<br></code></pre></td></tr></table></figure>
-
-<p>可以看到，go-redis 中使用消息的订阅和发布功能，可以使得消息发送和接受的过程异常简单！</p>
-<p><em>全文完，感谢阅读！</em></p>
-]]></content>
-      <categories>
-        <category>Golang Web</category>
-      </categories>
-      <tags>
-        <tag>redis</tag>
-        <tag>bootstrap</tag>
-        <tag>数据库</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>PA1 感悟与过程</title>
     <url>/2024/08/05/PA1%E6%89%80%E6%9C%89%E6%84%9F%E6%82%9F%E4%B8%8E%E8%BF%87%E7%A8%8B/</url>
     <content><![CDATA[<span id="more"></span>
@@ -7529,6 +7495,55 @@
         <tag>ysyx</tag>
         <tag>PA1</tag>
         <tag>sbd</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>PA2总结</title>
+    <url>/2024/09/17/PA2%E6%80%BB%E7%BB%93/</url>
+    <content><![CDATA[<span id="more"></span>
+
+]]></content>
+      <categories>
+        <category>ysyx</category>
+        <category>PA2</category>
+      </categories>
+      <tags>
+        <tag>PA2</tag>
+        <tag>ysyx</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Redis （一）消息订阅和发送测试</title>
+    <url>/2023/07/31/Redis%20%EF%BC%88%E4%B8%80%EF%BC%89%E6%B6%88%E6%81%AF%E8%AE%A2%E9%98%85%E5%92%8C%E5%8F%91%E9%80%81%E6%B5%8B%E8%AF%95/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="〇、redis-配置"><a href="#〇、redis-配置" class="headerlink" title="〇、redis 配置"></a>〇、redis 配置</h2><h3 id="1、概况"><a href="#1、概况" class="headerlink" title="1、概况"></a>1、概况</h3><p>本文基于 Ubuntu20.04 云服务器配置Redis，且在本地进行 Redis 测试。</p>
+<h3 id="2、目录概况"><a href="#2、目录概况" class="headerlink" title="2、目录概况"></a>2、目录概况</h3><p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/b00269f787ab457b87dbff470e451601_1720253746882.png?token=ANB4BCNQZTBEHAWGDAD4JN3GRD6W6" alt="在这里插入图片描述"></p>
+<h2 id="一、配置文件"><a href="#一、配置文件" class="headerlink" title="一、配置文件"></a>一、配置文件</h2><p>位于 <code>/config/app.yml</code> 中，目的用于 Redis 初始化：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">redis:<br>  addr: <span class="hljs-string">&quot;39.104.**.28:6379&quot;</span><br>  password: <span class="hljs-string">&quot;password&quot;</span><br>  DB: 0<br>  poolSize: 30<br>  minIdleConn: 30<br></code></pre></td></tr></table></figure>
+<h2 id="二、main-文件"><a href="#二、main-文件" class="headerlink" title="二、main 文件"></a>二、main 文件</h2><figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><br><span class="hljs-keyword">import</span> (<br>	<span class="hljs-string">&quot;ChatTest/router&quot;</span><br>	<span class="hljs-string">&quot;ChatTest/utils&quot;</span><br>	<span class="hljs-string">&quot;github.com/gin-gonic/gin&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>	utils.InitConfig()<br>	utils.InitRedis()<br>	r := gin.Default()<br>	r = router.Router()<br>	r.Run(<span class="hljs-string">&quot;:8000&quot;</span>)<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<h2 id="二、初始化文件"><a href="#二、初始化文件" class="headerlink" title="二、初始化文件"></a>二、初始化文件</h2><p>位于 <code>/utils/system_init.go</code> 文件中，目的用于初始化相关：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">package utils<br><br>import (<br>	<span class="hljs-string">&quot;fmt&quot;</span><br>	<span class="hljs-string">&quot;github.com/go-redis/redis/v8&quot;</span><br>	<span class="hljs-string">&quot;github.com/spf13/viper&quot;</span><br>)<br><br>var (<br>	Red *redis.Client<br>)<br><br>// 初始化初始化文件<br><br>func <span class="hljs-function"><span class="hljs-title">InitConfig</span></span>() &#123;<br>	viper.SetConfigName(<span class="hljs-string">&quot;app&quot;</span>)<br>	viper.AddConfigPath(<span class="hljs-string">&quot;/Users/luliang/GoLand/ChatTest/config&quot;</span>) //带绝对路径<br>	err := viper.ReadInConfig()<br>	<span class="hljs-keyword">if</span> err != nil &#123;<br>		fmt.Println(err)<br>	&#125;<br>&#125;<br><br>// 初始化 Redis<br><br>func <span class="hljs-function"><span class="hljs-title">InitRedis</span></span>() &#123;<br>	Red = redis.NewClient(&amp;redis.Options&#123;<br>		Addr:         viper.GetString(<span class="hljs-string">&quot;redis.addr&quot;</span>),<br>		Password:     viper.GetString(<span class="hljs-string">&quot;redis.password&quot;</span>),<br>		DB:           viper.GetInt(<span class="hljs-string">&quot;redis.DB&quot;</span>),<br>		PoolSize:     viper.GetInt(<span class="hljs-string">&quot;redis.minIdleConn&quot;</span>),<br>		MinIdleConns: viper.GetInt(<span class="hljs-string">&quot;redis.minIdleConn&quot;</span>),<br>	&#125;)<br>	fmt.Println(<span class="hljs-string">&quot;config Redis:&quot;</span>, viper.Get(<span class="hljs-string">&quot;redis&quot;</span>))<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<h2 id="三、路由文件"><a href="#三、路由文件" class="headerlink" title="三、路由文件"></a>三、路由文件</h2><p>路由文件位于 <code>/router/app.go</code> 中，目的是建立路由：</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> router<br><br><span class="hljs-keyword">import</span> (<br>	<span class="hljs-string">&quot;ChatTest/service&quot;</span><br>	<span class="hljs-string">&quot;github.com/gin-gonic/gin&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">Router</span><span class="hljs-params">()</span></span> *gin.Engine &#123;<br>	r := gin.Default()<br>	r.GET(<span class="hljs-string">&quot;/send&quot;</span>, service.SendMsg)<br>	r.GET(<span class="hljs-string">&quot;/recv&quot;</span>, service.RecvMsg)<br>	<span class="hljs-keyword">return</span> r<br>&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="四、实现服务"><a href="#四、实现服务" class="headerlink" title="四、实现服务"></a>四、实现服务</h2><p>位于<code>/service/message.go</code>中，是 HandlerFunc，且实现服务:</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> service<br><br><span class="hljs-keyword">import</span> (<br>	<span class="hljs-string">&quot;ChatTest/utils&quot;</span><br>	<span class="hljs-string">&quot;context&quot;</span><br>	<span class="hljs-string">&quot;github.com/gin-gonic/gin&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">SendMsg</span><span class="hljs-params">(c *gin.Context)</span></span> &#123;<br>	cmd := utils.Red.Publish(context.Background(), <span class="hljs-string">&quot;myRedis&quot;</span>, <span class="hljs-string">&quot;Hello, MyRedis0001!&quot;</span>)<br>	<span class="hljs-keyword">if</span> cmd != <span class="hljs-literal">nil</span> &#123;<br>		c.JSON(<span class="hljs-number">200</span>, gin.H&#123;<br>			<span class="hljs-string">&quot;code&quot;</span>:    <span class="hljs-number">0</span>,<br>			<span class="hljs-string">&quot;message&quot;</span>: <span class="hljs-string">&quot;发送成功!&quot;</span>,<br>		&#125;)<br>		<span class="hljs-keyword">return</span><br>	&#125;<br>	c.JSON(<span class="hljs-number">200</span>, gin.H&#123;<br>		<span class="hljs-string">&quot;code&quot;</span>:    <span class="hljs-number">-1</span>,<br>		<span class="hljs-string">&quot;message&quot;</span>: <span class="hljs-string">&quot;发送失败!&quot;</span>,<br>	&#125;)<br><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">RecvMsg</span><span class="hljs-params">(c *gin.Context)</span></span> &#123;<br>	pubSub := utils.Red.Subscribe(context.Background(), <span class="hljs-string">&quot;myRedis&quot;</span>)<br>	<span class="hljs-keyword">defer</span> pubSub.Close()<br><br>	ch := pubSub.Channel()<br><br>	<span class="hljs-keyword">for</span> msg := <span class="hljs-keyword">range</span> ch &#123;<br>		c.JSON(<span class="hljs-number">200</span>, gin.H&#123;<br>			<span class="hljs-string">&quot;code&quot;</span>:    <span class="hljs-number">0</span>,<br>			<span class="hljs-string">&quot;message&quot;</span>: msg.Payload,<br>		&#125;)<br>		<span class="hljs-comment">// 根据业务逻辑决定是否终止循环并返回响应</span><br>		<span class="hljs-keyword">return</span><br>	&#125;<br><br>	<span class="hljs-comment">// 如果没有接收到消息，可以根据需要返回响应</span><br>	c.JSON(<span class="hljs-number">200</span>, gin.H&#123;<br>		<span class="hljs-string">&quot;code&quot;</span>:    <span class="hljs-number">-1</span>,<br>		<span class="hljs-string">&quot;message&quot;</span>: <span class="hljs-string">&quot;接受失败!&quot;</span>,<br>	&#125;)<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<h2 id="五、运行流程"><a href="#五、运行流程" class="headerlink" title="五、运行流程"></a>五、运行流程</h2><p>这里面的核心就是Redis 的连接，以及在 Redis 中发布消息和订阅消息了。</p>
+<h3 id="1、消息的发布"><a href="#1、消息的发布" class="headerlink" title="1、消息的发布"></a>1、消息的发布</h3><figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go">cmd := utils.Red.Publish(context.Background(), <span class="hljs-string">&quot;myRedis&quot;</span>, <span class="hljs-string">&quot;Hello, MyRedis0001!&quot;</span>)<br></code></pre></td></tr></table></figure>
+<p>调用Publish() 函数发布一条消息，这个 Publish() 是 go-redis中封装好的方法。</p>
+<h3 id="2、消息的订阅"><a href="#2、消息的订阅" class="headerlink" title="2、消息的订阅"></a>2、消息的订阅</h3><figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go">pubSub := utils.Red.Subscribe(context.Background(), <span class="hljs-string">&quot;myRedis&quot;</span>)<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，go-redis 中使用消息的订阅和发布功能，可以使得消息发送和接受的过程异常简单！</p>
+<p><em>全文完，感谢阅读！</em></p>
+]]></content>
+      <categories>
+        <category>Golang Web</category>
+      </categories>
+      <tags>
+        <tag>redis</tag>
+        <tag>bootstrap</tag>
+        <tag>数据库</tag>
       </tags>
   </entry>
   <entry>
@@ -10078,6 +10093,111 @@
       </tags>
   </entry>
   <entry>
+    <title>nemu框架细节研究（二）</title>
+    <url>/2024/09/12/nemu%E6%A1%86%E6%9E%B6%E7%BB%86%E8%8A%82%E7%A0%94%E7%A9%B6(%E4%BA%8C)/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h2><p>前文细致地研究了命令 <code>make ARCH=native ALL=add run</code> 的运行过程，对于Makefile中的行为有了很准确地把握（几乎没有疑点，可以随意修改 Makefile 且保证不会出错）。这篇文章继续研究命令<code>make ARCH=riscv32-nemu ALL=add run</code>的行为。</p>
+<h2 id="二、riscv32-nemu-开始的地方"><a href="#二、riscv32-nemu-开始的地方" class="headerlink" title="二、riscv32-nemu 开始的地方"></a>二、riscv32-nemu 开始的地方</h2><p>由于 <code>ARCH=riscv32-nemu</code>，因此 <code>ISA=riscv32</code>，<code>PLATFORM=nemu</code>。我们来看看它新包含了哪些 可以包含到Makefile中的文件:</p>
+<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-keyword">-include</span> <span class="hljs-variable">$(AM_HOME)</span>/scripts/<span class="hljs-variable">$(ARCH)</span>.mk<br></code></pre></td></tr></table></figure>
+
+<p>这里的 <code>ARCH=riscv32-nemu</code>，因此它会包含<code>$(AM_HOME)/scripts/riscv32-nemu.mk</code>:</p>
+<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-keyword">include</span> <span class="hljs-variable">$(AM_HOME)</span>/scripts/isa/riscv.mk<br><span class="hljs-keyword">include</span> <span class="hljs-variable">$(AM_HOME)</span>/scripts/platform/nemu.mk<br>CFLAGS  += -DISA_H=\<span class="hljs-string">&quot;riscv/riscv.h\&quot;</span><br><span class="hljs-string">COMMON_CFLAGS += -march=rv32im_zicsr -mabi=ilp32   # overwrite</span><br><span class="hljs-string">LDFLAGS       += -melf32lriscv                     # overwrite</span><br><span class="hljs-string"></span><br><span class="hljs-string">AM_SRCS += riscv/nemu/start.S \</span><br><span class="hljs-string">           riscv/nemu/cte.c \</span><br><span class="hljs-string">           riscv/nemu/trap.S \</span><br><span class="hljs-string">           riscv/nemu/vme.c</span><br><span class="hljs-string"></span><br></code></pre></td></tr></table></figure>
+<p>这个文件就复杂多了，看起来它将 <code>isa</code> 和 <code>platform</code> 解耦了，单独包含了两个可包含文件；还定义了一个可以传递到.c 文件中的宏<code>ISA_H</code>，看来它引入了 riscv 的一些符号。</p>
+<p>后面，它更新了 <code>COMMON_CFLAGS</code>、<code>LDFLAGS</code> 等变量。</p>
+<h2 id="三、目标构建"><a href="#三、目标构建" class="headerlink" title="三、目标构建"></a>三、目标构建</h2><p>执行<code>make ARCH=riscv32-nemu ALL=add run</code>。</p>
+<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-section">run: image</span><br>	<span class="hljs-variable">$(MAKE)</span> -C <span class="hljs-variable">$(NEMU_HOME)</span> ISA=<span class="hljs-variable">$(ISA)</span> run ARGS=<span class="hljs-string">&quot;<span class="hljs-variable">$(NEMUFLAGS)</span>&quot;</span> IMG=<span class="hljs-variable">$(IMAGE)</span>.bin<br></code></pre></td></tr></table></figure>
+
+<p>依赖 <code>image</code> 的依赖：<code>$(IMAGE).elf</code>、<code>image-dep</code>，这两个依赖依次执行。</p>
+<h3 id="一、-IMAGE-elf"><a href="#一、-IMAGE-elf" class="headerlink" title="一、$(IMAGE).elf"></a>一、$(IMAGE).elf</h3><figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-variable">$(IMAGE)</span>.elf: <span class="hljs-variable">$(OBJS)</span> <span class="hljs-variable">$(LIBS)</span><br>	@echo + LD <span class="hljs-string">&quot;-&gt;&quot;</span> <span class="hljs-variable">$(IMAGE_REL)</span>.elf<br>	@<span class="hljs-variable">$(LD)</span> <span class="hljs-variable">$(LDFLAGS)</span> -o <span class="hljs-variable">$(IMAGE)</span>.elf --start-group <span class="hljs-variable">$(LINKAGE)</span> --end-group<br></code></pre></td></tr></table></figure>
+
+<p>这里将会编译 <code>add.c</code>、以及 <code>kilb.a</code>、<code>am.a</code>。</p>
+<p>之后，就会链接成<code>$(IMAGE).elf</code>。</p>
+<h3 id="二、image-dep"><a href="#二、image-dep" class="headerlink" title="二、image-dep"></a>二、image-dep</h3><figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-section">image-dep: <span class="hljs-variable">$(OBJS)</span> <span class="hljs-variable">$(LIBS)</span></span><br>	@echo \<span class="hljs-comment"># Creating image [$(ARCH)]</span><br></code></pre></td></tr></table></figure>
+
+<p>依赖在上面已经编译结束了，这里直接打印一个信息就结束了。这样 image 的依赖就解决完了。接着：</p>
+<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-section">image: <span class="hljs-variable">$(IMAGE)</span>.elf</span><br>	@<span class="hljs-variable">$(OBJDUMP)</span> -d <span class="hljs-variable">$(IMAGE)</span>.elf &gt; <span class="hljs-variable">$(IMAGE)</span>.txt<br>	@echo + OBJCOPY <span class="hljs-string">&quot;-&gt;&quot;</span> <span class="hljs-variable">$(IMAGE_REL)</span>.bin<br>	@<span class="hljs-variable">$(OBJCOPY)</span> -S --set-section-flags .bss=alloc,contents -O binary <span class="hljs-variable">$(IMAGE)</span>.elf <span class="hljs-variable">$(IMAGE)</span>.bin<br></code></pre></td></tr></table></figure>
+<p>这里是将 $(IMAGE).elf 的二进制代码抽取出来，以供在 nemu 上运行。</p>
+<h3 id="做了什么"><a href="#做了什么" class="headerlink" title="做了什么"></a>做了什么</h3><p>看看这做了什么：</p>
+<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile">CROSS_COMPILE := riscv64-linux-gnu-<br>COMMON_CFLAGS := -fno-pic -march=rv64g -mcmodel=medany -mstrict-align<br>CFLAGS        += <span class="hljs-variable">$(COMMON_CFLAGS)</span> -static<br>ASFLAGS       += <span class="hljs-variable">$(COMMON_CFLAGS)</span> -O0<br>LDFLAGS       += -melf64lriscv<br><br><span class="hljs-comment"># overwrite ARCH_H defined in $(AM_HOME)/Makefile</span><br>ARCH_H := arch/riscv.h<br>...<br>AM_SRCS := platform/nemu/trm.c \<br>           platform/nemu/ioe/ioe.c \<br>           platform/nemu/ioe/timer.c \<br>           platform/nemu/ioe/input.c \<br>           platform/nemu/ioe/gpu.c \<br>           platform/nemu/ioe/audio.c \<br>           platform/nemu/ioe/disk.c \<br>           platform/nemu/mpe.c<br><br>CFLAGS    += -fdata-sections -ffunction-sections<br>LDFLAGS   += -T <span class="hljs-variable">$(AM_HOME)</span>/scripts/linker.ld \<br>             --defsym=_pmem_start=0x80000000 --defsym=_entry_offset=0x0<br>LDFLAGS   += --gc-sections -e _start<br>NEMUFLAGS += -l <span class="hljs-variable">$(<span class="hljs-built_in">shell</span> dirname <span class="hljs-variable">$(IMAGE)</span>.elf)</span>/nemu-log.txt<br>NEMUFLAGS += -e <span class="hljs-variable">$(IMAGE)</span>.elf <span class="hljs-comment"># elf</span><br>NEMUFLAGS += -b <span class="hljs-comment"># 自动执行</span><br><br><br>CFLAGS += -DMAINARGS=\<span class="hljs-string">&quot;<span class="hljs-variable">$(mainargs)\&quot;</span></span><br><span class="hljs-string">CFLAGS += -I<span class="hljs-variable">$(AM_HOME)</span>/am/src/platform/nemu/include</span><br><span class="hljs-string">.PHONY: <span class="hljs-variable">$(AM_HOME)</span>/am/src/platform/nemu/trm.c</span><br><span class="hljs-string"></span><br><span class="hljs-string">image: <span class="hljs-variable">$(IMAGE)</span>.elf</span><br><span class="hljs-string">	@<span class="hljs-variable">$(OBJDUMP)</span> -d <span class="hljs-variable">$(IMAGE)</span>.elf &gt; <span class="hljs-variable">$(IMAGE)</span>.txt</span><br><span class="hljs-string">	@echo + OBJCOPY &quot;</span>-&gt;<span class="hljs-string">&quot; <span class="hljs-variable">$(IMAGE_REL)</span>.bin</span><br><span class="hljs-string">	@<span class="hljs-variable">$(OBJCOPY)</span> -S --set-section-flags .bss=alloc,contents -O binary <span class="hljs-variable">$(IMAGE)</span>.elf <span class="hljs-variable">$(IMAGE)</span>.bin</span><br><span class="hljs-string"></span><br><span class="hljs-string">run: image</span><br><span class="hljs-string">	<span class="hljs-variable">$(MAKE)</span> -C <span class="hljs-variable">$(NEMU_HOME)</span> ISA=<span class="hljs-variable">$(ISA)</span> run ARGS=&quot;</span><span class="hljs-variable">$(NEMUFLAGS)</span><span class="hljs-string">&quot; IMG=<span class="hljs-variable">$(IMAGE)</span>.bin</span><br><span class="hljs-string"></span><br><span class="hljs-string">gdb: image</span><br><span class="hljs-string">	<span class="hljs-variable">$(MAKE)</span> -C <span class="hljs-variable">$(NEMU_HOME)</span> ISA=<span class="hljs-variable">$(ISA)</span> gdb ARGS=&quot;</span><span class="hljs-variable">$(NEMUFLAGS)</span><span class="hljs-string">&quot; IMG=<span class="hljs-variable">$(IMAGE)</span>.bin</span><br><span class="hljs-string"></span><br><span class="hljs-string">...</span><br><span class="hljs-string"></span><br><span class="hljs-string">CFLAGS  += -DISA_H=\&quot;riscv/riscv.h\&quot;</span><br><span class="hljs-string">COMMON_CFLAGS += -march=rv32im_zicsr -mabi=ilp32   # overwrite</span><br><span class="hljs-string">LDFLAGS       += -melf32lriscv                     # overwrite</span><br><span class="hljs-string"></span><br><span class="hljs-string">AM_SRCS += riscv/nemu/start.S \</span><br><span class="hljs-string">           riscv/nemu/cte.c \</span><br><span class="hljs-string">           riscv/nemu/trap.S \</span><br><span class="hljs-string">           riscv/nemu/vme.c</span><br><span class="hljs-string"></span><br><span class="hljs-string"></span><br></code></pre></td></tr></table></figure>
+
+<p>可以看到，由于要编译出跨平台的文件，我们在编译目标的时候，要将 image 编译成能在 riscv32 的平台能跑的程序，因此它定义了 CROSS_COMPILE。</p>
+<p>另外还加了一些需要设置 riscv 的参数 ，并把它并入到了 CFLAGS、LDFLAGS。</p>
+<ul>
+<li><p>**<code>-fno-pic</code>**：<br>禁用生成位置无关代码（Position Independent Code, PIC）。PIC 通常用于动态链接库，因为它允许代码在内存中的任何位置运行。在某些情况下，如果你不需要动态链接，或者出于性能考虑，你可能会禁用它。</p>
+</li>
+<li><p>**<code>-march=rv64g</code>**：<br>设置目标架构为 RISC-V 64位，<code>G</code> 表示支持标准整数指令集（<code>I</code>）、乘法和除法指令集（<code>M</code>）、原子指令集（<code>A</code>）、单精度浮点（<code>F</code>）、双精度浮点（<code>D</code>）和压缩指令集（<code>C</code>）。这告诉编译器生成针对此架构优化的代码。</p>
+</li>
+<li><p>**<code>-mcmodel=medany</code>**：<br>这个选项定义了代码和数据的地址模型，适用于 RISC-V。<code>medany</code> 模型适合中等大小的可执行文件，允许代码和数据位于任意位置，但假设所有符号的地址相对于程序计数器（PC）的偏移适中。</p>
+</li>
+<li><p>**<code>-mstrict-align</code>**：<br>强制数据对齐，不允许编译器生成未对齐的内存访问指令。这在一些严格要求对齐的架构上可以避免性能损失或程序错误。</p>
+</li>
+<li><p>**<code>-static</code>**：<br>生成完全静态链接的可执行文件。静态链接的程序包含了所有必需的库函数的副本，不需要依赖系统中的共享库，提高了程序的移植性。</p>
+</li>
+<li><p>**<code>-O0</code>**：<br>禁用优化。这个选项告诉编译器不进行任何优化，通常用于调试，确保编译的代码直接对应源代码，便于跟踪和调试。</p>
+</li>
+<li><p>**<code>-melf64lriscv</code>**：<br>指定链接器输出格式为 RISC-V 64位 ELF 格式。ELF（可执行与链接格式）是一种广泛使用的文件格式，用于定义不同类型的文件如可执行文件、目标文件、共享库等。</p>
+</li>
+</ul>
+<p>总体来说，这些编译和链接选项针对 RISC-V 64位架构进行了特定的优化和设置，适用于生成高效且独立的程序。</p>
+<ul>
+<li><p>**<code>-fdata-sections</code>**：<br>这个选项指导编译器将不同的数据（变量）放置在不同的段（sections）中。这有助于链接器在链接时进行优化，比如删除未使用的数据段，从而减小最终可执行文件的大小。</p>
+</li>
+<li><p>**<code>-ffunction-sections</code>**：<br>与 <code>-fdata-sections</code> 类似，这个选项指导编译器将每个函数放置在独立的段中。这样做可以让链接器有机会在最终的可执行文件中移除未被引用的函数，尤其是在结合链接器的 <code>--gc-sections</code> 选项时。</p>
+</li>
+<li><p>**<code>-T $(AM_HOME)/scripts/linker.ld</code>**：<br>指定链接器脚本的位置，这里使用的是一个环境变量 <code>AM_HOME</code>。链接器脚本用于控制链接过程，定义了各种内存布局、段到地址的映射等。这是为嵌入式系统或操作系统内核等需要精确控制内存布局的场合常用的做法。</p>
+</li>
+<li><p><strong><code>--defsym=_pmem_start=0x80000000</code></strong> 和 **<code>--defsym=_entry_offset=0x0</code>**：<br>这两个选项定义了链接时的符号。<code>--defsym</code> 用于创建一个符号并为其分配一个值。在这个例子中，<code>_pmem_start</code> 被设置为 <code>0x80000000</code> 和 <code>_entry_offset</code> 被设置为 <code>0x0</code>。这些符号在链接脚本中可能会被引用，用于指定程序的某些特定内存地址或偏移。</p>
+</li>
+<li><p>**<code>--gc-sections</code>**：<br>这个链接器选项与前面的 <code>-ffunction-sections</code> 和 <code>-fdata-sections</code> 一起工作，用来在链接阶段去除未使用的函数和数据段，从而减少生成的二进制文件大小。这对于内存受限的系统特别有用。</p>
+</li>
+<li><p>**<code>-e _start</code>**：<br>设置入口点为 <code>_start</code>。这是程序开始执行的地方，<code>-e</code> 选项用于指定入口点符号名。这在很多系统软件中非常重要，特别是在操作系统或裸机程序中，需要精确控制程序的启动过程。</p>
+</li>
+</ul>
+<p>这里添加到 <code>COMMON_CFLAGS</code> 的参数用于覆盖或指定编译时的架构和二进制接口（ABI）设置：</p>
+<ul>
+<li><p>**<code>-march=rv32im_zicsr</code>**：</p>
+<ul>
+<li>**<code>-march=rv32im_zicsr</code>**：这个选项指定目标架构为 RISC-V 32位，具体到支持整数 (<code>I</code>)、乘法 (<code>M</code>) 指令和 CSR 寄存器 (<code>Zicsr</code>)。<code>Zicsr</code> 表示支持 CSR (Control and Status Register) 指令扩展，用于控制和状态寄存器的操作，这对于系统级编程特别重要。</li>
+</ul>
+</li>
+<li><p>**<code>-mabi=ilp32</code>**：</p>
+<ul>
+<li>**<code>-mabi=ilp32</code>**：设置使用的 ABI（Application Binary Interface）为 <code>ilp32</code>，这意味着整数和指针都是 32位，符合 32位系统的处理方式。这个设置确保生成的代码在32位 RISC-V 架构上能正确执行。</li>
+</ul>
+</li>
+<li><p>**<code>-melf32lriscv</code>**：</p>
+<ul>
+<li>**<code>-melf32lriscv</code>**：这个链接器选项指定生成的可执行文件格式为 32位 RISC-V ELF 格式。ELF（Executable and Linkable Format）是一种广泛使用的文件格式，用于定义可执行文件、目标代码、共享库等。这里的设置是为了确保链接器输出的是符合 32位 RISC-V 架构的 ELF 文件。</li>
+</ul>
+</li>
+</ul>
+<p>这些选项通常用于交叉编译环境，其中开发环境（如你的电脑）和目标环境（如一个嵌入式设备）的架构不同。例如，如果你正在为一个基于 RISC-V 32位架构的嵌入式系统开发软件，就需要配置这些选项以确保代码能在目标硬件上正确运行。</p>
+<p>这样配置的编译器和链接器选项允许开发者精确控制生成代码的架构特性和二进制格式，以符合特定硬件和操作系统的要求。</p>
+<p>这样设置，就生成了适合在 nemu 上运行的 bin 文件了。</p>
+<p>这时候，继续执行：</p>
+<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-section">run: image</span><br>	<span class="hljs-variable">$(MAKE)</span> -C <span class="hljs-variable">$(NEMU_HOME)</span> ISA=<span class="hljs-variable">$(ISA)</span> run ARGS=<span class="hljs-string">&quot;<span class="hljs-variable">$(NEMUFLAGS)</span>&quot;</span> IMG=<span class="hljs-variable">$(IMAGE)</span>.bin<br></code></pre></td></tr></table></figure>
+
+<p>这个命令表明，接下来将会继续编译 nemu，并且传入了一些参数。</p>
+<h2 id="四、编译-nemu"><a href="#四、编译-nemu" class="headerlink" title="四、编译 nemu"></a>四、编译 nemu</h2><figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-comment">#***************************************************************************************</span><br><span class="hljs-comment"># Copyright (c) 2014-2022 Zihao Yu, Nanjing University</span><br><span class="hljs-comment">#</span><br><span class="hljs-comment"># NEMU is licensed under Mulan PSL v2.</span><br><span class="hljs-comment"># You can use this software according to the terms and conditions of the Mulan PSL v2.</span><br><span class="hljs-comment"># You may obtain a copy of Mulan PSL v2 at:</span><br><span class="hljs-comment">#          http://license.coscl.org.cn/MulanPSL2</span><br><span class="hljs-comment">#</span><br><span class="hljs-comment"># THIS SOFTWARE IS PROVIDED ON AN &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OF ANY KIND,</span><br><span class="hljs-comment"># EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,</span><br><span class="hljs-comment"># MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.</span><br><span class="hljs-comment">#</span><br><span class="hljs-comment"># See the Mulan PSL v2 for more details.</span><br><span class="hljs-comment">#**************************************************************************************/</span><br><br><span class="hljs-comment"># Sanity check</span><br><span class="hljs-keyword">ifeq</span> (<span class="hljs-variable">$(<span class="hljs-built_in">wildcard</span> <span class="hljs-variable">$(NEMU_HOME)</span>/src/nemu-main.c)</span>,)<br>  <span class="hljs-variable">$(<span class="hljs-built_in">error</span> NEMU_HOME=<span class="hljs-variable">$(NEMU_HOME)</span> is not a NEMU repo)</span><br><span class="hljs-keyword">endif</span><br><br><span class="hljs-comment"># Include variables and rules generated by menuconfig</span><br><span class="hljs-keyword">-include</span> <span class="hljs-variable">$(NEMU_HOME)</span>/<span class="hljs-keyword">include</span>/config/auto.conf<br><span class="hljs-keyword">-include</span> <span class="hljs-variable">$(NEMU_HOME)</span>/<span class="hljs-keyword">include</span>/config/auto.conf.cmd<br><br>remove_quote = <span class="hljs-variable">$(<span class="hljs-built_in">patsubst</span> &quot;%&quot;,%,$(1)</span>)<br><br><span class="hljs-comment"># Extract variabls from menuconfig</span><br>GUEST_ISA ?= <span class="hljs-variable">$(<span class="hljs-built_in">call</span> remove_quote,<span class="hljs-variable">$(CONFIG_ISA)</span>)</span><br>ENGINE ?= <span class="hljs-variable">$(<span class="hljs-built_in">call</span> remove_quote,<span class="hljs-variable">$(CONFIG_ENGINE)</span>)</span><br>NAME    = <span class="hljs-variable">$(GUEST_ISA)</span>-nemu-<span class="hljs-variable">$(ENGINE)</span><br><br><span class="hljs-comment"># Include all filelist.mk to merge file lists</span><br>FILELIST_MK = <span class="hljs-variable">$(<span class="hljs-built_in">shell</span> find -L ./src -name &quot;filelist.mk&quot;)</span><br><span class="hljs-keyword">include</span> <span class="hljs-variable">$(FILELIST_MK)</span><br><br><span class="hljs-comment"># Filter out directories and files in blacklist to obtain the final set of source files</span><br>DIRS-BLACKLIST-y += $(DIRS-BLACKLIST)<br>SRCS-BLACKLIST-y += $(SRCS-BLACKLIST) <span class="hljs-variable">$(<span class="hljs-built_in">shell</span> find -L $(DIRS-BLACKLIST-y)</span> -name <span class="hljs-string">&quot;*.c&quot;</span>)<br>SRCS-y += <span class="hljs-variable">$(<span class="hljs-built_in">shell</span> find -L $(DIRS-y)</span> -name <span class="hljs-string">&quot;*.c&quot;</span>)<br>SRCS = <span class="hljs-variable">$(<span class="hljs-built_in">filter</span>-out $(SRCS-BLACKLIST-y)</span>,$(SRCS-y))<br><br><span class="hljs-comment"># Extract compiler and options from menuconfig</span><br>CC = <span class="hljs-variable">$(<span class="hljs-built_in">call</span> remove_quote,<span class="hljs-variable">$(CONFIG_CC)</span>)</span><br>CFLAGS_BUILD += <span class="hljs-variable">$(<span class="hljs-built_in">call</span> remove_quote,<span class="hljs-variable">$(CONFIG_CC_OPT)</span>)</span><br>CFLAGS_BUILD += <span class="hljs-variable">$(<span class="hljs-built_in">if</span> <span class="hljs-variable">$(CONFIG_CC_LTO)</span>,-flto,)</span><br>CFLAGS_BUILD += <span class="hljs-variable">$(<span class="hljs-built_in">if</span> <span class="hljs-variable">$(CONFIG_CC_DEBUG)</span>,-Og -ggdb3,)</span><br>CFLAGS_BUILD += <span class="hljs-variable">$(<span class="hljs-built_in">if</span> <span class="hljs-variable">$(CONFIG_CC_ASAN)</span>,-fsanitize=address,)</span><br>CFLAGS_TRACE += -DITRACE_COND=<span class="hljs-variable">$(<span class="hljs-built_in">if</span> <span class="hljs-variable">$(CONFIG_ITRACE_COND)</span>,$(<span class="hljs-built_in">call</span> remove_quote,<span class="hljs-variable">$(CONFIG_ITRACE_COND)</span>)</span>,true)<br>CFLAGS  += <span class="hljs-variable">$(CFLAGS_BUILD)</span> <span class="hljs-variable">$(CFLAGS_TRACE)</span> -D__GUEST_ISA__=<span class="hljs-variable">$(GUEST_ISA)</span><br>LDFLAGS += <span class="hljs-variable">$(CFLAGS_BUILD)</span><br><br><span class="hljs-comment"># Include rules for menuconfig</span><br><span class="hljs-keyword">include</span> <span class="hljs-variable">$(NEMU_HOME)</span>/scripts/config.mk<br><br><span class="hljs-keyword">ifdef</span> CONFIG_TARGET_AM<br><span class="hljs-keyword">include</span> <span class="hljs-variable">$(AM_HOME)</span>/Makefile<br>LINKAGE += <span class="hljs-variable">$(ARCHIVES)</span><br><span class="hljs-keyword">else</span><br><span class="hljs-comment"># Include rules to build NEMU</span><br><span class="hljs-keyword">include</span> <span class="hljs-variable">$(NEMU_HOME)</span>/scripts/native.mk<br><span class="hljs-keyword">endif</span><br><br></code></pre></td></tr></table></figure>
+
+<p>由于我们的 nemu 依然要在 native 上跑，因此这里依然要 native.mk 来干这事。编译好了之后，设置 IMG 为刚才编译的 bin，就好了:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ make ARCH=riscv32-nemu  ALL=add run<br><span class="hljs-comment"># Building add-run [riscv32-nemu]</span><br>+ CC tests/add.c<br><span class="hljs-comment"># Building am-archive [riscv32-nemu]</span><br>+ CC src/platform/nemu/trm.c<br>+ CC src/platform/nemu/ioe/ioe.c<br>+ CC src/platform/nemu/ioe/timer.c<br>+ CC src/platform/nemu/ioe/input.c<br>+ CC src/platform/nemu/ioe/gpu.c<br>+ CC src/platform/nemu/ioe/audio.c<br>+ CC src/platform/nemu/ioe/disk.c<br>+ CC src/platform/nemu/mpe.c<br>+ AS src/riscv/nemu/start.S<br>+ CC src/riscv/nemu/cte.c<br>+ AS src/riscv/nemu/trap.S<br>+ CC src/riscv/nemu/vme.c<br>+ AR -&gt; build/am-riscv32-nemu.a<br><span class="hljs-comment"># Building klib-archive [riscv32-nemu]</span><br>+ CC src/stdlib.c<br>+ CC src/string.c<br>+ CC src/int64.c<br>+ CC src/stdio.c<br>+ CC src/cpp.c<br>+ AR -&gt; build/klib-riscv32-nemu.a<br>+ LD -&gt; build/add-riscv32-nemu.elf<br><span class="hljs-comment"># Creating image [riscv32-nemu]</span><br>+ OBJCOPY -&gt; build/add-riscv32-nemu.bin<br>+ CC src/device/device.c<br>+ CC src/device/alarm.c<br>+ CC src/device/intr.c<br>+ CC src/device/serial.c<br>+ CC src/device/timer.c<br>+ CC src/device/keyboard.c<br>+ CC src/device/vga.c<br>+ CC src/device/audio.c<br>+ CC src/device/disk.c<br>+ CC src/nemu-main.c<br>+ CC src/engine/interpreter/init.c<br>+ CC src/engine/interpreter/hostcall.c<br>+ CC src/isa/riscv32/system/mmu.c<br>+ CC src/isa/riscv32/system/intr.c<br>+ CC src/isa/riscv32/inst.c<br>+ CC src/isa/riscv32/init.c<br>+ CC src/isa/riscv32/difftest/dut.c<br>+ CC src/isa/riscv32/logo.c<br>+ CC src/isa/riscv32/reg.c<br>+ CC src/device/io/port-io.c<br>+ CC src/device/io/mmio.c<br>+ CC src/device/io/map.c<br>+ CC src/cpu/difftest/dut.c<br>+ CC src/cpu/difftest/ref.c<br>+ CC src/cpu/cpu-exec.c<br>+ CC src/monitor/sdb/expr.c<br>+ CC src/monitor/sdb/watchpoint.c<br>+ CC src/monitor/sdb/sdb.c<br>+ CC src/monitor/monitor.c<br>+ CC src/utils/timer.c<br>+ CC src/utils/trace.c<br>+ CC src/utils/log.c<br>+ CC src/utils/state.c<br>+ CC src/memory/vaddr.c<br>+ CC src/memory/paddr.c<br>+ LD /home/luyoung/ysyx-workbench/nemu/build/riscv32-nemu-interpreter<br></code></pre></td></tr></table></figure>
+
+<p>这样的流程很符合预期。</p>
+<h2 id="五、总结"><a href="#五、总结" class="headerlink" title="五、总结"></a>五、总结</h2><p>通过分析了两种不同的目标构建方式，了解了整个项目的架构设计。</p>
+]]></content>
+      <categories>
+        <category>RISCV</category>
+        <category>PA</category>
+        <category>虚拟机</category>
+      </categories>
+      <tags>
+        <tag>NEMU</tag>
+        <tag>PA2</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>NEMU 添加指令</title>
     <url>/2024/08/14/nemu%E6%B7%BB%E5%8A%A0%E6%8C%87%E4%BB%A4/</url>
     <content><![CDATA[<span id="more"></span>
@@ -10294,111 +10414,6 @@
       </tags>
   </entry>
   <entry>
-    <title>nemu框架细节研究（二）</title>
-    <url>/2024/09/12/nemu%E6%A1%86%E6%9E%B6%E7%BB%86%E8%8A%82%E7%A0%94%E7%A9%B6(%E4%BA%8C)/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h2><p>前文细致地研究了命令 <code>make ARCH=native ALL=add run</code> 的运行过程，对于Makefile中的行为有了很准确地把握（几乎没有疑点，可以随意修改 Makefile 且保证不会出错）。这篇文章继续研究命令<code>make ARCH=riscv32-nemu ALL=add run</code>的行为。</p>
-<h2 id="二、riscv32-nemu-开始的地方"><a href="#二、riscv32-nemu-开始的地方" class="headerlink" title="二、riscv32-nemu 开始的地方"></a>二、riscv32-nemu 开始的地方</h2><p>由于 <code>ARCH=riscv32-nemu</code>，因此 <code>ISA=riscv32</code>，<code>PLATFORM=nemu</code>。我们来看看它新包含了哪些 可以包含到Makefile中的文件:</p>
-<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-keyword">-include</span> <span class="hljs-variable">$(AM_HOME)</span>/scripts/<span class="hljs-variable">$(ARCH)</span>.mk<br></code></pre></td></tr></table></figure>
-
-<p>这里的 <code>ARCH=riscv32-nemu</code>，因此它会包含<code>$(AM_HOME)/scripts/riscv32-nemu.mk</code>:</p>
-<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-keyword">include</span> <span class="hljs-variable">$(AM_HOME)</span>/scripts/isa/riscv.mk<br><span class="hljs-keyword">include</span> <span class="hljs-variable">$(AM_HOME)</span>/scripts/platform/nemu.mk<br>CFLAGS  += -DISA_H=\<span class="hljs-string">&quot;riscv/riscv.h\&quot;</span><br><span class="hljs-string">COMMON_CFLAGS += -march=rv32im_zicsr -mabi=ilp32   # overwrite</span><br><span class="hljs-string">LDFLAGS       += -melf32lriscv                     # overwrite</span><br><span class="hljs-string"></span><br><span class="hljs-string">AM_SRCS += riscv/nemu/start.S \</span><br><span class="hljs-string">           riscv/nemu/cte.c \</span><br><span class="hljs-string">           riscv/nemu/trap.S \</span><br><span class="hljs-string">           riscv/nemu/vme.c</span><br><span class="hljs-string"></span><br></code></pre></td></tr></table></figure>
-<p>这个文件就复杂多了，看起来它将 <code>isa</code> 和 <code>platform</code> 解耦了，单独包含了两个可包含文件；还定义了一个可以传递到.c 文件中的宏<code>ISA_H</code>，看来它引入了 riscv 的一些符号。</p>
-<p>后面，它更新了 <code>COMMON_CFLAGS</code>、<code>LDFLAGS</code> 等变量。</p>
-<h2 id="三、目标构建"><a href="#三、目标构建" class="headerlink" title="三、目标构建"></a>三、目标构建</h2><p>执行<code>make ARCH=riscv32-nemu ALL=add run</code>。</p>
-<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-section">run: image</span><br>	<span class="hljs-variable">$(MAKE)</span> -C <span class="hljs-variable">$(NEMU_HOME)</span> ISA=<span class="hljs-variable">$(ISA)</span> run ARGS=<span class="hljs-string">&quot;<span class="hljs-variable">$(NEMUFLAGS)</span>&quot;</span> IMG=<span class="hljs-variable">$(IMAGE)</span>.bin<br></code></pre></td></tr></table></figure>
-
-<p>依赖 <code>image</code> 的依赖：<code>$(IMAGE).elf</code>、<code>image-dep</code>，这两个依赖依次执行。</p>
-<h3 id="一、-IMAGE-elf"><a href="#一、-IMAGE-elf" class="headerlink" title="一、$(IMAGE).elf"></a>一、$(IMAGE).elf</h3><figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-variable">$(IMAGE)</span>.elf: <span class="hljs-variable">$(OBJS)</span> <span class="hljs-variable">$(LIBS)</span><br>	@echo + LD <span class="hljs-string">&quot;-&gt;&quot;</span> <span class="hljs-variable">$(IMAGE_REL)</span>.elf<br>	@<span class="hljs-variable">$(LD)</span> <span class="hljs-variable">$(LDFLAGS)</span> -o <span class="hljs-variable">$(IMAGE)</span>.elf --start-group <span class="hljs-variable">$(LINKAGE)</span> --end-group<br></code></pre></td></tr></table></figure>
-
-<p>这里将会编译 <code>add.c</code>、以及 <code>kilb.a</code>、<code>am.a</code>。</p>
-<p>之后，就会链接成<code>$(IMAGE).elf</code>。</p>
-<h3 id="二、image-dep"><a href="#二、image-dep" class="headerlink" title="二、image-dep"></a>二、image-dep</h3><figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-section">image-dep: <span class="hljs-variable">$(OBJS)</span> <span class="hljs-variable">$(LIBS)</span></span><br>	@echo \<span class="hljs-comment"># Creating image [$(ARCH)]</span><br></code></pre></td></tr></table></figure>
-
-<p>依赖在上面已经编译结束了，这里直接打印一个信息就结束了。这样 image 的依赖就解决完了。接着：</p>
-<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-section">image: <span class="hljs-variable">$(IMAGE)</span>.elf</span><br>	@<span class="hljs-variable">$(OBJDUMP)</span> -d <span class="hljs-variable">$(IMAGE)</span>.elf &gt; <span class="hljs-variable">$(IMAGE)</span>.txt<br>	@echo + OBJCOPY <span class="hljs-string">&quot;-&gt;&quot;</span> <span class="hljs-variable">$(IMAGE_REL)</span>.bin<br>	@<span class="hljs-variable">$(OBJCOPY)</span> -S --set-section-flags .bss=alloc,contents -O binary <span class="hljs-variable">$(IMAGE)</span>.elf <span class="hljs-variable">$(IMAGE)</span>.bin<br></code></pre></td></tr></table></figure>
-<p>这里是将 $(IMAGE).elf 的二进制代码抽取出来，以供在 nemu 上运行。</p>
-<h3 id="做了什么"><a href="#做了什么" class="headerlink" title="做了什么"></a>做了什么</h3><p>看看这做了什么：</p>
-<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile">CROSS_COMPILE := riscv64-linux-gnu-<br>COMMON_CFLAGS := -fno-pic -march=rv64g -mcmodel=medany -mstrict-align<br>CFLAGS        += <span class="hljs-variable">$(COMMON_CFLAGS)</span> -static<br>ASFLAGS       += <span class="hljs-variable">$(COMMON_CFLAGS)</span> -O0<br>LDFLAGS       += -melf64lriscv<br><br><span class="hljs-comment"># overwrite ARCH_H defined in $(AM_HOME)/Makefile</span><br>ARCH_H := arch/riscv.h<br>...<br>AM_SRCS := platform/nemu/trm.c \<br>           platform/nemu/ioe/ioe.c \<br>           platform/nemu/ioe/timer.c \<br>           platform/nemu/ioe/input.c \<br>           platform/nemu/ioe/gpu.c \<br>           platform/nemu/ioe/audio.c \<br>           platform/nemu/ioe/disk.c \<br>           platform/nemu/mpe.c<br><br>CFLAGS    += -fdata-sections -ffunction-sections<br>LDFLAGS   += -T <span class="hljs-variable">$(AM_HOME)</span>/scripts/linker.ld \<br>             --defsym=_pmem_start=0x80000000 --defsym=_entry_offset=0x0<br>LDFLAGS   += --gc-sections -e _start<br>NEMUFLAGS += -l <span class="hljs-variable">$(<span class="hljs-built_in">shell</span> dirname <span class="hljs-variable">$(IMAGE)</span>.elf)</span>/nemu-log.txt<br>NEMUFLAGS += -e <span class="hljs-variable">$(IMAGE)</span>.elf <span class="hljs-comment"># elf</span><br>NEMUFLAGS += -b <span class="hljs-comment"># 自动执行</span><br><br><br>CFLAGS += -DMAINARGS=\<span class="hljs-string">&quot;<span class="hljs-variable">$(mainargs)\&quot;</span></span><br><span class="hljs-string">CFLAGS += -I<span class="hljs-variable">$(AM_HOME)</span>/am/src/platform/nemu/include</span><br><span class="hljs-string">.PHONY: <span class="hljs-variable">$(AM_HOME)</span>/am/src/platform/nemu/trm.c</span><br><span class="hljs-string"></span><br><span class="hljs-string">image: <span class="hljs-variable">$(IMAGE)</span>.elf</span><br><span class="hljs-string">	@<span class="hljs-variable">$(OBJDUMP)</span> -d <span class="hljs-variable">$(IMAGE)</span>.elf &gt; <span class="hljs-variable">$(IMAGE)</span>.txt</span><br><span class="hljs-string">	@echo + OBJCOPY &quot;</span>-&gt;<span class="hljs-string">&quot; <span class="hljs-variable">$(IMAGE_REL)</span>.bin</span><br><span class="hljs-string">	@<span class="hljs-variable">$(OBJCOPY)</span> -S --set-section-flags .bss=alloc,contents -O binary <span class="hljs-variable">$(IMAGE)</span>.elf <span class="hljs-variable">$(IMAGE)</span>.bin</span><br><span class="hljs-string"></span><br><span class="hljs-string">run: image</span><br><span class="hljs-string">	<span class="hljs-variable">$(MAKE)</span> -C <span class="hljs-variable">$(NEMU_HOME)</span> ISA=<span class="hljs-variable">$(ISA)</span> run ARGS=&quot;</span><span class="hljs-variable">$(NEMUFLAGS)</span><span class="hljs-string">&quot; IMG=<span class="hljs-variable">$(IMAGE)</span>.bin</span><br><span class="hljs-string"></span><br><span class="hljs-string">gdb: image</span><br><span class="hljs-string">	<span class="hljs-variable">$(MAKE)</span> -C <span class="hljs-variable">$(NEMU_HOME)</span> ISA=<span class="hljs-variable">$(ISA)</span> gdb ARGS=&quot;</span><span class="hljs-variable">$(NEMUFLAGS)</span><span class="hljs-string">&quot; IMG=<span class="hljs-variable">$(IMAGE)</span>.bin</span><br><span class="hljs-string"></span><br><span class="hljs-string">...</span><br><span class="hljs-string"></span><br><span class="hljs-string">CFLAGS  += -DISA_H=\&quot;riscv/riscv.h\&quot;</span><br><span class="hljs-string">COMMON_CFLAGS += -march=rv32im_zicsr -mabi=ilp32   # overwrite</span><br><span class="hljs-string">LDFLAGS       += -melf32lriscv                     # overwrite</span><br><span class="hljs-string"></span><br><span class="hljs-string">AM_SRCS += riscv/nemu/start.S \</span><br><span class="hljs-string">           riscv/nemu/cte.c \</span><br><span class="hljs-string">           riscv/nemu/trap.S \</span><br><span class="hljs-string">           riscv/nemu/vme.c</span><br><span class="hljs-string"></span><br><span class="hljs-string"></span><br></code></pre></td></tr></table></figure>
-
-<p>可以看到，由于要编译出跨平台的文件，我们在编译目标的时候，要将 image 编译成能在 riscv32 的平台能跑的程序，因此它定义了 CROSS_COMPILE。</p>
-<p>另外还加了一些需要设置 riscv 的参数 ，并把它并入到了 CFLAGS、LDFLAGS。</p>
-<ul>
-<li><p>**<code>-fno-pic</code>**：<br>禁用生成位置无关代码（Position Independent Code, PIC）。PIC 通常用于动态链接库，因为它允许代码在内存中的任何位置运行。在某些情况下，如果你不需要动态链接，或者出于性能考虑，你可能会禁用它。</p>
-</li>
-<li><p>**<code>-march=rv64g</code>**：<br>设置目标架构为 RISC-V 64位，<code>G</code> 表示支持标准整数指令集（<code>I</code>）、乘法和除法指令集（<code>M</code>）、原子指令集（<code>A</code>）、单精度浮点（<code>F</code>）、双精度浮点（<code>D</code>）和压缩指令集（<code>C</code>）。这告诉编译器生成针对此架构优化的代码。</p>
-</li>
-<li><p>**<code>-mcmodel=medany</code>**：<br>这个选项定义了代码和数据的地址模型，适用于 RISC-V。<code>medany</code> 模型适合中等大小的可执行文件，允许代码和数据位于任意位置，但假设所有符号的地址相对于程序计数器（PC）的偏移适中。</p>
-</li>
-<li><p>**<code>-mstrict-align</code>**：<br>强制数据对齐，不允许编译器生成未对齐的内存访问指令。这在一些严格要求对齐的架构上可以避免性能损失或程序错误。</p>
-</li>
-<li><p>**<code>-static</code>**：<br>生成完全静态链接的可执行文件。静态链接的程序包含了所有必需的库函数的副本，不需要依赖系统中的共享库，提高了程序的移植性。</p>
-</li>
-<li><p>**<code>-O0</code>**：<br>禁用优化。这个选项告诉编译器不进行任何优化，通常用于调试，确保编译的代码直接对应源代码，便于跟踪和调试。</p>
-</li>
-<li><p>**<code>-melf64lriscv</code>**：<br>指定链接器输出格式为 RISC-V 64位 ELF 格式。ELF（可执行与链接格式）是一种广泛使用的文件格式，用于定义不同类型的文件如可执行文件、目标文件、共享库等。</p>
-</li>
-</ul>
-<p>总体来说，这些编译和链接选项针对 RISC-V 64位架构进行了特定的优化和设置，适用于生成高效且独立的程序。</p>
-<ul>
-<li><p>**<code>-fdata-sections</code>**：<br>这个选项指导编译器将不同的数据（变量）放置在不同的段（sections）中。这有助于链接器在链接时进行优化，比如删除未使用的数据段，从而减小最终可执行文件的大小。</p>
-</li>
-<li><p>**<code>-ffunction-sections</code>**：<br>与 <code>-fdata-sections</code> 类似，这个选项指导编译器将每个函数放置在独立的段中。这样做可以让链接器有机会在最终的可执行文件中移除未被引用的函数，尤其是在结合链接器的 <code>--gc-sections</code> 选项时。</p>
-</li>
-<li><p>**<code>-T $(AM_HOME)/scripts/linker.ld</code>**：<br>指定链接器脚本的位置，这里使用的是一个环境变量 <code>AM_HOME</code>。链接器脚本用于控制链接过程，定义了各种内存布局、段到地址的映射等。这是为嵌入式系统或操作系统内核等需要精确控制内存布局的场合常用的做法。</p>
-</li>
-<li><p><strong><code>--defsym=_pmem_start=0x80000000</code></strong> 和 **<code>--defsym=_entry_offset=0x0</code>**：<br>这两个选项定义了链接时的符号。<code>--defsym</code> 用于创建一个符号并为其分配一个值。在这个例子中，<code>_pmem_start</code> 被设置为 <code>0x80000000</code> 和 <code>_entry_offset</code> 被设置为 <code>0x0</code>。这些符号在链接脚本中可能会被引用，用于指定程序的某些特定内存地址或偏移。</p>
-</li>
-<li><p>**<code>--gc-sections</code>**：<br>这个链接器选项与前面的 <code>-ffunction-sections</code> 和 <code>-fdata-sections</code> 一起工作，用来在链接阶段去除未使用的函数和数据段，从而减少生成的二进制文件大小。这对于内存受限的系统特别有用。</p>
-</li>
-<li><p>**<code>-e _start</code>**：<br>设置入口点为 <code>_start</code>。这是程序开始执行的地方，<code>-e</code> 选项用于指定入口点符号名。这在很多系统软件中非常重要，特别是在操作系统或裸机程序中，需要精确控制程序的启动过程。</p>
-</li>
-</ul>
-<p>这里添加到 <code>COMMON_CFLAGS</code> 的参数用于覆盖或指定编译时的架构和二进制接口（ABI）设置：</p>
-<ul>
-<li><p>**<code>-march=rv32im_zicsr</code>**：</p>
-<ul>
-<li>**<code>-march=rv32im_zicsr</code>**：这个选项指定目标架构为 RISC-V 32位，具体到支持整数 (<code>I</code>)、乘法 (<code>M</code>) 指令和 CSR 寄存器 (<code>Zicsr</code>)。<code>Zicsr</code> 表示支持 CSR (Control and Status Register) 指令扩展，用于控制和状态寄存器的操作，这对于系统级编程特别重要。</li>
-</ul>
-</li>
-<li><p>**<code>-mabi=ilp32</code>**：</p>
-<ul>
-<li>**<code>-mabi=ilp32</code>**：设置使用的 ABI（Application Binary Interface）为 <code>ilp32</code>，这意味着整数和指针都是 32位，符合 32位系统的处理方式。这个设置确保生成的代码在32位 RISC-V 架构上能正确执行。</li>
-</ul>
-</li>
-<li><p>**<code>-melf32lriscv</code>**：</p>
-<ul>
-<li>**<code>-melf32lriscv</code>**：这个链接器选项指定生成的可执行文件格式为 32位 RISC-V ELF 格式。ELF（Executable and Linkable Format）是一种广泛使用的文件格式，用于定义可执行文件、目标代码、共享库等。这里的设置是为了确保链接器输出的是符合 32位 RISC-V 架构的 ELF 文件。</li>
-</ul>
-</li>
-</ul>
-<p>这些选项通常用于交叉编译环境，其中开发环境（如你的电脑）和目标环境（如一个嵌入式设备）的架构不同。例如，如果你正在为一个基于 RISC-V 32位架构的嵌入式系统开发软件，就需要配置这些选项以确保代码能在目标硬件上正确运行。</p>
-<p>这样配置的编译器和链接器选项允许开发者精确控制生成代码的架构特性和二进制格式，以符合特定硬件和操作系统的要求。</p>
-<p>这样设置，就生成了适合在 nemu 上运行的 bin 文件了。</p>
-<p>这时候，继续执行：</p>
-<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-section">run: image</span><br>	<span class="hljs-variable">$(MAKE)</span> -C <span class="hljs-variable">$(NEMU_HOME)</span> ISA=<span class="hljs-variable">$(ISA)</span> run ARGS=<span class="hljs-string">&quot;<span class="hljs-variable">$(NEMUFLAGS)</span>&quot;</span> IMG=<span class="hljs-variable">$(IMAGE)</span>.bin<br></code></pre></td></tr></table></figure>
-
-<p>这个命令表明，接下来将会继续编译 nemu，并且传入了一些参数。</p>
-<h2 id="四、编译-nemu"><a href="#四、编译-nemu" class="headerlink" title="四、编译 nemu"></a>四、编译 nemu</h2><figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-comment">#***************************************************************************************</span><br><span class="hljs-comment"># Copyright (c) 2014-2022 Zihao Yu, Nanjing University</span><br><span class="hljs-comment">#</span><br><span class="hljs-comment"># NEMU is licensed under Mulan PSL v2.</span><br><span class="hljs-comment"># You can use this software according to the terms and conditions of the Mulan PSL v2.</span><br><span class="hljs-comment"># You may obtain a copy of Mulan PSL v2 at:</span><br><span class="hljs-comment">#          http://license.coscl.org.cn/MulanPSL2</span><br><span class="hljs-comment">#</span><br><span class="hljs-comment"># THIS SOFTWARE IS PROVIDED ON AN &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OF ANY KIND,</span><br><span class="hljs-comment"># EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,</span><br><span class="hljs-comment"># MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.</span><br><span class="hljs-comment">#</span><br><span class="hljs-comment"># See the Mulan PSL v2 for more details.</span><br><span class="hljs-comment">#**************************************************************************************/</span><br><br><span class="hljs-comment"># Sanity check</span><br><span class="hljs-keyword">ifeq</span> (<span class="hljs-variable">$(<span class="hljs-built_in">wildcard</span> <span class="hljs-variable">$(NEMU_HOME)</span>/src/nemu-main.c)</span>,)<br>  <span class="hljs-variable">$(<span class="hljs-built_in">error</span> NEMU_HOME=<span class="hljs-variable">$(NEMU_HOME)</span> is not a NEMU repo)</span><br><span class="hljs-keyword">endif</span><br><br><span class="hljs-comment"># Include variables and rules generated by menuconfig</span><br><span class="hljs-keyword">-include</span> <span class="hljs-variable">$(NEMU_HOME)</span>/<span class="hljs-keyword">include</span>/config/auto.conf<br><span class="hljs-keyword">-include</span> <span class="hljs-variable">$(NEMU_HOME)</span>/<span class="hljs-keyword">include</span>/config/auto.conf.cmd<br><br>remove_quote = <span class="hljs-variable">$(<span class="hljs-built_in">patsubst</span> &quot;%&quot;,%,$(1)</span>)<br><br><span class="hljs-comment"># Extract variabls from menuconfig</span><br>GUEST_ISA ?= <span class="hljs-variable">$(<span class="hljs-built_in">call</span> remove_quote,<span class="hljs-variable">$(CONFIG_ISA)</span>)</span><br>ENGINE ?= <span class="hljs-variable">$(<span class="hljs-built_in">call</span> remove_quote,<span class="hljs-variable">$(CONFIG_ENGINE)</span>)</span><br>NAME    = <span class="hljs-variable">$(GUEST_ISA)</span>-nemu-<span class="hljs-variable">$(ENGINE)</span><br><br><span class="hljs-comment"># Include all filelist.mk to merge file lists</span><br>FILELIST_MK = <span class="hljs-variable">$(<span class="hljs-built_in">shell</span> find -L ./src -name &quot;filelist.mk&quot;)</span><br><span class="hljs-keyword">include</span> <span class="hljs-variable">$(FILELIST_MK)</span><br><br><span class="hljs-comment"># Filter out directories and files in blacklist to obtain the final set of source files</span><br>DIRS-BLACKLIST-y += $(DIRS-BLACKLIST)<br>SRCS-BLACKLIST-y += $(SRCS-BLACKLIST) <span class="hljs-variable">$(<span class="hljs-built_in">shell</span> find -L $(DIRS-BLACKLIST-y)</span> -name <span class="hljs-string">&quot;*.c&quot;</span>)<br>SRCS-y += <span class="hljs-variable">$(<span class="hljs-built_in">shell</span> find -L $(DIRS-y)</span> -name <span class="hljs-string">&quot;*.c&quot;</span>)<br>SRCS = <span class="hljs-variable">$(<span class="hljs-built_in">filter</span>-out $(SRCS-BLACKLIST-y)</span>,$(SRCS-y))<br><br><span class="hljs-comment"># Extract compiler and options from menuconfig</span><br>CC = <span class="hljs-variable">$(<span class="hljs-built_in">call</span> remove_quote,<span class="hljs-variable">$(CONFIG_CC)</span>)</span><br>CFLAGS_BUILD += <span class="hljs-variable">$(<span class="hljs-built_in">call</span> remove_quote,<span class="hljs-variable">$(CONFIG_CC_OPT)</span>)</span><br>CFLAGS_BUILD += <span class="hljs-variable">$(<span class="hljs-built_in">if</span> <span class="hljs-variable">$(CONFIG_CC_LTO)</span>,-flto,)</span><br>CFLAGS_BUILD += <span class="hljs-variable">$(<span class="hljs-built_in">if</span> <span class="hljs-variable">$(CONFIG_CC_DEBUG)</span>,-Og -ggdb3,)</span><br>CFLAGS_BUILD += <span class="hljs-variable">$(<span class="hljs-built_in">if</span> <span class="hljs-variable">$(CONFIG_CC_ASAN)</span>,-fsanitize=address,)</span><br>CFLAGS_TRACE += -DITRACE_COND=<span class="hljs-variable">$(<span class="hljs-built_in">if</span> <span class="hljs-variable">$(CONFIG_ITRACE_COND)</span>,$(<span class="hljs-built_in">call</span> remove_quote,<span class="hljs-variable">$(CONFIG_ITRACE_COND)</span>)</span>,true)<br>CFLAGS  += <span class="hljs-variable">$(CFLAGS_BUILD)</span> <span class="hljs-variable">$(CFLAGS_TRACE)</span> -D__GUEST_ISA__=<span class="hljs-variable">$(GUEST_ISA)</span><br>LDFLAGS += <span class="hljs-variable">$(CFLAGS_BUILD)</span><br><br><span class="hljs-comment"># Include rules for menuconfig</span><br><span class="hljs-keyword">include</span> <span class="hljs-variable">$(NEMU_HOME)</span>/scripts/config.mk<br><br><span class="hljs-keyword">ifdef</span> CONFIG_TARGET_AM<br><span class="hljs-keyword">include</span> <span class="hljs-variable">$(AM_HOME)</span>/Makefile<br>LINKAGE += <span class="hljs-variable">$(ARCHIVES)</span><br><span class="hljs-keyword">else</span><br><span class="hljs-comment"># Include rules to build NEMU</span><br><span class="hljs-keyword">include</span> <span class="hljs-variable">$(NEMU_HOME)</span>/scripts/native.mk<br><span class="hljs-keyword">endif</span><br><br></code></pre></td></tr></table></figure>
-
-<p>由于我们的 nemu 依然要在 native 上跑，因此这里依然要 native.mk 来干这事。编译好了之后，设置 IMG 为刚才编译的 bin，就好了:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ make ARCH=riscv32-nemu  ALL=add run<br><span class="hljs-comment"># Building add-run [riscv32-nemu]</span><br>+ CC tests/add.c<br><span class="hljs-comment"># Building am-archive [riscv32-nemu]</span><br>+ CC src/platform/nemu/trm.c<br>+ CC src/platform/nemu/ioe/ioe.c<br>+ CC src/platform/nemu/ioe/timer.c<br>+ CC src/platform/nemu/ioe/input.c<br>+ CC src/platform/nemu/ioe/gpu.c<br>+ CC src/platform/nemu/ioe/audio.c<br>+ CC src/platform/nemu/ioe/disk.c<br>+ CC src/platform/nemu/mpe.c<br>+ AS src/riscv/nemu/start.S<br>+ CC src/riscv/nemu/cte.c<br>+ AS src/riscv/nemu/trap.S<br>+ CC src/riscv/nemu/vme.c<br>+ AR -&gt; build/am-riscv32-nemu.a<br><span class="hljs-comment"># Building klib-archive [riscv32-nemu]</span><br>+ CC src/stdlib.c<br>+ CC src/string.c<br>+ CC src/int64.c<br>+ CC src/stdio.c<br>+ CC src/cpp.c<br>+ AR -&gt; build/klib-riscv32-nemu.a<br>+ LD -&gt; build/add-riscv32-nemu.elf<br><span class="hljs-comment"># Creating image [riscv32-nemu]</span><br>+ OBJCOPY -&gt; build/add-riscv32-nemu.bin<br>+ CC src/device/device.c<br>+ CC src/device/alarm.c<br>+ CC src/device/intr.c<br>+ CC src/device/serial.c<br>+ CC src/device/timer.c<br>+ CC src/device/keyboard.c<br>+ CC src/device/vga.c<br>+ CC src/device/audio.c<br>+ CC src/device/disk.c<br>+ CC src/nemu-main.c<br>+ CC src/engine/interpreter/init.c<br>+ CC src/engine/interpreter/hostcall.c<br>+ CC src/isa/riscv32/system/mmu.c<br>+ CC src/isa/riscv32/system/intr.c<br>+ CC src/isa/riscv32/inst.c<br>+ CC src/isa/riscv32/init.c<br>+ CC src/isa/riscv32/difftest/dut.c<br>+ CC src/isa/riscv32/logo.c<br>+ CC src/isa/riscv32/reg.c<br>+ CC src/device/io/port-io.c<br>+ CC src/device/io/mmio.c<br>+ CC src/device/io/map.c<br>+ CC src/cpu/difftest/dut.c<br>+ CC src/cpu/difftest/ref.c<br>+ CC src/cpu/cpu-exec.c<br>+ CC src/monitor/sdb/expr.c<br>+ CC src/monitor/sdb/watchpoint.c<br>+ CC src/monitor/sdb/sdb.c<br>+ CC src/monitor/monitor.c<br>+ CC src/utils/timer.c<br>+ CC src/utils/trace.c<br>+ CC src/utils/log.c<br>+ CC src/utils/state.c<br>+ CC src/memory/vaddr.c<br>+ CC src/memory/paddr.c<br>+ LD /home/luyoung/ysyx-workbench/nemu/build/riscv32-nemu-interpreter<br></code></pre></td></tr></table></figure>
-
-<p>这样的流程很符合预期。</p>
-<h2 id="五、总结"><a href="#五、总结" class="headerlink" title="五、总结"></a>五、总结</h2><p>通过分析了两种不同的目标构建方式，了解了整个项目的架构设计。</p>
-]]></content>
-      <categories>
-        <category>RISCV</category>
-        <category>PA</category>
-        <category>虚拟机</category>
-      </categories>
-      <tags>
-        <tag>NEMU</tag>
-        <tag>PA2</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>ngrok内网穿透以及原理</title>
     <url>/2023/09/29/ngrok%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E4%BB%A5%E5%8F%8A%E5%8E%9F%E7%90%86/</url>
     <content><![CDATA[<span id="more"></span>
@@ -10427,6 +10442,177 @@
       <tags>
         <tag>Web</tag>
         <tag>内网穿透</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>static、inline 关键字在C语言中的作用分析</title>
+    <url>/2024/09/17/static_inline%E5%9C%A8%20C%E8%AF%AD%E8%A8%80%E4%B8%AD%E7%9A%84%E4%BD%9C%E7%94%A8%E5%88%86%E6%9E%90/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="static、inline"><a href="#static、inline" class="headerlink" title="static、inline"></a>static、inline</h2><h3 id="1-static-关键字"><a href="#1-static-关键字" class="headerlink" title="1. static 关键字"></a><strong>1. <code>static</code> 关键字</strong></h3><ul>
+<li><strong>作用</strong>：限制函数的作用域仅限于定义它的源文件（即内部链接）。这意味着每个包含该头文件的源文件都会生成该函数的一个独立实例，避免了多个定义导致的链接错误。</li>
+<li><strong>在头文件中使用</strong>：适用于小型、频繁调用的函数，允许每个源文件拥有自己的函数副本，避免链接器的重复定义错误。</li>
+</ul>
+<h3 id="2-inline-关键字"><a href="#2-inline-关键字" class="headerlink" title="2. inline 关键字"></a><strong>2. <code>inline</code> 关键字</strong></h3><ul>
+<li><strong>作用</strong>：建议编译器将函数调用替换为函数体本身，以减少函数调用的开销，提高性能。</li>
+<li><strong>在头文件中使用</strong>：结合 <code>static</code> 使用时，可以在多个源文件中安全地定义内联函数，而不会导致链接冲突。</li>
+<li><strong>链接行为</strong>：<ul>
+<li><strong>C99 标准</strong>：<code>inline</code> 函数具有外部链接，但需要在某个翻译单元中提供一个非 <code>inline</code> 的定义，供链接器使用。</li>
+<li><strong>GNU 扩展</strong>：GNU C 允许 <code>inline</code> 函数在头文件中被多次定义，只要它们是 <code>inline</code> 的，并且链接器能够处理这些定义。</li>
+</ul>
+</li>
+</ul>
+<h3 id="组合使用-static-inline"><a href="#组合使用-static-inline" class="headerlink" title="组合使用 static inline"></a><strong>组合使用 <code>static inline</code></strong></h3><ul>
+<li><strong>消除重复定义</strong>：在头文件中使用 <code>static inline</code>，每个包含该头文件的源文件都会有自己的函数副本，避免了链接器在合并多个目标文件时因重复定义同名函数而报错。</li>
+<li><strong>优化性能</strong>：编译器可能将这些函数内联展开，减少函数调用的开销。</li>
+</ul>
+<h2 id="一个例子"><a href="#一个例子" class="headerlink" title="一个例子"></a>一个例子</h2><p>test.h:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">void</span> <span class="hljs-title function_">func1</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;this is func1: static inline void func1()\n&quot;</span>);<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>test2.c:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;test.h&quot;</span></span><br><span class="hljs-type">int</span> <span class="hljs-title function_">func2</span><span class="hljs-params">()</span> &#123;<br>    func1();<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;this is func2: int func2() \n&quot;</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>test3.c:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;test.h&quot;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">func3</span><span class="hljs-params">()</span> &#123;<br>    func1();<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;this is func3: int func3() \n&quot;</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>main.c:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;this is main: int main()\n&quot;</span>);<br>    func2();<br>    func3();<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>Makefile:</p>
+<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-section">main: main.o test2.o test3.o</span><br>	gcc -o main main.o test2.o test3.o<br><br><span class="hljs-section">clean:</span><br>	rm main.o test2.o test3.o main<br><br></code></pre></td></tr></table></figure>
+
+<p><code>&#123;static(Y) inline(Y)]、[static(Y) inline(N)&#125;</code>这两种情况下都可以编译成功，这很正常：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ make<br>cc    -c -o main.o main.c<br>main.c: In <span class="hljs-keyword">function</span> ‘main’:<br>main.c:4:5: warning: implicit declaration of <span class="hljs-keyword">function</span> ‘func2’ [-Wimplicit-function-declaration]<br>    4 |     func2();<br>      |     ^~~~~<br>main.c:5:5: warning: implicit declaration of <span class="hljs-keyword">function</span> ‘func3’ [-Wimplicit-function-declaration]<br>    5 |     func3();<br>      |     ^~~~~<br>cc    -c -o test2.o test2.c<br>cc    -c -o test3.o test3.c<br>gcc -o main main.o test2.o test3.o<br><br>luyoung at luyoung-desktop <span class="hljs-keyword">in</span> ~/Test/test13<br>$ nm test2.o | grep func1<br>0000000000000000 t func1<br><br>luyoung at luyoung-desktop <span class="hljs-keyword">in</span> ~/Test/test13<br>$ nm test3.o | grep func1<br>0000000000000000 t func1<br><br>luyoung at luyoung-desktop <span class="hljs-keyword">in</span> ~/Test/test13<br>$ nm main | grep func1<br>000000000000117b t func1<br>00000000000011b9 t func1<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，虽然是 inline，但是编译器没有听从建议，全部用的是内部链接。</p>
+<p><code>&#123;static(N) inline(Y)]</code>这两种情况下编译不成功了：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">make<br>cc    -c -o main.o main.c<br>main.c: In <span class="hljs-keyword">function</span> ‘main’:<br>main.c:4:5: warning: implicit declaration of <span class="hljs-keyword">function</span> ‘func2’ [-Wimplicit-function-declaration]<br>    4 |     func2();<br>      |     ^~~~~<br>main.c:5:5: warning: implicit declaration of <span class="hljs-keyword">function</span> ‘func3’ [-Wimplicit-function-declaration]<br>    5 |     func3();<br>      |     ^~~~~<br>cc    -c -o test2.o test2.c<br>cc    -c -o test3.o test3.c<br>gcc -o main main.o test2.o test3.o<br>/usr/bin/ld: test2.o: <span class="hljs-keyword">in</span> <span class="hljs-keyword">function</span> `func2<span class="hljs-string">&#x27;:</span><br><span class="hljs-string">test2.c:(.text+0xe): undefined reference to `func1&#x27;</span><br>/usr/bin/ld: test3.o: <span class="hljs-keyword">in</span> <span class="hljs-keyword">function</span> `func3<span class="hljs-string">&#x27;:</span><br><span class="hljs-string">test3.c:(.text+0xe): undefined reference to `func1&#x27;</span><br>collect2: error: ld returned 1 <span class="hljs-built_in">exit</span> status<br>make: *** [Makefile:2: main] Error 1<br><br>luyoung at luyoung-desktop <span class="hljs-keyword">in</span> ~/Test/test13<br>$ nm test2.o | grep func1<br>                 U func1<br><br>luyoung at luyoung-desktop <span class="hljs-keyword">in</span> ~/Test/test13<br>$ nm test3.o | grep func1<br>                 U func1<br></code></pre></td></tr></table></figure>
+
+<p>可以看到它报的错误是 <code>undefined reference to func1</code>，并且 <code>test2.o</code>、<code>test3.o</code> 中有未定义的 <code>func1</code>，这是为什么？这是因为编译器期望存在一个外部定义，但是并没有外部定义，因此C99要求：inline 函数具有外部链接，但需要在某个翻译单元中提供一个非 inline 的声明，供链接器使用。比如：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;test.h&quot;</span></span><br><span class="hljs-type">void</span> <span class="hljs-title function_">func1</span><span class="hljs-params">()</span>;<br><span class="hljs-type">int</span> <span class="hljs-title function_">func3</span><span class="hljs-params">()</span> &#123;<br>    func1();<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;this is func3: int func3() \n&quot;</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>就可以通过编译。</p>
+<p>另外，如果强制内联，那么内联函数就自然不存在什么外部链接了，直接在预处理阶段就处理好了:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-keyword">inline</span> __attribute__((always_inline)) <span class="hljs-type">void</span> <span class="hljs-title function_">func1</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;this is func1: static inline void func1()\n&quot;</span>);<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>或者，直接在变异的时候，最大概率内联（不一定会内联，但是概率较大，最好的方法就是强制内联）：</p>
+<figure class="highlight makefile"><table><tr><td class="code"><pre><code class="hljs Makefile"><span class="hljs-section">test2.o: test2.c</span><br>	gcc -O3 -finline-functions -c test2.c -o test2.o<br><span class="hljs-section">test3.o: test3.c</span><br>	gcc -O3 -finline-functions -c test3.c -o test3.o<br></code></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h3 id="1-函数的链接属性"><a href="#1-函数的链接属性" class="headerlink" title="1. 函数的链接属性"></a><strong>1. 函数的链接属性</strong></h3><p>在C语言中，函数有两种主要的链接属性：</p>
+<ul>
+<li><p><strong>内部链接（Internal Linkage）</strong>：函数只能在定义它的源文件内部使用。使用 <code>static</code> 关键字可以实现这一点。</p>
+</li>
+<li><p><strong>外部链接（External Linkage）</strong>：函数可以被整个程序中的其他源文件访问。默认情况下，函数具有外部链接，除非使用 <code>static</code> 限制其作用域。</p>
+</li>
+</ul>
+<h3 id="2-inline-关键字的作用"><a href="#2-inline-关键字的作用" class="headerlink" title="2. inline 关键字的作用"></a><strong>2. <code>inline</code> 关键字的作用</strong></h3><p><code>inline</code> 关键字是对编译器的一个建议，表示希望将函数调用替换为函数体本身，以减少函数调用的开销，提高执行效率。然而，<code>inline</code> 并不保证编译器一定会内联所有的函数调用。编译器会根据函数的复杂性、调用频率以及优化级别等因素决定是否内联。</p>
+<h3 id="3-仅移除-static，保留-inline-的影响"><a href="#3-仅移除-static，保留-inline-的影响" class="headerlink" title="3. 仅移除 static，保留 inline 的影响"></a><strong>3. 仅移除 <code>static</code>，保留 <code>inline</code> 的影响</strong></h3><p>当您在头文件中定义一个函数并仅移除 <code>static</code>，保留 <code>inline</code>，如下：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">inline</span> <span class="hljs-type">uint32_t</span> <span class="hljs-title function_">inst_fetch</span><span class="hljs-params">(<span class="hljs-type">vaddr_t</span> *pc, <span class="hljs-type">int</span> len)</span> &#123;<br>    <span class="hljs-comment">// 函数体</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这会导致以下情况发生：</p>
+<ol>
+<li><p><strong>外部链接</strong>：函数 <code>inst_fetch</code> 现在具有外部链接，这意味着它在整个程序中都是一个全局符号，可以被其他源文件引用。</p>
+</li>
+<li><p><strong>多重定义的风险</strong>：如果多个源文件包含这个头文件，每个源文件都会尝试定义一个名为 <code>inst_fetch</code> 的全局符号。这违反了C语言的“一定义规则”（One Definition Rule），即每个全局符号只能有一个定义。</p>
+</li>
+<li><p><strong>编译器的内联行为</strong>：</p>
+<ul>
+<li><strong>部分内联</strong>：编译器可能会在某些调用点内联 <code>inst_fetch</code>，将函数体直接插入到调用处，从而不生成对该函数的外部调用。</li>
+<li><strong>未内联的调用</strong>：对于未被内联的调用，编译器会生成对 <code>inst_fetch</code> 的函数调用指令，期望在链接阶段找到该函数的定义。</li>
+</ul>
+</li>
+<li><p><strong>链接器的期望</strong>：</p>
+<ul>
+<li>链接器在处理这些调用时，期望在某处找到 <code>inst_fetch</code> 的唯一定义。</li>
+<li>由于头文件中的 <code>inline</code> 定义被多个源文件包含，并且没有提供一个统一的外部定义，链接器无法找到一个确定的 <code>inst_fetch</code> 实现，这也是为什么 C99 要求必须提供一个外部实现或者定义。</li>
+<li>结果，链接器报告“未定义引用”（undefined reference）错误，因为它找不到函数的实际实现。</li>
+</ul>
+</li>
+</ol>
+<h3 id="4-为什么会看到未定义引用"><a href="#4-为什么会看到未定义引用" class="headerlink" title="4. 为什么会看到未定义引用"></a><strong>4. 为什么会看到未定义引用</strong></h3><p>尽管 <code>inline</code> 关键字建议编译器内联展开函数，编译器并不保证所有的调用都会被内联。对于那些未被内联的调用，编译器生成了对 <code>inst_fetch</code> 的外部调用指令，但由于缺乏一个统一的外部定义，链接器无法解析这些调用，导致未定义引用错误。</p>
+<h3 id="5-nm-工具显示未定义符号的原因"><a href="#5-nm-工具显示未定义符号的原因" class="headerlink" title="5. nm 工具显示未定义符号的原因"></a><strong>5. <code>nm</code> 工具显示未定义符号的原因</strong></h3><p>当使用 <code>nm</code> 工具查看对象文件时，看到类似以下的输出：</p>
+<figure class="highlight gcode"><table><tr><td class="code"><pre><code class="hljs gcode">U fu<span class="hljs-symbol">nc1</span><br></code></pre></td></tr></table></figure>
+
+<p>这里的 <code>U</code> 表示“未定义”（Undefined）符号，意味着这个对象文件引用了 <code>func1</code>，但没有在该文件中找到它的定义。具体原因如下：</p>
+<ul>
+<li><strong>未内联的调用</strong>：某些调用点未被内联展开，编译器生成了对 <code>func1</code> 的调用，但并未在当前源文件中提供其实现。</li>
+<li><strong>缺乏统一的外部定义</strong>：由于头文件中定义的 <code>inline</code> 函数被多个源文件包含，且没有一个源文件提供一个非 <code>inline</code> 的外部定义，导致链接器找不到 <code>func1</code> 的实际实现。</li>
+</ul>
+<h3 id="6-为什么同时去掉-static-和-inline-会导致多重定义错误"><a href="#6-为什么同时去掉-static-和-inline-会导致多重定义错误" class="headerlink" title="6. 为什么同时去掉 static 和 inline 会导致多重定义错误"></a><strong>6. 为什么同时去掉 <code>static</code> 和 <code>inline</code> 会导致多重定义错误</strong></h3><p>当同时去掉 <code>static</code> 和 <code>inline</code>，函数定义变为一个普通的全局函数，具有外部链接：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">uint32_t</span> <span class="hljs-title function_">inst_fetch</span><span class="hljs-params">(<span class="hljs-type">vaddr_t</span> *pc, <span class="hljs-type">int</span> len)</span> &#123;<br>    <span class="hljs-comment">// 函数体</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这种情况下：</p>
+<ol>
+<li><strong>外部链接</strong>：函数 <code>inst_fetch</code> 具有外部链接，可以被整个程序中的其他源文件访问。</li>
+<li><strong>多重定义</strong>：多个源文件包含这个头文件，每个源文件都会生成一个名为 <code>inst_fetch</code> 的全局符号。</li>
+<li><strong>链接器冲突</strong>：链接器在合并这些目标文件时，发现多个同名的全局符号，导致多重定义错误。</li>
+</ol>
+<h3 id="7-为什么仅移除-static-会导致未定义引用，而去掉-static-和-inline-会导致多重定义"><a href="#7-为什么仅移除-static-会导致未定义引用，而去掉-static-和-inline-会导致多重定义" class="headerlink" title="7. 为什么仅移除 static 会导致未定义引用，而去掉 static 和 inline 会导致多重定义"></a><strong>7. 为什么仅移除 <code>static</code> 会导致未定义引用，而去掉 <code>static</code> 和 <code>inline</code> 会导致多重定义</strong></h3><ul>
+<li><p>**仅移除 <code>static</code>，保留 <code>inline</code>**：</p>
+<ul>
+<li><strong>部分内联</strong>：编译器可能内联一些调用，但未内联的调用需要一个外部定义。</li>
+<li><strong>缺少外部定义</strong>：由于没有提供一个统一的外部定义，链接器无法找到 <code>inst_fetch</code>，导致未定义引用错误。</li>
+</ul>
+</li>
+<li><p>**同时去掉 <code>static</code> 和 <code>inline</code>**：</p>
+<ul>
+<li><strong>全部外部定义</strong>：每个包含头文件的源文件都定义了一个全局的 <code>inst_fetch</code>，导致链接器发现多个定义，报出多重定义错误。</li>
+</ul>
+</li>
+</ul>
+<h2 id="声明和定义：static"><a href="#声明和定义：static" class="headerlink" title="声明和定义：static"></a>声明和定义：static</h2><p><strong>第一问：</strong></p>
+<p>在 <code>nemu/include/common.h</code> 中添加一行 <code>volatile static int dummy;</code> 后重新编译 NEMU。由于 <code>common.h</code> 被多个源文件包含，而 <code>static</code> 关键字在文件作用域内使变量具有内部链接，每个源文件都会有自己独立的 <code>dummy</code> 变量。</p>
+<p><strong>因此，NEMU 中的 <code>dummy</code> 变量实体数量等于包含了 <code>common.h</code> 的源文件数量。</strong></p>
+<hr>
+<p><strong>第二问：</strong></p>
+<p>在 <code>nemu/include/debug.h</code> 中也添加一行 <code>volatile static int dummy;</code>，然后重新编译 NEMU。</p>
+<p><strong>比较和解释：</strong></p>
+<ul>
+<li><p><strong>实体数量：</strong> NEMU 中的 <code>dummy</code> 变量实体数量仍然等于源文件的数量，因为每个源文件中，<code>dummy</code> 变量只会被定义一次。</p>
+</li>
+<li><p><strong>原因：</strong> 即使某个源文件同时包含了 <code>common.h</code> 和 <code>debug.h</code>，由于两个头文件中对 <code>dummy</code> 的声明都是 <code>volatile static int dummy;</code>，这在 C 语言中属于多次声明同一个具有内部链接的变量，是被允许的。</p>
+</li>
+<li><p><strong>结论：</strong> 与第一问相比，<code>dummy</code> 变量的实体数量不变，仍然等于源文件的数量。</p>
+</li>
+</ul>
+<hr>
+<p><strong>第三问：</strong></p>
+<p>将两处 <code>dummy</code> 变量修改为初始化形式：<code>volatile static int dummy = 0;</code>，然后重新编译 NEMU。</p>
+<p><strong>发现的问题：</strong></p>
+<ul>
+<li>编译器会在包含了 <strong>同时包含 <code>common.h</code> 和 <code>debug.h</code></strong> 的源文件中报错，提示重复定义了 <code>dummy</code> 变量。</li>
+</ul>
+<p><strong>原因分析：</strong></p>
+<ul>
+<li><p><strong>定义与声明的区别：</strong> 在 C 语言中，未初始化的文件作用域的 <code>static</code> 变量（如 <code>static int dummy;</code>）被视为<strong>声明</strong>，可多次声明。但带有初始化的 <code>static</code> 变量（如 <code>static int dummy = 0;</code>）被视为<strong>定义</strong>，在同一作用域内只能定义一次。</p>
+</li>
+<li><p><strong>重复定义错误：</strong> 当一个源文件同时包含了 <code>common.h</code> 和 <code>debug.h</code>，并且这两个头文件中都对 <code>dummy</code> 进行了初始化定义，编译器会检测到在同一作用域内对具有内部链接的变量进行了多次定义，从而报错。</p>
+</li>
+</ul>
+<p><strong>为什么之前没有出现这样的问题？</strong></p>
+<ul>
+<li><p><strong>未初始化时的行为：</strong> 未初始化的 <code>static</code> 变量在同一作用域内可以多次声明，编译器会将其视为对同一变量的多次声明，不会报错。</p>
+</li>
+<li><p><strong>初始化后的行为：</strong> 一旦对 <code>static</code> 变量进行了初始化，就变成了定义。在同一作用域内多次定义同名的具有内部链接的变量是非法的，编译器会报重复定义错误。</p>
+</li>
+</ul>
+<hr>
+<p><strong>总结：</strong></p>
+<ul>
+<li><p>在头文件中声明未初始化的 <code>static</code> 变量是安全的，即使多个头文件中有相同的声明，编译器也不会报错。</p>
+</li>
+<li><p>但在头文件中定义（初始化）具有内部链接的 <code>static</code> 变量时，需要确保这些头文件不会被同一源文件多次包含，否则会导致重复定义错误。</p>
+</li>
+<li><p><strong>建议：</strong> 为避免此类问题，最好避免在头文件中对 <code>static</code> 变量进行初始化。如果需要初始化，应该在源文件中进行，或者采取其他设计方式。</p>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>C/C++</category>
+        <category>PA2</category>
+      </categories>
+      <tags>
+        <tag>C/C++</tag>
       </tags>
   </entry>
   <entry>
@@ -12245,45 +12431,6 @@
       </tags>
   </entry>
   <entry>
-    <title>【Golang】多线程排序</title>
-    <url>/2023/05/08/%E3%80%90Golang%E3%80%91%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%92%E5%BA%8F/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="〇、前言"><a href="#〇、前言" class="headerlink" title="〇、前言"></a>〇、前言</h2><p>本案例实现一个多线程排序算法，能够对给定的整数数组进行排序，使用 goroutines 对其进行并发化优化。</p>
-<h2 id="一、随机数生成器"><a href="#一、随机数生成器" class="headerlink" title="一、随机数生成器"></a>一、随机数生成器</h2><figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">randProduce</span><span class="hljs-params">(randNums <span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, wg *sync.WaitGroup)</span></span> &#123;<br>	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">100</span>; i++ &#123;<br>		<span class="hljs-keyword">go</span> rand1(randNums, wg)<br>	&#125;<br>&#125;<br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">rand1</span><span class="hljs-params">(randNums <span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, wg *sync.WaitGroup)</span></span> &#123;<br><br>	r := rand.New(rand.NewSource(time.Now().Unix()))<br>	int1000 := <span class="hljs-built_in">make</span>([]<span class="hljs-type">int</span>, <span class="hljs-number">1000000</span>)<br>	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">1000000</span>; i++ &#123;<br>		int1000[i] = r.Intn(<span class="hljs-number">1000000</span>)<br>	&#125;<br>	randNums &lt;- int1000<br>	wg.Done()<br>&#125;<br></code></pre></td></tr></table></figure>
-<h2 id="二、使用-goroutines-并发地对各个子数组进行排序"><a href="#二、使用-goroutines-并发地对各个子数组进行排序" class="headerlink" title="二、使用 goroutines 并发地对各个子数组进行排序"></a>二、使用 goroutines 并发地对各个子数组进行排序</h2><figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">sort0</span><span class="hljs-params">(randNums <span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, sortNums <span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, wg *sync.WaitGroup)</span></span> &#123;<br>	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">100</span>; i++ &#123;<br>		<span class="hljs-keyword">go</span> sort2(randNums, sortNums, wg)<br>	&#125;<br>&#125;<br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">sort2</span><span class="hljs-params">(randNums <span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, sortNums <span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, wg *sync.WaitGroup)</span></span> &#123;<br>	int1000_Old := &lt;-randNums<br>	sort.Ints(int1000_Old)<br>	sortNums &lt;- int1000_Old<br>	wg.Done()<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<h2 id="三、合并已排序的子数组，得到最终排序结果"><a href="#三、合并已排序的子数组，得到最终排序结果" class="headerlink" title="三、合并已排序的子数组，得到最终排序结果"></a>三、合并已排序的子数组，得到最终排序结果</h2><figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">mergeAll</span><span class="hljs-params">(sortNums <span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, wg *sync.WaitGroup)</span></span> []<span class="hljs-type">int</span> &#123;<br>	<span class="hljs-keyword">defer</span> wg.Done()<br>	temp2 := &lt;-sortNums<br>	<span class="hljs-keyword">var</span> temp1 []<span class="hljs-type">int</span><br>	<span class="hljs-keyword">for</span> i := <span class="hljs-number">1</span>; i &lt;= <span class="hljs-number">99</span>; i++ &#123;<br>		temp1 = <span class="hljs-built_in">make</span>([]<span class="hljs-type">int</span>, <span class="hljs-number">1000000</span>*i+<span class="hljs-number">1000000</span>)<br>		<span class="hljs-built_in">copy</span>(temp1, temp2)<br>		temp1 = merge(temp1, <span class="hljs-number">1000000</span>*i+<span class="hljs-number">1000000</span>, &lt;-sortNums, <span class="hljs-number">1000000</span>)<br>		temp2 = <span class="hljs-built_in">make</span>([]<span class="hljs-type">int</span>, <span class="hljs-number">1000000</span>*i+<span class="hljs-number">1000000</span>)<br>		<span class="hljs-built_in">copy</span>(temp2, temp1)<br>	&#125;<br>	<span class="hljs-keyword">return</span> temp2<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">merge</span><span class="hljs-params">(nums1 []<span class="hljs-type">int</span>, m <span class="hljs-type">int</span>, nums2 []<span class="hljs-type">int</span>, n <span class="hljs-type">int</span>)</span></span> []<span class="hljs-type">int</span> &#123;<br>	temp := <span class="hljs-built_in">make</span>([]<span class="hljs-type">int</span>, m)<br>	<span class="hljs-built_in">copy</span>(temp, nums1)<br><br>	t, j := <span class="hljs-number">0</span>, <span class="hljs-number">0</span> <span class="hljs-comment">//t为temp的索引，j为nums2的索引</span><br>	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-built_in">len</span>(nums1); i++ &#123;<br>		<span class="hljs-keyword">if</span> t &gt;= <span class="hljs-built_in">len</span>(temp) &#123;<br>			nums1[i] = nums2[j]<br>			j++<br>			<span class="hljs-keyword">continue</span><br>		&#125;<br>		<span class="hljs-keyword">if</span> j &gt;= n &#123;<br>			nums1[i] = temp[t]<br>			t++<br>			<span class="hljs-keyword">continue</span><br>		&#125;<br>		<span class="hljs-keyword">if</span> nums2[j] &lt;= temp[t] &#123;<br>			nums1[i] = nums2[j]<br>			j++<br>		&#125; <span class="hljs-keyword">else</span> &#123;<br>			nums1[i] = temp[t]<br>			t++<br>		&#125;<br>	&#125;<br>	<span class="hljs-keyword">return</span> nums1<br>&#125;<br></code></pre></td></tr></table></figure>
-<h2 id="四、main-函数控制流程"><a href="#四、main-函数控制流程" class="headerlink" title="四、main 函数控制流程"></a>四、main 函数控制流程</h2><figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>	fmt.Println(<span class="hljs-string">&quot;开始运行!&quot;</span>)<br>	start := time.Now() <span class="hljs-comment">// 获取当前时间</span><br>	wg := sync.WaitGroup&#123;&#125;<br>	wg.Add(<span class="hljs-number">201</span>)<br>	randNums := <span class="hljs-built_in">make</span>(<span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, <span class="hljs-number">100</span>)<br>	sortNUms := <span class="hljs-built_in">make</span>(<span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, <span class="hljs-number">100</span>)<br><br>	<span class="hljs-keyword">go</span> randProduce(randNums, &amp;wg)<br>	<span class="hljs-keyword">go</span> sort0(randNums, sortNUms, &amp;wg)<br>	<span class="hljs-keyword">go</span> mergeAll(sortNUms, &amp;wg)<br><br>	wg.Wait()<br>	<span class="hljs-comment">// fmt.Println(l)</span><br>	elapsed := time.Since(start)<br>	fmt.Println(<span class="hljs-string">&quot;该函数执行完成耗时：&quot;</span>, elapsed)<br>&#125;<br></code></pre></td></tr></table></figure>
-<h2 id="五、思路"><a href="#五、思路" class="headerlink" title="五、思路"></a>五、思路</h2><p>本案例采用了两个 channel，分别存储产生的的随机数slice和排好顺序的 slice，每一个 slice大小为 100 万，一共一百个 slice，也就是一亿个数据。</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go">randNums := <span class="hljs-built_in">make</span>(<span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, <span class="hljs-number">100</span>)<br>sortNUms := <span class="hljs-built_in">make</span>(<span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, <span class="hljs-number">100</span>)<br></code></pre></td></tr></table></figure>
-<p>程序一边产生随机数，一边将产生的随机数randNums发送到 sort 函数进行排序，排好顺序后将数据发送到sortNUms。这两个流程可以并行计算，因此：</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">go</span> randProduce(randNums, &amp;wg)<br><span class="hljs-keyword">go</span> sort0(randNums, sortNUms, &amp;wg)<br></code></pre></td></tr></table></figure>
-<p>合并也可以参与到并行计算之中，多加一个信号量就好：</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">go</span> mergeAll(sortNUms, &amp;wg)<br></code></pre></td></tr></table></figure>
-
-<p>运行结果：</p>
-<blockquote>
-<p>(base) luliang@shenjian Sort % go build SortRoutine.go<br>(base) luliang@shenjian Sort % .&#x2F;SortRoutine<br>开始运行!<br>该函数执行完成耗时： 50.317081625s</p>
-</blockquote>
-<h2 id="六、性能比较"><a href="#六、性能比较" class="headerlink" title="六、性能比较"></a>六、性能比较</h2><p>可以写一个单线程的排序，但是数据产生还是多线程的：</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><br><span class="hljs-keyword">import</span> (<br>	<span class="hljs-string">&quot;fmt&quot;</span><br>	<span class="hljs-string">&quot;math/rand&quot;</span><br>	<span class="hljs-string">&quot;sort&quot;</span><br>	<span class="hljs-string">&quot;time&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>	fmt.Println(<span class="hljs-string">&quot;开始运行!&quot;</span>)<br>	start := time.Now() <span class="hljs-comment">// 获取当前时间</span><br><br>	randNums := <span class="hljs-built_in">make</span>(<span class="hljs-keyword">chan</span> <span class="hljs-type">int</span>, <span class="hljs-number">10000</span>)<br>	<span class="hljs-keyword">go</span> randProduce1(randNums)<br>	randNums1 := <span class="hljs-built_in">make</span>([]<span class="hljs-type">int</span>, <span class="hljs-number">100000000</span>)<br>	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">100000000</span>; i++ &#123;<br>		randNums1[i] = &lt;-randNums<br>	&#125;<br>	sort.Ints(randNums1)<br>	elapsed := time.Since(start)<br>	fmt.Println(<span class="hljs-string">&quot;该函数执行完成耗时：&quot;</span>, elapsed)<br>&#125;<br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">randProduce1</span><span class="hljs-params">(randNums <span class="hljs-keyword">chan</span> <span class="hljs-type">int</span>)</span></span> &#123;<br>	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10000</span>; i++ &#123;<br>		<span class="hljs-keyword">go</span> rand2(randNums)<br>	&#125;<br>&#125;<br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">rand2</span><span class="hljs-params">(randNums <span class="hljs-keyword">chan</span> <span class="hljs-type">int</span>)</span></span> &#123;<br><br>	r := rand.New(rand.NewSource(time.Now().Unix()))<br>	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10000</span>; i++ &#123;<br>		randNums &lt;- r.Intn(<span class="hljs-number">10000000</span>)<br>	&#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
-<p>运行结果为：</p>
-<blockquote>
-<p>(base) luliang@shenjian Sort % go build SortRoutine1.go<br>(base) luliang@shenjian Sort % .&#x2F;SortRoutine1<br>开始运行!<br>该函数执行完成耗时： 54.869565792s</p>
-</blockquote>
-<p>可以看到两种方法消耗的时间差不多，这是因为数据量还是太小，多线程生成数据、排序、以及合并开辟了大量的协程，这个会消耗一定的时间。</p>
-]]></content>
-      <categories>
-        <category>Golang</category>
-      </categories>
-      <tags>
-        <tag>算法</tag>
-        <tag>开发语言</tag>
-        <tag>golang</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>【Golang】多线程下载器的实现</title>
     <url>/2023/05/07/%E3%80%90Golang%E3%80%91%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%8B%E8%BD%BD%E5%99%A8%E7%9A%84%E5%AE%9E%E7%8E%B0/</url>
     <content><![CDATA[<span id="more"></span>
@@ -12365,6 +12512,45 @@
         <tag>服务器</tag>
         <tag>golang</tag>
         <tag>后端</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>【Golang】多线程排序</title>
+    <url>/2023/05/08/%E3%80%90Golang%E3%80%91%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%92%E5%BA%8F/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="〇、前言"><a href="#〇、前言" class="headerlink" title="〇、前言"></a>〇、前言</h2><p>本案例实现一个多线程排序算法，能够对给定的整数数组进行排序，使用 goroutines 对其进行并发化优化。</p>
+<h2 id="一、随机数生成器"><a href="#一、随机数生成器" class="headerlink" title="一、随机数生成器"></a>一、随机数生成器</h2><figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">randProduce</span><span class="hljs-params">(randNums <span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, wg *sync.WaitGroup)</span></span> &#123;<br>	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">100</span>; i++ &#123;<br>		<span class="hljs-keyword">go</span> rand1(randNums, wg)<br>	&#125;<br>&#125;<br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">rand1</span><span class="hljs-params">(randNums <span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, wg *sync.WaitGroup)</span></span> &#123;<br><br>	r := rand.New(rand.NewSource(time.Now().Unix()))<br>	int1000 := <span class="hljs-built_in">make</span>([]<span class="hljs-type">int</span>, <span class="hljs-number">1000000</span>)<br>	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">1000000</span>; i++ &#123;<br>		int1000[i] = r.Intn(<span class="hljs-number">1000000</span>)<br>	&#125;<br>	randNums &lt;- int1000<br>	wg.Done()<br>&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="二、使用-goroutines-并发地对各个子数组进行排序"><a href="#二、使用-goroutines-并发地对各个子数组进行排序" class="headerlink" title="二、使用 goroutines 并发地对各个子数组进行排序"></a>二、使用 goroutines 并发地对各个子数组进行排序</h2><figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">sort0</span><span class="hljs-params">(randNums <span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, sortNums <span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, wg *sync.WaitGroup)</span></span> &#123;<br>	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">100</span>; i++ &#123;<br>		<span class="hljs-keyword">go</span> sort2(randNums, sortNums, wg)<br>	&#125;<br>&#125;<br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">sort2</span><span class="hljs-params">(randNums <span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, sortNums <span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, wg *sync.WaitGroup)</span></span> &#123;<br>	int1000_Old := &lt;-randNums<br>	sort.Ints(int1000_Old)<br>	sortNums &lt;- int1000_Old<br>	wg.Done()<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、合并已排序的子数组，得到最终排序结果"><a href="#三、合并已排序的子数组，得到最终排序结果" class="headerlink" title="三、合并已排序的子数组，得到最终排序结果"></a>三、合并已排序的子数组，得到最终排序结果</h2><figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">mergeAll</span><span class="hljs-params">(sortNums <span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, wg *sync.WaitGroup)</span></span> []<span class="hljs-type">int</span> &#123;<br>	<span class="hljs-keyword">defer</span> wg.Done()<br>	temp2 := &lt;-sortNums<br>	<span class="hljs-keyword">var</span> temp1 []<span class="hljs-type">int</span><br>	<span class="hljs-keyword">for</span> i := <span class="hljs-number">1</span>; i &lt;= <span class="hljs-number">99</span>; i++ &#123;<br>		temp1 = <span class="hljs-built_in">make</span>([]<span class="hljs-type">int</span>, <span class="hljs-number">1000000</span>*i+<span class="hljs-number">1000000</span>)<br>		<span class="hljs-built_in">copy</span>(temp1, temp2)<br>		temp1 = merge(temp1, <span class="hljs-number">1000000</span>*i+<span class="hljs-number">1000000</span>, &lt;-sortNums, <span class="hljs-number">1000000</span>)<br>		temp2 = <span class="hljs-built_in">make</span>([]<span class="hljs-type">int</span>, <span class="hljs-number">1000000</span>*i+<span class="hljs-number">1000000</span>)<br>		<span class="hljs-built_in">copy</span>(temp2, temp1)<br>	&#125;<br>	<span class="hljs-keyword">return</span> temp2<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">merge</span><span class="hljs-params">(nums1 []<span class="hljs-type">int</span>, m <span class="hljs-type">int</span>, nums2 []<span class="hljs-type">int</span>, n <span class="hljs-type">int</span>)</span></span> []<span class="hljs-type">int</span> &#123;<br>	temp := <span class="hljs-built_in">make</span>([]<span class="hljs-type">int</span>, m)<br>	<span class="hljs-built_in">copy</span>(temp, nums1)<br><br>	t, j := <span class="hljs-number">0</span>, <span class="hljs-number">0</span> <span class="hljs-comment">//t为temp的索引，j为nums2的索引</span><br>	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-built_in">len</span>(nums1); i++ &#123;<br>		<span class="hljs-keyword">if</span> t &gt;= <span class="hljs-built_in">len</span>(temp) &#123;<br>			nums1[i] = nums2[j]<br>			j++<br>			<span class="hljs-keyword">continue</span><br>		&#125;<br>		<span class="hljs-keyword">if</span> j &gt;= n &#123;<br>			nums1[i] = temp[t]<br>			t++<br>			<span class="hljs-keyword">continue</span><br>		&#125;<br>		<span class="hljs-keyword">if</span> nums2[j] &lt;= temp[t] &#123;<br>			nums1[i] = nums2[j]<br>			j++<br>		&#125; <span class="hljs-keyword">else</span> &#123;<br>			nums1[i] = temp[t]<br>			t++<br>		&#125;<br>	&#125;<br>	<span class="hljs-keyword">return</span> nums1<br>&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="四、main-函数控制流程"><a href="#四、main-函数控制流程" class="headerlink" title="四、main 函数控制流程"></a>四、main 函数控制流程</h2><figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>	fmt.Println(<span class="hljs-string">&quot;开始运行!&quot;</span>)<br>	start := time.Now() <span class="hljs-comment">// 获取当前时间</span><br>	wg := sync.WaitGroup&#123;&#125;<br>	wg.Add(<span class="hljs-number">201</span>)<br>	randNums := <span class="hljs-built_in">make</span>(<span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, <span class="hljs-number">100</span>)<br>	sortNUms := <span class="hljs-built_in">make</span>(<span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, <span class="hljs-number">100</span>)<br><br>	<span class="hljs-keyword">go</span> randProduce(randNums, &amp;wg)<br>	<span class="hljs-keyword">go</span> sort0(randNums, sortNUms, &amp;wg)<br>	<span class="hljs-keyword">go</span> mergeAll(sortNUms, &amp;wg)<br><br>	wg.Wait()<br>	<span class="hljs-comment">// fmt.Println(l)</span><br>	elapsed := time.Since(start)<br>	fmt.Println(<span class="hljs-string">&quot;该函数执行完成耗时：&quot;</span>, elapsed)<br>&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="五、思路"><a href="#五、思路" class="headerlink" title="五、思路"></a>五、思路</h2><p>本案例采用了两个 channel，分别存储产生的的随机数slice和排好顺序的 slice，每一个 slice大小为 100 万，一共一百个 slice，也就是一亿个数据。</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go">randNums := <span class="hljs-built_in">make</span>(<span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, <span class="hljs-number">100</span>)<br>sortNUms := <span class="hljs-built_in">make</span>(<span class="hljs-keyword">chan</span> []<span class="hljs-type">int</span>, <span class="hljs-number">100</span>)<br></code></pre></td></tr></table></figure>
+<p>程序一边产生随机数，一边将产生的随机数randNums发送到 sort 函数进行排序，排好顺序后将数据发送到sortNUms。这两个流程可以并行计算，因此：</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">go</span> randProduce(randNums, &amp;wg)<br><span class="hljs-keyword">go</span> sort0(randNums, sortNUms, &amp;wg)<br></code></pre></td></tr></table></figure>
+<p>合并也可以参与到并行计算之中，多加一个信号量就好：</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">go</span> mergeAll(sortNUms, &amp;wg)<br></code></pre></td></tr></table></figure>
+
+<p>运行结果：</p>
+<blockquote>
+<p>(base) luliang@shenjian Sort % go build SortRoutine.go<br>(base) luliang@shenjian Sort % .&#x2F;SortRoutine<br>开始运行!<br>该函数执行完成耗时： 50.317081625s</p>
+</blockquote>
+<h2 id="六、性能比较"><a href="#六、性能比较" class="headerlink" title="六、性能比较"></a>六、性能比较</h2><p>可以写一个单线程的排序，但是数据产生还是多线程的：</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><br><span class="hljs-keyword">import</span> (<br>	<span class="hljs-string">&quot;fmt&quot;</span><br>	<span class="hljs-string">&quot;math/rand&quot;</span><br>	<span class="hljs-string">&quot;sort&quot;</span><br>	<span class="hljs-string">&quot;time&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>	fmt.Println(<span class="hljs-string">&quot;开始运行!&quot;</span>)<br>	start := time.Now() <span class="hljs-comment">// 获取当前时间</span><br><br>	randNums := <span class="hljs-built_in">make</span>(<span class="hljs-keyword">chan</span> <span class="hljs-type">int</span>, <span class="hljs-number">10000</span>)<br>	<span class="hljs-keyword">go</span> randProduce1(randNums)<br>	randNums1 := <span class="hljs-built_in">make</span>([]<span class="hljs-type">int</span>, <span class="hljs-number">100000000</span>)<br>	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">100000000</span>; i++ &#123;<br>		randNums1[i] = &lt;-randNums<br>	&#125;<br>	sort.Ints(randNums1)<br>	elapsed := time.Since(start)<br>	fmt.Println(<span class="hljs-string">&quot;该函数执行完成耗时：&quot;</span>, elapsed)<br>&#125;<br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">randProduce1</span><span class="hljs-params">(randNums <span class="hljs-keyword">chan</span> <span class="hljs-type">int</span>)</span></span> &#123;<br>	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10000</span>; i++ &#123;<br>		<span class="hljs-keyword">go</span> rand2(randNums)<br>	&#125;<br>&#125;<br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">rand2</span><span class="hljs-params">(randNums <span class="hljs-keyword">chan</span> <span class="hljs-type">int</span>)</span></span> &#123;<br><br>	r := rand.New(rand.NewSource(time.Now().Unix()))<br>	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10000</span>; i++ &#123;<br>		randNums &lt;- r.Intn(<span class="hljs-number">10000000</span>)<br>	&#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<p>运行结果为：</p>
+<blockquote>
+<p>(base) luliang@shenjian Sort % go build SortRoutine1.go<br>(base) luliang@shenjian Sort % .&#x2F;SortRoutine1<br>开始运行!<br>该函数执行完成耗时： 54.869565792s</p>
+</blockquote>
+<p>可以看到两种方法消耗的时间差不多，这是因为数据量还是太小，多线程生成数据、排序、以及合并开辟了大量的协程，这个会消耗一定的时间。</p>
+]]></content>
+      <categories>
+        <category>Golang</category>
+      </categories>
+      <tags>
+        <tag>算法</tag>
+        <tag>开发语言</tag>
+        <tag>golang</tag>
       </tags>
   </entry>
   <entry>
