@@ -16,13 +16,15 @@
   <meta name="author" content="Luyoung">
   <meta name="keywords" content="">
   
-    <meta property="og:type" content="article">
+    <meta name="description" content="当然，我很高兴为你提供一个针对拥有基础 Scala 知识但对 Chisel 完全零基础的入门教程。Chisel（Constructing Hardware In a Scala Embedded Language）是一个基于 Scala 的硬件描述语言，用于设计数字电路。这个教程将带你从环境设置开始，逐步介绍 Chisel 的基本概念和实际应用。  目录 Chisel 简介 环境设置 基本概念">
+<meta property="og:type" content="article">
 <meta property="og:title" content="30 分钟速成 Chisel">
 <meta property="og:url" content="http://blog.luliang.online/2024/09/18/30%E5%88%86%E9%92%9F%E9%80%9F%E6%88%90Chisel/index.html">
 <meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="当然，我很高兴为你提供一个针对拥有基础 Scala 知识但对 Chisel 完全零基础的入门教程。Chisel（Constructing Hardware In a Scala Embedded Language）是一个基于 Scala 的硬件描述语言，用于设计数字电路。这个教程将带你从环境设置开始，逐步介绍 Chisel 的基本概念和实际应用。  目录 Chisel 简介 环境设置 基本概念">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-09-18T05:50:40.000Z">
-<meta property="article:modified_time" content="2024-09-18T10:22:32.783Z">
+<meta property="article:modified_time" content="2024-09-18T11:28:17.934Z">
 <meta property="article:author" content="Luyoung">
 <meta property="article:tag" content="Scala">
 <meta property="article:tag" content="Chisel">
@@ -221,7 +223,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          0 字
+          1.9k 字
         
       </span>
     
@@ -232,7 +234,7 @@
         
         
         
-          1 分钟
+          17 分钟
         
       </span>
     
@@ -275,6 +277,186 @@
               <div class="markdown-body">
                 
                 <span id="more"></span>
+
+<p>当然，我很高兴为你提供一个针对拥有基础 Scala 知识但对 Chisel 完全零基础的入门教程。Chisel（Constructing Hardware In a Scala Embedded Language）是一个基于 Scala 的硬件描述语言，用于设计数字电路。这个教程将带你从环境设置开始，逐步介绍 Chisel 的基本概念和实际应用。</p>
+<hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ol>
+<li><a href="#1-chisel-%E7%AE%80%E4%BB%8B">Chisel 简介</a></li>
+<li><a href="#2-%E7%8E%AF%E5%A2%83%E8%AE%BE%E7%BD%AE">环境设置</a></li>
+<li><a href="#3-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5">基本概念</a><ul>
+<li><a href="#%E6%A8%A1%E5%9D%97module">模块（Module）</a></li>
+<li><a href="#io-%E5%92%8C-bundle">IO 和 Bundle</a></li>
+</ul>
+</li>
+<li><a href="#4-%E7%BC%96%E5%86%99%E7%AC%AC%E4%B8%80%E4%B8%AA-chisel-%E6%A8%A1%E5%9D%97">编写第一个 Chisel 模块</a></li>
+<li><a href="#5-%E8%BF%90%E8%A1%8C%E5%92%8C%E4%BB%BF%E7%9C%9F">运行和仿真</a></li>
+<li><a href="#6-%E7%94%9F%E6%88%90-verilog-%E4%BB%A3%E7%A0%81">生成 Verilog 代码</a></li>
+<li><a href="#7-%E7%A4%BA%E4%BE%8B%E9%A1%B9%E7%9B%AE">示例项目</a></li>
+<li><a href="#8-%E8%BF%9B%E4%B8%80%E6%AD%A5%E5%AD%A6%E4%B9%A0%E8%B5%84%E6%BA%90">进一步学习资源</a></li>
+</ol>
+<hr>
+<h2 id="1-Chisel-简介"><a href="#1-Chisel-简介" class="headerlink" title="1. Chisel 简介"></a>1. Chisel 简介</h2><p><strong>Chisel</strong> 是一个嵌入在 Scala 中的硬件描述语言，旨在简化数字电路的设计过程。它利用了 Scala 的强大功能，如高阶函数、抽象和类型系统，使得硬件设计更加灵活和模块化。</p>
+<p><strong>Chisel 的主要特点：</strong></p>
+<ul>
+<li><strong>高度抽象</strong>：利用 Scala 的面向对象和函数式编程特性，实现高层次的硬件描述。</li>
+<li><strong>可重用性</strong>：模块化设计，便于重用和扩展。</li>
+<li><strong>强大的生成能力</strong>：能够生成高效的 Verilog 代码，供 FPGA 或 ASIC 实现使用。</li>
+</ul>
+<hr>
+<h2 id="2-环境设置"><a href="#2-环境设置" class="headerlink" title="2. 环境设置"></a>2. 环境设置</h2><p>要开始使用 Chisel，你需要设置开发环境。以下是基本的步骤：</p>
+<h3 id="2-1-安装-Java"><a href="#2-1-安装-Java" class="headerlink" title="2.1 安装 Java"></a>2.1 安装 Java</h3><p>Chisel 基于 Scala 和 Java，因此需要先安装 Java。</p>
+<ol>
+<li><p><strong>检查是否已安装 Java</strong>：</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">java -version<br></code></pre></td></tr></table></figure>
+
+<p> 如果没有安装，请前往 <a target="_blank" rel="noopener" href="https://www.oracle.com/java/technologies/javase-jdk11-downloads.html">Oracle 官方网站</a> 或使用包管理器安装 OpenJDK。</p>
+</li>
+<li><p><strong>安装 OpenJDK（以 Ubuntu 为例）</strong>：</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">sudo apt update<br>sudo apt install openjdk-11-jdk<br></code></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="2-2-安装-Scala-和-sbt"><a href="#2-2-安装-Scala-和-sbt" class="headerlink" title="2.2 安装 Scala 和 sbt"></a>2.2 安装 Scala 和 sbt</h3><p><strong>sbt</strong>（Scala Build Tool）是 Scala 的构建工具，Chisel 项目通常使用 sbt 进行管理。</p>
+<ol>
+<li><p><strong>安装 sbt</strong>：</p>
+<ul>
+<li><p><strong>Ubuntu</strong>：</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;deb https://repo.scala-sbt.org/scalasbt/debian all main&quot;</span> | sudo <span class="hljs-built_in">tee</span> /etc/apt/sources.list.d/sbt.list<br><span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;deb https://repo.scala-sbt.org/scalasbt/debian /&quot;</span> | sudo <span class="hljs-built_in">tee</span> /etc/apt/sources.list.d/sbt_old.list<br>curl -sL <span class="hljs-string">&quot;https://keyserver.ubuntu.com/pks/lookup?op=get&amp;search=0x99E82A75642AC823&quot;</span> | sudo apt-key add<br>sudo apt update<br>sudo apt install sbt<br></code></pre></td></tr></table></figure>
+</li>
+<li><p><strong>macOS（使用 Homebrew）</strong>：</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">brew install sbt<br></code></pre></td></tr></table></figure>
+</li>
+<li><p><strong>Windows</strong>：</p>
+<p>  前往 <a target="_blank" rel="noopener" href="https://www.scala-sbt.org/download.html">sbt 官方下载页面</a> 下载并安装。</p>
+</li>
+</ul>
+</li>
+</ol>
+<h3 id="2-3-创建-Chisel-项目"><a href="#2-3-创建-Chisel-项目" class="headerlink" title="2.3 创建 Chisel 项目"></a>2.3 创建 Chisel 项目</h3><ol>
+<li><p><strong>创建项目目录</strong>：</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">mkdir</span> MyChiselProject<br><span class="hljs-built_in">cd</span> MyChiselProject<br></code></pre></td></tr></table></figure>
+</li>
+<li><p><strong>初始化 sbt 项目</strong>：</p>
+<p> 在项目根目录下创建一个名为 <code>build.sbt</code> 的文件，内容如下：</p>
+ <figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs scala">name := <span class="hljs-string">&quot;MyChiselProject&quot;</span><br><br>version := <span class="hljs-string">&quot;0.1&quot;</span><br><br>scalaVersion := <span class="hljs-string">&quot;2.12.15&quot;</span><br><br>libraryDependencies ++= <span class="hljs-type">Seq</span>(<br>  <span class="hljs-string">&quot;edu.berkeley.cs&quot;</span> %% <span class="hljs-string">&quot;chisel3&quot;</span> % <span class="hljs-string">&quot;3.5.4&quot;</span>,<br>  <span class="hljs-string">&quot;edu.berkeley.cs&quot;</span> %% <span class="hljs-string">&quot;chiseltest&quot;</span> % <span class="hljs-string">&quot;0.5.4&quot;</span> % <span class="hljs-string">&quot;test&quot;</span>,<br>  <span class="hljs-string">&quot;edu.berkeley.cs&quot;</span> %% <span class="hljs-string">&quot;firrtl&quot;</span> % <span class="hljs-string">&quot;1.5.4&quot;</span><br>)<br></code></pre></td></tr></table></figure>
+
+<p> <strong>说明</strong>：</p>
+<ul>
+<li><code>chisel3</code>：Chisel 核心库。</li>
+<li><code>chiseltest</code>：Chisel 测试库，用于编写测试代码。</li>
+<li><code>firrtl</code>：Chisel 编译工具，负责将 Chisel 代码转换为 Verilog。</li>
+</ul>
+</li>
+<li><p><strong>创建目录结构</strong>：</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">mkdir</span> -p src/main/scala<br><span class="hljs-built_in">mkdir</span> -p src/test/scala<br></code></pre></td></tr></table></figure>
+</li>
+<li><p><strong>添加依赖</strong>：</p>
+<p> 运行 sbt 命令，下载所需的依赖。</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">sbt compile<br></code></pre></td></tr></table></figure>
+
+<p> 第一次运行时，sbt 会自动下载依赖，这可能需要一些时间。</p>
+</li>
+</ol>
+<hr>
+<h2 id="3-基本概念"><a href="#3-基本概念" class="headerlink" title="3. 基本概念"></a>3. 基本概念</h2><h3 id="模块（Module）"><a href="#模块（Module）" class="headerlink" title="模块（Module）"></a>模块（Module）</h3><p><strong>模块</strong> 是 Chisel 中的基本构建块，类似于 Verilog 中的模块或 VHDL 中的实体。每个模块可以包含输入输出端口（IO）和内部逻辑。</p>
+<h3 id="IO-和-Bundle"><a href="#IO-和-Bundle" class="headerlink" title="IO 和 Bundle"></a>IO 和 Bundle</h3><p><strong>IO</strong> 定义了模块的输入和输出端口，<strong>Bundle</strong> 是一种将多个信号组合在一起的方式，类似于结构体。</p>
+<hr>
+<h2 id="4-编写第一个-Chisel-模块"><a href="#4-编写第一个-Chisel-模块" class="headerlink" title="4. 编写第一个 Chisel 模块"></a>4. 编写第一个 Chisel 模块</h2><p>让我们编写一个简单的 <strong>D Flip-Flop</strong> 模块，展示如何定义输入输出和内部逻辑。</p>
+<h3 id="4-1-创建-FlipFlop-scala"><a href="#4-1-创建-FlipFlop-scala" class="headerlink" title="4.1 创建 FlipFlop.scala"></a>4.1 创建 FlipFlop.scala</h3><p>在 <code>src/main/scala</code> 目录下创建一个名为 <code>FlipFlop.scala</code> 的文件，内容如下：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-keyword">import</span> chisel3._<br><br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">FlipFlop</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Module</span> </span>&#123;<br>  <span class="hljs-keyword">val</span> io = <span class="hljs-type">IO</span>(<span class="hljs-keyword">new</span> <span class="hljs-type">Bundle</span> &#123;<br>    <span class="hljs-keyword">val</span> d = <span class="hljs-type">Input</span>(<span class="hljs-type">Bool</span>())  <span class="hljs-comment">// 输入信号 D</span><br>    <span class="hljs-keyword">val</span> clk = <span class="hljs-type">Input</span>(<span class="hljs-type">Clock</span>()) <span class="hljs-comment">// 时钟信号</span><br>    <span class="hljs-keyword">val</span> q = <span class="hljs-type">Output</span>(<span class="hljs-type">Bool</span>()) <span class="hljs-comment">// 输出信号 Q</span><br>  &#125;)<br><br>  withClock(io.clk) &#123; <span class="hljs-comment">// 使用输入的时钟信号</span><br>    <span class="hljs-keyword">val</span> reg = <span class="hljs-type">RegInit</span>(<span class="hljs-literal">false</span>.<span class="hljs-type">B</span>) <span class="hljs-comment">// 定义一个寄存器，初始值为 false</span><br>    reg := io.d                <span class="hljs-comment">// 在每个时钟上升沿，将 D 的值赋给寄存器</span><br>    io.q := reg                <span class="hljs-comment">// 输出寄存器的值</span><br>  &#125;<br>&#125;<br><br><span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">FlipFlop</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">App</span> </span>&#123;<br>  chisel3.<span class="hljs-type">Driver</span>.execute(args, () =&gt; <span class="hljs-keyword">new</span> <span class="hljs-type">FlipFlop</span>)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="4-2-代码解释"><a href="#4-2-代码解释" class="headerlink" title="4.2 代码解释"></a>4.2 代码解释</h3><ul>
+<li><p><strong>导入 Chisel 库</strong>：</p>
+  <figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-keyword">import</span> chisel3._<br></code></pre></td></tr></table></figure>
+</li>
+<li><p><strong>定义模块</strong>：</p>
+  <figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">FlipFlop</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Module</span> </span>&#123;<br>  ...<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>  <code>FlipFlop</code> 类继承自 <code>Module</code>，表示这是一个 Chisel 模块。</p>
+</li>
+<li><p><strong>定义 IO</strong>：</p>
+  <figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-keyword">val</span> io = <span class="hljs-type">IO</span>(<span class="hljs-keyword">new</span> <span class="hljs-type">Bundle</span> &#123;<br>  <span class="hljs-keyword">val</span> d = <span class="hljs-type">Input</span>(<span class="hljs-type">Bool</span>())<br>  <span class="hljs-keyword">val</span> clk = <span class="hljs-type">Input</span>(<span class="hljs-type">Clock</span>())<br>  <span class="hljs-keyword">val</span> q = <span class="hljs-type">Output</span>(<span class="hljs-type">Bool</span>())<br>&#125;)<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><code>d</code>：输入信号，布尔类型。</li>
+<li><code>clk</code>：时钟信号。</li>
+<li><code>q</code>：输出信号，布尔类型。</li>
+</ul>
+</li>
+<li><p><strong>定义寄存器和逻辑</strong>：</p>
+  <figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs scala">withClock(io.clk) &#123;<br>  <span class="hljs-keyword">val</span> reg = <span class="hljs-type">RegInit</span>(<span class="hljs-literal">false</span>.<span class="hljs-type">B</span>)<br>  reg := io.d<br>  io.q := reg<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>使用 <code>withClock</code> 指定模块使用的时钟信号。</li>
+<li><code>RegInit(false.B)</code> 定义一个初始值为 <code>false</code> 的寄存器。</li>
+<li>在每个时钟周期，将 <code>d</code> 的值赋给寄存器。</li>
+<li>将寄存器的值输出到 <code>q</code>。</li>
+</ul>
+</li>
+<li><p><strong>生成 Verilog</strong>：</p>
+  <figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">FlipFlop</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">App</span> </span>&#123;<br>  chisel3.<span class="hljs-type">Driver</span>.execute(args, () =&gt; <span class="hljs-keyword">new</span> <span class="hljs-type">FlipFlop</span>)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>  运行 <code>FlipFlop</code> 对象，将生成对应的 Verilog 代码。</p>
+</li>
+</ul>
+<h3 id="4-3-生成-Verilog-代码"><a href="#4-3-生成-Verilog-代码" class="headerlink" title="4.3 生成 Verilog 代码"></a>4.3 生成 Verilog 代码</h3><p>在项目根目录下运行以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">sbt <span class="hljs-string">&quot;runMain FlipFlop&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>运行成功后，Verilog 文件将生成在 <code>./generated/FlipFlop.v</code> 路径下。</p>
+<hr>
+<h2 id="5-运行和仿真"><a href="#5-运行和仿真" class="headerlink" title="5. 运行和仿真"></a>5. 运行和仿真</h2><p>Chisel 提供了强大的仿真功能，允许你验证设计的正确性。以下是使用 ChiselTest 进行简单仿真的步骤。</p>
+<h3 id="5-1-编写测试代码"><a href="#5-1-编写测试代码" class="headerlink" title="5.1 编写测试代码"></a>5.1 编写测试代码</h3><p>在 <code>src/test/scala</code> 目录下创建一个名为 <code>FlipFlopTest.scala</code> 的文件，内容如下：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-keyword">import</span> chisel3._<br><span class="hljs-keyword">import</span> chiseltest._<br><span class="hljs-keyword">import</span> org.scalatest.flatspec.<span class="hljs-type">AnyFlatSpec</span><br><br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">FlipFlopTest</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AnyFlatSpec</span> <span class="hljs-keyword">with</span> <span class="hljs-title">ChiselScalatestTester</span> </span>&#123;<br>  <span class="hljs-string">&quot;FlipFlop&quot;</span> should <span class="hljs-string">&quot;correctly store the input on the rising edge of the clock&quot;</span> in &#123;<br>    test(<span class="hljs-keyword">new</span> <span class="hljs-type">FlipFlop</span>) &#123; c =&gt;<br>      <span class="hljs-comment">// 初始状态</span><br>      c.io.d.poke(<span class="hljs-literal">false</span>.<span class="hljs-type">B</span>)<br>      c.io.clk.poke(<span class="hljs-literal">true</span>.<span class="hljs-type">B</span>)<br>      c.clock.step(<span class="hljs-number">1</span>)<br>      c.io.q.expect(<span class="hljs-literal">false</span>.<span class="hljs-type">B</span>)<br><br>      <span class="hljs-comment">// 设置 D 为 true</span><br>      c.io.d.poke(<span class="hljs-literal">true</span>.<span class="hljs-type">B</span>)<br>      c.clock.step(<span class="hljs-number">1</span>)<br>      c.io.q.expect(<span class="hljs-literal">true</span>.<span class="hljs-type">B</span>)<br><br>      <span class="hljs-comment">// 设置 D 为 false</span><br>      c.io.d.poke(<span class="hljs-literal">false</span>.<span class="hljs-type">B</span>)<br>      c.clock.step(<span class="hljs-number">1</span>)<br>      c.io.q.expect(<span class="hljs-literal">false</span>.<span class="hljs-type">B</span>)<br>    &#125;<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="5-2-代码解释"><a href="#5-2-代码解释" class="headerlink" title="5.2 代码解释"></a>5.2 代码解释</h3><ul>
+<li><p><strong>导入必要库</strong>：</p>
+  <figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-keyword">import</span> chisel3._<br><span class="hljs-keyword">import</span> chiseltest._<br><span class="hljs-keyword">import</span> org.scalatest.flatspec.<span class="hljs-type">AnyFlatSpec</span><br></code></pre></td></tr></table></figure>
+</li>
+<li><p><strong>定义测试类</strong>：</p>
+  <figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">FlipFlopTest</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AnyFlatSpec</span> <span class="hljs-keyword">with</span> <span class="hljs-title">ChiselScalatestTester</span> </span>&#123;<br>  ...<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>  <code>FlipFlopTest</code> 类继承自 <code>AnyFlatSpec</code> 并混入 <code>ChiselScalatestTester</code>，用于编写测试用例。</p>
+</li>
+<li><p><strong>编写测试用例</strong>：</p>
+  <figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-string">&quot;FlipFlop&quot;</span> should <span class="hljs-string">&quot;correctly store the input on the rising edge of the clock&quot;</span> in &#123;<br>  test(<span class="hljs-keyword">new</span> <span class="hljs-type">FlipFlop</span>) &#123; c =&gt;<br>    <span class="hljs-comment">// 初始状态</span><br>    c.io.d.poke(<span class="hljs-literal">false</span>.<span class="hljs-type">B</span>)<br>    c.io.clk.poke(<span class="hljs-literal">true</span>.<span class="hljs-type">B</span>)<br>    c.clock.step(<span class="hljs-number">1</span>)<br>    c.io.q.expect(<span class="hljs-literal">false</span>.<span class="hljs-type">B</span>)<br><br>    <span class="hljs-comment">// 设置 D 为 true</span><br>    c.io.d.poke(<span class="hljs-literal">true</span>.<span class="hljs-type">B</span>)<br>    c.clock.step(<span class="hljs-number">1</span>)<br>    c.io.q.expect(<span class="hljs-literal">true</span>.<span class="hljs-type">B</span>)<br><br>    <span class="hljs-comment">// 设置 D 为 false</span><br>    c.io.d.poke(<span class="hljs-literal">false</span>.<span class="hljs-type">B</span>)<br>    c.clock.step(<span class="hljs-number">1</span>)<br>    c.io.q.expect(<span class="hljs-literal">false</span>.<span class="hljs-type">B</span>)<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>**<code>poke</code>**：设置输入信号的值。</li>
+<li>**<code>step</code>**：推进时钟一个周期。</li>
+<li>**<code>expect</code>**：检查输出信号的值是否符合预期。</li>
+</ul>
+</li>
+</ul>
+<h3 id="5-3-运行测试"><a href="#5-3-运行测试" class="headerlink" title="5.3 运行测试"></a>5.3 运行测试</h3><p>在项目根目录下运行以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">sbt <span class="hljs-built_in">test</span><br></code></pre></td></tr></table></figure>
+
+<p>如果一切正常，你将看到测试通过的消息。</p>
+<hr>
+<h2 id="6-生成-Verilog-代码"><a href="#6-生成-Verilog-代码" class="headerlink" title="6. 生成 Verilog 代码"></a>6. 生成 Verilog 代码</h2><p>Chisel 设计的最终目标通常是生成可用于 FPGA 或 ASIC 实现的 Verilog 代码。以下是生成 Verilog 的基本步骤。</p>
+<h3 id="6-1-使用-Chisel-工具生成-Verilog"><a href="#6-1-使用-Chisel-工具生成-Verilog" class="headerlink" title="6.1 使用 Chisel 工具生成 Verilog"></a>6.1 使用 Chisel 工具生成 Verilog</h3><p>假设你已经编写了一个名为 <code>FlipFlop</code> 的 Chisel 模块，并且定义了对应的 <code>object</code> 来生成 Verilog 代码。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">FlipFlop</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">App</span> </span>&#123;<br>  chisel3.<span class="hljs-type">Driver</span>.execute(args, () =&gt; <span class="hljs-keyword">new</span> <span class="hljs-type">FlipFlop</span>)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="6-2-生成-Verilog"><a href="#6-2-生成-Verilog" class="headerlink" title="6.2 生成 Verilog"></a>6.2 生成 Verilog</h3><p>在项目根目录下运行以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">sbt <span class="hljs-string">&quot;runMain FlipFlop&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>运行成功后，Verilog 文件将生成在 <code>./generated/FlipFlop.v</code> 路径下。</p>
+<h3 id="6-3-查看生成的-Verilog"><a href="#6-3-查看生成的-Verilog" class="headerlink" title="6.3 查看生成的 Verilog"></a>6.3 查看生成的 Verilog</h3><p>打开 <code>generated/FlipFlop.v</code>，你将看到类似以下内容：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">module</span> FlipFlop(<br>  <span class="hljs-keyword">input</span>  d,<br>  <span class="hljs-keyword">input</span>  clk,<br>  <span class="hljs-keyword">output</span> q<br>);<br>  <span class="hljs-keyword">reg</span> q_reg;<br>  <span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk) <span class="hljs-keyword">begin</span><br>    q_reg &lt;= d;<br>  <span class="hljs-keyword">end</span><br>  <span class="hljs-keyword">assign</span> q = q_reg;<br><span class="hljs-keyword">endmodule</span><br></code></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="7-示例项目"><a href="#7-示例项目" class="headerlink" title="7. 示例项目"></a>7. 示例项目</h2><p>让我们通过一个更复杂的示例，整合前面学到的知识。这里，我们将设计一个简单的 <strong>计数器</strong> 模块，并编写对应的测试。</p>
+<h3 id="7-1-创建-Counter-scala"><a href="#7-1-创建-Counter-scala" class="headerlink" title="7.1 创建 Counter.scala"></a>7.1 创建 Counter.scala</h3><p>在 <code>src/main/scala</code> 目录下创建 <code>Counter.scala</code>，内容如下：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-keyword">import</span> chisel3._<br><br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Counter</span>(<span class="hljs-params">val max: <span class="hljs-type">Int</span> = 10</span>) <span class="hljs-keyword">extends</span> <span class="hljs-title">Module</span> </span>&#123;<br>  <span class="hljs-keyword">val</span> io = <span class="hljs-type">IO</span>(<span class="hljs-keyword">new</span> <span class="hljs-type">Bundle</span> &#123;<br>    <span class="hljs-keyword">val</span> count = <span class="hljs-type">Output</span>(<span class="hljs-type">UInt</span>(log2Ceil(max + <span class="hljs-number">1</span>).<span class="hljs-type">W</span>))<br>    <span class="hljs-keyword">val</span> done = <span class="hljs-type">Output</span>(<span class="hljs-type">Bool</span>())<br>  &#125;)<br><br>  <span class="hljs-keyword">val</span> reg = <span class="hljs-type">RegInit</span>(<span class="hljs-number">0.</span><span class="hljs-type">U</span>(log2Ceil(max + <span class="hljs-number">1</span>).<span class="hljs-type">W</span>))<br>  when(reg &lt; (max).<span class="hljs-type">U</span>) &#123;<br>    reg := reg + <span class="hljs-number">1.</span><span class="hljs-type">U</span><br>  &#125; .otherwise &#123;<br>    reg := <span class="hljs-number">0.</span><span class="hljs-type">U</span><br>  &#125;<br><br>  io.count := reg<br>  io.done := reg === (max).<span class="hljs-type">U</span><br>&#125;<br><br><span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">Counter</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">App</span> </span>&#123;<br>  chisel3.<span class="hljs-type">Driver</span>.execute(args, () =&gt; <span class="hljs-keyword">new</span> <span class="hljs-type">Counter</span>(<span class="hljs-number">10</span>))<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="7-2-编写测试代码"><a href="#7-2-编写测试代码" class="headerlink" title="7.2 编写测试代码"></a>7.2 编写测试代码</h3><p>在 <code>src/test/scala</code> 目录下创建 <code>CounterTest.scala</code>，内容如下：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-keyword">import</span> chisel3._<br><span class="hljs-keyword">import</span> chiseltest._<br><span class="hljs-keyword">import</span> org.scalatest.flatspec.<span class="hljs-type">AnyFlatSpec</span><br><br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CounterTest</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AnyFlatSpec</span> <span class="hljs-keyword">with</span> <span class="hljs-title">ChiselScalatestTester</span> </span>&#123;<br>  <span class="hljs-string">&quot;Counter&quot;</span> should <span class="hljs-string">&quot;count from 0 to max and then reset&quot;</span> in &#123;<br>    test(<span class="hljs-keyword">new</span> <span class="hljs-type">Counter</span>(<span class="hljs-number">5</span>)) &#123; c =&gt;<br>      <span class="hljs-comment">// 初始状态</span><br>      c.io.count.expect(<span class="hljs-number">0.</span><span class="hljs-type">U</span>)<br>      c.io.done.expect(<span class="hljs-literal">false</span>.<span class="hljs-type">B</span>)<br><br>      <span class="hljs-comment">// 逐步计数</span><br>      <span class="hljs-keyword">for</span> (i &lt;- <span class="hljs-number">1</span> to <span class="hljs-number">5</span>) &#123;<br>        c.clock.step(<span class="hljs-number">1</span>)<br>        c.io.count.expect(i.<span class="hljs-type">U</span>)<br>        <span class="hljs-keyword">if</span> (i == <span class="hljs-number">5</span>) &#123;<br>          c.io.done.expect(<span class="hljs-literal">true</span>.<span class="hljs-type">B</span>)<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>          c.io.done.expect(<span class="hljs-literal">false</span>.<span class="hljs-type">B</span>)<br>        &#125;<br>      &#125;<br><br>      <span class="hljs-comment">// 重置后计数</span><br>      c.clock.step(<span class="hljs-number">1</span>)<br>      c.io.count.expect(<span class="hljs-number">0.</span><span class="hljs-type">U</span>)<br>      c.io.done.expect(<span class="hljs-literal">false</span>.<span class="hljs-type">B</span>)<br>    &#125;<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="7-3-运行测试"><a href="#7-3-运行测试" class="headerlink" title="7.3 运行测试"></a>7.3 运行测试</h3><p>在项目根目录下运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">sbt <span class="hljs-built_in">test</span><br></code></pre></td></tr></table></figure>
+
+<p>测试应通过，验证计数器的正确性。</p>
+<h3 id="7-4-生成-Verilog"><a href="#7-4-生成-Verilog" class="headerlink" title="7.4 生成 Verilog"></a>7.4 生成 Verilog</h3><p>运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">sbt <span class="hljs-string">&quot;runMain Counter&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>生成的 Verilog 文件位于 <code>./generated/Counter.v</code>。</p>
 
                 
               </div>
