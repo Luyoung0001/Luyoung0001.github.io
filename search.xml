@@ -243,64 +243,6 @@
       </tags>
   </entry>
   <entry>
-    <title>2024.06.16 刷题日记</title>
-    <url>/2024/06/16/2024.06.16%20%E5%88%B7%E9%A2%98%E6%97%A5%E8%AE%B0/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>今天刷了大概两个半小时，一边刷一边学，一边吃零食。效率有点低了~</p>
-<p>以后每天都会刷，并且写刷题日记，题目标题有题目序号以及题目名称，方便以后查询。</p>
-<h2 id="1-两数之和"><a href="#1-两数之和" class="headerlink" title="1. 两数之和"></a>1. 两数之和</h2><p>重点是要降低时间复杂度，所以用哈希表了，由于不能重复出现，所以是先查询后插入：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function">vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">twoSum</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; nums, <span class="hljs-type">int</span> target)</span> </span>&#123;<br>        unordered_map&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt; map;<br>        <span class="hljs-type">int</span> t;<br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; nums.<span class="hljs-built_in">size</span>(); i++)&#123;<br>            t = target-nums[i];<br>            <span class="hljs-keyword">if</span>(map.<span class="hljs-built_in">find</span>(t) != map.<span class="hljs-built_in">end</span>())&#123;<br>                <span class="hljs-keyword">return</span> &#123;i,map[t]&#125;;<br>            &#125;<span class="hljs-keyword">else</span>&#123;<br>                map[nums[i]] = i;<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> &#123;&#125;;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
-<h2 id="49-字母异位词分组"><a href="#49-字母异位词分组" class="headerlink" title="49. 字母异位词分组"></a>49. 字母异位词分组</h2><p>这道题目思考了一会儿，每一个单词都以抽象为一个有序的序列，因此要对字符串进行排序，然后排序后的字符串为key，<code>vector&lt;string&gt;</code> 为 value。这里需要注意的是利用移动语义提高性能：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    vector&lt;vector&lt;string&gt;&gt; <span class="hljs-built_in">groupAnagrams</span>(vector&lt;string&gt;&amp; strs) &#123;<br>        unordered_map&lt;string, vector&lt;string&gt;&gt; map;<br>        vector&lt;vector&lt;string&gt;&gt; ans;<br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">const</span> <span class="hljs-keyword">auto</span> &amp;s:strs)&#123;<br>            string key = s;<br>            <span class="hljs-built_in">sort</span>(key.<span class="hljs-built_in">begin</span>(), key.<span class="hljs-built_in">end</span>());<br>            map[key].<span class="hljs-built_in">push_back</span>(s);<br>        &#125;<br>        <span class="hljs-keyword">for</span>(<span class="hljs-keyword">auto</span> &amp;v:map)&#123;<br>            ans.<span class="hljs-built_in">push_back</span>(std::<span class="hljs-built_in">move</span>(v.second));<br>        &#125;<br>        <span class="hljs-keyword">return</span> ans;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
-<h2 id="128-最长连续序列"><a href="#128-最长连续序列" class="headerlink" title="128. 最长连续序列"></a>128. 最长连续序列</h2><p>这个题目也想了一会儿，重点是现将这些值放到 set 中降低时间复杂度。然后将每一个 num 判断是否为开始的元素，如果是，就查询 num+1：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">longestConsecutive</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; nums)</span> </span>&#123;<br>        <span class="hljs-function">unordered_set&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">set</span><span class="hljs-params">(nums.begin(), nums.end())</span></span>;<br>        <span class="hljs-type">int</span> max_len = <span class="hljs-number">0</span>, temp, len;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> num : set) &#123;<br>            <span class="hljs-keyword">if</span> (!set.<span class="hljs-built_in">count</span>(num - <span class="hljs-number">1</span>)) &#123;<br>                len = <span class="hljs-number">0</span>;<br>                temp = num;<br>                <span class="hljs-keyword">while</span> (set.<span class="hljs-built_in">count</span>(temp)) &#123;<br>                    temp++;<br>                    len++;<br>                &#125;<br>                max_len = <span class="hljs-built_in">max</span>(len, max_len);<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> max_len;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
-<h2 id="283-移动零"><a href="#283-移动零" class="headerlink" title="283. 移动零"></a>283. 移动零</h2><p>这个题目还挺难，虽然标着简单，这是经典的双指针问题。用两个指针，一个维护当前数组，另一个用于搜索非零元素，找到之后，将右指针的值赋值给零元素，然后右指针指向的值赋为 0：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">moveZeroes</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; nums)</span> </span>&#123;<br>        <span class="hljs-type">int</span> left = <span class="hljs-number">0</span>;<br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> r = <span class="hljs-number">0</span>; r &lt; nums.<span class="hljs-built_in">size</span>(); r++)&#123;<br>            <span class="hljs-keyword">if</span>(nums[r] != <span class="hljs-number">0</span>)&#123;<br>                <span class="hljs-keyword">if</span>(r != left)&#123;<br>                    nums[left] = nums[r];<br>                    nums[r] = <span class="hljs-number">0</span>;<br>                &#125;<br>                left++;<br>            &#125;<br>        &#125;<br><br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
-<h2 id="11-盛最多水的容器"><a href="#11-盛最多水的容器" class="headerlink" title="11. 盛最多水的容器"></a>11. 盛最多水的容器</h2><p>这个依然是双指针，然后贪心，从两边向中间紧靠。紧靠的原则是，哪边低哪边向中间靠：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">maxArea</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; height)</span> </span>&#123;<br>        <span class="hljs-type">int</span> left = <span class="hljs-number">0</span>, right = height.<span class="hljs-built_in">size</span>() - <span class="hljs-number">1</span>;<br>        <span class="hljs-type">int</span> max = <span class="hljs-number">0</span>;<br>        <span class="hljs-keyword">while</span> (left &lt; right) &#123;<br>            max = std::<span class="hljs-built_in">max</span>(max,<br>                           (right - left) * <span class="hljs-built_in">min</span>(height[left], height[right]));<br>            <span class="hljs-keyword">if</span>(height[left] &lt; height[right])&#123;<br>                left++;<br>            &#125;<span class="hljs-keyword">else</span>&#123;<br>                right--;<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> max;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
-<h2 id="15-三数之和"><a href="#15-三数之和" class="headerlink" title="15. 三数之和"></a>15. 三数之和</h2><p>首先排序，然后利用三指针。<code>nums[i]</code>为第一个，第二个指针为 <code>nums[i+1]</code>，下一个指针为 <code>nums[len-1]</code>，判断这三个值知否为 0。然后遍历 <code>nums[i]</code>，为了不重复，需要跳过 <code>nums[i] when nums[i] == nums[i+1]</code>：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    vector&lt;vector&lt;<span class="hljs-type">int</span>&gt;&gt; <span class="hljs-built_in">threeSum</span>(vector&lt;<span class="hljs-type">int</span>&gt;&amp; nums) &#123;<br>        <span class="hljs-built_in">sort</span>(nums.<span class="hljs-built_in">begin</span>(), nums.<span class="hljs-built_in">end</span>());<br>        vector&lt;vector&lt;<span class="hljs-type">int</span>&gt;&gt; result;<br>        <span class="hljs-type">int</span> len = nums.<span class="hljs-built_in">size</span>(), left, right;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; len; i++) &#123;<br>            <span class="hljs-keyword">if</span> (nums[i] &gt; <span class="hljs-number">0</span>)<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">if</span> (i &gt; <span class="hljs-number">0</span> &amp;&amp; nums[i] == nums[i - <span class="hljs-number">1</span>])<br>                <span class="hljs-keyword">continue</span>;<br>            left = i + <span class="hljs-number">1</span>;<br>            right = len - <span class="hljs-number">1</span>;<br>            <span class="hljs-keyword">while</span> (left &lt; right) &#123;<br>                <span class="hljs-type">int</span> sum = nums[i] + nums[left] + nums[right];<br>                <span class="hljs-keyword">if</span> (sum == <span class="hljs-number">0</span>) &#123;<br>                    result.<span class="hljs-built_in">push_back</span>(&#123;nums[i], nums[left], nums[right]&#125;);<br>                    <span class="hljs-keyword">while</span> (left &lt; right &amp;&amp; nums[left] == nums[left + <span class="hljs-number">1</span>])<br>                        ++left;<br>                    <span class="hljs-keyword">while</span> (left &lt; right &amp;&amp; nums[right] == nums[right - <span class="hljs-number">1</span>])<br>                        --right;<br>                    ++left;<br>                    --right;<br>                &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (sum &lt; <span class="hljs-number">0</span>) &#123;<br>                    ++left;<br>                &#125; <span class="hljs-keyword">else</span> &#123;<br>                    --right;<br>                &#125;<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> result;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
-<h2 id="每日总结（gpt4）"><a href="#每日总结（gpt4）" class="headerlink" title="每日总结（gpt4）"></a>每日总结（gpt4）</h2><h3 id="1-两数之和-1"><a href="#1-两数之和-1" class="headerlink" title="1. 两数之和"></a>1. 两数之和</h3><ul>
-<li><strong>关键点</strong>：使用哈希表来优化查找过程，从而将时间复杂度降低到O(n)。</li>
-<li><strong>策略</strong>：通过存储每个数字和它的索引，我们可以快速检查目标值减去当前数字是否已经在哈希表中，这样避免了二次循环。</li>
-</ul>
-<h3 id="49-字母异位词分组-1"><a href="#49-字母异位词分组-1" class="headerlink" title="49. 字母异位词分组"></a>49. 字母异位词分组</h3><ul>
-<li><strong>关键点</strong>：将每个字符串排序，使用排序后的结果作为键值来组织哈希表。</li>
-<li><strong>策略</strong>：排序字符串以标准化字母异位词，确保所有异位词都映射到相同的键下。使用移动语义优化性能。</li>
-</ul>
-<h3 id="128-最长连续序列-1"><a href="#128-最长连续序列-1" class="headerlink" title="128. 最长连续序列"></a>128. 最长连续序列</h3><ul>
-<li><strong>关键点</strong>：使用集合（Set）来存储所有数字，快速判断数字连续性。</li>
-<li><strong>策略</strong>：只从序列的可能开始位置检查（即当前数字的前一个数字不在集合中），避免重复计算。</li>
-</ul>
-<h3 id="283-移动零-1"><a href="#283-移动零-1" class="headerlink" title="283. 移动零"></a>283. 移动零</h3><ul>
-<li><strong>关键点</strong>：使用双指针技术高效解决问题，一个指针用于迭代，一个指针用于维护非零数组的当前边界。</li>
-<li><strong>策略</strong>：当遇到非零元素时，将其移动到左边已处理区域的末尾，保持零元素在右边。</li>
-</ul>
-<h3 id="11-盛最多水的容器-1"><a href="#11-盛最多水的容器-1" class="headerlink" title="11. 盛最多水的容器"></a>11. 盛最多水的容器</h3><ul>
-<li><strong>关键点</strong>：使用双指针从数组两端向中心移动，选择合适的策略来尽可能扩大容积。</li>
-<li><strong>策畓</strong>：根据两边柱子的高度决定移动哪一个指针，总是试图通过移动较短的那个来寻找可能的更大容积。</li>
-</ul>
-<h3 id="15-三数之和-1"><a href="#15-三数之和-1" class="headerlink" title="15. 三数之和"></a>15. 三数之和</h3><ul>
-<li><strong>关键点</strong>：首先排序数组，然后使用三个指针分别指向当前元素、当前元素后的下一个元素以及数组的最后一个元素，以便对数组进行遍历和匹配。</li>
-<li><strong>策略</strong>：在保证不重复的基础上找到三个数的和为零的所有组合，注意在移动指针时跳过重复的值。</li>
-</ul>
-]]></content>
-      <categories>
-        <category>LeetCode</category>
-      </categories>
-      <tags>
-        <tag>算法</tag>
-        <tag>数据结构</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>2024.06.17 刷题日记</title>
     <url>/2024/06/18/2024.06.17%20%E5%88%B7%E9%A2%98%E6%97%A5%E8%AE%B0/</url>
     <content><![CDATA[<span id="more"></span>
@@ -362,6 +304,64 @@
       </tags>
   </entry>
   <entry>
+    <title>2024.06.16 刷题日记</title>
+    <url>/2024/06/16/2024.06.16%20%E5%88%B7%E9%A2%98%E6%97%A5%E8%AE%B0/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>今天刷了大概两个半小时，一边刷一边学，一边吃零食。效率有点低了~</p>
+<p>以后每天都会刷，并且写刷题日记，题目标题有题目序号以及题目名称，方便以后查询。</p>
+<h2 id="1-两数之和"><a href="#1-两数之和" class="headerlink" title="1. 两数之和"></a>1. 两数之和</h2><p>重点是要降低时间复杂度，所以用哈希表了，由于不能重复出现，所以是先查询后插入：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function">vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">twoSum</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; nums, <span class="hljs-type">int</span> target)</span> </span>&#123;<br>        unordered_map&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt; map;<br>        <span class="hljs-type">int</span> t;<br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; nums.<span class="hljs-built_in">size</span>(); i++)&#123;<br>            t = target-nums[i];<br>            <span class="hljs-keyword">if</span>(map.<span class="hljs-built_in">find</span>(t) != map.<span class="hljs-built_in">end</span>())&#123;<br>                <span class="hljs-keyword">return</span> &#123;i,map[t]&#125;;<br>            &#125;<span class="hljs-keyword">else</span>&#123;<br>                map[nums[i]] = i;<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> &#123;&#125;;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="49-字母异位词分组"><a href="#49-字母异位词分组" class="headerlink" title="49. 字母异位词分组"></a>49. 字母异位词分组</h2><p>这道题目思考了一会儿，每一个单词都以抽象为一个有序的序列，因此要对字符串进行排序，然后排序后的字符串为key，<code>vector&lt;string&gt;</code> 为 value。这里需要注意的是利用移动语义提高性能：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    vector&lt;vector&lt;string&gt;&gt; <span class="hljs-built_in">groupAnagrams</span>(vector&lt;string&gt;&amp; strs) &#123;<br>        unordered_map&lt;string, vector&lt;string&gt;&gt; map;<br>        vector&lt;vector&lt;string&gt;&gt; ans;<br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">const</span> <span class="hljs-keyword">auto</span> &amp;s:strs)&#123;<br>            string key = s;<br>            <span class="hljs-built_in">sort</span>(key.<span class="hljs-built_in">begin</span>(), key.<span class="hljs-built_in">end</span>());<br>            map[key].<span class="hljs-built_in">push_back</span>(s);<br>        &#125;<br>        <span class="hljs-keyword">for</span>(<span class="hljs-keyword">auto</span> &amp;v:map)&#123;<br>            ans.<span class="hljs-built_in">push_back</span>(std::<span class="hljs-built_in">move</span>(v.second));<br>        &#125;<br>        <span class="hljs-keyword">return</span> ans;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="128-最长连续序列"><a href="#128-最长连续序列" class="headerlink" title="128. 最长连续序列"></a>128. 最长连续序列</h2><p>这个题目也想了一会儿，重点是现将这些值放到 set 中降低时间复杂度。然后将每一个 num 判断是否为开始的元素，如果是，就查询 num+1：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">longestConsecutive</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; nums)</span> </span>&#123;<br>        <span class="hljs-function">unordered_set&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">set</span><span class="hljs-params">(nums.begin(), nums.end())</span></span>;<br>        <span class="hljs-type">int</span> max_len = <span class="hljs-number">0</span>, temp, len;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> num : set) &#123;<br>            <span class="hljs-keyword">if</span> (!set.<span class="hljs-built_in">count</span>(num - <span class="hljs-number">1</span>)) &#123;<br>                len = <span class="hljs-number">0</span>;<br>                temp = num;<br>                <span class="hljs-keyword">while</span> (set.<span class="hljs-built_in">count</span>(temp)) &#123;<br>                    temp++;<br>                    len++;<br>                &#125;<br>                max_len = <span class="hljs-built_in">max</span>(len, max_len);<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> max_len;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="283-移动零"><a href="#283-移动零" class="headerlink" title="283. 移动零"></a>283. 移动零</h2><p>这个题目还挺难，虽然标着简单，这是经典的双指针问题。用两个指针，一个维护当前数组，另一个用于搜索非零元素，找到之后，将右指针的值赋值给零元素，然后右指针指向的值赋为 0：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">moveZeroes</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; nums)</span> </span>&#123;<br>        <span class="hljs-type">int</span> left = <span class="hljs-number">0</span>;<br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> r = <span class="hljs-number">0</span>; r &lt; nums.<span class="hljs-built_in">size</span>(); r++)&#123;<br>            <span class="hljs-keyword">if</span>(nums[r] != <span class="hljs-number">0</span>)&#123;<br>                <span class="hljs-keyword">if</span>(r != left)&#123;<br>                    nums[left] = nums[r];<br>                    nums[r] = <span class="hljs-number">0</span>;<br>                &#125;<br>                left++;<br>            &#125;<br>        &#125;<br><br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="11-盛最多水的容器"><a href="#11-盛最多水的容器" class="headerlink" title="11. 盛最多水的容器"></a>11. 盛最多水的容器</h2><p>这个依然是双指针，然后贪心，从两边向中间紧靠。紧靠的原则是，哪边低哪边向中间靠：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">maxArea</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; height)</span> </span>&#123;<br>        <span class="hljs-type">int</span> left = <span class="hljs-number">0</span>, right = height.<span class="hljs-built_in">size</span>() - <span class="hljs-number">1</span>;<br>        <span class="hljs-type">int</span> max = <span class="hljs-number">0</span>;<br>        <span class="hljs-keyword">while</span> (left &lt; right) &#123;<br>            max = std::<span class="hljs-built_in">max</span>(max,<br>                           (right - left) * <span class="hljs-built_in">min</span>(height[left], height[right]));<br>            <span class="hljs-keyword">if</span>(height[left] &lt; height[right])&#123;<br>                left++;<br>            &#125;<span class="hljs-keyword">else</span>&#123;<br>                right--;<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> max;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="15-三数之和"><a href="#15-三数之和" class="headerlink" title="15. 三数之和"></a>15. 三数之和</h2><p>首先排序，然后利用三指针。<code>nums[i]</code>为第一个，第二个指针为 <code>nums[i+1]</code>，下一个指针为 <code>nums[len-1]</code>，判断这三个值知否为 0。然后遍历 <code>nums[i]</code>，为了不重复，需要跳过 <code>nums[i] when nums[i] == nums[i+1]</code>：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    vector&lt;vector&lt;<span class="hljs-type">int</span>&gt;&gt; <span class="hljs-built_in">threeSum</span>(vector&lt;<span class="hljs-type">int</span>&gt;&amp; nums) &#123;<br>        <span class="hljs-built_in">sort</span>(nums.<span class="hljs-built_in">begin</span>(), nums.<span class="hljs-built_in">end</span>());<br>        vector&lt;vector&lt;<span class="hljs-type">int</span>&gt;&gt; result;<br>        <span class="hljs-type">int</span> len = nums.<span class="hljs-built_in">size</span>(), left, right;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; len; i++) &#123;<br>            <span class="hljs-keyword">if</span> (nums[i] &gt; <span class="hljs-number">0</span>)<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">if</span> (i &gt; <span class="hljs-number">0</span> &amp;&amp; nums[i] == nums[i - <span class="hljs-number">1</span>])<br>                <span class="hljs-keyword">continue</span>;<br>            left = i + <span class="hljs-number">1</span>;<br>            right = len - <span class="hljs-number">1</span>;<br>            <span class="hljs-keyword">while</span> (left &lt; right) &#123;<br>                <span class="hljs-type">int</span> sum = nums[i] + nums[left] + nums[right];<br>                <span class="hljs-keyword">if</span> (sum == <span class="hljs-number">0</span>) &#123;<br>                    result.<span class="hljs-built_in">push_back</span>(&#123;nums[i], nums[left], nums[right]&#125;);<br>                    <span class="hljs-keyword">while</span> (left &lt; right &amp;&amp; nums[left] == nums[left + <span class="hljs-number">1</span>])<br>                        ++left;<br>                    <span class="hljs-keyword">while</span> (left &lt; right &amp;&amp; nums[right] == nums[right - <span class="hljs-number">1</span>])<br>                        --right;<br>                    ++left;<br>                    --right;<br>                &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (sum &lt; <span class="hljs-number">0</span>) &#123;<br>                    ++left;<br>                &#125; <span class="hljs-keyword">else</span> &#123;<br>                    --right;<br>                &#125;<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> result;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="每日总结（gpt4）"><a href="#每日总结（gpt4）" class="headerlink" title="每日总结（gpt4）"></a>每日总结（gpt4）</h2><h3 id="1-两数之和-1"><a href="#1-两数之和-1" class="headerlink" title="1. 两数之和"></a>1. 两数之和</h3><ul>
+<li><strong>关键点</strong>：使用哈希表来优化查找过程，从而将时间复杂度降低到O(n)。</li>
+<li><strong>策略</strong>：通过存储每个数字和它的索引，我们可以快速检查目标值减去当前数字是否已经在哈希表中，这样避免了二次循环。</li>
+</ul>
+<h3 id="49-字母异位词分组-1"><a href="#49-字母异位词分组-1" class="headerlink" title="49. 字母异位词分组"></a>49. 字母异位词分组</h3><ul>
+<li><strong>关键点</strong>：将每个字符串排序，使用排序后的结果作为键值来组织哈希表。</li>
+<li><strong>策略</strong>：排序字符串以标准化字母异位词，确保所有异位词都映射到相同的键下。使用移动语义优化性能。</li>
+</ul>
+<h3 id="128-最长连续序列-1"><a href="#128-最长连续序列-1" class="headerlink" title="128. 最长连续序列"></a>128. 最长连续序列</h3><ul>
+<li><strong>关键点</strong>：使用集合（Set）来存储所有数字，快速判断数字连续性。</li>
+<li><strong>策略</strong>：只从序列的可能开始位置检查（即当前数字的前一个数字不在集合中），避免重复计算。</li>
+</ul>
+<h3 id="283-移动零-1"><a href="#283-移动零-1" class="headerlink" title="283. 移动零"></a>283. 移动零</h3><ul>
+<li><strong>关键点</strong>：使用双指针技术高效解决问题，一个指针用于迭代，一个指针用于维护非零数组的当前边界。</li>
+<li><strong>策略</strong>：当遇到非零元素时，将其移动到左边已处理区域的末尾，保持零元素在右边。</li>
+</ul>
+<h3 id="11-盛最多水的容器-1"><a href="#11-盛最多水的容器-1" class="headerlink" title="11. 盛最多水的容器"></a>11. 盛最多水的容器</h3><ul>
+<li><strong>关键点</strong>：使用双指针从数组两端向中心移动，选择合适的策略来尽可能扩大容积。</li>
+<li><strong>策畓</strong>：根据两边柱子的高度决定移动哪一个指针，总是试图通过移动较短的那个来寻找可能的更大容积。</li>
+</ul>
+<h3 id="15-三数之和-1"><a href="#15-三数之和-1" class="headerlink" title="15. 三数之和"></a>15. 三数之和</h3><ul>
+<li><strong>关键点</strong>：首先排序数组，然后使用三个指针分别指向当前元素、当前元素后的下一个元素以及数组的最后一个元素，以便对数组进行遍历和匹配。</li>
+<li><strong>策略</strong>：在保证不重复的基础上找到三个数的和为零的所有组合，注意在移动指针时跳过重复的值。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>LeetCode</category>
+      </categories>
+      <tags>
+        <tag>算法</tag>
+        <tag>数据结构</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>2024.06.18 刷题日记</title>
     <url>/2024/06/18/2024.06.18%20%E5%88%B7%E9%A2%98%E6%97%A5%E8%AE%B0/</url>
     <content><![CDATA[<span id="more"></span>
@@ -383,48 +383,6 @@
 <h3 id="3-合并区间（排序和贪心算法）"><a href="#3-合并区间（排序和贪心算法）" class="headerlink" title="3. 合并区间（排序和贪心算法）"></a>3. 合并区间（排序和贪心算法）</h3><p>首先对区间按起始位置进行排序，然后依次遍历排序后的区间，根据当前区间的起始位置与已合并区间的结束位置的关系来决定是否需要合并。这种方法依赖于贪心策略，通过局部最优选择（合并重叠区间）来达到全局最优（合并所有重古区间）。</p>
 <h3 id="4-轮转数组（数组翻转）"><a href="#4-轮转数组（数组翻转）" class="headerlink" title="4. 轮转数组（数组翻转）"></a>4. 轮转数组（数组翻转）</h3><p>这个解法巧妙地使用了三次翻转来实现数组的旋转。首先翻转整个数组，然后翻转前 <code>k</code> 个元素，最后翻转剩余的元素。这种方法在技术上是直接且高效的，避免了复杂的数组操作。</p>
 <h3 id="5-除自身以外数组的乘积（前缀和后缀积）"><a href="#5-除自身以外数组的乘积（前缀和后缀积）" class="headerlink" title="5. 除自身以外数组的乘积（前缀和后缀积）"></a>5. 除自身以外数组的乘积（前缀和后缀积）</h3><p>通过两次遍历数组，先计算前缀积，再计算后缀积，并将二者相乘得到最终结果。这种方法避免了使用除法，同时解决了包含零的情况。通过前缀和后缀积的结合，能够高效地计算出每个位置上的目标值。</p>
-]]></content>
-      <categories>
-        <category>LeetCode</category>
-      </categories>
-      <tags>
-        <tag>算法</tag>
-        <tag>数据结构</tag>
-        <tag>leetcode</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>2024.06.20 刷题日记</title>
-    <url>/2024/06/20/2024.06.20%20%E5%88%B7%E9%A2%98%E6%97%A5%E8%AE%B0/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="2-两数相加"><a href="#2-两数相加" class="headerlink" title="2. 两数相加"></a>2. 两数相加</h2><p>这道题目的思路就是模拟，好处是逆序的，不用反转链表：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">ListNode* <span class="hljs-title">addTwoNumbers</span><span class="hljs-params">(ListNode* l1, ListNode* l2)</span> </span>&#123;<br>       <span class="hljs-comment">// 创建一个新的链表节点，作为返回结果的头节点</span><br>       ListNode* dummyHead = <span class="hljs-keyword">new</span> <span class="hljs-built_in">ListNode</span>(<span class="hljs-number">0</span>);<br>       ListNode *p = l1, *q = l2, *curr = dummyHead;<br>       <span class="hljs-type">int</span> carry = <span class="hljs-number">0</span>, x = <span class="hljs-number">0</span>, y = <span class="hljs-number">0</span>, sum = <span class="hljs-number">0</span>;<br><br>       <span class="hljs-comment">// 遍历两个链表，直到两个链表都到达尾部</span><br>       <span class="hljs-keyword">while</span> (p != <span class="hljs-literal">nullptr</span> || q != <span class="hljs-literal">nullptr</span>) &#123;<br>           x = (p != <span class="hljs-literal">nullptr</span>) ? p-&gt;val : <span class="hljs-number">0</span>;<br>           y = (q != <span class="hljs-literal">nullptr</span>) ? q-&gt;val : <span class="hljs-number">0</span>;<br>           sum = carry + x + y;<br>           carry = sum / <span class="hljs-number">10</span>;<br><br>           curr-&gt;next = <span class="hljs-keyword">new</span> <span class="hljs-built_in">ListNode</span>(sum % <span class="hljs-number">10</span>);<br><br>           curr = curr-&gt;next;<br><br>           <span class="hljs-keyword">if</span> (p != <span class="hljs-literal">nullptr</span>)<br>               p = p-&gt;next;<br>           <span class="hljs-keyword">if</span> (q != <span class="hljs-literal">nullptr</span>)<br>               q = q-&gt;next;<br>       &#125;<br><br>       <span class="hljs-comment">// 如果最后还有进位，需要添加一个节点存储进位的值</span><br>       <span class="hljs-keyword">if</span> (carry &gt; <span class="hljs-number">0</span>) &#123;<br>           curr-&gt;next = <span class="hljs-keyword">new</span> <span class="hljs-built_in">ListNode</span>(carry);<br>       &#125;<br>       <span class="hljs-keyword">return</span> dummyHead-&gt;next;<br>   &#125;<br></code></pre></td></tr></table></figure>
-
-<h2 id="19-删除链表的倒数第-N-个结点"><a href="#19-删除链表的倒数第-N-个结点" class="headerlink" title="19. 删除链表的倒数第 N 个结点"></a>19. 删除链表的倒数第 N 个结点</h2><p>这个题目首先得计算链表的长度len，然后计算出删除 nth 个元素。分类讨论 nth &#x3D; 1、nth &#x3D; len的情况：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">ListNode* <span class="hljs-title">removeNthFromEnd</span><span class="hljs-params">(ListNode* head, <span class="hljs-type">int</span> n)</span> </span>&#123;<br>       <span class="hljs-comment">// 计算长度</span><br>       <span class="hljs-type">int</span> len = <span class="hljs-number">0</span>;<br>       ListNode* p = head;<br>       <span class="hljs-keyword">while</span> (p) &#123;<br>           len++;<br>           p = p-&gt;next;<br>       &#125;<br>       <span class="hljs-comment">// 第几个数</span><br>       <span class="hljs-type">int</span> nth = len-n+<span class="hljs-number">1</span>;<br>       <span class="hljs-comment">// 如果是第一个</span><br>       <span class="hljs-keyword">if</span>(nth == <span class="hljs-number">1</span>) <span class="hljs-keyword">return</span> head-&gt;next;<br>       <span class="hljs-comment">// 将指针指向nth的前一个</span><br>       <span class="hljs-type">int</span> i = <span class="hljs-number">1</span>;<br>       p = head;<br>       <span class="hljs-keyword">while</span>(i != nth<span class="hljs-number">-1</span>)&#123;<br>           p = p-&gt;next;<br>           i++;<br>       &#125;<br>       <span class="hljs-comment">// 如果是最后一个</span><br>       <span class="hljs-keyword">if</span>(nth == len)&#123;<br>           p-&gt;next = <span class="hljs-literal">nullptr</span>;<br>           <span class="hljs-keyword">return</span> head;<br>       &#125;<br>       p-&gt;next = p-&gt;next-&gt;next;<br>       <span class="hljs-keyword">return</span> head;<br><br>   &#125;<br></code></pre></td></tr></table></figure>
-
-<h2 id="24-两两交换链表中的节点"><a href="#24-两两交换链表中的节点" class="headerlink" title="24. 两两交换链表中的节点"></a>24. 两两交换链表中的节点</h2><p>这个题在草稿纸上一比划就出来了，就是设置两个指针：curr 和 next，然后采用迭代的方法遍历，直到 next-&gt;next 为空：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">ListNode* <span class="hljs-title">swapPairs</span><span class="hljs-params">(ListNode* head)</span> </span>&#123;<br><br>       <span class="hljs-comment">// 对于 p</span><br>       ListNode* dummy = <span class="hljs-keyword">new</span> <span class="hljs-built_in">ListNode</span>(<span class="hljs-number">0</span>);<br>       dummy-&gt;next = head;<br>       ListNode* curr = dummy;<br>       ListNode* next = curr-&gt;next;<br>       <span class="hljs-keyword">if</span> (next == <span class="hljs-literal">nullptr</span> || next-&gt;next == <span class="hljs-literal">nullptr</span>)<br>           <span class="hljs-keyword">return</span> dummy-&gt;next;<br>       <span class="hljs-keyword">while</span> (next) &#123;<br>           <span class="hljs-keyword">if</span>(next-&gt;next == <span class="hljs-literal">nullptr</span>) <span class="hljs-keyword">break</span>;<br>           curr-&gt;next = next-&gt;next;<br>           next-&gt;next = curr-&gt;next-&gt;next;<br>           curr-&gt;next-&gt;next = next;<br><br>           <span class="hljs-comment">// 后移</span><br>           curr = curr-&gt;next-&gt;next;<br>           next = curr-&gt;next;<br>       &#125;<br>       <span class="hljs-keyword">return</span> dummy-&gt;next;<br>   &#125;<br></code></pre></td></tr></table></figure>
-
-<h2 id="25-K-个一组翻转链表"><a href="#25-K-个一组翻转链表" class="headerlink" title="25. K 个一组翻转链表"></a>25. K 个一组翻转链表</h2><p>仍然是迭代的思路，这里注意的是，迭代的次数为k-1：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">ListNode* <span class="hljs-title">reverseKGroup</span><span class="hljs-params">(ListNode* head, <span class="hljs-type">int</span> k)</span> </span>&#123;<br>       <span class="hljs-keyword">if</span> (head == <span class="hljs-literal">nullptr</span> || k == <span class="hljs-number">1</span>)<br>           <span class="hljs-keyword">return</span> head;<br><br>       ListNode* dummy = <span class="hljs-keyword">new</span> <span class="hljs-built_in">ListNode</span>(<span class="hljs-number">0</span>);<br>       dummy-&gt;next = head;<br><br>       ListNode* cur = dummy;<br>       ListNode* prev = dummy;<br>       ListNode* nex = dummy;<br>       <span class="hljs-type">int</span> count = <span class="hljs-number">0</span>;<br><br>       <span class="hljs-comment">// 首先统计链表的长度</span><br>       <span class="hljs-keyword">while</span> (cur-&gt;next != <span class="hljs-literal">nullptr</span>) &#123;<br>           cur = cur-&gt;next;<br>           count++;<br>       &#125;<br><br>       <span class="hljs-comment">// 当还有足够的节点进行翻转时进行循环</span><br>       <span class="hljs-keyword">while</span> (count &gt;= k) &#123;<br>           cur = prev-&gt;next; <span class="hljs-comment">// 指向当前k组的第一个节点</span><br>           nex = cur-&gt;next;  <span class="hljs-comment">// 指向当前k组的第二个节点</span><br>           <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt; k; i++) &#123;<br>               cur-&gt;next = nex-&gt;next;<br>               nex-&gt;next = prev-&gt;next;<br>               prev-&gt;next = nex;<br>               nex = cur-&gt;next;<br>           &#125;<br>           prev = cur;<br>           count -= k;<br>       &#125;<br>       <span class="hljs-keyword">return</span> dummy-&gt;next;<br>   &#125;<br></code></pre></td></tr></table></figure>
-
-<h2 id="94-二叉树的中序遍历"><a href="#94-二叉树的中序遍历" class="headerlink" title="94. 二叉树的中序遍历"></a>94. 二叉树的中序遍历</h2><p>递归还是简单：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp">vector&lt;<span class="hljs-type">int</span>&gt; ans;<br>   <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">inorder</span><span class="hljs-params">(TreeNode* root)</span> </span>&#123;<br>       <span class="hljs-keyword">if</span> (!root)<br>           <span class="hljs-keyword">return</span>;<br><br>       <span class="hljs-built_in">inorder</span>(root-&gt;left);<br>       ans.<span class="hljs-built_in">push_back</span>(root-&gt;val);<br>       <span class="hljs-built_in">inorder</span>(root-&gt;right);<br>   &#125;<br><br>   <span class="hljs-function">vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">inorderTraversal</span><span class="hljs-params">(TreeNode* root)</span> </span>&#123;<br>       <span class="hljs-built_in">inorder</span>(root);<br>       <span class="hljs-keyword">return</span> ans;<br>   &#125;<br></code></pre></td></tr></table></figure>
-
-<h2 id="104-二叉树的最大深度"><a href="#104-二叉树的最大深度" class="headerlink" title="104. 二叉树的最大深度"></a>104. 二叉树的最大深度</h2><p>只需要取左子树与右子树的最大值+1，然后递归。递归出口是：<code>if(root == nullptr) return 0;</code>，所以代码就是：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">maxDepth</span><span class="hljs-params">(TreeNode* root)</span> </span>&#123;<br>       <span class="hljs-keyword">return</span> !root ? <span class="hljs-number">0</span> : <span class="hljs-built_in">max</span>(<span class="hljs-built_in">maxDepth</span>(root-&gt;left), <span class="hljs-built_in">maxDepth</span>(root-&gt;right)) + <span class="hljs-number">1</span>;<br>   &#125;<br></code></pre></td></tr></table></figure>
-
-<h2 id="226-翻转二叉树"><a href="#226-翻转二叉树" class="headerlink" title="226. 翻转二叉树"></a>226. 翻转二叉树</h2><p>依然是递归，因为二叉树的定义本身就是递归的，算法也是依赖于数据结构的：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">invert</span><span class="hljs-params">(TreeNode *root)</span></span>&#123;<br>       <span class="hljs-keyword">if</span>(!root) <span class="hljs-keyword">return</span>;<br>       TreeNode *temp = root-&gt;left;<br>       root-&gt;left = root-&gt;right;<br>       root-&gt;right = temp;<br><br>       <span class="hljs-built_in">invert</span>(root-&gt;left);<br>       <span class="hljs-built_in">invert</span>(root-&gt;right);<br>   &#125;<br>   <span class="hljs-function">TreeNode* <span class="hljs-title">invertTree</span><span class="hljs-params">(TreeNode* root)</span> </span>&#123;<br>       <span class="hljs-comment">// 递归</span><br>       <span class="hljs-built_in">invert</span>(root);<br>       <span class="hljs-keyword">return</span> root;<br><br>   &#125;<br></code></pre></td></tr></table></figure>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h3 id="2-两数相加-1"><a href="#2-两数相加-1" class="headerlink" title="2. 两数相加"></a>2. 两数相加</h3><p>这道题目要求实现两个逆序存储的链表代表的数字相加，返回结果链表。关键点在于模拟加法的进位处理，并且要注意链表长度不一致的情况。代码中使用了哑节点简化了头节点处理，逐位相加并处理进位。</p>
-<h3 id="19-删除链表的倒数第-N-个结点-1"><a href="#19-删除链表的倒数第-N-个结点-1" class="headerlink" title="19. 删除链表的倒数第 N 个结点"></a>19. 删除链表的倒数第 N 个结点</h3><p>这个问题中，需要删除链表中倒数第 <code>n</code> 个节点，要求一次遍历解决。解法是使用快慢指针法，快指针先走 <code>n+1</code> 步，然后慢指针开始走，当快指针走到链表末尾时，慢指针指向要删除节点的前一个节点。</p>
-<h3 id="24-两两交换链表中的节点-1"><a href="#24-两两交换链表中的节点-1" class="headerlink" title="24. 两两交换链表中的节点"></a>24. 两两交换链表中的节点</h3><p>要求将链表中每两个相邻节点进行交换。这个问题可以通过迭代或递归来解决。迭代方法中，使用两个指针 <code>curr</code> 和 <code>next</code>，每次交换它们的后继节点，并更新指针。</p>
-<h3 id="25-K-个一组翻转链表-1"><a href="#25-K-个一组翻转链表-1" class="headerlink" title="25. K 个一组翻转链表"></a>25. K 个一组翻转链表</h3><p>这个问题要求每 <code>k</code> 个节点一组进行翻转，如果节点数不足 <code>k</code>，则保持原有顺序。解法使用迭代方法，先计算链表长度，然后在每次迭代中反转当前 <code>k</code> 个节点，并将上一组的尾部与新组的头部连接。</p>
-<h3 id="94-二叉树的中序遍历-1"><a href="#94-二叉树的中序遍历-1" class="headerlink" title="94. 二叉树的中序遍历"></a>94. 二叉树的中序遍历</h3><p>二叉树的中序遍历可以通过递归或迭代实现。递归方法简单直观，按照左子树-根节点-右子树的顺序访问节点，并将节点值保存在结果数组中。</p>
-<h3 id="104-二叉树的最大深度-1"><a href="#104-二叉树的最大深度-1" class="headerlink" title="104. 二叉树的最大深度"></a>104. 二叉树的最大深度</h3><p>求二叉树的最大深度，递归地计算左右子树的最大深度，然后取较大值加上当前节点的深度。递归出口是空节点，即 <code>nullptr</code> 返回深度 <code>0</code>。</p>
-<h3 id="226-翻转二叉树-1"><a href="#226-翻转二叉树-1" class="headerlink" title="226. 翻转二叉树"></a>226. 翻转二叉树</h3><p>翻转二叉树就是将每个节点的左右子树交换。递归方法简洁，递归函数中先交换当前节点的左右子树，然后递归地对左右子树进行翻转。</p>
 ]]></content>
       <categories>
         <category>LeetCode</category>
@@ -517,6 +475,48 @@
 <h3 id="21-合并两个有序链表-1"><a href="#21-合并两个有序链表-1" class="headerlink" title="21. 合并两个有序链表"></a>21. 合并两个有序链表</h3><ul>
 <li>使用一个伪头节点简化边界情况的处理，通过比较两链表头部节点的值，依次选择较小的节点拼接到新链表上。</li>
 </ul>
+]]></content>
+      <categories>
+        <category>LeetCode</category>
+      </categories>
+      <tags>
+        <tag>算法</tag>
+        <tag>数据结构</tag>
+        <tag>leetcode</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>2024.06.20 刷题日记</title>
+    <url>/2024/06/20/2024.06.20%20%E5%88%B7%E9%A2%98%E6%97%A5%E8%AE%B0/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="2-两数相加"><a href="#2-两数相加" class="headerlink" title="2. 两数相加"></a>2. 两数相加</h2><p>这道题目的思路就是模拟，好处是逆序的，不用反转链表：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">ListNode* <span class="hljs-title">addTwoNumbers</span><span class="hljs-params">(ListNode* l1, ListNode* l2)</span> </span>&#123;<br>       <span class="hljs-comment">// 创建一个新的链表节点，作为返回结果的头节点</span><br>       ListNode* dummyHead = <span class="hljs-keyword">new</span> <span class="hljs-built_in">ListNode</span>(<span class="hljs-number">0</span>);<br>       ListNode *p = l1, *q = l2, *curr = dummyHead;<br>       <span class="hljs-type">int</span> carry = <span class="hljs-number">0</span>, x = <span class="hljs-number">0</span>, y = <span class="hljs-number">0</span>, sum = <span class="hljs-number">0</span>;<br><br>       <span class="hljs-comment">// 遍历两个链表，直到两个链表都到达尾部</span><br>       <span class="hljs-keyword">while</span> (p != <span class="hljs-literal">nullptr</span> || q != <span class="hljs-literal">nullptr</span>) &#123;<br>           x = (p != <span class="hljs-literal">nullptr</span>) ? p-&gt;val : <span class="hljs-number">0</span>;<br>           y = (q != <span class="hljs-literal">nullptr</span>) ? q-&gt;val : <span class="hljs-number">0</span>;<br>           sum = carry + x + y;<br>           carry = sum / <span class="hljs-number">10</span>;<br><br>           curr-&gt;next = <span class="hljs-keyword">new</span> <span class="hljs-built_in">ListNode</span>(sum % <span class="hljs-number">10</span>);<br><br>           curr = curr-&gt;next;<br><br>           <span class="hljs-keyword">if</span> (p != <span class="hljs-literal">nullptr</span>)<br>               p = p-&gt;next;<br>           <span class="hljs-keyword">if</span> (q != <span class="hljs-literal">nullptr</span>)<br>               q = q-&gt;next;<br>       &#125;<br><br>       <span class="hljs-comment">// 如果最后还有进位，需要添加一个节点存储进位的值</span><br>       <span class="hljs-keyword">if</span> (carry &gt; <span class="hljs-number">0</span>) &#123;<br>           curr-&gt;next = <span class="hljs-keyword">new</span> <span class="hljs-built_in">ListNode</span>(carry);<br>       &#125;<br>       <span class="hljs-keyword">return</span> dummyHead-&gt;next;<br>   &#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="19-删除链表的倒数第-N-个结点"><a href="#19-删除链表的倒数第-N-个结点" class="headerlink" title="19. 删除链表的倒数第 N 个结点"></a>19. 删除链表的倒数第 N 个结点</h2><p>这个题目首先得计算链表的长度len，然后计算出删除 nth 个元素。分类讨论 nth &#x3D; 1、nth &#x3D; len的情况：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">ListNode* <span class="hljs-title">removeNthFromEnd</span><span class="hljs-params">(ListNode* head, <span class="hljs-type">int</span> n)</span> </span>&#123;<br>       <span class="hljs-comment">// 计算长度</span><br>       <span class="hljs-type">int</span> len = <span class="hljs-number">0</span>;<br>       ListNode* p = head;<br>       <span class="hljs-keyword">while</span> (p) &#123;<br>           len++;<br>           p = p-&gt;next;<br>       &#125;<br>       <span class="hljs-comment">// 第几个数</span><br>       <span class="hljs-type">int</span> nth = len-n+<span class="hljs-number">1</span>;<br>       <span class="hljs-comment">// 如果是第一个</span><br>       <span class="hljs-keyword">if</span>(nth == <span class="hljs-number">1</span>) <span class="hljs-keyword">return</span> head-&gt;next;<br>       <span class="hljs-comment">// 将指针指向nth的前一个</span><br>       <span class="hljs-type">int</span> i = <span class="hljs-number">1</span>;<br>       p = head;<br>       <span class="hljs-keyword">while</span>(i != nth<span class="hljs-number">-1</span>)&#123;<br>           p = p-&gt;next;<br>           i++;<br>       &#125;<br>       <span class="hljs-comment">// 如果是最后一个</span><br>       <span class="hljs-keyword">if</span>(nth == len)&#123;<br>           p-&gt;next = <span class="hljs-literal">nullptr</span>;<br>           <span class="hljs-keyword">return</span> head;<br>       &#125;<br>       p-&gt;next = p-&gt;next-&gt;next;<br>       <span class="hljs-keyword">return</span> head;<br><br>   &#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="24-两两交换链表中的节点"><a href="#24-两两交换链表中的节点" class="headerlink" title="24. 两两交换链表中的节点"></a>24. 两两交换链表中的节点</h2><p>这个题在草稿纸上一比划就出来了，就是设置两个指针：curr 和 next，然后采用迭代的方法遍历，直到 next-&gt;next 为空：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">ListNode* <span class="hljs-title">swapPairs</span><span class="hljs-params">(ListNode* head)</span> </span>&#123;<br><br>       <span class="hljs-comment">// 对于 p</span><br>       ListNode* dummy = <span class="hljs-keyword">new</span> <span class="hljs-built_in">ListNode</span>(<span class="hljs-number">0</span>);<br>       dummy-&gt;next = head;<br>       ListNode* curr = dummy;<br>       ListNode* next = curr-&gt;next;<br>       <span class="hljs-keyword">if</span> (next == <span class="hljs-literal">nullptr</span> || next-&gt;next == <span class="hljs-literal">nullptr</span>)<br>           <span class="hljs-keyword">return</span> dummy-&gt;next;<br>       <span class="hljs-keyword">while</span> (next) &#123;<br>           <span class="hljs-keyword">if</span>(next-&gt;next == <span class="hljs-literal">nullptr</span>) <span class="hljs-keyword">break</span>;<br>           curr-&gt;next = next-&gt;next;<br>           next-&gt;next = curr-&gt;next-&gt;next;<br>           curr-&gt;next-&gt;next = next;<br><br>           <span class="hljs-comment">// 后移</span><br>           curr = curr-&gt;next-&gt;next;<br>           next = curr-&gt;next;<br>       &#125;<br>       <span class="hljs-keyword">return</span> dummy-&gt;next;<br>   &#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="25-K-个一组翻转链表"><a href="#25-K-个一组翻转链表" class="headerlink" title="25. K 个一组翻转链表"></a>25. K 个一组翻转链表</h2><p>仍然是迭代的思路，这里注意的是，迭代的次数为k-1：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">ListNode* <span class="hljs-title">reverseKGroup</span><span class="hljs-params">(ListNode* head, <span class="hljs-type">int</span> k)</span> </span>&#123;<br>       <span class="hljs-keyword">if</span> (head == <span class="hljs-literal">nullptr</span> || k == <span class="hljs-number">1</span>)<br>           <span class="hljs-keyword">return</span> head;<br><br>       ListNode* dummy = <span class="hljs-keyword">new</span> <span class="hljs-built_in">ListNode</span>(<span class="hljs-number">0</span>);<br>       dummy-&gt;next = head;<br><br>       ListNode* cur = dummy;<br>       ListNode* prev = dummy;<br>       ListNode* nex = dummy;<br>       <span class="hljs-type">int</span> count = <span class="hljs-number">0</span>;<br><br>       <span class="hljs-comment">// 首先统计链表的长度</span><br>       <span class="hljs-keyword">while</span> (cur-&gt;next != <span class="hljs-literal">nullptr</span>) &#123;<br>           cur = cur-&gt;next;<br>           count++;<br>       &#125;<br><br>       <span class="hljs-comment">// 当还有足够的节点进行翻转时进行循环</span><br>       <span class="hljs-keyword">while</span> (count &gt;= k) &#123;<br>           cur = prev-&gt;next; <span class="hljs-comment">// 指向当前k组的第一个节点</span><br>           nex = cur-&gt;next;  <span class="hljs-comment">// 指向当前k组的第二个节点</span><br>           <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt; k; i++) &#123;<br>               cur-&gt;next = nex-&gt;next;<br>               nex-&gt;next = prev-&gt;next;<br>               prev-&gt;next = nex;<br>               nex = cur-&gt;next;<br>           &#125;<br>           prev = cur;<br>           count -= k;<br>       &#125;<br>       <span class="hljs-keyword">return</span> dummy-&gt;next;<br>   &#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="94-二叉树的中序遍历"><a href="#94-二叉树的中序遍历" class="headerlink" title="94. 二叉树的中序遍历"></a>94. 二叉树的中序遍历</h2><p>递归还是简单：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp">vector&lt;<span class="hljs-type">int</span>&gt; ans;<br>   <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">inorder</span><span class="hljs-params">(TreeNode* root)</span> </span>&#123;<br>       <span class="hljs-keyword">if</span> (!root)<br>           <span class="hljs-keyword">return</span>;<br><br>       <span class="hljs-built_in">inorder</span>(root-&gt;left);<br>       ans.<span class="hljs-built_in">push_back</span>(root-&gt;val);<br>       <span class="hljs-built_in">inorder</span>(root-&gt;right);<br>   &#125;<br><br>   <span class="hljs-function">vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">inorderTraversal</span><span class="hljs-params">(TreeNode* root)</span> </span>&#123;<br>       <span class="hljs-built_in">inorder</span>(root);<br>       <span class="hljs-keyword">return</span> ans;<br>   &#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="104-二叉树的最大深度"><a href="#104-二叉树的最大深度" class="headerlink" title="104. 二叉树的最大深度"></a>104. 二叉树的最大深度</h2><p>只需要取左子树与右子树的最大值+1，然后递归。递归出口是：<code>if(root == nullptr) return 0;</code>，所以代码就是：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">maxDepth</span><span class="hljs-params">(TreeNode* root)</span> </span>&#123;<br>       <span class="hljs-keyword">return</span> !root ? <span class="hljs-number">0</span> : <span class="hljs-built_in">max</span>(<span class="hljs-built_in">maxDepth</span>(root-&gt;left), <span class="hljs-built_in">maxDepth</span>(root-&gt;right)) + <span class="hljs-number">1</span>;<br>   &#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="226-翻转二叉树"><a href="#226-翻转二叉树" class="headerlink" title="226. 翻转二叉树"></a>226. 翻转二叉树</h2><p>依然是递归，因为二叉树的定义本身就是递归的，算法也是依赖于数据结构的：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">invert</span><span class="hljs-params">(TreeNode *root)</span></span>&#123;<br>       <span class="hljs-keyword">if</span>(!root) <span class="hljs-keyword">return</span>;<br>       TreeNode *temp = root-&gt;left;<br>       root-&gt;left = root-&gt;right;<br>       root-&gt;right = temp;<br><br>       <span class="hljs-built_in">invert</span>(root-&gt;left);<br>       <span class="hljs-built_in">invert</span>(root-&gt;right);<br>   &#125;<br>   <span class="hljs-function">TreeNode* <span class="hljs-title">invertTree</span><span class="hljs-params">(TreeNode* root)</span> </span>&#123;<br>       <span class="hljs-comment">// 递归</span><br>       <span class="hljs-built_in">invert</span>(root);<br>       <span class="hljs-keyword">return</span> root;<br><br>   &#125;<br></code></pre></td></tr></table></figure>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h3 id="2-两数相加-1"><a href="#2-两数相加-1" class="headerlink" title="2. 两数相加"></a>2. 两数相加</h3><p>这道题目要求实现两个逆序存储的链表代表的数字相加，返回结果链表。关键点在于模拟加法的进位处理，并且要注意链表长度不一致的情况。代码中使用了哑节点简化了头节点处理，逐位相加并处理进位。</p>
+<h3 id="19-删除链表的倒数第-N-个结点-1"><a href="#19-删除链表的倒数第-N-个结点-1" class="headerlink" title="19. 删除链表的倒数第 N 个结点"></a>19. 删除链表的倒数第 N 个结点</h3><p>这个问题中，需要删除链表中倒数第 <code>n</code> 个节点，要求一次遍历解决。解法是使用快慢指针法，快指针先走 <code>n+1</code> 步，然后慢指针开始走，当快指针走到链表末尾时，慢指针指向要删除节点的前一个节点。</p>
+<h3 id="24-两两交换链表中的节点-1"><a href="#24-两两交换链表中的节点-1" class="headerlink" title="24. 两两交换链表中的节点"></a>24. 两两交换链表中的节点</h3><p>要求将链表中每两个相邻节点进行交换。这个问题可以通过迭代或递归来解决。迭代方法中，使用两个指针 <code>curr</code> 和 <code>next</code>，每次交换它们的后继节点，并更新指针。</p>
+<h3 id="25-K-个一组翻转链表-1"><a href="#25-K-个一组翻转链表-1" class="headerlink" title="25. K 个一组翻转链表"></a>25. K 个一组翻转链表</h3><p>这个问题要求每 <code>k</code> 个节点一组进行翻转，如果节点数不足 <code>k</code>，则保持原有顺序。解法使用迭代方法，先计算链表长度，然后在每次迭代中反转当前 <code>k</code> 个节点，并将上一组的尾部与新组的头部连接。</p>
+<h3 id="94-二叉树的中序遍历-1"><a href="#94-二叉树的中序遍历-1" class="headerlink" title="94. 二叉树的中序遍历"></a>94. 二叉树的中序遍历</h3><p>二叉树的中序遍历可以通过递归或迭代实现。递归方法简单直观，按照左子树-根节点-右子树的顺序访问节点，并将节点值保存在结果数组中。</p>
+<h3 id="104-二叉树的最大深度-1"><a href="#104-二叉树的最大深度-1" class="headerlink" title="104. 二叉树的最大深度"></a>104. 二叉树的最大深度</h3><p>求二叉树的最大深度，递归地计算左右子树的最大深度，然后取较大值加上当前节点的深度。递归出口是空节点，即 <code>nullptr</code> 返回深度 <code>0</code>。</p>
+<h3 id="226-翻转二叉树-1"><a href="#226-翻转二叉树-1" class="headerlink" title="226. 翻转二叉树"></a>226. 翻转二叉树</h3><p>翻转二叉树就是将每个节点的左右子树交换。递归方法简洁，递归函数中先交换当前节点的左右子树，然后递归地对左右子树进行翻转。</p>
 ]]></content>
       <categories>
         <category>LeetCode</category>
@@ -878,7 +878,7 @@
 <p>也只提升了一点点：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/3307e078f4a44a70934da1372d8d7826_1720253671766.png?token=ANB4BCITJTKONUIYRWAPXXDGRD6SQ" alt="在这里插入图片描述"></p>
 <p>事实上，可以直接构造，这是一道数学题，不过这不在本节讨论的范围，略过。</p>
 <h2 id="93-复原-IP-地址"><a href="#93-复原-IP-地址" class="headerlink" title="93. 复原 IP 地址"></a>93. 复原 IP 地址</h2><p>有效 IP 地址 正好由四个整数（每个整数位于 0 到 255 之间组成，且不能含有前导 0），整数之间用 ‘.’ 分隔。</p>
-<p>例如：”0.1.2.201” 和 “192.168.1.1” 是 有效 IP 地址，但是 “0.011.255.245”、”192.168.1.312” 和 “<a href="mailto:&#49;&#57;&#x32;&#x2e;&#49;&#x36;&#56;&#x40;&#49;&#46;&#x31;">&#49;&#57;&#x32;&#x2e;&#49;&#x36;&#56;&#x40;&#49;&#46;&#x31;</a>“ 是 无效 IP 地址。<br>给定一个只包含数字的字符串 s ，用以表示一个 IP 地址，返回所有可能的有效 IP 地址，这些地址可以通过在 s 中插入 ‘.’ 来形成。你 不能 重新排序或删除 s 中的任何数字。你可以按 任何 顺序返回答案。</p>
+<p>例如：”0.1.2.201” 和 “192.168.1.1” 是 有效 IP 地址，但是 “0.011.255.245”、”192.168.1.312” 和 “<a href="mailto:&#49;&#x39;&#x32;&#46;&#49;&#54;&#56;&#x40;&#49;&#46;&#49;">&#49;&#x39;&#x32;&#46;&#49;&#54;&#56;&#x40;&#49;&#46;&#49;</a>“ 是 无效 IP 地址。<br>给定一个只包含数字的字符串 s ，用以表示一个 IP 地址，返回所有可能的有效 IP 地址，这些地址可以通过在 s 中插入 ‘.’ 来形成。你 不能 重新排序或删除 s 中的任何数字。你可以按 任何 顺序返回答案。</p>
 <p>示例 1：</p>
 <blockquote>
 <p>输入：s &#x3D; “25525511135”<br>输出：[“255.255.11.135”,”255.255.111.35”]</p>
@@ -1263,68 +1263,6 @@
       </tags>
   </entry>
   <entry>
-    <title>2024.06.29 刷题日记</title>
-    <url>/2024/06/29/2024.06.29%20%E5%88%B7%E9%A2%98%E6%97%A5%E8%AE%B0/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="739-每日温度"><a href="#739-每日温度" class="headerlink" title="739. 每日温度"></a>739. 每日温度</h2><p>给定一个整数数组 temperatures ，表示每天的温度，返回一个数组 answer ，其中 answer[i] 是指对于第 i 天，下一个更高温度出现在几天后。如果气温在这之后都不会升高，请在该位置用 0 来代替。</p>
-<p>示例 1:</p>
-<blockquote>
-<p>输入: temperatures &#x3D; [73,74,75,71,69,72,76,73]<br>输出: [1,1,4,2,1,1,0,0]</p>
-</blockquote>
-<p>示例 2:</p>
-<blockquote>
-<p>输入: temperatures &#x3D; [30,40,50,60]<br>输出: [1,1,1,0]</p>
-</blockquote>
-<p>示例 3:</p>
-<blockquote>
-<p>输入: temperatures &#x3D; [30,60,90]<br>输出: [1,1,0]</p>
-</blockquote>
-<p>这道题目可以用单调栈，栈中递减保存着数组下标，当当前值大于栈顶的时候，存进 ans，然后 pop；一直重复这个过程。然后 push 下标：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function">vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">dailyTemperatures</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; temperatures)</span> </span>&#123;<br>        <span class="hljs-comment">// 单调栈，；类似于消消乐</span><br>        <span class="hljs-type">int</span> n = temperatures.<span class="hljs-built_in">size</span>();<br>        stack&lt;<span class="hljs-type">int</span>&gt; st;<br>        <span class="hljs-function">vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">ans</span><span class="hljs-params">(n, <span class="hljs-number">0</span>)</span></span>;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; n; i++) &#123;<br>            <span class="hljs-keyword">while</span> (!st.<span class="hljs-built_in">empty</span>() &amp;&amp; temperatures[st.<span class="hljs-built_in">top</span>()] &lt; temperatures[i]) &#123;<br>                <span class="hljs-type">int</span> p = st.<span class="hljs-built_in">top</span>();<br>                st.<span class="hljs-built_in">pop</span>();<br>                ans[p] = i-p;<br>            &#125;<br>            st.<span class="hljs-built_in">push</span>(i);<br>        &#125;<br>        <span class="hljs-keyword">return</span> ans;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
-<h2 id="215-数组中的第K个最大元素"><a href="#215-数组中的第K个最大元素" class="headerlink" title="215. 数组中的第K个最大元素"></a>215. 数组中的第K个最大元素</h2><p>利用优先队列，当前队列存在着 k 个最大的元素，如果是小堆，堆顶就是第 K 大的元素：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">findKthLargest</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; nums, <span class="hljs-type">int</span> k)</span> </span>&#123;<br>        priority_queue&lt;<span class="hljs-type">int</span>, vector&lt;<span class="hljs-type">int</span>&gt;, greater&lt;<span class="hljs-type">int</span>&gt;&gt; miniHeap;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> num : nums) &#123;<br>            miniHeap.<span class="hljs-built_in">emplace</span>(num);<br>            <span class="hljs-keyword">if</span> (miniHeap.<span class="hljs-built_in">size</span>() &gt; k) &#123;<br>                miniHeap.<span class="hljs-built_in">pop</span>();<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> miniHeap.<span class="hljs-built_in">top</span>();<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-<h2 id="347-前-K-个高频元素"><a href="#347-前-K-个高频元素" class="headerlink" title="347. 前 K 个高频元素"></a>347. 前 K 个高频元素</h2><p>这个稍微有点复杂，和上一道题目类似，首先统计到 map，然后构建优先队列，队列中存储 <code>pair&lt;int,int&gt;</code>,按照 <strong>频率</strong> 进行排序。</p>
-<p>最后将队列中元素全部弹出到答案就可以了：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function">vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">topKFrequent</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; nums, <span class="hljs-type">int</span> k)</span> </span>&#123;<br>        <span class="hljs-comment">// 优于O(n log n)，可以分步处理</span><br>        unordered_map&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt; map;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> num : nums) &#123;<br>            map[num] += <span class="hljs-number">1</span>;<br>        &#125;<br>        <span class="hljs-comment">// 优先队列</span><br>        priority_queue&lt;pair&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt;, vector&lt;pair&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt;&gt;, greater&lt;pair&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt;&gt;&gt; pq;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span>&amp; item : map) &#123;<br>            pq.<span class="hljs-built_in">push</span>(<span class="hljs-built_in">pair</span>(item.second,item.first)); <span class="hljs-comment">// (freq,value)</span><br><br>            <span class="hljs-keyword">if</span> (pq.<span class="hljs-built_in">size</span>() &gt; k)<br>                pq.<span class="hljs-built_in">pop</span>();<br>        &#125;<br>        <span class="hljs-comment">// 最终处理</span><br>        vector&lt;<span class="hljs-type">int</span>&gt; ans;<br>        <span class="hljs-keyword">while</span> (!pq.<span class="hljs-built_in">empty</span>()) &#123;<br>            ans.<span class="hljs-built_in">push_back</span>(pq.<span class="hljs-built_in">top</span>().second);<br>            pq.<span class="hljs-built_in">pop</span>();<br>        &#125;<br>        <span class="hljs-keyword">return</span> ans;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h3 id="1-每日温度-LeetCode-739"><a href="#1-每日温度-LeetCode-739" class="headerlink" title="1. 每日温度 (LeetCode 739)"></a>1. 每日温度 (LeetCode 739)</h3><p>此问题使用了<strong>单调栈</strong>的方法。单调栈是解决此类“下一个更大元素”问题的一个常见技术。通过维护一个从栈底到栈顶递减的栈，可以有效地找到每个元素右侧第一个更大的元素。</p>
-<h4 id="解法："><a href="#解法：" class="headerlink" title="解法："></a>解法：</h4><ul>
-<li>使用一个栈来保存温度的索引。</li>
-<li>遍历温度数组，对于每个温度，如果当前温度大于栈顶索引对应的温度，则计算天数差并更新答案数组。</li>
-<li>将当前索引推入栈中，等待后续的比较。</li>
-<li>如果栈中剩余元素，对应的答案默认为0（已初始化）。</li>
-</ul>
-<p>这种方法的时间复杂度是 O(n)，因为每个元素最多入栈和出栈一次。</p>
-<h3 id="2-数组中的第K个最大元素-LeetCode-215"><a href="#2-数组中的第K个最大元素-LeetCode-215" class="headerlink" title="2. 数组中的第K个最大元素 (LeetCode 215)"></a>2. 数组中的第K个最大元素 (LeetCode 215)</h3><p>此问题利用<strong>最小堆</strong>来解决。通过维护一个大小为 k 的最小堆，堆顶元素始终是当前遇到的第 k 大的元素。</p>
-<h4 id="解法：-1"><a href="#解法：-1" class="headerlink" title="解法："></a>解法：</h4><ul>
-<li>使用一个最小堆来保存最大的 k 个元素。</li>
-<li>遍历数组，将每个元素加入最小堆。</li>
-<li>如果堆的大小超过 k，则弹出堆顶元素（最小元素）。</li>
-<li>遍历完成后，堆顶元素即为第 k 大的元素。</li>
-</ul>
-<p>这种方法的时间复杂度为 O(n log k)，其中 n 是数组的长度。</p>
-<h3 id="3-前-K-个高频元素-LeetCode-347"><a href="#3-前-K-个高频元素-LeetCode-347" class="headerlink" title="3. 前 K 个高频元素 (LeetCode 347)"></a>3. 前 K 个高频元素 (LeetCode 347)</h3><p>此问题首先使用一个哈希表来统计每个元素的频率，然后利用一个<strong>最小堆</strong>来找到频率最高的 k 个元素。</p>
-<h4 id="解法：-2"><a href="#解法：-2" class="headerlink" title="解法："></a>解法：</h4><ul>
-<li>使用一个哈希表来统计每个元素的频率。</li>
-<li>使用一个最小堆（存储频率和元素对）来维护最高频率的 k 个元素。</li>
-<li>遍历哈希表，将频率和元素的对推入最小堆。</li>
-<li>如果堆的大小超过 k，则弹出堆顶元素（频率最小的元素）。</li>
-<li>遍历完成后，将堆中的元素收集到结果数组。</li>
-</ul>
-<p>这种方法的时间复杂度为 O(n log k)，其中 n 是数组的长度。</p>
-]]></content>
-      <categories>
-        <category>LeetCode</category>
-      </categories>
-      <tags>
-        <tag>算法</tag>
-        <tag>数据结构</tag>
-        <tag>leetcode</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>2024.06.28 刷题日记</title>
     <url>/2024/06/28/2024.06.28%20%E5%88%B7%E9%A2%98%E6%97%A5%E8%AE%B0/</url>
     <content><![CDATA[<span id="more"></span>
@@ -1376,6 +1314,68 @@
 </li>
 </ul>
 <p>代码确实很好地模拟了这一过程，但要注意一点细节上的问题：在字符串解码结束后，如果主字符串（<code>currentStr</code>）后面没有更多的操作，它将直接返回。这种情况下，代码已经正确处理了所有情况。</p>
+]]></content>
+      <categories>
+        <category>LeetCode</category>
+      </categories>
+      <tags>
+        <tag>算法</tag>
+        <tag>数据结构</tag>
+        <tag>leetcode</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>2024.06.29 刷题日记</title>
+    <url>/2024/06/29/2024.06.29%20%E5%88%B7%E9%A2%98%E6%97%A5%E8%AE%B0/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="739-每日温度"><a href="#739-每日温度" class="headerlink" title="739. 每日温度"></a>739. 每日温度</h2><p>给定一个整数数组 temperatures ，表示每天的温度，返回一个数组 answer ，其中 answer[i] 是指对于第 i 天，下一个更高温度出现在几天后。如果气温在这之后都不会升高，请在该位置用 0 来代替。</p>
+<p>示例 1:</p>
+<blockquote>
+<p>输入: temperatures &#x3D; [73,74,75,71,69,72,76,73]<br>输出: [1,1,4,2,1,1,0,0]</p>
+</blockquote>
+<p>示例 2:</p>
+<blockquote>
+<p>输入: temperatures &#x3D; [30,40,50,60]<br>输出: [1,1,1,0]</p>
+</blockquote>
+<p>示例 3:</p>
+<blockquote>
+<p>输入: temperatures &#x3D; [30,60,90]<br>输出: [1,1,0]</p>
+</blockquote>
+<p>这道题目可以用单调栈，栈中递减保存着数组下标，当当前值大于栈顶的时候，存进 ans，然后 pop；一直重复这个过程。然后 push 下标：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function">vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">dailyTemperatures</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; temperatures)</span> </span>&#123;<br>        <span class="hljs-comment">// 单调栈，；类似于消消乐</span><br>        <span class="hljs-type">int</span> n = temperatures.<span class="hljs-built_in">size</span>();<br>        stack&lt;<span class="hljs-type">int</span>&gt; st;<br>        <span class="hljs-function">vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">ans</span><span class="hljs-params">(n, <span class="hljs-number">0</span>)</span></span>;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; n; i++) &#123;<br>            <span class="hljs-keyword">while</span> (!st.<span class="hljs-built_in">empty</span>() &amp;&amp; temperatures[st.<span class="hljs-built_in">top</span>()] &lt; temperatures[i]) &#123;<br>                <span class="hljs-type">int</span> p = st.<span class="hljs-built_in">top</span>();<br>                st.<span class="hljs-built_in">pop</span>();<br>                ans[p] = i-p;<br>            &#125;<br>            st.<span class="hljs-built_in">push</span>(i);<br>        &#125;<br>        <span class="hljs-keyword">return</span> ans;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="215-数组中的第K个最大元素"><a href="#215-数组中的第K个最大元素" class="headerlink" title="215. 数组中的第K个最大元素"></a>215. 数组中的第K个最大元素</h2><p>利用优先队列，当前队列存在着 k 个最大的元素，如果是小堆，堆顶就是第 K 大的元素：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">findKthLargest</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; nums, <span class="hljs-type">int</span> k)</span> </span>&#123;<br>        priority_queue&lt;<span class="hljs-type">int</span>, vector&lt;<span class="hljs-type">int</span>&gt;, greater&lt;<span class="hljs-type">int</span>&gt;&gt; miniHeap;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> num : nums) &#123;<br>            miniHeap.<span class="hljs-built_in">emplace</span>(num);<br>            <span class="hljs-keyword">if</span> (miniHeap.<span class="hljs-built_in">size</span>() &gt; k) &#123;<br>                miniHeap.<span class="hljs-built_in">pop</span>();<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> miniHeap.<span class="hljs-built_in">top</span>();<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<h2 id="347-前-K-个高频元素"><a href="#347-前-K-个高频元素" class="headerlink" title="347. 前 K 个高频元素"></a>347. 前 K 个高频元素</h2><p>这个稍微有点复杂，和上一道题目类似，首先统计到 map，然后构建优先队列，队列中存储 <code>pair&lt;int,int&gt;</code>,按照 <strong>频率</strong> 进行排序。</p>
+<p>最后将队列中元素全部弹出到答案就可以了：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function">vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">topKFrequent</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; nums, <span class="hljs-type">int</span> k)</span> </span>&#123;<br>        <span class="hljs-comment">// 优于O(n log n)，可以分步处理</span><br>        unordered_map&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt; map;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> num : nums) &#123;<br>            map[num] += <span class="hljs-number">1</span>;<br>        &#125;<br>        <span class="hljs-comment">// 优先队列</span><br>        priority_queue&lt;pair&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt;, vector&lt;pair&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt;&gt;, greater&lt;pair&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt;&gt;&gt; pq;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span>&amp; item : map) &#123;<br>            pq.<span class="hljs-built_in">push</span>(<span class="hljs-built_in">pair</span>(item.second,item.first)); <span class="hljs-comment">// (freq,value)</span><br><br>            <span class="hljs-keyword">if</span> (pq.<span class="hljs-built_in">size</span>() &gt; k)<br>                pq.<span class="hljs-built_in">pop</span>();<br>        &#125;<br>        <span class="hljs-comment">// 最终处理</span><br>        vector&lt;<span class="hljs-type">int</span>&gt; ans;<br>        <span class="hljs-keyword">while</span> (!pq.<span class="hljs-built_in">empty</span>()) &#123;<br>            ans.<span class="hljs-built_in">push_back</span>(pq.<span class="hljs-built_in">top</span>().second);<br>            pq.<span class="hljs-built_in">pop</span>();<br>        &#125;<br>        <span class="hljs-keyword">return</span> ans;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h3 id="1-每日温度-LeetCode-739"><a href="#1-每日温度-LeetCode-739" class="headerlink" title="1. 每日温度 (LeetCode 739)"></a>1. 每日温度 (LeetCode 739)</h3><p>此问题使用了<strong>单调栈</strong>的方法。单调栈是解决此类“下一个更大元素”问题的一个常见技术。通过维护一个从栈底到栈顶递减的栈，可以有效地找到每个元素右侧第一个更大的元素。</p>
+<h4 id="解法："><a href="#解法：" class="headerlink" title="解法："></a>解法：</h4><ul>
+<li>使用一个栈来保存温度的索引。</li>
+<li>遍历温度数组，对于每个温度，如果当前温度大于栈顶索引对应的温度，则计算天数差并更新答案数组。</li>
+<li>将当前索引推入栈中，等待后续的比较。</li>
+<li>如果栈中剩余元素，对应的答案默认为0（已初始化）。</li>
+</ul>
+<p>这种方法的时间复杂度是 O(n)，因为每个元素最多入栈和出栈一次。</p>
+<h3 id="2-数组中的第K个最大元素-LeetCode-215"><a href="#2-数组中的第K个最大元素-LeetCode-215" class="headerlink" title="2. 数组中的第K个最大元素 (LeetCode 215)"></a>2. 数组中的第K个最大元素 (LeetCode 215)</h3><p>此问题利用<strong>最小堆</strong>来解决。通过维护一个大小为 k 的最小堆，堆顶元素始终是当前遇到的第 k 大的元素。</p>
+<h4 id="解法：-1"><a href="#解法：-1" class="headerlink" title="解法："></a>解法：</h4><ul>
+<li>使用一个最小堆来保存最大的 k 个元素。</li>
+<li>遍历数组，将每个元素加入最小堆。</li>
+<li>如果堆的大小超过 k，则弹出堆顶元素（最小元素）。</li>
+<li>遍历完成后，堆顶元素即为第 k 大的元素。</li>
+</ul>
+<p>这种方法的时间复杂度为 O(n log k)，其中 n 是数组的长度。</p>
+<h3 id="3-前-K-个高频元素-LeetCode-347"><a href="#3-前-K-个高频元素-LeetCode-347" class="headerlink" title="3. 前 K 个高频元素 (LeetCode 347)"></a>3. 前 K 个高频元素 (LeetCode 347)</h3><p>此问题首先使用一个哈希表来统计每个元素的频率，然后利用一个<strong>最小堆</strong>来找到频率最高的 k 个元素。</p>
+<h4 id="解法：-2"><a href="#解法：-2" class="headerlink" title="解法："></a>解法：</h4><ul>
+<li>使用一个哈希表来统计每个元素的频率。</li>
+<li>使用一个最小堆（存储频率和元素对）来维护最高频率的 k 个元素。</li>
+<li>遍历哈希表，将频率和元素的对推入最小堆。</li>
+<li>如果堆的大小超过 k，则弹出堆顶元素（频率最小的元素）。</li>
+<li>遍历完成后，将堆中的元素收集到结果数组。</li>
+</ul>
+<p>这种方法的时间复杂度为 O(n log k)，其中 n 是数组的长度。</p>
 ]]></content>
       <categories>
         <category>LeetCode</category>
@@ -4544,7 +4544,7 @@
   </entry>
   <entry>
     <title>Chisel 测试模块</title>
-    <url>/2024/09/18/Chisel%E7%9A%84%E6%B5%8B%E8%AF%95%E6%A8%A1%E5%9D%97/</url>
+    <url>/2024/09/19/Chisel%E7%9A%84%E6%B5%8B%E8%AF%95%E6%A8%A1%E5%9D%97/</url>
     <content><![CDATA[<span id="more"></span>
 
 <h2 id="一个普通的测试模块"><a href="#一个普通的测试模块" class="headerlink" title="一个普通的测试模块"></a>一个普通的测试模块</h2><figure class="highlight scala"><table><tr><td class="code"><pre><code class="hljs Scala"><span class="hljs-keyword">import</span> chisel3._<br><span class="hljs-keyword">import</span> chiseltest._<br><span class="hljs-keyword">import</span> org.scalatest.flatspec.<span class="hljs-type">AnyFlatSpec</span><br><br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">FlipFlopTest</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AnyFlatSpec</span> <span class="hljs-keyword">with</span> <span class="hljs-title">ChiselScalatestTester</span> </span>&#123;<br>  <span class="hljs-string">&quot;FlipFlop&quot;</span> should <span class="hljs-string">&quot;correctly store the input on the rising edge of the clock&quot;</span> in &#123;<br>    test(<span class="hljs-keyword">new</span> <span class="hljs-type">FlipFlop</span>) &#123; c =&gt;<br>      <span class="hljs-comment">// 初始状态</span><br>      c.io.d.poke(<span class="hljs-literal">false</span>.<span class="hljs-type">B</span>)   <span class="hljs-comment">// 设置输入 d</span><br>      c.clock.step(<span class="hljs-number">1</span>)        <span class="hljs-comment">// 推进时钟</span><br>      c.io.q.expect(<span class="hljs-literal">false</span>.<span class="hljs-type">B</span>) <span class="hljs-comment">// 检查输出 q</span><br><br>      <span class="hljs-comment">// 设置 D 为 true</span><br>      c.io.d.poke(<span class="hljs-literal">true</span>.<span class="hljs-type">B</span>)<br>      c.clock.step(<span class="hljs-number">1</span>)<br>      c.io.q.expect(<span class="hljs-literal">true</span>.<span class="hljs-type">B</span>)<br><br>      <span class="hljs-comment">// 设置 D 为 false</span><br>      c.io.d.poke(<span class="hljs-literal">false</span>.<span class="hljs-type">B</span>)<br>      c.clock.step(<span class="hljs-number">1</span>)<br>      c.io.q.expect(<span class="hljs-literal">false</span>.<span class="hljs-type">B</span>)<br>    &#125;<br>  &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
@@ -5413,6 +5413,23 @@
       </tags>
   </entry>
   <entry>
+    <title>Hackintosh 入门</title>
+    <url>/2023/07/27/Hackintosh%20%E5%85%A5%E9%97%A8/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="〇、前言"><a href="#〇、前言" class="headerlink" title="〇、前言"></a>〇、前言</h2><p>本文收集了黑苹果入门的方法，只要按顺序阅读这些帖子，就能对 Hackintosh 的过程和细节有大致的了解，当然想要精通，还需要日积月累。</p>
+<h2 id="一、硬件自检"><a href="#一、硬件自检" class="headerlink" title="一、硬件自检"></a>一、硬件自检</h2><h3 id="1-POST上电自检详解及BIOS常见故障"><a href="#1-POST上电自检详解及BIOS常见故障" class="headerlink" title="1. POST上电自检详解及BIOS常见故障"></a>1. <a href="https://blog.51cto.com/bule201/1588548">POST上电自检详解及BIOS常见故障</a></h3><h2 id="二、了解-EFI"><a href="#二、了解-EFI" class="headerlink" title="二、了解 EFI"></a>二、了解 EFI</h2><h3 id="1-电脑基础知识普及：BIOS、EFI与UEFI详解！"><a href="#1-电脑基础知识普及：BIOS、EFI与UEFI详解！" class="headerlink" title="1. 电脑基础知识普及：BIOS、EFI与UEFI详解！"></a>1. <a href="https://zhuanlan.zhihu.com/p/54108702">电脑基础知识普及：BIOS、EFI与UEFI详解！</a></h3><h3 id="2-EFI分区——折腾黑苹果必须弄懂的硬盘那点事"><a href="#2-EFI分区——折腾黑苹果必须弄懂的硬盘那点事" class="headerlink" title="2.  EFI分区——折腾黑苹果必须弄懂的硬盘那点事"></a>2.  <a href="https://post.smzdm.com/p/a9gvx9p5/">EFI分区——折腾黑苹果必须弄懂的硬盘那点事</a></h3><h2 id="三、HackinTosh"><a href="#三、HackinTosh" class="headerlink" title="三、HackinTosh!"></a>三、HackinTosh!</h2><h3 id="1-黑苹果安装入门-hackintosh-install"><a href="#1-黑苹果安装入门-hackintosh-install" class="headerlink" title="1. 黑苹果安装入门(hackintosh install)"></a>1. <a href="https://zhuanlan.zhihu.com/p/260068337">黑苹果安装入门(hackintosh install)</a></h3><h3 id="2-苹果地带（可选）"><a href="#2-苹果地带（可选）" class="headerlink" title="2. 苹果地带（可选）"></a>2. <a href="https://macx.top/">苹果地带</a>（可选）</h3><h2 id="四、总结"><a href="#四、总结" class="headerlink" title="四、总结"></a>四、总结</h2><p>以上几篇文章按照顺序耐心阅读，即可入门。</p>
+]]></content>
+      <categories>
+        <category>OS</category>
+        <category>经验方法</category>
+      </categories>
+      <tags>
+        <tag>操作系统</tag>
+        <tag>Hackintosh</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Java将 List 类型转化为 Array 的方法</title>
     <url>/2023/03/07/Java%E5%B0%86%20List%20%E7%B1%BB%E5%9E%8B%E8%BD%AC%E5%8C%96%E4%B8%BA%20Array%20%E7%9A%84%E6%96%B9%E6%B3%95/</url>
     <content><![CDATA[<span id="more"></span>
@@ -5441,23 +5458,6 @@
         <tag>java</tag>
         <tag>jvm</tag>
         <tag>servlet</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hackintosh 入门</title>
-    <url>/2023/07/27/Hackintosh%20%E5%85%A5%E9%97%A8/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="〇、前言"><a href="#〇、前言" class="headerlink" title="〇、前言"></a>〇、前言</h2><p>本文收集了黑苹果入门的方法，只要按顺序阅读这些帖子，就能对 Hackintosh 的过程和细节有大致的了解，当然想要精通，还需要日积月累。</p>
-<h2 id="一、硬件自检"><a href="#一、硬件自检" class="headerlink" title="一、硬件自检"></a>一、硬件自检</h2><h3 id="1-POST上电自检详解及BIOS常见故障"><a href="#1-POST上电自检详解及BIOS常见故障" class="headerlink" title="1. POST上电自检详解及BIOS常见故障"></a>1. <a href="https://blog.51cto.com/bule201/1588548">POST上电自检详解及BIOS常见故障</a></h3><h2 id="二、了解-EFI"><a href="#二、了解-EFI" class="headerlink" title="二、了解 EFI"></a>二、了解 EFI</h2><h3 id="1-电脑基础知识普及：BIOS、EFI与UEFI详解！"><a href="#1-电脑基础知识普及：BIOS、EFI与UEFI详解！" class="headerlink" title="1. 电脑基础知识普及：BIOS、EFI与UEFI详解！"></a>1. <a href="https://zhuanlan.zhihu.com/p/54108702">电脑基础知识普及：BIOS、EFI与UEFI详解！</a></h3><h3 id="2-EFI分区——折腾黑苹果必须弄懂的硬盘那点事"><a href="#2-EFI分区——折腾黑苹果必须弄懂的硬盘那点事" class="headerlink" title="2.  EFI分区——折腾黑苹果必须弄懂的硬盘那点事"></a>2.  <a href="https://post.smzdm.com/p/a9gvx9p5/">EFI分区——折腾黑苹果必须弄懂的硬盘那点事</a></h3><h2 id="三、HackinTosh"><a href="#三、HackinTosh" class="headerlink" title="三、HackinTosh!"></a>三、HackinTosh!</h2><h3 id="1-黑苹果安装入门-hackintosh-install"><a href="#1-黑苹果安装入门-hackintosh-install" class="headerlink" title="1. 黑苹果安装入门(hackintosh install)"></a>1. <a href="https://zhuanlan.zhihu.com/p/260068337">黑苹果安装入门(hackintosh install)</a></h3><h3 id="2-苹果地带（可选）"><a href="#2-苹果地带（可选）" class="headerlink" title="2. 苹果地带（可选）"></a>2. <a href="https://macx.top/">苹果地带</a>（可选）</h3><h2 id="四、总结"><a href="#四、总结" class="headerlink" title="四、总结"></a>四、总结</h2><p>以上几篇文章按照顺序耐心阅读，即可入门。</p>
-]]></content>
-      <categories>
-        <category>OS</category>
-        <category>经验方法</category>
-      </categories>
-      <tags>
-        <tag>操作系统</tag>
-        <tag>Hackintosh</tag>
       </tags>
   </entry>
   <entry>
@@ -5959,109 +5959,6 @@
       </tags>
   </entry>
   <entry>
-    <title>MIT 6.S081学习笔记（第三章）</title>
-    <url>/2023/11/22/MIT%206.S081%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E7%AC%AC%E4%B8%89%E7%AB%A0%EF%BC%89/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="〇、前言"><a href="#〇、前言" class="headerlink" title="〇、前言"></a>〇、前言</h2><p>本文主要完成<strong>MIT 6.S081</strong> 实验三：<strong>page tables</strong>。<br>开始之前，切换分支：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ git fetch<br>$ git checkout pgtbl<br>$ make clean<br></code></pre></td></tr></table></figure>
-<h2 id="一、Speed-up-system-calls-easy"><a href="#一、Speed-up-system-calls-easy" class="headerlink" title="一、Speed up system calls (easy)"></a>一、Speed up system calls (easy)</h2><p>这个实验比底下两个都难，但是它的难度是简单？</p>
-<h3 id="Question-requirements"><a href="#Question-requirements" class="headerlink" title="Question requirements"></a>Question requirements</h3><blockquote>
-<p>Some operating systems (e.g., Linux) speed up certain system calls by sharing data in a read-only region between userspace and the kernel. This eliminates the need for kernel crossings when performing these system calls. To help you learn how to insert mappings into a page table, your first task is to implement this optimization for the getpid() system call in xv6.</p>
-</blockquote>
-<p>这个实验就是让我来加速 <code>getpid()</code> 这个系统调用。</p>
-<p>如果用户态调用系统调用（比如<code>getpid()</code>），那么就需要切换到内核态，这中间就会带来开销。对于加速系统调用，思路就是不让它切换到核心态，仍然能运行一些核心态才能运行的操作，比如获取某个进程的 pid（也就是这节的 <code>getpid()</code>，这当然是安全的无关紧要的越权，因为它只是读取 <strong>PTE_R</strong>，不修改 <strong>PTE_W</strong>，也不执行 <strong>PTE_X</strong>）。</p>
-<p>在这里我们使用 <code>ugetpid(void)</code> 进行代替 <code>getpid()</code>：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> LAB_PGTBL</span><br><span class="hljs-type">int</span><br><span class="hljs-title function_">ugetpid</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">usyscall</span> *<span class="hljs-title">u</span> =</span> (<span class="hljs-keyword">struct</span> usyscall *)USYSCALL;<br>  <span class="hljs-keyword">return</span> u-&gt;pid;<br>&#125;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br></code></pre></td></tr></table></figure>
-<p>可以看到它直接操作 <code>USYSCALL</code>，本质上是一个指针，进行强转之后，直接返回 <code>u-&gt;pid</code>。</p>
-<p>所以只要为每一个进程分配一个 <strong>USYSCALL</strong> 页 ，这个页程序直接可以在用户态读取它。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> LAB_PGTBL</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> USYSCALL (TRAPFRAME - PGSIZE)</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">usyscall</span> &#123;</span><br>  <span class="hljs-type">int</span> pid;  <span class="hljs-comment">// Process ID</span><br>&#125;;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br></code></pre></td></tr></table></figure>
-<p>这个结构已经被定义好了，我们只需要将它放到进程结构体中：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span>&#123;</span><br>    ...<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">usyscall</span> *<span class="hljs-title">usyscall</span>;</span><br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>为它分配一定的空间，这个在初始化中就可以完成了：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">struct</span> proc * <span class="hljs-title function_">allocproc</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>&#123;<br>    ...<br>    found:<br>        ...<br>    <span class="hljs-comment">// Allocate a speed up syscall page</span><br>    <span class="hljs-keyword">if</span> ((p-&gt;usyscall = (<span class="hljs-keyword">struct</span> usyscall *)kalloc()) == <span class="hljs-number">0</span>) &#123;<br>        freeproc(p);<br>        release(&amp;p-&gt;lock);<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    &#125;<br>    <span class="hljs-comment">// An empty user page table.</span><br>    p-&gt;pagetable = proc_pagetable(p);<br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>到此，完成了基本工作：</p>
-<ul>
-<li>定义一个我们需要的结构体（已经定义好）；</li>
-<li>将它增加到 <code>struct proc</code>字段；</li>
-<li>为这个新的字段分配空间。</li>
-</ul>
-<p>现在我们就要把这个 <code>USYSCALL</code> 页面映射到进程的页表上（建立 <strong>PTE</strong>，并设置 <strong>PTE_R</strong> 、<strong>PTE_U</strong> 标记 ）：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">pagetable_t</span> <span class="hljs-title function_">proc_pagetable</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> proc *p)</span>&#123;<br>    ...<br>    <span class="hljs-keyword">if</span> (mappages(pagetable, USYSCALL, PGSIZE, (uint64)(p-&gt;usyscall),<br>                 PTE_R | PTE_U) &lt; <span class="hljs-number">0</span>) &#123;<br>        uvmunmap(pagetable, TRAMPOLINE, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>);<br>        uvmunmap(pagetable, TRAPFRAME, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>);<br>        uvmfree(pagetable, <span class="hljs-number">0</span>);<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> pagetable;<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>进程在启动的时候，我们自然要对这个新的字段要赋值，也就是初始化：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">struct</span> proc * <span class="hljs-title function_">allocproc</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>&#123;<br>    ...<br>    p-&gt;usyscall-&gt;pid = p-&gt;pid;<br>    <span class="hljs-keyword">return</span> p;<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>初始化之后，这样用户进程在用户态直接调用 <code>ugetpid()</code>，就直接获取 <code>struct proc</code> 字段就好了，不用再陷入了。</p>
-<p>我们来看看测试程序是怎么判断的：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span><br><span class="hljs-title function_">ugetpid_test</span><span class="hljs-params">()</span><br>&#123;<br>  <span class="hljs-type">int</span> i;<br><br>  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;ugetpid_test starting\n&quot;</span>);<br>  testname = <span class="hljs-string">&quot;ugetpid_test&quot;</span>;<br><br>  <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">64</span>; i++) &#123;<br>    <span class="hljs-type">int</span> ret = fork();<br>    <span class="hljs-keyword">if</span> (ret != <span class="hljs-number">0</span>) &#123;<br>      wait(&amp;ret);<br>      <span class="hljs-keyword">if</span> (ret != <span class="hljs-number">0</span>)<br>        <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);<br>      <span class="hljs-keyword">continue</span>;<br>    &#125;<br>    <span class="hljs-keyword">if</span> (getpid() != ugetpid())<br>      err(<span class="hljs-string">&quot;missmatched PID&quot;</span>);<br>    <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);<br>  &#125;<br>  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;ugetpid_test: OK\n&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>很明显，<code>if (getpid() != ugetpid())</code> 分别<strong>陷入</strong>和 <strong>不陷入</strong> 获取 <code>pid</code>，通过对比给结果。</p>
-<p>那么有一个问题，进程在结束的时候，也应该将 PTE 释放掉：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">freeproc</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> proc*p)</span>&#123;<br>    ...<br>    <span class="hljs-keyword">if</span> (p-&gt;usyscall) kfree((<span class="hljs-type">void</span> *)p-&gt;usyscall);<br>    p-&gt;usyscall = <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>以及在 <code>proc_freepagetable()</code> 中解除映射，不然会报错（因为页表已经失效了）：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span><br><span class="hljs-title function_">proc_freepagetable</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span> pagetable, uint64 sz)</span><br>&#123;<br>  ...<br>  uvmunmap(pagetable, USYSCALL, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>);<br>  uvmfree(pagetable, sz);<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>运行一下，没什么问题：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">******:~/xv6-labs-2023<span class="hljs-comment"># ./grade-lab-pgtbl ugetpid</span><br>make: <span class="hljs-string">&#x27;kernel/kernel&#x27;</span> is up to <span class="hljs-built_in">date</span>.<br>== Test pgtbltest == (2.4s)<br>== Test   pgtbltest: ugetpid ==<br>  pgtbltest: ugetpid: OK<br></code></pre></td></tr></table></figure>
-<h3 id="Which-other-xv6-system-call-s-could-be-made-faster-using-this-shared-page-Explain-how"><a href="#Which-other-xv6-system-call-s-could-be-made-faster-using-this-shared-page-Explain-how" class="headerlink" title="Which other xv6 system call(s) could be made faster using this shared page? Explain how."></a>Which other xv6 system call(s) could be made faster using this shared page? Explain how.</h3><p>任何直接或间接调用 <code>copyout()</code> 的系统调用都会被加速，因为它节省了复制数据的时间。此外，纯粹用于信息检索的系统调用，比如本节中提到的 <code>getpid()</code>，也会更快。<strong>这是因为不再需要陷入操作系统，对应的数据可以在用户模式下读取</strong>。</p>
-<h2 id="二、Print-a-page-table-easy"><a href="#二、Print-a-page-table-easy" class="headerlink" title="二、Print a page table (easy)"></a>二、Print a page table (easy)</h2><h3 id="Question-requirements-1"><a href="#Question-requirements-1" class="headerlink" title="Question requirements"></a>Question requirements</h3><blockquote>
-<p>Define a function called vmprint(). It should take a pagetable_t argument, and print that pagetable in the format described below. Insert if(p-&gt;pid&#x3D;&#x3D;1) vmprint(p-&gt;pagetable) in exec.c just before the return argc, to print the first process’s page table. You receive full credit for this part of the lab if you pass the pte printout test of make grade.</p>
-</blockquote>
-<h3 id="Some-hints"><a href="#Some-hints" class="headerlink" title="Some hints:"></a>Some hints:</h3><ul>
-<li>You can put vmprint() in <code>kernel/vm.c</code>.</li>
-<li>Use the macros at the end of the file <code>kernel/riscv.h</code>.</li>
-<li>The function freewalk may be inspirational.</li>
-<li>Define the prototype for vmprint in <code>kernel/defs.h</code> so that you can call it from <code>exec.c</code>.</li>
-<li>Use %p in your printf calls to print out full 64-bit hex PTEs and addresses as shown in the example.</li>
-</ul>
-<p>很简单，只需要按照提示做，就可以了。先在 <code>exec.c</code>加入：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">exec</span><span class="hljs-params">(<span class="hljs-type">char</span> *path, <span class="hljs-type">char</span> **argv)</span>&#123;<br>  ...<br>  proc_freepagetable(oldpagetable, oldsz);<br>  <span class="hljs-comment">// 增加的代码</span><br>  <span class="hljs-keyword">if</span>(p-&gt;pid==<span class="hljs-number">1</span>)<br>    vmprint(p-&gt;pagetable);<br>  <span class="hljs-keyword">return</span> argc; <span class="hljs-comment">// this ends up in a0, the first argument to main(argc, argv)</span><br><br> bad:<br> ...<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>思路就是递归遍历<strong>PTE</strong>以及标记位 <strong>PTE_V</strong>，在 <code>vm.c</code>加入：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">printpgtb</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span> pagetable, <span class="hljs-type">int</span> depth)</span>&#123;<br>  <span class="hljs-comment">// 遍历</span><br>  <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">512</span>; i++)&#123;<br>    <span class="hljs-type">pte_t</span> pte = pagetable[i];<br>    <span class="hljs-keyword">if</span>(pte &amp; PTE_V)&#123;<br>      <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;..&quot;</span>);<br>      <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> j=<span class="hljs-number">0</span>;j&lt;depth;j++) &#123;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot; ..&quot;</span>);<br>      &#125;<br>      <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%d: pte %p pa %p\n&quot;</span>, i, pte, PTE2PA(pte));<br>      <span class="hljs-comment">// 如果页表条目有效且没有读取、写入或执行权限，则继续递归调用 printpgtb 函数，打印下一级页表的内容</span><br>      <span class="hljs-keyword">if</span>((pte &amp; PTE_V) &amp;&amp; (pte &amp; (PTE_R|PTE_W|PTE_X)) == <span class="hljs-number">0</span>) &#123;<br>        uint64 child = PTE2PA(pte);<br>        printpgtb((<span class="hljs-type">pagetable_t</span>)child, depth+<span class="hljs-number">1</span>);<br>      &#125;<br>    &#125;<br>  &#125;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">vmprint</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span> pagetable)</span> &#123;<br>  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;page table %p\n&quot;</span>, pagetable);<br>  printpgtb(pagetable, <span class="hljs-number">0</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>也别忘了在 <code>defs.h</code>加函数声明：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// vm.c</span><br>...<br><span class="hljs-type">int</span>             <span class="hljs-title function_">copyinstr</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span>, <span class="hljs-type">char</span> *, uint64, uint64)</span>;<br><span class="hljs-type">void</span>            <span class="hljs-title function_">vmprint</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span>)</span>;<br></code></pre></td></tr></table></figure>
-
-<h2 id="Detect-which-pages-have-been-accessed-hard"><a href="#Detect-which-pages-have-been-accessed-hard" class="headerlink" title="Detect which pages have been accessed (hard)"></a>Detect which pages have been accessed (hard)</h2><h3 id="Question-requirements-2"><a href="#Question-requirements-2" class="headerlink" title="Question requirements"></a>Question requirements</h3><blockquote>
-<p>Some garbage collectors (a form of automatic memory management) can benefit from information about which pages have been accessed (read or write). In this part of the lab, you will add a new feature to xv6 that detects and reports this information to userspace by inspecting the access bits in the RISC-V page table. The RISC-V hardware page walker marks these bits in the PTE whenever it resolves a TLB miss.</p>
-</blockquote>
-<h3 id="Some-hints-1"><a href="#Some-hints-1" class="headerlink" title="Some hints"></a>Some hints</h3><ul>
-<li>Read <code>pgaccess_test()</code> in <code>user/pgtbltest.c</code> to see how pgaccess is used.</li>
-<li>Start by implementing <code>sys_pgaccess()</code> in <code>kernel/sysproc.c</code>.</li>
-<li>You’ll need to parse arguments using <code>argaddr()</code> and <code>argint()</code>.</li>
-<li>For the output bitmask, it’s easier to store a temporary buffer in the kernel and copy it to the user (via <code>copyout()</code>) after filling it with the right bits.</li>
-<li>It’s okay to set an upper limit on the number of pages that can be scanned.<br><code>walk()</code> in <code>kernel/vm.c</code> is very useful for finding the right <strong>PTEs</strong>.</li>
-<li>You’ll need to define <strong>PTE_A</strong>, the access bit, in <code>kernel/riscv.h</code>. Consult the RISC-V privileged architecture manual to determine its value.</li>
-<li>Be sure to clear <strong>PTE_A</strong> after checking if it is set. Otherwise, it won’t be possible to determine if the page was accessed since the last time <code>pgaccess()</code> was called (i.e., the bit will be set forever).</li>
-<li><code>vmprint()</code> may come in handy to debug page tables.</li>
-</ul>
-<h3 id="思路："><a href="#思路：" class="headerlink" title="思路："></a>思路：</h3><ul>
-<li>手动添加访问标志；</li>
-<li>获取一些参数；</li>
-<li>利用参数对页表项遍历，对访问标志进行提取，提取到 <code>bitmask</code> 中；</li>
-<li>将 <code>bitmask</code>返回。</li>
-</ul>
-<p>这个实验和第一个加速系统调用实验类似。首先需要手动设置一些标记 <strong>PTE_A</strong>。<br>在<code>kernel/riscv.h</code>中加入访问标志：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> PTE_A (1L &lt;&lt; 6)</span><br></code></pre></td></tr></table></figure>
-<p>获取参数，需要获取的参数就是要检查的页起始地址、页数、用户空间地址（答案返回的地方）。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> uint64<br><span class="hljs-title function_">argraw</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span><br>&#123;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">p</span> =</span> myproc();<br>  <span class="hljs-keyword">switch</span> (n) &#123;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">0</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a0;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">1</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a1;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">2</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a2;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">3</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a3;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">4</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a4;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">5</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a5;<br>  &#125;<br>  panic(<span class="hljs-string">&quot;argraw&quot;</span>);<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-<p><code>argraw()</code>的作用就是获取用户进程<code>trap</code>内核之前的寄存器的信息。<code>a0</code>保存的是用户进程的起始地址（虚拟地址），<code>a1</code> 保存的是进程的页面数。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c">uint64 startaddr;<br><span class="hljs-type">int</span> npage;<br>uint64 useraddr;<br>argaddr(<span class="hljs-number">0</span>, &amp;startaddr);<br>argint(<span class="hljs-number">1</span>, &amp;npage);<br>argaddr(<span class="hljs-number">2</span>, &amp;useraddr);<br></code></pre></td></tr></table></figure>
-<p>整个函数如下：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span><br><span class="hljs-title function_">sys_pgaccess</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>  <span class="hljs-comment">//  parse arguments using argaddr() and argint().</span><br>  uint64 startaddr;<br>  <span class="hljs-type">int</span> npage;<br>  uint64 useraddr;<br>  argaddr(<span class="hljs-number">0</span>, &amp;startaddr);<br>  argint(<span class="hljs-number">1</span>, &amp;npage);<br>  argaddr(<span class="hljs-number">2</span>, &amp;useraddr);<br>  uint64 bitmask = <span class="hljs-number">0</span>;<br>  <span class="hljs-comment">// 取反</span><br>  uint64 complement = ~PTE_A;<br><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">p</span> =</span> myproc();<br>  <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; npage; ++i) &#123;<br>    <span class="hljs-type">pte_t</span> *pte = walk(p-&gt;pagetable, startaddr+i*PGSIZE, <span class="hljs-number">0</span>);<br>    <span class="hljs-keyword">if</span> (*pte &amp; PTE_A) &#123;<br>      bitmask |= (<span class="hljs-number">1</span> &lt;&lt; i);<br>      <span class="hljs-comment">// 清空标记</span><br>      *pte &amp;= complement;<br>    &#125;<br>  &#125;<br>  <span class="hljs-comment">// copyout</span><br>  copyout(p-&gt;pagetable, useraddr, (<span class="hljs-type">char</span> *)&amp;bitmask, <span class="hljs-keyword">sizeof</span>(bitmask));<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>运行测试：</p>
-<blockquote>
-<p>&#x3D;&#x3D; Test pgtbltest &#x3D;&#x3D;<br>$ make qemu-gdb<br>(3.6s)<br>&#x3D;&#x3D; Test   pgtbltest: ugetpid &#x3D;&#x3D;<br>  pgtbltest: ugetpid: OK<br>&#x3D;&#x3D; Test   pgtbltest: pgaccess &#x3D;&#x3D;<br>  pgtbltest: pgaccess: OK<br>&#x3D;&#x3D; Test pte printout &#x3D;&#x3D;<br>$ make qemu-gdb<br>pte printout: OK (0.8s)<br>&#x3D;&#x3D; Test answers-pgtbl.txt &#x3D;&#x3D;<br>answers-pgtbl.txt: OK<br>&#x3D;&#x3D; Test usertests &#x3D;&#x3D;<br>$ make qemu-gdb<br>(8.2s)<br>&#x3D;&#x3D; Test   usertests: all tests &#x3D;&#x3D;<br>  usertests: all tests: OK<br>&#x3D;&#x3D; Test time &#x3D;&#x3D;<br>time: OK<br>Score: 46&#x2F;46</p>
-</blockquote>
-<p><em>全文完，感谢阅读。</em></p>
-]]></content>
-      <categories>
-        <category>OS</category>
-      </categories>
-      <tags>
-        <tag>学习</tag>
-        <tag>笔记</tag>
-        <tag>操作系统</tag>
-        <tag>MIT 6.S081</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>MIT 6.S081学习笔记（第七章）</title>
     <url>/2023/12/13/MIT%206.S081%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E7%AC%AC%E4%B8%83%E7%AB%A0%EF%BC%89/</url>
     <content><![CDATA[<span id="more"></span>
@@ -6192,6 +6089,109 @@
 </ul>
 </blockquote>
 <p>参考：<a href="https://blog.miigon.net/posts/s081-lab8-locks/#memory-allocator-moderate">锁优化</a>、<a href="https://github.com/Miigon/blog/issues/8">讨论</a>。</p>
+<p><em>全文完，感谢阅读。</em></p>
+]]></content>
+      <categories>
+        <category>OS</category>
+      </categories>
+      <tags>
+        <tag>学习</tag>
+        <tag>笔记</tag>
+        <tag>操作系统</tag>
+        <tag>MIT 6.S081</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MIT 6.S081学习笔记（第三章）</title>
+    <url>/2023/11/22/MIT%206.S081%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E7%AC%AC%E4%B8%89%E7%AB%A0%EF%BC%89/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="〇、前言"><a href="#〇、前言" class="headerlink" title="〇、前言"></a>〇、前言</h2><p>本文主要完成<strong>MIT 6.S081</strong> 实验三：<strong>page tables</strong>。<br>开始之前，切换分支：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ git fetch<br>$ git checkout pgtbl<br>$ make clean<br></code></pre></td></tr></table></figure>
+<h2 id="一、Speed-up-system-calls-easy"><a href="#一、Speed-up-system-calls-easy" class="headerlink" title="一、Speed up system calls (easy)"></a>一、Speed up system calls (easy)</h2><p>这个实验比底下两个都难，但是它的难度是简单？</p>
+<h3 id="Question-requirements"><a href="#Question-requirements" class="headerlink" title="Question requirements"></a>Question requirements</h3><blockquote>
+<p>Some operating systems (e.g., Linux) speed up certain system calls by sharing data in a read-only region between userspace and the kernel. This eliminates the need for kernel crossings when performing these system calls. To help you learn how to insert mappings into a page table, your first task is to implement this optimization for the getpid() system call in xv6.</p>
+</blockquote>
+<p>这个实验就是让我来加速 <code>getpid()</code> 这个系统调用。</p>
+<p>如果用户态调用系统调用（比如<code>getpid()</code>），那么就需要切换到内核态，这中间就会带来开销。对于加速系统调用，思路就是不让它切换到核心态，仍然能运行一些核心态才能运行的操作，比如获取某个进程的 pid（也就是这节的 <code>getpid()</code>，这当然是安全的无关紧要的越权，因为它只是读取 <strong>PTE_R</strong>，不修改 <strong>PTE_W</strong>，也不执行 <strong>PTE_X</strong>）。</p>
+<p>在这里我们使用 <code>ugetpid(void)</code> 进行代替 <code>getpid()</code>：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> LAB_PGTBL</span><br><span class="hljs-type">int</span><br><span class="hljs-title function_">ugetpid</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">usyscall</span> *<span class="hljs-title">u</span> =</span> (<span class="hljs-keyword">struct</span> usyscall *)USYSCALL;<br>  <span class="hljs-keyword">return</span> u-&gt;pid;<br>&#125;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br></code></pre></td></tr></table></figure>
+<p>可以看到它直接操作 <code>USYSCALL</code>，本质上是一个指针，进行强转之后，直接返回 <code>u-&gt;pid</code>。</p>
+<p>所以只要为每一个进程分配一个 <strong>USYSCALL</strong> 页 ，这个页程序直接可以在用户态读取它。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> LAB_PGTBL</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> USYSCALL (TRAPFRAME - PGSIZE)</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">usyscall</span> &#123;</span><br>  <span class="hljs-type">int</span> pid;  <span class="hljs-comment">// Process ID</span><br>&#125;;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br></code></pre></td></tr></table></figure>
+<p>这个结构已经被定义好了，我们只需要将它放到进程结构体中：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span>&#123;</span><br>    ...<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">usyscall</span> *<span class="hljs-title">usyscall</span>;</span><br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>为它分配一定的空间，这个在初始化中就可以完成了：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">struct</span> proc * <span class="hljs-title function_">allocproc</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>&#123;<br>    ...<br>    found:<br>        ...<br>    <span class="hljs-comment">// Allocate a speed up syscall page</span><br>    <span class="hljs-keyword">if</span> ((p-&gt;usyscall = (<span class="hljs-keyword">struct</span> usyscall *)kalloc()) == <span class="hljs-number">0</span>) &#123;<br>        freeproc(p);<br>        release(&amp;p-&gt;lock);<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    &#125;<br>    <span class="hljs-comment">// An empty user page table.</span><br>    p-&gt;pagetable = proc_pagetable(p);<br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>到此，完成了基本工作：</p>
+<ul>
+<li>定义一个我们需要的结构体（已经定义好）；</li>
+<li>将它增加到 <code>struct proc</code>字段；</li>
+<li>为这个新的字段分配空间。</li>
+</ul>
+<p>现在我们就要把这个 <code>USYSCALL</code> 页面映射到进程的页表上（建立 <strong>PTE</strong>，并设置 <strong>PTE_R</strong> 、<strong>PTE_U</strong> 标记 ）：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">pagetable_t</span> <span class="hljs-title function_">proc_pagetable</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> proc *p)</span>&#123;<br>    ...<br>    <span class="hljs-keyword">if</span> (mappages(pagetable, USYSCALL, PGSIZE, (uint64)(p-&gt;usyscall),<br>                 PTE_R | PTE_U) &lt; <span class="hljs-number">0</span>) &#123;<br>        uvmunmap(pagetable, TRAMPOLINE, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>);<br>        uvmunmap(pagetable, TRAPFRAME, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>);<br>        uvmfree(pagetable, <span class="hljs-number">0</span>);<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> pagetable;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>进程在启动的时候，我们自然要对这个新的字段要赋值，也就是初始化：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">struct</span> proc * <span class="hljs-title function_">allocproc</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>&#123;<br>    ...<br>    p-&gt;usyscall-&gt;pid = p-&gt;pid;<br>    <span class="hljs-keyword">return</span> p;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>初始化之后，这样用户进程在用户态直接调用 <code>ugetpid()</code>，就直接获取 <code>struct proc</code> 字段就好了，不用再陷入了。</p>
+<p>我们来看看测试程序是怎么判断的：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span><br><span class="hljs-title function_">ugetpid_test</span><span class="hljs-params">()</span><br>&#123;<br>  <span class="hljs-type">int</span> i;<br><br>  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;ugetpid_test starting\n&quot;</span>);<br>  testname = <span class="hljs-string">&quot;ugetpid_test&quot;</span>;<br><br>  <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">64</span>; i++) &#123;<br>    <span class="hljs-type">int</span> ret = fork();<br>    <span class="hljs-keyword">if</span> (ret != <span class="hljs-number">0</span>) &#123;<br>      wait(&amp;ret);<br>      <span class="hljs-keyword">if</span> (ret != <span class="hljs-number">0</span>)<br>        <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);<br>      <span class="hljs-keyword">continue</span>;<br>    &#125;<br>    <span class="hljs-keyword">if</span> (getpid() != ugetpid())<br>      err(<span class="hljs-string">&quot;missmatched PID&quot;</span>);<br>    <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);<br>  &#125;<br>  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;ugetpid_test: OK\n&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>很明显，<code>if (getpid() != ugetpid())</code> 分别<strong>陷入</strong>和 <strong>不陷入</strong> 获取 <code>pid</code>，通过对比给结果。</p>
+<p>那么有一个问题，进程在结束的时候，也应该将 PTE 释放掉：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">freeproc</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> proc*p)</span>&#123;<br>    ...<br>    <span class="hljs-keyword">if</span> (p-&gt;usyscall) kfree((<span class="hljs-type">void</span> *)p-&gt;usyscall);<br>    p-&gt;usyscall = <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>以及在 <code>proc_freepagetable()</code> 中解除映射，不然会报错（因为页表已经失效了）：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span><br><span class="hljs-title function_">proc_freepagetable</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span> pagetable, uint64 sz)</span><br>&#123;<br>  ...<br>  uvmunmap(pagetable, USYSCALL, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>);<br>  uvmfree(pagetable, sz);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>运行一下，没什么问题：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">******:~/xv6-labs-2023<span class="hljs-comment"># ./grade-lab-pgtbl ugetpid</span><br>make: <span class="hljs-string">&#x27;kernel/kernel&#x27;</span> is up to <span class="hljs-built_in">date</span>.<br>== Test pgtbltest == (2.4s)<br>== Test   pgtbltest: ugetpid ==<br>  pgtbltest: ugetpid: OK<br></code></pre></td></tr></table></figure>
+<h3 id="Which-other-xv6-system-call-s-could-be-made-faster-using-this-shared-page-Explain-how"><a href="#Which-other-xv6-system-call-s-could-be-made-faster-using-this-shared-page-Explain-how" class="headerlink" title="Which other xv6 system call(s) could be made faster using this shared page? Explain how."></a>Which other xv6 system call(s) could be made faster using this shared page? Explain how.</h3><p>任何直接或间接调用 <code>copyout()</code> 的系统调用都会被加速，因为它节省了复制数据的时间。此外，纯粹用于信息检索的系统调用，比如本节中提到的 <code>getpid()</code>，也会更快。<strong>这是因为不再需要陷入操作系统，对应的数据可以在用户模式下读取</strong>。</p>
+<h2 id="二、Print-a-page-table-easy"><a href="#二、Print-a-page-table-easy" class="headerlink" title="二、Print a page table (easy)"></a>二、Print a page table (easy)</h2><h3 id="Question-requirements-1"><a href="#Question-requirements-1" class="headerlink" title="Question requirements"></a>Question requirements</h3><blockquote>
+<p>Define a function called vmprint(). It should take a pagetable_t argument, and print that pagetable in the format described below. Insert if(p-&gt;pid&#x3D;&#x3D;1) vmprint(p-&gt;pagetable) in exec.c just before the return argc, to print the first process’s page table. You receive full credit for this part of the lab if you pass the pte printout test of make grade.</p>
+</blockquote>
+<h3 id="Some-hints"><a href="#Some-hints" class="headerlink" title="Some hints:"></a>Some hints:</h3><ul>
+<li>You can put vmprint() in <code>kernel/vm.c</code>.</li>
+<li>Use the macros at the end of the file <code>kernel/riscv.h</code>.</li>
+<li>The function freewalk may be inspirational.</li>
+<li>Define the prototype for vmprint in <code>kernel/defs.h</code> so that you can call it from <code>exec.c</code>.</li>
+<li>Use %p in your printf calls to print out full 64-bit hex PTEs and addresses as shown in the example.</li>
+</ul>
+<p>很简单，只需要按照提示做，就可以了。先在 <code>exec.c</code>加入：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">exec</span><span class="hljs-params">(<span class="hljs-type">char</span> *path, <span class="hljs-type">char</span> **argv)</span>&#123;<br>  ...<br>  proc_freepagetable(oldpagetable, oldsz);<br>  <span class="hljs-comment">// 增加的代码</span><br>  <span class="hljs-keyword">if</span>(p-&gt;pid==<span class="hljs-number">1</span>)<br>    vmprint(p-&gt;pagetable);<br>  <span class="hljs-keyword">return</span> argc; <span class="hljs-comment">// this ends up in a0, the first argument to main(argc, argv)</span><br><br> bad:<br> ...<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>思路就是递归遍历<strong>PTE</strong>以及标记位 <strong>PTE_V</strong>，在 <code>vm.c</code>加入：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">printpgtb</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span> pagetable, <span class="hljs-type">int</span> depth)</span>&#123;<br>  <span class="hljs-comment">// 遍历</span><br>  <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">512</span>; i++)&#123;<br>    <span class="hljs-type">pte_t</span> pte = pagetable[i];<br>    <span class="hljs-keyword">if</span>(pte &amp; PTE_V)&#123;<br>      <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;..&quot;</span>);<br>      <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> j=<span class="hljs-number">0</span>;j&lt;depth;j++) &#123;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot; ..&quot;</span>);<br>      &#125;<br>      <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%d: pte %p pa %p\n&quot;</span>, i, pte, PTE2PA(pte));<br>      <span class="hljs-comment">// 如果页表条目有效且没有读取、写入或执行权限，则继续递归调用 printpgtb 函数，打印下一级页表的内容</span><br>      <span class="hljs-keyword">if</span>((pte &amp; PTE_V) &amp;&amp; (pte &amp; (PTE_R|PTE_W|PTE_X)) == <span class="hljs-number">0</span>) &#123;<br>        uint64 child = PTE2PA(pte);<br>        printpgtb((<span class="hljs-type">pagetable_t</span>)child, depth+<span class="hljs-number">1</span>);<br>      &#125;<br>    &#125;<br>  &#125;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">vmprint</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span> pagetable)</span> &#123;<br>  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;page table %p\n&quot;</span>, pagetable);<br>  printpgtb(pagetable, <span class="hljs-number">0</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>也别忘了在 <code>defs.h</code>加函数声明：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// vm.c</span><br>...<br><span class="hljs-type">int</span>             <span class="hljs-title function_">copyinstr</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span>, <span class="hljs-type">char</span> *, uint64, uint64)</span>;<br><span class="hljs-type">void</span>            <span class="hljs-title function_">vmprint</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span>)</span>;<br></code></pre></td></tr></table></figure>
+
+<h2 id="Detect-which-pages-have-been-accessed-hard"><a href="#Detect-which-pages-have-been-accessed-hard" class="headerlink" title="Detect which pages have been accessed (hard)"></a>Detect which pages have been accessed (hard)</h2><h3 id="Question-requirements-2"><a href="#Question-requirements-2" class="headerlink" title="Question requirements"></a>Question requirements</h3><blockquote>
+<p>Some garbage collectors (a form of automatic memory management) can benefit from information about which pages have been accessed (read or write). In this part of the lab, you will add a new feature to xv6 that detects and reports this information to userspace by inspecting the access bits in the RISC-V page table. The RISC-V hardware page walker marks these bits in the PTE whenever it resolves a TLB miss.</p>
+</blockquote>
+<h3 id="Some-hints-1"><a href="#Some-hints-1" class="headerlink" title="Some hints"></a>Some hints</h3><ul>
+<li>Read <code>pgaccess_test()</code> in <code>user/pgtbltest.c</code> to see how pgaccess is used.</li>
+<li>Start by implementing <code>sys_pgaccess()</code> in <code>kernel/sysproc.c</code>.</li>
+<li>You’ll need to parse arguments using <code>argaddr()</code> and <code>argint()</code>.</li>
+<li>For the output bitmask, it’s easier to store a temporary buffer in the kernel and copy it to the user (via <code>copyout()</code>) after filling it with the right bits.</li>
+<li>It’s okay to set an upper limit on the number of pages that can be scanned.<br><code>walk()</code> in <code>kernel/vm.c</code> is very useful for finding the right <strong>PTEs</strong>.</li>
+<li>You’ll need to define <strong>PTE_A</strong>, the access bit, in <code>kernel/riscv.h</code>. Consult the RISC-V privileged architecture manual to determine its value.</li>
+<li>Be sure to clear <strong>PTE_A</strong> after checking if it is set. Otherwise, it won’t be possible to determine if the page was accessed since the last time <code>pgaccess()</code> was called (i.e., the bit will be set forever).</li>
+<li><code>vmprint()</code> may come in handy to debug page tables.</li>
+</ul>
+<h3 id="思路："><a href="#思路：" class="headerlink" title="思路："></a>思路：</h3><ul>
+<li>手动添加访问标志；</li>
+<li>获取一些参数；</li>
+<li>利用参数对页表项遍历，对访问标志进行提取，提取到 <code>bitmask</code> 中；</li>
+<li>将 <code>bitmask</code>返回。</li>
+</ul>
+<p>这个实验和第一个加速系统调用实验类似。首先需要手动设置一些标记 <strong>PTE_A</strong>。<br>在<code>kernel/riscv.h</code>中加入访问标志：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> PTE_A (1L &lt;&lt; 6)</span><br></code></pre></td></tr></table></figure>
+<p>获取参数，需要获取的参数就是要检查的页起始地址、页数、用户空间地址（答案返回的地方）。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> uint64<br><span class="hljs-title function_">argraw</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span><br>&#123;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">p</span> =</span> myproc();<br>  <span class="hljs-keyword">switch</span> (n) &#123;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">0</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a0;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">1</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a1;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">2</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a2;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">3</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a3;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">4</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a4;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">5</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a5;<br>  &#125;<br>  panic(<span class="hljs-string">&quot;argraw&quot;</span>);<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p><code>argraw()</code>的作用就是获取用户进程<code>trap</code>内核之前的寄存器的信息。<code>a0</code>保存的是用户进程的起始地址（虚拟地址），<code>a1</code> 保存的是进程的页面数。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c">uint64 startaddr;<br><span class="hljs-type">int</span> npage;<br>uint64 useraddr;<br>argaddr(<span class="hljs-number">0</span>, &amp;startaddr);<br>argint(<span class="hljs-number">1</span>, &amp;npage);<br>argaddr(<span class="hljs-number">2</span>, &amp;useraddr);<br></code></pre></td></tr></table></figure>
+<p>整个函数如下：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span><br><span class="hljs-title function_">sys_pgaccess</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>  <span class="hljs-comment">//  parse arguments using argaddr() and argint().</span><br>  uint64 startaddr;<br>  <span class="hljs-type">int</span> npage;<br>  uint64 useraddr;<br>  argaddr(<span class="hljs-number">0</span>, &amp;startaddr);<br>  argint(<span class="hljs-number">1</span>, &amp;npage);<br>  argaddr(<span class="hljs-number">2</span>, &amp;useraddr);<br>  uint64 bitmask = <span class="hljs-number">0</span>;<br>  <span class="hljs-comment">// 取反</span><br>  uint64 complement = ~PTE_A;<br><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">p</span> =</span> myproc();<br>  <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; npage; ++i) &#123;<br>    <span class="hljs-type">pte_t</span> *pte = walk(p-&gt;pagetable, startaddr+i*PGSIZE, <span class="hljs-number">0</span>);<br>    <span class="hljs-keyword">if</span> (*pte &amp; PTE_A) &#123;<br>      bitmask |= (<span class="hljs-number">1</span> &lt;&lt; i);<br>      <span class="hljs-comment">// 清空标记</span><br>      *pte &amp;= complement;<br>    &#125;<br>  &#125;<br>  <span class="hljs-comment">// copyout</span><br>  copyout(p-&gt;pagetable, useraddr, (<span class="hljs-type">char</span> *)&amp;bitmask, <span class="hljs-keyword">sizeof</span>(bitmask));<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>运行测试：</p>
+<blockquote>
+<p>&#x3D;&#x3D; Test pgtbltest &#x3D;&#x3D;<br>$ make qemu-gdb<br>(3.6s)<br>&#x3D;&#x3D; Test   pgtbltest: ugetpid &#x3D;&#x3D;<br>  pgtbltest: ugetpid: OK<br>&#x3D;&#x3D; Test   pgtbltest: pgaccess &#x3D;&#x3D;<br>  pgtbltest: pgaccess: OK<br>&#x3D;&#x3D; Test pte printout &#x3D;&#x3D;<br>$ make qemu-gdb<br>pte printout: OK (0.8s)<br>&#x3D;&#x3D; Test answers-pgtbl.txt &#x3D;&#x3D;<br>answers-pgtbl.txt: OK<br>&#x3D;&#x3D; Test usertests &#x3D;&#x3D;<br>$ make qemu-gdb<br>(8.2s)<br>&#x3D;&#x3D; Test   usertests: all tests &#x3D;&#x3D;<br>  usertests: all tests: OK<br>&#x3D;&#x3D; Test time &#x3D;&#x3D;<br>time: OK<br>Score: 46&#x2F;46</p>
+</blockquote>
 <p><em>全文完，感谢阅读。</em></p>
 ]]></content>
       <categories>
@@ -9179,6 +9179,42 @@
       </tags>
   </entry>
   <entry>
+    <title>Ubuntu 升级 golang 版本完美步骤</title>
+    <url>/2023/06/29/Ubuntu%20%E5%8D%87%E7%BA%A7%20golang%20%E7%89%88%E6%9C%AC%E5%AE%8C%E7%BE%8E%E6%AD%A5%E9%AA%A4/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="一、删除旧的版本（可选）"><a href="#一、删除旧的版本（可选）" class="headerlink" title="一、删除旧的版本（可选）"></a>一、删除旧的版本（可选）</h2><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">sudo <span class="hljs-built_in">rm</span> -rf /usr/local/go<br>sudo apt-get remove golang<br>sudo apt-get remove golang-go<br>sudo apt-get autoremove<br></code></pre></td></tr></table></figure>
+<h2 id="二、下载最新版本"><a href="#二、下载最新版本" class="headerlink" title="二、下载最新版本"></a>二、下载最新版本</h2><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash"><span class="hljs-comment">#wget 后面的下载链接请去golang官网(https://golang.google.cn/dl/)获取你想下载的对应go版本</span><br>sudo wget https://golang.google.cn/dl/go1.20.3.linux-amd64.tar.gz<br><span class="hljs-comment"># 解压文件</span><br>sudo tar xfz go1.20.3.linux-amd64.tar.gz -C /usr/local<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、设置环境变量"><a href="#三、设置环境变量" class="headerlink" title="三、设置环境变量"></a>三、设置环境变量</h2><p>1、打开profile:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">sudo vim /etc/profile<br></code></pre></td></tr></table></figure>
+<p>2、添加以下变量：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">export</span> GOROOT=/usr/local/go<br><span class="hljs-built_in">export</span> GOPATH=<span class="hljs-variable">$HOME</span>/gowork<br><span class="hljs-built_in">export</span> GOBIN=<span class="hljs-variable">$GOPATH</span>/bin<br><span class="hljs-built_in">export</span> PATH=<span class="hljs-variable">$GOPATH</span>:<span class="hljs-variable">$GOBIN</span>:<span class="hljs-variable">$GOROOT</span>/bin:<span class="hljs-variable">$PATH</span><br></code></pre></td></tr></table></figure>
+<p>3、是环境立即生效</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">source</span> /etc/profile<br></code></pre></td></tr></table></figure>
+<p>4、将环境立即生效载入脚本</p>
+<p>先打开文件这个文件：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">cd</span> ~<br>sudo vim .bashrc<br></code></pre></td></tr></table></figure>
+<p>加入这个命令：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">source</span> /etc/profile<br></code></pre></td></tr></table></figure>
+<h2 id="四、查看-go-环境变量"><a href="#四、查看-go-环境变量" class="headerlink" title="四、查看 go 环境变量"></a>四、查看 go 环境变量</h2><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">go <span class="hljs-built_in">env</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="五、GO111MOUDLE和更改GOPROXY"><a href="#五、GO111MOUDLE和更改GOPROXY" class="headerlink" title="五、GO111MOUDLE和更改GOPROXY"></a>五、GO111MOUDLE和更改GOPROXY</h2><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">go <span class="hljs-built_in">env</span> -w GOPROXY=<span class="hljs-string">&quot;https://goproxy.cn&quot;</span><br>go <span class="hljs-built_in">env</span> -w GO111MODULE=on<br></code></pre></td></tr></table></figure>
+
+<h2 id="六、查看-go-版本"><a href="#六、查看-go-版本" class="headerlink" title="六、查看 go 版本"></a>六、查看 go 版本</h2><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">go version<br></code></pre></td></tr></table></figure>
+<p>看版本是不是你要的最新的。</p>
+<p><em>参考：<a href="https://zhuanlan.zhihu.com/p/453462046">这里</a></em></p>
+]]></content>
+      <categories>
+        <category>Some_Tools Golang Unix/Linux</category>
+      </categories>
+      <tags>
+        <tag>linux</tag>
+        <tag>golang</tag>
+        <tag>ubuntu</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Start to write a simple Linux kernel Module</title>
     <url>/2022/12/28/Start%20to%20write%20a%20simple%20Linux%20kernel%20Module/</url>
     <content><![CDATA[<span id="more"></span>
@@ -9236,42 +9272,6 @@
         <tag>服务器</tag>
         <tag>linux</tag>
         <tag>运维</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Ubuntu 升级 golang 版本完美步骤</title>
-    <url>/2023/06/29/Ubuntu%20%E5%8D%87%E7%BA%A7%20golang%20%E7%89%88%E6%9C%AC%E5%AE%8C%E7%BE%8E%E6%AD%A5%E9%AA%A4/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="一、删除旧的版本（可选）"><a href="#一、删除旧的版本（可选）" class="headerlink" title="一、删除旧的版本（可选）"></a>一、删除旧的版本（可选）</h2><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">sudo <span class="hljs-built_in">rm</span> -rf /usr/local/go<br>sudo apt-get remove golang<br>sudo apt-get remove golang-go<br>sudo apt-get autoremove<br></code></pre></td></tr></table></figure>
-<h2 id="二、下载最新版本"><a href="#二、下载最新版本" class="headerlink" title="二、下载最新版本"></a>二、下载最新版本</h2><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash"><span class="hljs-comment">#wget 后面的下载链接请去golang官网(https://golang.google.cn/dl/)获取你想下载的对应go版本</span><br>sudo wget https://golang.google.cn/dl/go1.20.3.linux-amd64.tar.gz<br><span class="hljs-comment"># 解压文件</span><br>sudo tar xfz go1.20.3.linux-amd64.tar.gz -C /usr/local<br></code></pre></td></tr></table></figure>
-
-<h2 id="三、设置环境变量"><a href="#三、设置环境变量" class="headerlink" title="三、设置环境变量"></a>三、设置环境变量</h2><p>1、打开profile:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">sudo vim /etc/profile<br></code></pre></td></tr></table></figure>
-<p>2、添加以下变量：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">export</span> GOROOT=/usr/local/go<br><span class="hljs-built_in">export</span> GOPATH=<span class="hljs-variable">$HOME</span>/gowork<br><span class="hljs-built_in">export</span> GOBIN=<span class="hljs-variable">$GOPATH</span>/bin<br><span class="hljs-built_in">export</span> PATH=<span class="hljs-variable">$GOPATH</span>:<span class="hljs-variable">$GOBIN</span>:<span class="hljs-variable">$GOROOT</span>/bin:<span class="hljs-variable">$PATH</span><br></code></pre></td></tr></table></figure>
-<p>3、是环境立即生效</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">source</span> /etc/profile<br></code></pre></td></tr></table></figure>
-<p>4、将环境立即生效载入脚本</p>
-<p>先打开文件这个文件：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">cd</span> ~<br>sudo vim .bashrc<br></code></pre></td></tr></table></figure>
-<p>加入这个命令：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">source</span> /etc/profile<br></code></pre></td></tr></table></figure>
-<h2 id="四、查看-go-环境变量"><a href="#四、查看-go-环境变量" class="headerlink" title="四、查看 go 环境变量"></a>四、查看 go 环境变量</h2><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">go <span class="hljs-built_in">env</span><br></code></pre></td></tr></table></figure>
-
-<h2 id="五、GO111MOUDLE和更改GOPROXY"><a href="#五、GO111MOUDLE和更改GOPROXY" class="headerlink" title="五、GO111MOUDLE和更改GOPROXY"></a>五、GO111MOUDLE和更改GOPROXY</h2><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">go <span class="hljs-built_in">env</span> -w GOPROXY=<span class="hljs-string">&quot;https://goproxy.cn&quot;</span><br>go <span class="hljs-built_in">env</span> -w GO111MODULE=on<br></code></pre></td></tr></table></figure>
-
-<h2 id="六、查看-go-版本"><a href="#六、查看-go-版本" class="headerlink" title="六、查看 go 版本"></a>六、查看 go 版本</h2><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">go version<br></code></pre></td></tr></table></figure>
-<p>看版本是不是你要的最新的。</p>
-<p><em>参考：<a href="https://zhuanlan.zhihu.com/p/453462046">这里</a></em></p>
-]]></content>
-      <categories>
-        <category>Some_Tools Golang Unix/Linux</category>
-      </categories>
-      <tags>
-        <tag>linux</tag>
-        <tag>golang</tag>
-        <tag>ubuntu</tag>
       </tags>
   </entry>
   <entry>
