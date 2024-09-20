@@ -18,23 +18,23 @@
   
     <meta name="description" content="一、前言本文尝试去分析 YSYX 中的一个实例 YPC,YPC 使用 Chisel 来实现基本的指令执行过程：定义指令结构、取指、解码（操作码、操作数）、执行、更新 PC。 二、写被执行的程序这个程序主要使用内嵌汇编的方法来执行一些汇编代码，我们可以确认它仅仅包含这些指令，应为 YPC 被设计为只能执行 I类指令的两种指令，addi 和 ebreak。 1234567891011121314s">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Chisel 测试模块">
-<meta property="og:url" content="http://blog.luliang.online/2024/09/19/YPC%E7%9A%84%E7%A0%94%E7%A9%B6/index.html">
+<meta property="og:title" content="YPC的研究">
+<meta property="og:url" content="http://blog.luliang.online/2024/09/20/YPC%E7%9A%84%E7%A0%94%E7%A9%B6/index.html">
 <meta property="og:site_name" content="Luyoung">
 <meta property="og:description" content="一、前言本文尝试去分析 YSYX 中的一个实例 YPC,YPC 使用 Chisel 来实现基本的指令执行过程：定义指令结构、取指、解码（操作码、操作数）、执行、更新 PC。 二、写被执行的程序这个程序主要使用内嵌汇编的方法来执行一些汇编代码，我们可以确认它仅仅包含这些指令，应为 YPC 被设计为只能执行 I类指令的两种指令，addi 和 ebreak。 1234567891011121314s">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2024-09-19T14:20:40.000Z">
-<meta property="article:modified_time" content="2024-09-20T11:23:39.664Z">
+<meta property="article:published_time" content="2024-09-20T10:20:40.000Z">
+<meta property="article:modified_time" content="2024-09-20T11:28:13.356Z">
 <meta property="article:author" content="Luyoung">
-<meta property="article:tag" content="Scala">
-<meta property="article:tag" content="Chisel">
+<meta property="article:tag" content="模拟器">
+<meta property="article:tag" content="YPC">
 <meta name="twitter:card" content="summary_large_image">
   
   
     <meta name="referrer" content="no-referrer-when-downgrade">
   
   
-  <title>Chisel 测试模块 - Luyoung</title>
+  <title>YPC的研究 - Luyoung</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -200,7 +200,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="Chisel 测试模块"></span>
+            <span id="subtitle" data-typed-text="YPC的研究"></span>
           
         </div>
 
@@ -211,8 +211,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2024-09-19 22:20" pubdate>
-          2024年9月19日 晚上
+        <time datetime="2024-09-20 18:20" pubdate>
+          2024年9月20日 晚上
         </time>
       </span>
     
@@ -271,7 +271,7 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">Chisel 测试模块</h1>
+            <h1 id="seo-header">YPC的研究</h1>
             
             
               <div class="markdown-body">
@@ -405,20 +405,13 @@
     
       <span class="category-chain">
         
-  <a href="/categories/Scala/" class="category-chain-item">Scala</a>
+  <a href="/categories/PA2/" class="category-chain-item">PA2</a>
   
   
     <span>></span>
     
-  <a href="/categories/Scala/Chisel/" class="category-chain-item">Chisel</a>
+  <a href="/categories/PA2/%E6%A8%A1%E6%8B%9F%E5%99%A8/" class="category-chain-item">模拟器</a>
   
-  
-    <span>></span>
-    
-  <a href="/categories/Scala/Chisel/PA2/" class="category-chain-item">PA2</a>
-  
-  
-
   
 
   
@@ -434,9 +427,9 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/Scala/" class="print-no-link">#Scala</a>
+        <a href="/tags/%E6%A8%A1%E6%8B%9F%E5%99%A8/" class="print-no-link">#模拟器</a>
       
-        <a href="/tags/Chisel/" class="print-no-link">#Chisel</a>
+        <a href="/tags/YPC/" class="print-no-link">#YPC</a>
       
     </div>
   
@@ -448,8 +441,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>Chisel 测试模块</div>
-      <div>http://blog.luliang.online/2024/09/19/YPC的研究/</div>
+      <div>YPC的研究</div>
+      <div>http://blog.luliang.online/2024/09/20/YPC的研究/</div>
     </div>
     <div class="license-meta">
       
@@ -461,7 +454,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2024年9月19日</div>
+          <div>2024年9月20日</div>
         </div>
       
       
