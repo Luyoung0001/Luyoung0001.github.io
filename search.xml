@@ -528,6 +528,63 @@
       </tags>
   </entry>
   <entry>
+    <title>2024.06.22 刷题日记</title>
+    <url>/2024/06/23/2024.06.22%20%E5%88%B7%E9%A2%98%E6%97%A5%E8%AE%B0/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="199-二叉树的右视图"><a href="#199-二叉树的右视图" class="headerlink" title="199. 二叉树的右视图"></a>199. 二叉树的右视图</h2><p>这道题目的思路就是层次遍历，然后每次处理每一层所有的元素，如果是第一个就收集到答案中：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function">vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">rightSideView</span><span class="hljs-params">(TreeNode* root)</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> (!root)<br>            <span class="hljs-keyword">return</span> &#123;&#125;;<br>        queue&lt;TreeNode*&gt; que;<br>        vector&lt;<span class="hljs-type">int</span>&gt; ans;<br>        que.<span class="hljs-built_in">push</span>(root);<br>        TreeNode* temp = <span class="hljs-literal">nullptr</span>;<br>        <span class="hljs-type">int</span> s = que.<span class="hljs-built_in">size</span>();<br><br>        <span class="hljs-keyword">while</span> (!que.<span class="hljs-built_in">empty</span>()) &#123;<br>            s = que.<span class="hljs-built_in">size</span>(); <span class="hljs-comment">// 获取每层的长度</span><br>            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; s; i++) &#123;<br>                temp = que.<span class="hljs-built_in">front</span>();<br>                que.<span class="hljs-built_in">pop</span>();<br>                <span class="hljs-keyword">if</span> (i == <span class="hljs-number">0</span>)<br>                    ans.<span class="hljs-built_in">push_back</span>(temp-&gt;val);<br>                <span class="hljs-keyword">if</span> (temp-&gt;right)<br>                    que.<span class="hljs-built_in">push</span>(temp-&gt;right);<br>                <span class="hljs-keyword">if</span> (temp-&gt;left)<br>                    que.<span class="hljs-built_in">push</span>(temp-&gt;left);<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> ans;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="114-二叉树展开为链表"><a href="#114-二叉树展开为链表" class="headerlink" title="114. 二叉树展开为链表"></a>114. 二叉树展开为链表</h2><p>思路是每次将找到当前节点的左子树的最右，然后当前节点的右子树挂在左子树的最右节点的右子树。接着遍历所有节点：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">flatten</span><span class="hljs-params">(TreeNode* root)</span> </span>&#123;<br>        TreeNode* cur = root;<br>        <span class="hljs-keyword">while</span> (cur) &#123;<br>            <span class="hljs-keyword">if</span> (cur-&gt;left) &#123;<br>                <span class="hljs-comment">// 最右</span><br>                TreeNode* rightMost = cur-&gt;left;<br>                <span class="hljs-keyword">while</span> (rightMost-&gt;right) &#123;<br>                    rightMost = rightMost-&gt;right;<br>                &#125;<br>                rightMost-&gt;right = cur-&gt;right;<br>                cur-&gt;right = cur-&gt;left;<br>                cur-&gt;left = <span class="hljs-literal">nullptr</span>;<br><br>            &#125;<br>            cur = cur-&gt;right;<br>        &#125;<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="105-从前序与中序遍历序列构造二叉树"><a href="#105-从前序与中序遍历序列构造二叉树" class="headerlink" title="105. 从前序与中序遍历序列构造二叉树"></a>105. 从前序与中序遍历序列构造二叉树</h2><p>这道题的思路是，使用递归，将先序序列的起始和结尾，以及中序序列的起始和结尾传入。接着<code>preorder[preStart]</code>就是 <code>root</code> 节点，然后在中序中查找这个结点 <code>p</code>（事实上，这里用 map 更快些），这个结点到中序的起始结点这一段就是 <code>root</code> 的左子树，另一半就是右子树，分别赋值给 <code>root-&gt;left</code>、<code>root-&gt;right</code>：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function">TreeNode* <span class="hljs-title">buildTree</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; preorder, vector&lt;<span class="hljs-type">int</span>&gt;&amp; inorder)</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-built_in">build</span>(preorder, <span class="hljs-number">0</span>, preorder.<span class="hljs-built_in">size</span>() - <span class="hljs-number">1</span>, inorder, <span class="hljs-number">0</span>, inorder.<span class="hljs-built_in">size</span>() - <span class="hljs-number">1</span>);<br>    &#125;<br>    <span class="hljs-function">TreeNode* <span class="hljs-title">build</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt; preorder, <span class="hljs-type">int</span> preStart, <span class="hljs-type">int</span> preEnd,</span></span><br><span class="hljs-params"><span class="hljs-function">                    vector&lt;<span class="hljs-type">int</span>&gt; inorder, <span class="hljs-type">int</span> inStart, <span class="hljs-type">int</span> inEnd)</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> (preStart &gt; preEnd || inStart &gt; inEnd)<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;<br>        <span class="hljs-type">int</span> rootVal = preorder[preStart];<br>        TreeNode* root = <span class="hljs-keyword">new</span> <span class="hljs-built_in">TreeNode</span>(rootVal);<br><br>        <span class="hljs-type">int</span> rootIndex = inStart;<br>        <span class="hljs-keyword">while</span> (rootIndex &lt;= inEnd &amp;&amp; inorder[rootIndex] != rootVal) &#123;<br>            rootIndex++;<br>        &#125;<br><br>        <span class="hljs-type">int</span> leftSize = rootIndex - inStart;<br>        <span class="hljs-comment">// 构建左子树</span><br>        root-&gt;left = <span class="hljs-built_in">build</span>(preorder, preStart + <span class="hljs-number">1</span>, preStart + leftSize, inorder,<br>                           inStart, rootIndex - <span class="hljs-number">1</span>);<br>        <span class="hljs-comment">// 构建右子树</span><br>        root-&gt;right = <span class="hljs-built_in">build</span>(preorder, preStart + leftSize + <span class="hljs-number">1</span>, preEnd, inorder,<br>                            rootIndex + <span class="hljs-number">1</span>, inEnd);<br>        <span class="hljs-keyword">return</span> root;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>由于没用 map，所以时间复杂度高：</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/8d5da3939c8845f38a2d8c93ce77d240_1720253671766.png?token=ANB4BCL37F2B2WSX2GJ77KTGRD6SS" alt="在这里插入图片描述"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h3 id="199-二叉树的右视图-1"><a href="#199-二叉树的右视图-1" class="headerlink" title="199. 二叉树的右视图"></a>199. 二叉树的右视图</h3><p><strong>算法思路：</strong></p>
+<ul>
+<li>使用层次遍历（广度优先搜索），从右向左处理每一层节点。</li>
+<li>每层处理时，收集第一个节点的值作为该层的右视图节点。</li>
+</ul>
+<p><strong>核心点：</strong></p>
+<ul>
+<li>层次遍历。</li>
+<li>每层第一个节点的值。</li>
+</ul>
+<h3 id="114-二叉树展开为链表-1"><a href="#114-二叉树展开为链表-1" class="headerlink" title="114. 二叉树展开为链表"></a>114. 二叉树展开为链表</h3><p><strong>算法思路：</strong></p>
+<ul>
+<li>遍历每个节点，将当前节点的左子树的最右节点找到，并将当前节点的右子树挂在这个最右节点的右子树上。</li>
+<li>将左子树置为右子树，左子树置为空，然后继续处理下一个节点。</li>
+</ul>
+<p><strong>核心点：</strong></p>
+<ul>
+<li>找到左子树的最右节点。</li>
+<li>调整节点链接，将树展开为链表。</li>
+</ul>
+<h3 id="105-从前序与中序遍历序列构造二叉树-1"><a href="#105-从前序与中序遍历序列构造二叉树-1" class="headerlink" title="105. 从前序与中序遍历序列构造二叉树"></a>105. 从前序与中序遍历序列构造二叉树</h3><p><strong>算法思路：</strong></p>
+<ul>
+<li>使用递归，根据前序遍历确定根节点，然后在中序遍历中找到根节点的位置，划分左右子树。</li>
+<li>递归构造左子树和右子树，分别赋值给根节点的左右子节点。</li>
+</ul>
+<p><strong>核心点：</strong></p>
+<ul>
+<li>前序遍历的第一个节点是根节点。</li>
+<li>在中序遍历中找到根节点位置以划分左右子树。</li>
+<li>递归构造二叉树。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>LeetCode</category>
+      </categories>
+      <tags>
+        <tag>算法</tag>
+        <tag>数据结构</tag>
+        <tag>leetcode</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>2024.06.21 刷题日记</title>
     <url>/2024/06/21/2024.06.21%20%E5%88%B7%E9%A2%98%E6%97%A5%E8%AE%B0/</url>
     <content><![CDATA[<span id="more"></span>
@@ -582,63 +639,6 @@
 </ul>
 </li>
 </ol>
-]]></content>
-      <categories>
-        <category>LeetCode</category>
-      </categories>
-      <tags>
-        <tag>算法</tag>
-        <tag>数据结构</tag>
-        <tag>leetcode</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>2024.06.22 刷题日记</title>
-    <url>/2024/06/23/2024.06.22%20%E5%88%B7%E9%A2%98%E6%97%A5%E8%AE%B0/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="199-二叉树的右视图"><a href="#199-二叉树的右视图" class="headerlink" title="199. 二叉树的右视图"></a>199. 二叉树的右视图</h2><p>这道题目的思路就是层次遍历，然后每次处理每一层所有的元素，如果是第一个就收集到答案中：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function">vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">rightSideView</span><span class="hljs-params">(TreeNode* root)</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> (!root)<br>            <span class="hljs-keyword">return</span> &#123;&#125;;<br>        queue&lt;TreeNode*&gt; que;<br>        vector&lt;<span class="hljs-type">int</span>&gt; ans;<br>        que.<span class="hljs-built_in">push</span>(root);<br>        TreeNode* temp = <span class="hljs-literal">nullptr</span>;<br>        <span class="hljs-type">int</span> s = que.<span class="hljs-built_in">size</span>();<br><br>        <span class="hljs-keyword">while</span> (!que.<span class="hljs-built_in">empty</span>()) &#123;<br>            s = que.<span class="hljs-built_in">size</span>(); <span class="hljs-comment">// 获取每层的长度</span><br>            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; s; i++) &#123;<br>                temp = que.<span class="hljs-built_in">front</span>();<br>                que.<span class="hljs-built_in">pop</span>();<br>                <span class="hljs-keyword">if</span> (i == <span class="hljs-number">0</span>)<br>                    ans.<span class="hljs-built_in">push_back</span>(temp-&gt;val);<br>                <span class="hljs-keyword">if</span> (temp-&gt;right)<br>                    que.<span class="hljs-built_in">push</span>(temp-&gt;right);<br>                <span class="hljs-keyword">if</span> (temp-&gt;left)<br>                    que.<span class="hljs-built_in">push</span>(temp-&gt;left);<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> ans;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
-<h2 id="114-二叉树展开为链表"><a href="#114-二叉树展开为链表" class="headerlink" title="114. 二叉树展开为链表"></a>114. 二叉树展开为链表</h2><p>思路是每次将找到当前节点的左子树的最右，然后当前节点的右子树挂在左子树的最右节点的右子树。接着遍历所有节点：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">flatten</span><span class="hljs-params">(TreeNode* root)</span> </span>&#123;<br>        TreeNode* cur = root;<br>        <span class="hljs-keyword">while</span> (cur) &#123;<br>            <span class="hljs-keyword">if</span> (cur-&gt;left) &#123;<br>                <span class="hljs-comment">// 最右</span><br>                TreeNode* rightMost = cur-&gt;left;<br>                <span class="hljs-keyword">while</span> (rightMost-&gt;right) &#123;<br>                    rightMost = rightMost-&gt;right;<br>                &#125;<br>                rightMost-&gt;right = cur-&gt;right;<br>                cur-&gt;right = cur-&gt;left;<br>                cur-&gt;left = <span class="hljs-literal">nullptr</span>;<br><br>            &#125;<br>            cur = cur-&gt;right;<br>        &#125;<br>    &#125;<br></code></pre></td></tr></table></figure>
-
-<h2 id="105-从前序与中序遍历序列构造二叉树"><a href="#105-从前序与中序遍历序列构造二叉树" class="headerlink" title="105. 从前序与中序遍历序列构造二叉树"></a>105. 从前序与中序遍历序列构造二叉树</h2><p>这道题的思路是，使用递归，将先序序列的起始和结尾，以及中序序列的起始和结尾传入。接着<code>preorder[preStart]</code>就是 <code>root</code> 节点，然后在中序中查找这个结点 <code>p</code>（事实上，这里用 map 更快些），这个结点到中序的起始结点这一段就是 <code>root</code> 的左子树，另一半就是右子树，分别赋值给 <code>root-&gt;left</code>、<code>root-&gt;right</code>：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function">TreeNode* <span class="hljs-title">buildTree</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt;&amp; preorder, vector&lt;<span class="hljs-type">int</span>&gt;&amp; inorder)</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-built_in">build</span>(preorder, <span class="hljs-number">0</span>, preorder.<span class="hljs-built_in">size</span>() - <span class="hljs-number">1</span>, inorder, <span class="hljs-number">0</span>, inorder.<span class="hljs-built_in">size</span>() - <span class="hljs-number">1</span>);<br>    &#125;<br>    <span class="hljs-function">TreeNode* <span class="hljs-title">build</span><span class="hljs-params">(vector&lt;<span class="hljs-type">int</span>&gt; preorder, <span class="hljs-type">int</span> preStart, <span class="hljs-type">int</span> preEnd,</span></span><br><span class="hljs-params"><span class="hljs-function">                    vector&lt;<span class="hljs-type">int</span>&gt; inorder, <span class="hljs-type">int</span> inStart, <span class="hljs-type">int</span> inEnd)</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> (preStart &gt; preEnd || inStart &gt; inEnd)<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;<br>        <span class="hljs-type">int</span> rootVal = preorder[preStart];<br>        TreeNode* root = <span class="hljs-keyword">new</span> <span class="hljs-built_in">TreeNode</span>(rootVal);<br><br>        <span class="hljs-type">int</span> rootIndex = inStart;<br>        <span class="hljs-keyword">while</span> (rootIndex &lt;= inEnd &amp;&amp; inorder[rootIndex] != rootVal) &#123;<br>            rootIndex++;<br>        &#125;<br><br>        <span class="hljs-type">int</span> leftSize = rootIndex - inStart;<br>        <span class="hljs-comment">// 构建左子树</span><br>        root-&gt;left = <span class="hljs-built_in">build</span>(preorder, preStart + <span class="hljs-number">1</span>, preStart + leftSize, inorder,<br>                           inStart, rootIndex - <span class="hljs-number">1</span>);<br>        <span class="hljs-comment">// 构建右子树</span><br>        root-&gt;right = <span class="hljs-built_in">build</span>(preorder, preStart + leftSize + <span class="hljs-number">1</span>, preEnd, inorder,<br>                            rootIndex + <span class="hljs-number">1</span>, inEnd);<br>        <span class="hljs-keyword">return</span> root;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
-<p>由于没用 map，所以时间复杂度高：</p>
-<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/8d5da3939c8845f38a2d8c93ce77d240_1720253671766.png?token=ANB4BCL37F2B2WSX2GJ77KTGRD6SS" alt="在这里插入图片描述"></p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h3 id="199-二叉树的右视图-1"><a href="#199-二叉树的右视图-1" class="headerlink" title="199. 二叉树的右视图"></a>199. 二叉树的右视图</h3><p><strong>算法思路：</strong></p>
-<ul>
-<li>使用层次遍历（广度优先搜索），从右向左处理每一层节点。</li>
-<li>每层处理时，收集第一个节点的值作为该层的右视图节点。</li>
-</ul>
-<p><strong>核心点：</strong></p>
-<ul>
-<li>层次遍历。</li>
-<li>每层第一个节点的值。</li>
-</ul>
-<h3 id="114-二叉树展开为链表-1"><a href="#114-二叉树展开为链表-1" class="headerlink" title="114. 二叉树展开为链表"></a>114. 二叉树展开为链表</h3><p><strong>算法思路：</strong></p>
-<ul>
-<li>遍历每个节点，将当前节点的左子树的最右节点找到，并将当前节点的右子树挂在这个最右节点的右子树上。</li>
-<li>将左子树置为右子树，左子树置为空，然后继续处理下一个节点。</li>
-</ul>
-<p><strong>核心点：</strong></p>
-<ul>
-<li>找到左子树的最右节点。</li>
-<li>调整节点链接，将树展开为链表。</li>
-</ul>
-<h3 id="105-从前序与中序遍历序列构造二叉树-1"><a href="#105-从前序与中序遍历序列构造二叉树-1" class="headerlink" title="105. 从前序与中序遍历序列构造二叉树"></a>105. 从前序与中序遍历序列构造二叉树</h3><p><strong>算法思路：</strong></p>
-<ul>
-<li>使用递归，根据前序遍历确定根节点，然后在中序遍历中找到根节点的位置，划分左右子树。</li>
-<li>递归构造左子树和右子树，分别赋值给根节点的左右子节点。</li>
-</ul>
-<p><strong>核心点：</strong></p>
-<ul>
-<li>前序遍历的第一个节点是根节点。</li>
-<li>在中序遍历中找到根节点位置以划分左右子树。</li>
-<li>递归构造二叉树。</li>
-</ul>
 ]]></content>
       <categories>
         <category>LeetCode</category>
@@ -878,7 +878,7 @@
 <p>也只提升了一点点：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/3307e078f4a44a70934da1372d8d7826_1720253671766.png?token=ANB4BCITJTKONUIYRWAPXXDGRD6SQ" alt="在这里插入图片描述"></p>
 <p>事实上，可以直接构造，这是一道数学题，不过这不在本节讨论的范围，略过。</p>
 <h2 id="93-复原-IP-地址"><a href="#93-复原-IP-地址" class="headerlink" title="93. 复原 IP 地址"></a>93. 复原 IP 地址</h2><p>有效 IP 地址 正好由四个整数（每个整数位于 0 到 255 之间组成，且不能含有前导 0），整数之间用 ‘.’ 分隔。</p>
-<p>例如：”0.1.2.201” 和 “192.168.1.1” 是 有效 IP 地址，但是 “0.011.255.245”、”192.168.1.312” 和 “<a href="mailto:&#x31;&#57;&#x32;&#x2e;&#x31;&#54;&#56;&#x40;&#x31;&#x2e;&#49;">&#x31;&#57;&#x32;&#x2e;&#x31;&#54;&#56;&#x40;&#x31;&#x2e;&#49;</a>“ 是 无效 IP 地址。<br>给定一个只包含数字的字符串 s ，用以表示一个 IP 地址，返回所有可能的有效 IP 地址，这些地址可以通过在 s 中插入 ‘.’ 来形成。你 不能 重新排序或删除 s 中的任何数字。你可以按 任何 顺序返回答案。</p>
+<p>例如：”0.1.2.201” 和 “192.168.1.1” 是 有效 IP 地址，但是 “0.011.255.245”、”192.168.1.312” 和 “<a href="mailto:&#x31;&#57;&#x32;&#46;&#x31;&#x36;&#x38;&#64;&#49;&#46;&#49;">&#x31;&#57;&#x32;&#46;&#x31;&#x36;&#x38;&#64;&#49;&#46;&#49;</a>“ 是 无效 IP 地址。<br>给定一个只包含数字的字符串 s ，用以表示一个 IP 地址，返回所有可能的有效 IP 地址，这些地址可以通过在 s 中插入 ‘.’ 来形成。你 不能 重新排序或删除 s 中的任何数字。你可以按 任何 顺序返回答案。</p>
 <p>示例 1：</p>
 <blockquote>
 <p>输入：s &#x3D; “25525511135”<br>输出：[“255.255.11.135”,”255.255.111.35”]</p>
@@ -3086,83 +3086,6 @@
       </tags>
   </entry>
   <entry>
-    <title>C++调试：内存管理</title>
-    <url>/2024/05/16/C++%E8%B0%83%E8%AF%95%EF%BC%9A%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h2><p>本文将会通过一个例子，通过 <code>nm</code>、<code>lldb</code> 工具查看 <strong>ELF</strong> 文件的内存管理：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><span class="hljs-comment">/*</span><br><span class="hljs-comment">说明：C++</span><br><span class="hljs-comment">中不再区分初始化和未初始化的全局变量、静态变量的存储区，如果非要区分下述程序标注在了括号中</span><br><span class="hljs-comment">*/</span><br><span class="hljs-type">int</span> g_var = <span class="hljs-number">0</span>; <span class="hljs-comment">// g_var 在全局区（.data 段）</span><br><span class="hljs-type">char</span> *gp_var;  <span class="hljs-comment">// gp_var 在全局区（.bss 段）</span><br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-type">int</span> var;     <span class="hljs-comment">// var 在栈区</span><br>    <span class="hljs-type">char</span> *p_var; <span class="hljs-comment">// p_var 在栈区</span><br>    <span class="hljs-type">char</span> arr[] =<br>        <span class="hljs-string">&quot;abc&quot;</span>; <span class="hljs-comment">// arr 为数组变量，存储在栈区；&quot;abc&quot;为字符串常量，存储在常量区</span><br>    <span class="hljs-type">const</span> <span class="hljs-type">char</span> *p_var1 =<br>        <span class="hljs-string">&quot;123456&quot;</span>; <span class="hljs-comment">// p_var1 在栈区；&quot;123456&quot;为字符串常量，存储在常量区</span><br>    <span class="hljs-type">static</span> <span class="hljs-type">int</span> s_var = <span class="hljs-number">0</span>; <span class="hljs-comment">// s_var 为静态变量，存在静态存储区（.data 段）</span><br>    p_var = (<span class="hljs-type">char</span> *)<span class="hljs-built_in">malloc</span>(<span class="hljs-number">10</span>); <span class="hljs-comment">// 分配得来的 10 个字节的区域在堆区</span><br>    <span class="hljs-built_in">free</span>(p_var);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>编译，通过 <code>nm</code> 打印符号信息表（ <code>nm</code> 只能打印出全局符号，因为局部变量不会出现在全局符号表中。<code>nm</code> 主的用途是列出全局符号，比如全局变量、静态变量以及函数名等。局部变量的信息通常在编译时被分配到栈上，并不包含在全局符号表中）：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">g++ -g mem.cxx -o main<br>nm ./main<br>0000000100008028 b __ZZ4mainE5s_var<br>0000000100008010 d __dyld_private<br>0000000100000000 T __mh_execute_header<br>                 U _free<br>0000000100008018 S _g_var<br>0000000100008020 S _gp_var<br>0000000100003f0c T _main<br>                 U _malloc<br>                 U dyld_stub_binder<br></code></pre></td></tr></table></figure>
-<p>可以看到 <code>_g_var</code>、<code>_gp_var</code> 都位于<code>.sbss</code> ，尽管一个初始化一个未初始化，但是C++中不再区分初始化和未初始化的全局变量、静态变量的存储区，因此它们显示都是 <code>S</code>。以下是更详细的解释：<br>在 <code>nm</code> 命令输出中，<code>S</code> 和 <code>B</code> 都指示变量未初始化，但它们并不相同，也不属于同一个类别。每个符号都独立表示不同的存储特性或区段。这里是更详细的区分：</p>
-<ol>
-<li><p><strong>b&#x2F;B (大写)</strong>:</p>
-<ul>
-<li><code>B</code> 表示变量位于 <code>.bss</code> 段，这是专门用于存储未初始化的全局变量和静态变量的内存区段。这些变量在程序启动时自动被初始化为零。</li>
-</ul>
-</li>
-<li><p><strong>s&#x2F;S (大写)</strong>:</p>
-<ul>
-<li><code>S</code> 通常用于指示小型未初始化数据段，如 <code>.sbss</code>。<code>.sbss</code> 是 <code>.bss</code> 段的一个小段，用于存储较小的未初始化变量，以优化内存的使用。<code>S</code> 并不直接属于 <code>B</code>，但它表示的是一个与 <code>B</code> 类似的概念，专门针对小型数据。</li>
-</ul>
-</li>
-</ol>
-<p>简而言之，<code>S</code> 和 <code>B</code> 都涉及未初始化的数据，但它们代表的是不同的内存区段。<code>S</code> 不属于 <code>B</code>，但两者都用于未初始化数据的存储，只是大小和存储优化方面有所区别。因此，在处理大型和小型未初始化数据时，编译器和链接器可能会选择将它们分别放在 <code>.bss</code> 或 <code>.sbss</code> 段中。</p>
-<p>接着用 <code>lldb</code> 进行调试，<code>lldb</code> 可以查看 <code>main</code>  中的局部符号：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">...<br>Target 0: (main) stopped.<br>(lldb) frame variable -L var<br>0x000000016fdfeff8: (int) var = 802912<br>(lldb) frame variable -L p_var<br>0x000000016fdfeff0: (char *) p_var = 0x0000000100504080 <span class="hljs-string">&quot;&quot;</span><br>(lldb) frame variable -L arr<br>0x000000016fdfefec: (char [4]) arr = <span class="hljs-string">&quot;abc&quot;</span><br>(lldb) frame variable -L p_var1<br>0x000000016fdfefe0: (const char *) p_var1 = 0x0000000100003fb0 <span class="hljs-string">&quot;123456&quot;</span><br>(lldb) frame variable -L s_var<br>0x0000000100008028: (int) s_var = 0<br>...<br></code></pre></td></tr></table></figure>
-<p>这些信息足够查看以及推断：</p>
-<table>
-<thead>
-<tr>
-<th>局部符号</th>
-<th>地址</th>
-<th>section</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>var</td>
-<td>0x000000016fdfeff8</td>
-<td>栈区</td>
-</tr>
-<tr>
-<td>p_var</td>
-<td>0x000000016fdfeff0</td>
-<td>栈区</td>
-</tr>
-<tr>
-<td>arr</td>
-<td>0x000000016fdfefec</td>
-<td>栈区</td>
-</tr>
-<tr>
-<td>p_var1</td>
-<td>0x000000016fdfefe0</td>
-<td>栈区</td>
-</tr>
-<tr>
-<td>s_var</td>
-<td>0x0000000100008028</td>
-<td>.bss</td>
-</tr>
-<tr>
-<td>“123456”</td>
-<td>0x0000000100003fb0</td>
-<td>常量区</td>
-</tr>
-</tbody></table>
-<p>之所以推断 <code>0x0000000100003fb0</code> 位于常量区，依据是上面的信息<code>0000000100003f0c T _main</code>，<code>.text</code> 接下来就是 <code>.rodata</code>，地址很近。</p>
-]]></content>
-      <categories>
-        <category>经验方法</category>
-        <category>C++</category>
-      </categories>
-      <tags>
-        <tag>c++</tag>
-        <tag>lldb</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>C++并发：锁</title>
     <url>/2024/05/14/C++%E5%B9%B6%E5%8F%91%EF%BC%9A%E9%94%81/</url>
     <content><![CDATA[<span id="more"></span>
@@ -3261,6 +3184,83 @@
       </categories>
       <tags>
         <tag>c++</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C++调试：内存管理</title>
+    <url>/2024/05/16/C++%E8%B0%83%E8%AF%95%EF%BC%9A%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h2><p>本文将会通过一个例子，通过 <code>nm</code>、<code>lldb</code> 工具查看 <strong>ELF</strong> 文件的内存管理：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><span class="hljs-comment">/*</span><br><span class="hljs-comment">说明：C++</span><br><span class="hljs-comment">中不再区分初始化和未初始化的全局变量、静态变量的存储区，如果非要区分下述程序标注在了括号中</span><br><span class="hljs-comment">*/</span><br><span class="hljs-type">int</span> g_var = <span class="hljs-number">0</span>; <span class="hljs-comment">// g_var 在全局区（.data 段）</span><br><span class="hljs-type">char</span> *gp_var;  <span class="hljs-comment">// gp_var 在全局区（.bss 段）</span><br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-type">int</span> var;     <span class="hljs-comment">// var 在栈区</span><br>    <span class="hljs-type">char</span> *p_var; <span class="hljs-comment">// p_var 在栈区</span><br>    <span class="hljs-type">char</span> arr[] =<br>        <span class="hljs-string">&quot;abc&quot;</span>; <span class="hljs-comment">// arr 为数组变量，存储在栈区；&quot;abc&quot;为字符串常量，存储在常量区</span><br>    <span class="hljs-type">const</span> <span class="hljs-type">char</span> *p_var1 =<br>        <span class="hljs-string">&quot;123456&quot;</span>; <span class="hljs-comment">// p_var1 在栈区；&quot;123456&quot;为字符串常量，存储在常量区</span><br>    <span class="hljs-type">static</span> <span class="hljs-type">int</span> s_var = <span class="hljs-number">0</span>; <span class="hljs-comment">// s_var 为静态变量，存在静态存储区（.data 段）</span><br>    p_var = (<span class="hljs-type">char</span> *)<span class="hljs-built_in">malloc</span>(<span class="hljs-number">10</span>); <span class="hljs-comment">// 分配得来的 10 个字节的区域在堆区</span><br>    <span class="hljs-built_in">free</span>(p_var);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>编译，通过 <code>nm</code> 打印符号信息表（ <code>nm</code> 只能打印出全局符号，因为局部变量不会出现在全局符号表中。<code>nm</code> 主的用途是列出全局符号，比如全局变量、静态变量以及函数名等。局部变量的信息通常在编译时被分配到栈上，并不包含在全局符号表中）：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">g++ -g mem.cxx -o main<br>nm ./main<br>0000000100008028 b __ZZ4mainE5s_var<br>0000000100008010 d __dyld_private<br>0000000100000000 T __mh_execute_header<br>                 U _free<br>0000000100008018 S _g_var<br>0000000100008020 S _gp_var<br>0000000100003f0c T _main<br>                 U _malloc<br>                 U dyld_stub_binder<br></code></pre></td></tr></table></figure>
+<p>可以看到 <code>_g_var</code>、<code>_gp_var</code> 都位于<code>.sbss</code> ，尽管一个初始化一个未初始化，但是C++中不再区分初始化和未初始化的全局变量、静态变量的存储区，因此它们显示都是 <code>S</code>。以下是更详细的解释：<br>在 <code>nm</code> 命令输出中，<code>S</code> 和 <code>B</code> 都指示变量未初始化，但它们并不相同，也不属于同一个类别。每个符号都独立表示不同的存储特性或区段。这里是更详细的区分：</p>
+<ol>
+<li><p><strong>b&#x2F;B (大写)</strong>:</p>
+<ul>
+<li><code>B</code> 表示变量位于 <code>.bss</code> 段，这是专门用于存储未初始化的全局变量和静态变量的内存区段。这些变量在程序启动时自动被初始化为零。</li>
+</ul>
+</li>
+<li><p><strong>s&#x2F;S (大写)</strong>:</p>
+<ul>
+<li><code>S</code> 通常用于指示小型未初始化数据段，如 <code>.sbss</code>。<code>.sbss</code> 是 <code>.bss</code> 段的一个小段，用于存储较小的未初始化变量，以优化内存的使用。<code>S</code> 并不直接属于 <code>B</code>，但它表示的是一个与 <code>B</code> 类似的概念，专门针对小型数据。</li>
+</ul>
+</li>
+</ol>
+<p>简而言之，<code>S</code> 和 <code>B</code> 都涉及未初始化的数据，但它们代表的是不同的内存区段。<code>S</code> 不属于 <code>B</code>，但两者都用于未初始化数据的存储，只是大小和存储优化方面有所区别。因此，在处理大型和小型未初始化数据时，编译器和链接器可能会选择将它们分别放在 <code>.bss</code> 或 <code>.sbss</code> 段中。</p>
+<p>接着用 <code>lldb</code> 进行调试，<code>lldb</code> 可以查看 <code>main</code>  中的局部符号：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">...<br>Target 0: (main) stopped.<br>(lldb) frame variable -L var<br>0x000000016fdfeff8: (int) var = 802912<br>(lldb) frame variable -L p_var<br>0x000000016fdfeff0: (char *) p_var = 0x0000000100504080 <span class="hljs-string">&quot;&quot;</span><br>(lldb) frame variable -L arr<br>0x000000016fdfefec: (char [4]) arr = <span class="hljs-string">&quot;abc&quot;</span><br>(lldb) frame variable -L p_var1<br>0x000000016fdfefe0: (const char *) p_var1 = 0x0000000100003fb0 <span class="hljs-string">&quot;123456&quot;</span><br>(lldb) frame variable -L s_var<br>0x0000000100008028: (int) s_var = 0<br>...<br></code></pre></td></tr></table></figure>
+<p>这些信息足够查看以及推断：</p>
+<table>
+<thead>
+<tr>
+<th>局部符号</th>
+<th>地址</th>
+<th>section</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>var</td>
+<td>0x000000016fdfeff8</td>
+<td>栈区</td>
+</tr>
+<tr>
+<td>p_var</td>
+<td>0x000000016fdfeff0</td>
+<td>栈区</td>
+</tr>
+<tr>
+<td>arr</td>
+<td>0x000000016fdfefec</td>
+<td>栈区</td>
+</tr>
+<tr>
+<td>p_var1</td>
+<td>0x000000016fdfefe0</td>
+<td>栈区</td>
+</tr>
+<tr>
+<td>s_var</td>
+<td>0x0000000100008028</td>
+<td>.bss</td>
+</tr>
+<tr>
+<td>“123456”</td>
+<td>0x0000000100003fb0</td>
+<td>常量区</td>
+</tr>
+</tbody></table>
+<p>之所以推断 <code>0x0000000100003fb0</code> 位于常量区，依据是上面的信息<code>0000000100003f0c T _main</code>，<code>.text</code> 接下来就是 <code>.rodata</code>，地址很近。</p>
+]]></content>
+      <categories>
+        <category>经验方法</category>
+        <category>C++</category>
+      </categories>
+      <tags>
+        <tag>c++</tag>
+        <tag>lldb</tag>
       </tags>
   </entry>
   <entry>
@@ -4501,48 +4501,6 @@
       </tags>
   </entry>
   <entry>
-    <title>CM3：qemu执行汇编</title>
-    <url>/2024/04/27/CM3%EF%BC%9Aqemu%E6%89%A7%E8%A1%8C%E6%B1%87%E7%BC%96/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h2><p>环境：macOS M1。<br><a href="https://blog.csdn.net/m0_73651896/article/details/138233484?spm=1001.2014.3001.5501">前文</a>讨论了 qemu 模拟8086 的平台运行8086 汇编代码，本文将讨论 qemu 模拟arm 平台运行 CM3 代码。代码：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c">.syntax unified<br>.cpu cortex-m3<br><br>.global _start<br><br>.equ UART0_BASE, <span class="hljs-number">0x4000C000</span><br>.equ UART0_DR, UART0_BASE + <span class="hljs-number">0x00</span><br>.equ UART0_FR, UART0_BASE + <span class="hljs-number">0x18</span><br>.equ TXFE, <span class="hljs-number">0x80</span><br><br>.section .text<br>.thumb_func<br>_start:<br>    <span class="hljs-comment">// 设置堆栈指针</span><br>    ldr sp, =stack_top<br><br>    <span class="hljs-comment">// 复位向量表</span><br>    .word _start<br><br>    <span class="hljs-comment">// 复位向量（Reset Handler）</span><br>    _reset_handler:<br>        <span class="hljs-comment">// 初始化 UART0</span><br>        ldr r0, =UART0_DR<br>        ldr r1, =<span class="hljs-number">0x48</span> <span class="hljs-comment">// &#x27;H&#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x65</span> <span class="hljs-comment">// &#x27;e&#x27;</span><br>        str r1, [r0]<br>         ldr r1, =<span class="hljs-number">0x6C</span> <span class="hljs-comment">// &#x27;l&#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x6C</span> <span class="hljs-comment">// &#x27;l&#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x6F</span> <span class="hljs-comment">// &#x27;o&#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x2C</span> <span class="hljs-comment">// &#x27;,&#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x20</span> <span class="hljs-comment">// &#x27; &#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x57</span> <span class="hljs-comment">// &#x27;W&#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x6F</span> <span class="hljs-comment">// &#x27;o&#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x72</span> <span class="hljs-comment">// &#x27;r&#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x6C</span> <span class="hljs-comment">// &#x27;l&#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x64</span> <span class="hljs-comment">// &#x27;d&#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x21</span> <span class="hljs-comment">// &#x27;!&#x27;</span><br>        str r1, [r0]<br>        <span class="hljs-comment">// 其他字符...</span><br><br>    <span class="hljs-comment">// 等待 UART0 发送完成</span><br>    wait_for_tx:<br>        ldr r0, =UART0_FR<br>        ldrb r1, [r0]<br>        tst r1, #TXFE<br>        bne wait_for_tx<br><br>    <span class="hljs-comment">// 程序结束</span><br>    b .<br><br>stack_top: .word <span class="hljs-number">0x20001000</span><br></code></pre></td></tr></table></figure>
-<p>编译以及链接：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">arm-none-eabi-as -o hello.o hello.s<br>arm-none-eabi-ld -Ttext=0x0 -o hello.elf hello.o<br>arm-none-eabi-objcopy -O binary hello.elf hello.bin<br></code></pre></td></tr></table></figure>
-
-<p>如果mac 上没有这些命令，直接安装以下：</p>
-<h3 id="安装："><a href="#安装：" class="headerlink" title="安装："></a>安装：</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">brew tap ArmMbed/homebrew-formulae<br>brew install arm-none-eabi-gcc<br></code></pre></td></tr></table></figure>
-<p>这两个命令是用于在 macOS 系统上安装 ARM 嵌入式开发工具链的：</p>
-<ol>
-<li><p><code>brew tap ArmMbed/homebrew-formulae</code>：</p>
-<ul>
-<li>这个命令通过 Homebrew 向您的系统添加了一个额外的存储库（tap），这个存储库包含了 ARM Mbed 的一些软件包。Homebrew 是 macOS 上一个流行的包管理器，用于安装和管理软件包。</li>
-<li><code>tap</code> 命令允许您在 Homebrew 中添加非官方的软件源，以便于安装那些不在官方存储库中的软件包。</li>
-</ul>
-</li>
-<li><p><code>brew install arm-none-eabi-gcc</code>：</p>
-<ul>
-<li>这个命令使用 Homebrew 从 ARM Mbed 的存储库中安装 ARM 嵌入式设备的 GCC 工具链。</li>
-<li><code>arm-none-eabi-gcc</code> 是一个用于编译嵌入式 C&#x2F;C++ 代码的工具链，针对 ARM Cortex-M 和 Cortex-R 处理器系列。这个工具链包括了编译器、链接器等工具，用于将源代码编译为可在 ARM 嵌入式设备上运行的机器代码。</li>
-</ul>
-</li>
-</ol>
-<h3 id="验证安装："><a href="#验证安装：" class="headerlink" title="验证安装："></a>验证安装：</h3><p>   安装完成后，可以在终端中运行以下命令来验证 ARM Cortex-M 工具链的安装：<br>   <figure class="highlight livecodeserver"><table><tr><td class="code"><pre><code class="hljs livecodeserver">arm-<span class="hljs-literal">none</span>-eabi-gcc <span class="hljs-comment">--version</span><br>arm-<span class="hljs-literal">none</span>-eabi-<span class="hljs-keyword">as</span> <span class="hljs-comment">--version</span><br>arm-<span class="hljs-literal">none</span>-eabi-ld <span class="hljs-comment">--version</span><br>arm-<span class="hljs-literal">none</span>-eabi-objcopy <span class="hljs-comment">--version</span><br></code></pre></td></tr></table></figure></p>
-<p>我们接着就用 qemu 来运行我们的二进制文件：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">qemu-system-arm -M lm3s6965evb -nographic -kernel hello.bin<br>Timer with period zero, disabling<br>Hello, World!<br></code></pre></td></tr></table></figure>
-
-<p>可以看到，成功得运行了。其中的 <strong>lm3s6965evb</strong> 是 Luminary Micro 的 Cortex-M3 处理器（LM3S6965）的一种开发板型号，这个命令告诉 QEMU 使用 LM3S6965 Cortex-M3 处理器模拟器，在终端中以无图形界面模式运行，并加载名为 <strong>hello.bin</strong> 的内核镜像文件。</p>
-]]></content>
-      <categories>
-        <category>CM3</category>
-      </categories>
-      <tags>
-        <tag>汇编</tag>
-        <tag>QEMU</tag>
-        <tag>CM3</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Chisel 中的 BlackBox 机制</title>
     <url>/2024/09/24/Chisel_BlackBox/</url>
     <content><![CDATA[<span id="more"></span>
@@ -4608,6 +4566,48 @@
       <tags>
         <tag>Chisel</tag>
         <tag>DPI-C</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>CM3：qemu执行汇编</title>
+    <url>/2024/04/27/CM3%EF%BC%9Aqemu%E6%89%A7%E8%A1%8C%E6%B1%87%E7%BC%96/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h2><p>环境：macOS M1。<br><a href="https://blog.csdn.net/m0_73651896/article/details/138233484?spm=1001.2014.3001.5501">前文</a>讨论了 qemu 模拟8086 的平台运行8086 汇编代码，本文将讨论 qemu 模拟arm 平台运行 CM3 代码。代码：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c">.syntax unified<br>.cpu cortex-m3<br><br>.global _start<br><br>.equ UART0_BASE, <span class="hljs-number">0x4000C000</span><br>.equ UART0_DR, UART0_BASE + <span class="hljs-number">0x00</span><br>.equ UART0_FR, UART0_BASE + <span class="hljs-number">0x18</span><br>.equ TXFE, <span class="hljs-number">0x80</span><br><br>.section .text<br>.thumb_func<br>_start:<br>    <span class="hljs-comment">// 设置堆栈指针</span><br>    ldr sp, =stack_top<br><br>    <span class="hljs-comment">// 复位向量表</span><br>    .word _start<br><br>    <span class="hljs-comment">// 复位向量（Reset Handler）</span><br>    _reset_handler:<br>        <span class="hljs-comment">// 初始化 UART0</span><br>        ldr r0, =UART0_DR<br>        ldr r1, =<span class="hljs-number">0x48</span> <span class="hljs-comment">// &#x27;H&#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x65</span> <span class="hljs-comment">// &#x27;e&#x27;</span><br>        str r1, [r0]<br>         ldr r1, =<span class="hljs-number">0x6C</span> <span class="hljs-comment">// &#x27;l&#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x6C</span> <span class="hljs-comment">// &#x27;l&#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x6F</span> <span class="hljs-comment">// &#x27;o&#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x2C</span> <span class="hljs-comment">// &#x27;,&#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x20</span> <span class="hljs-comment">// &#x27; &#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x57</span> <span class="hljs-comment">// &#x27;W&#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x6F</span> <span class="hljs-comment">// &#x27;o&#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x72</span> <span class="hljs-comment">// &#x27;r&#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x6C</span> <span class="hljs-comment">// &#x27;l&#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x64</span> <span class="hljs-comment">// &#x27;d&#x27;</span><br>        str r1, [r0]<br>        ldr r1, =<span class="hljs-number">0x21</span> <span class="hljs-comment">// &#x27;!&#x27;</span><br>        str r1, [r0]<br>        <span class="hljs-comment">// 其他字符...</span><br><br>    <span class="hljs-comment">// 等待 UART0 发送完成</span><br>    wait_for_tx:<br>        ldr r0, =UART0_FR<br>        ldrb r1, [r0]<br>        tst r1, #TXFE<br>        bne wait_for_tx<br><br>    <span class="hljs-comment">// 程序结束</span><br>    b .<br><br>stack_top: .word <span class="hljs-number">0x20001000</span><br></code></pre></td></tr></table></figure>
+<p>编译以及链接：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">arm-none-eabi-as -o hello.o hello.s<br>arm-none-eabi-ld -Ttext=0x0 -o hello.elf hello.o<br>arm-none-eabi-objcopy -O binary hello.elf hello.bin<br></code></pre></td></tr></table></figure>
+
+<p>如果mac 上没有这些命令，直接安装以下：</p>
+<h3 id="安装："><a href="#安装：" class="headerlink" title="安装："></a>安装：</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">brew tap ArmMbed/homebrew-formulae<br>brew install arm-none-eabi-gcc<br></code></pre></td></tr></table></figure>
+<p>这两个命令是用于在 macOS 系统上安装 ARM 嵌入式开发工具链的：</p>
+<ol>
+<li><p><code>brew tap ArmMbed/homebrew-formulae</code>：</p>
+<ul>
+<li>这个命令通过 Homebrew 向您的系统添加了一个额外的存储库（tap），这个存储库包含了 ARM Mbed 的一些软件包。Homebrew 是 macOS 上一个流行的包管理器，用于安装和管理软件包。</li>
+<li><code>tap</code> 命令允许您在 Homebrew 中添加非官方的软件源，以便于安装那些不在官方存储库中的软件包。</li>
+</ul>
+</li>
+<li><p><code>brew install arm-none-eabi-gcc</code>：</p>
+<ul>
+<li>这个命令使用 Homebrew 从 ARM Mbed 的存储库中安装 ARM 嵌入式设备的 GCC 工具链。</li>
+<li><code>arm-none-eabi-gcc</code> 是一个用于编译嵌入式 C&#x2F;C++ 代码的工具链，针对 ARM Cortex-M 和 Cortex-R 处理器系列。这个工具链包括了编译器、链接器等工具，用于将源代码编译为可在 ARM 嵌入式设备上运行的机器代码。</li>
+</ul>
+</li>
+</ol>
+<h3 id="验证安装："><a href="#验证安装：" class="headerlink" title="验证安装："></a>验证安装：</h3><p>   安装完成后，可以在终端中运行以下命令来验证 ARM Cortex-M 工具链的安装：<br>   <figure class="highlight livecodeserver"><table><tr><td class="code"><pre><code class="hljs livecodeserver">arm-<span class="hljs-literal">none</span>-eabi-gcc <span class="hljs-comment">--version</span><br>arm-<span class="hljs-literal">none</span>-eabi-<span class="hljs-keyword">as</span> <span class="hljs-comment">--version</span><br>arm-<span class="hljs-literal">none</span>-eabi-ld <span class="hljs-comment">--version</span><br>arm-<span class="hljs-literal">none</span>-eabi-objcopy <span class="hljs-comment">--version</span><br></code></pre></td></tr></table></figure></p>
+<p>我们接着就用 qemu 来运行我们的二进制文件：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">qemu-system-arm -M lm3s6965evb -nographic -kernel hello.bin<br>Timer with period zero, disabling<br>Hello, World!<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，成功得运行了。其中的 <strong>lm3s6965evb</strong> 是 Luminary Micro 的 Cortex-M3 处理器（LM3S6965）的一种开发板型号，这个命令告诉 QEMU 使用 LM3S6965 Cortex-M3 处理器模拟器，在终端中以无图形界面模式运行，并加载名为 <strong>hello.bin</strong> 的内核镜像文件。</p>
+]]></content>
+      <categories>
+        <category>CM3</category>
+      </categories>
+      <tags>
+        <tag>汇编</tag>
+        <tag>QEMU</tag>
+        <tag>CM3</tag>
       </tags>
   </entry>
   <entry>
@@ -6027,6 +6027,109 @@
       </tags>
   </entry>
   <entry>
+    <title>MIT 6.S081学习笔记（第三章）</title>
+    <url>/2023/11/22/MIT%206.S081%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E7%AC%AC%E4%B8%89%E7%AB%A0%EF%BC%89/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="〇、前言"><a href="#〇、前言" class="headerlink" title="〇、前言"></a>〇、前言</h2><p>本文主要完成<strong>MIT 6.S081</strong> 实验三：<strong>page tables</strong>。<br>开始之前，切换分支：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ git fetch<br>$ git checkout pgtbl<br>$ make clean<br></code></pre></td></tr></table></figure>
+<h2 id="一、Speed-up-system-calls-easy"><a href="#一、Speed-up-system-calls-easy" class="headerlink" title="一、Speed up system calls (easy)"></a>一、Speed up system calls (easy)</h2><p>这个实验比底下两个都难，但是它的难度是简单？</p>
+<h3 id="Question-requirements"><a href="#Question-requirements" class="headerlink" title="Question requirements"></a>Question requirements</h3><blockquote>
+<p>Some operating systems (e.g., Linux) speed up certain system calls by sharing data in a read-only region between userspace and the kernel. This eliminates the need for kernel crossings when performing these system calls. To help you learn how to insert mappings into a page table, your first task is to implement this optimization for the getpid() system call in xv6.</p>
+</blockquote>
+<p>这个实验就是让我来加速 <code>getpid()</code> 这个系统调用。</p>
+<p>如果用户态调用系统调用（比如<code>getpid()</code>），那么就需要切换到内核态，这中间就会带来开销。对于加速系统调用，思路就是不让它切换到核心态，仍然能运行一些核心态才能运行的操作，比如获取某个进程的 pid（也就是这节的 <code>getpid()</code>，这当然是安全的无关紧要的越权，因为它只是读取 <strong>PTE_R</strong>，不修改 <strong>PTE_W</strong>，也不执行 <strong>PTE_X</strong>）。</p>
+<p>在这里我们使用 <code>ugetpid(void)</code> 进行代替 <code>getpid()</code>：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> LAB_PGTBL</span><br><span class="hljs-type">int</span><br><span class="hljs-title function_">ugetpid</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">usyscall</span> *<span class="hljs-title">u</span> =</span> (<span class="hljs-keyword">struct</span> usyscall *)USYSCALL;<br>  <span class="hljs-keyword">return</span> u-&gt;pid;<br>&#125;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br></code></pre></td></tr></table></figure>
+<p>可以看到它直接操作 <code>USYSCALL</code>，本质上是一个指针，进行强转之后，直接返回 <code>u-&gt;pid</code>。</p>
+<p>所以只要为每一个进程分配一个 <strong>USYSCALL</strong> 页 ，这个页程序直接可以在用户态读取它。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> LAB_PGTBL</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> USYSCALL (TRAPFRAME - PGSIZE)</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">usyscall</span> &#123;</span><br>  <span class="hljs-type">int</span> pid;  <span class="hljs-comment">// Process ID</span><br>&#125;;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br></code></pre></td></tr></table></figure>
+<p>这个结构已经被定义好了，我们只需要将它放到进程结构体中：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span>&#123;</span><br>    ...<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">usyscall</span> *<span class="hljs-title">usyscall</span>;</span><br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>为它分配一定的空间，这个在初始化中就可以完成了：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">struct</span> proc * <span class="hljs-title function_">allocproc</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>&#123;<br>    ...<br>    found:<br>        ...<br>    <span class="hljs-comment">// Allocate a speed up syscall page</span><br>    <span class="hljs-keyword">if</span> ((p-&gt;usyscall = (<span class="hljs-keyword">struct</span> usyscall *)kalloc()) == <span class="hljs-number">0</span>) &#123;<br>        freeproc(p);<br>        release(&amp;p-&gt;lock);<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    &#125;<br>    <span class="hljs-comment">// An empty user page table.</span><br>    p-&gt;pagetable = proc_pagetable(p);<br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>到此，完成了基本工作：</p>
+<ul>
+<li>定义一个我们需要的结构体（已经定义好）；</li>
+<li>将它增加到 <code>struct proc</code>字段；</li>
+<li>为这个新的字段分配空间。</li>
+</ul>
+<p>现在我们就要把这个 <code>USYSCALL</code> 页面映射到进程的页表上（建立 <strong>PTE</strong>，并设置 <strong>PTE_R</strong> 、<strong>PTE_U</strong> 标记 ）：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">pagetable_t</span> <span class="hljs-title function_">proc_pagetable</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> proc *p)</span>&#123;<br>    ...<br>    <span class="hljs-keyword">if</span> (mappages(pagetable, USYSCALL, PGSIZE, (uint64)(p-&gt;usyscall),<br>                 PTE_R | PTE_U) &lt; <span class="hljs-number">0</span>) &#123;<br>        uvmunmap(pagetable, TRAMPOLINE, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>);<br>        uvmunmap(pagetable, TRAPFRAME, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>);<br>        uvmfree(pagetable, <span class="hljs-number">0</span>);<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> pagetable;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>进程在启动的时候，我们自然要对这个新的字段要赋值，也就是初始化：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">struct</span> proc * <span class="hljs-title function_">allocproc</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>&#123;<br>    ...<br>    p-&gt;usyscall-&gt;pid = p-&gt;pid;<br>    <span class="hljs-keyword">return</span> p;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>初始化之后，这样用户进程在用户态直接调用 <code>ugetpid()</code>，就直接获取 <code>struct proc</code> 字段就好了，不用再陷入了。</p>
+<p>我们来看看测试程序是怎么判断的：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span><br><span class="hljs-title function_">ugetpid_test</span><span class="hljs-params">()</span><br>&#123;<br>  <span class="hljs-type">int</span> i;<br><br>  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;ugetpid_test starting\n&quot;</span>);<br>  testname = <span class="hljs-string">&quot;ugetpid_test&quot;</span>;<br><br>  <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">64</span>; i++) &#123;<br>    <span class="hljs-type">int</span> ret = fork();<br>    <span class="hljs-keyword">if</span> (ret != <span class="hljs-number">0</span>) &#123;<br>      wait(&amp;ret);<br>      <span class="hljs-keyword">if</span> (ret != <span class="hljs-number">0</span>)<br>        <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);<br>      <span class="hljs-keyword">continue</span>;<br>    &#125;<br>    <span class="hljs-keyword">if</span> (getpid() != ugetpid())<br>      err(<span class="hljs-string">&quot;missmatched PID&quot;</span>);<br>    <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);<br>  &#125;<br>  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;ugetpid_test: OK\n&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>很明显，<code>if (getpid() != ugetpid())</code> 分别<strong>陷入</strong>和 <strong>不陷入</strong> 获取 <code>pid</code>，通过对比给结果。</p>
+<p>那么有一个问题，进程在结束的时候，也应该将 PTE 释放掉：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">freeproc</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> proc*p)</span>&#123;<br>    ...<br>    <span class="hljs-keyword">if</span> (p-&gt;usyscall) kfree((<span class="hljs-type">void</span> *)p-&gt;usyscall);<br>    p-&gt;usyscall = <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>以及在 <code>proc_freepagetable()</code> 中解除映射，不然会报错（因为页表已经失效了）：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span><br><span class="hljs-title function_">proc_freepagetable</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span> pagetable, uint64 sz)</span><br>&#123;<br>  ...<br>  uvmunmap(pagetable, USYSCALL, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>);<br>  uvmfree(pagetable, sz);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>运行一下，没什么问题：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">******:~/xv6-labs-2023<span class="hljs-comment"># ./grade-lab-pgtbl ugetpid</span><br>make: <span class="hljs-string">&#x27;kernel/kernel&#x27;</span> is up to <span class="hljs-built_in">date</span>.<br>== Test pgtbltest == (2.4s)<br>== Test   pgtbltest: ugetpid ==<br>  pgtbltest: ugetpid: OK<br></code></pre></td></tr></table></figure>
+<h3 id="Which-other-xv6-system-call-s-could-be-made-faster-using-this-shared-page-Explain-how"><a href="#Which-other-xv6-system-call-s-could-be-made-faster-using-this-shared-page-Explain-how" class="headerlink" title="Which other xv6 system call(s) could be made faster using this shared page? Explain how."></a>Which other xv6 system call(s) could be made faster using this shared page? Explain how.</h3><p>任何直接或间接调用 <code>copyout()</code> 的系统调用都会被加速，因为它节省了复制数据的时间。此外，纯粹用于信息检索的系统调用，比如本节中提到的 <code>getpid()</code>，也会更快。<strong>这是因为不再需要陷入操作系统，对应的数据可以在用户模式下读取</strong>。</p>
+<h2 id="二、Print-a-page-table-easy"><a href="#二、Print-a-page-table-easy" class="headerlink" title="二、Print a page table (easy)"></a>二、Print a page table (easy)</h2><h3 id="Question-requirements-1"><a href="#Question-requirements-1" class="headerlink" title="Question requirements"></a>Question requirements</h3><blockquote>
+<p>Define a function called vmprint(). It should take a pagetable_t argument, and print that pagetable in the format described below. Insert if(p-&gt;pid&#x3D;&#x3D;1) vmprint(p-&gt;pagetable) in exec.c just before the return argc, to print the first process’s page table. You receive full credit for this part of the lab if you pass the pte printout test of make grade.</p>
+</blockquote>
+<h3 id="Some-hints"><a href="#Some-hints" class="headerlink" title="Some hints:"></a>Some hints:</h3><ul>
+<li>You can put vmprint() in <code>kernel/vm.c</code>.</li>
+<li>Use the macros at the end of the file <code>kernel/riscv.h</code>.</li>
+<li>The function freewalk may be inspirational.</li>
+<li>Define the prototype for vmprint in <code>kernel/defs.h</code> so that you can call it from <code>exec.c</code>.</li>
+<li>Use %p in your printf calls to print out full 64-bit hex PTEs and addresses as shown in the example.</li>
+</ul>
+<p>很简单，只需要按照提示做，就可以了。先在 <code>exec.c</code>加入：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">exec</span><span class="hljs-params">(<span class="hljs-type">char</span> *path, <span class="hljs-type">char</span> **argv)</span>&#123;<br>  ...<br>  proc_freepagetable(oldpagetable, oldsz);<br>  <span class="hljs-comment">// 增加的代码</span><br>  <span class="hljs-keyword">if</span>(p-&gt;pid==<span class="hljs-number">1</span>)<br>    vmprint(p-&gt;pagetable);<br>  <span class="hljs-keyword">return</span> argc; <span class="hljs-comment">// this ends up in a0, the first argument to main(argc, argv)</span><br><br> bad:<br> ...<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>思路就是递归遍历<strong>PTE</strong>以及标记位 <strong>PTE_V</strong>，在 <code>vm.c</code>加入：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">printpgtb</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span> pagetable, <span class="hljs-type">int</span> depth)</span>&#123;<br>  <span class="hljs-comment">// 遍历</span><br>  <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">512</span>; i++)&#123;<br>    <span class="hljs-type">pte_t</span> pte = pagetable[i];<br>    <span class="hljs-keyword">if</span>(pte &amp; PTE_V)&#123;<br>      <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;..&quot;</span>);<br>      <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> j=<span class="hljs-number">0</span>;j&lt;depth;j++) &#123;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot; ..&quot;</span>);<br>      &#125;<br>      <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%d: pte %p pa %p\n&quot;</span>, i, pte, PTE2PA(pte));<br>      <span class="hljs-comment">// 如果页表条目有效且没有读取、写入或执行权限，则继续递归调用 printpgtb 函数，打印下一级页表的内容</span><br>      <span class="hljs-keyword">if</span>((pte &amp; PTE_V) &amp;&amp; (pte &amp; (PTE_R|PTE_W|PTE_X)) == <span class="hljs-number">0</span>) &#123;<br>        uint64 child = PTE2PA(pte);<br>        printpgtb((<span class="hljs-type">pagetable_t</span>)child, depth+<span class="hljs-number">1</span>);<br>      &#125;<br>    &#125;<br>  &#125;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">vmprint</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span> pagetable)</span> &#123;<br>  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;page table %p\n&quot;</span>, pagetable);<br>  printpgtb(pagetable, <span class="hljs-number">0</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>也别忘了在 <code>defs.h</code>加函数声明：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// vm.c</span><br>...<br><span class="hljs-type">int</span>             <span class="hljs-title function_">copyinstr</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span>, <span class="hljs-type">char</span> *, uint64, uint64)</span>;<br><span class="hljs-type">void</span>            <span class="hljs-title function_">vmprint</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span>)</span>;<br></code></pre></td></tr></table></figure>
+
+<h2 id="Detect-which-pages-have-been-accessed-hard"><a href="#Detect-which-pages-have-been-accessed-hard" class="headerlink" title="Detect which pages have been accessed (hard)"></a>Detect which pages have been accessed (hard)</h2><h3 id="Question-requirements-2"><a href="#Question-requirements-2" class="headerlink" title="Question requirements"></a>Question requirements</h3><blockquote>
+<p>Some garbage collectors (a form of automatic memory management) can benefit from information about which pages have been accessed (read or write). In this part of the lab, you will add a new feature to xv6 that detects and reports this information to userspace by inspecting the access bits in the RISC-V page table. The RISC-V hardware page walker marks these bits in the PTE whenever it resolves a TLB miss.</p>
+</blockquote>
+<h3 id="Some-hints-1"><a href="#Some-hints-1" class="headerlink" title="Some hints"></a>Some hints</h3><ul>
+<li>Read <code>pgaccess_test()</code> in <code>user/pgtbltest.c</code> to see how pgaccess is used.</li>
+<li>Start by implementing <code>sys_pgaccess()</code> in <code>kernel/sysproc.c</code>.</li>
+<li>You’ll need to parse arguments using <code>argaddr()</code> and <code>argint()</code>.</li>
+<li>For the output bitmask, it’s easier to store a temporary buffer in the kernel and copy it to the user (via <code>copyout()</code>) after filling it with the right bits.</li>
+<li>It’s okay to set an upper limit on the number of pages that can be scanned.<br><code>walk()</code> in <code>kernel/vm.c</code> is very useful for finding the right <strong>PTEs</strong>.</li>
+<li>You’ll need to define <strong>PTE_A</strong>, the access bit, in <code>kernel/riscv.h</code>. Consult the RISC-V privileged architecture manual to determine its value.</li>
+<li>Be sure to clear <strong>PTE_A</strong> after checking if it is set. Otherwise, it won’t be possible to determine if the page was accessed since the last time <code>pgaccess()</code> was called (i.e., the bit will be set forever).</li>
+<li><code>vmprint()</code> may come in handy to debug page tables.</li>
+</ul>
+<h3 id="思路："><a href="#思路：" class="headerlink" title="思路："></a>思路：</h3><ul>
+<li>手动添加访问标志；</li>
+<li>获取一些参数；</li>
+<li>利用参数对页表项遍历，对访问标志进行提取，提取到 <code>bitmask</code> 中；</li>
+<li>将 <code>bitmask</code>返回。</li>
+</ul>
+<p>这个实验和第一个加速系统调用实验类似。首先需要手动设置一些标记 <strong>PTE_A</strong>。<br>在<code>kernel/riscv.h</code>中加入访问标志：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> PTE_A (1L &lt;&lt; 6)</span><br></code></pre></td></tr></table></figure>
+<p>获取参数，需要获取的参数就是要检查的页起始地址、页数、用户空间地址（答案返回的地方）。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> uint64<br><span class="hljs-title function_">argraw</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span><br>&#123;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">p</span> =</span> myproc();<br>  <span class="hljs-keyword">switch</span> (n) &#123;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">0</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a0;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">1</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a1;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">2</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a2;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">3</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a3;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">4</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a4;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">5</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a5;<br>  &#125;<br>  panic(<span class="hljs-string">&quot;argraw&quot;</span>);<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p><code>argraw()</code>的作用就是获取用户进程<code>trap</code>内核之前的寄存器的信息。<code>a0</code>保存的是用户进程的起始地址（虚拟地址），<code>a1</code> 保存的是进程的页面数。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c">uint64 startaddr;<br><span class="hljs-type">int</span> npage;<br>uint64 useraddr;<br>argaddr(<span class="hljs-number">0</span>, &amp;startaddr);<br>argint(<span class="hljs-number">1</span>, &amp;npage);<br>argaddr(<span class="hljs-number">2</span>, &amp;useraddr);<br></code></pre></td></tr></table></figure>
+<p>整个函数如下：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span><br><span class="hljs-title function_">sys_pgaccess</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>  <span class="hljs-comment">//  parse arguments using argaddr() and argint().</span><br>  uint64 startaddr;<br>  <span class="hljs-type">int</span> npage;<br>  uint64 useraddr;<br>  argaddr(<span class="hljs-number">0</span>, &amp;startaddr);<br>  argint(<span class="hljs-number">1</span>, &amp;npage);<br>  argaddr(<span class="hljs-number">2</span>, &amp;useraddr);<br>  uint64 bitmask = <span class="hljs-number">0</span>;<br>  <span class="hljs-comment">// 取反</span><br>  uint64 complement = ~PTE_A;<br><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">p</span> =</span> myproc();<br>  <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; npage; ++i) &#123;<br>    <span class="hljs-type">pte_t</span> *pte = walk(p-&gt;pagetable, startaddr+i*PGSIZE, <span class="hljs-number">0</span>);<br>    <span class="hljs-keyword">if</span> (*pte &amp; PTE_A) &#123;<br>      bitmask |= (<span class="hljs-number">1</span> &lt;&lt; i);<br>      <span class="hljs-comment">// 清空标记</span><br>      *pte &amp;= complement;<br>    &#125;<br>  &#125;<br>  <span class="hljs-comment">// copyout</span><br>  copyout(p-&gt;pagetable, useraddr, (<span class="hljs-type">char</span> *)&amp;bitmask, <span class="hljs-keyword">sizeof</span>(bitmask));<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>运行测试：</p>
+<blockquote>
+<p>&#x3D;&#x3D; Test pgtbltest &#x3D;&#x3D;<br>$ make qemu-gdb<br>(3.6s)<br>&#x3D;&#x3D; Test   pgtbltest: ugetpid &#x3D;&#x3D;<br>  pgtbltest: ugetpid: OK<br>&#x3D;&#x3D; Test   pgtbltest: pgaccess &#x3D;&#x3D;<br>  pgtbltest: pgaccess: OK<br>&#x3D;&#x3D; Test pte printout &#x3D;&#x3D;<br>$ make qemu-gdb<br>pte printout: OK (0.8s)<br>&#x3D;&#x3D; Test answers-pgtbl.txt &#x3D;&#x3D;<br>answers-pgtbl.txt: OK<br>&#x3D;&#x3D; Test usertests &#x3D;&#x3D;<br>$ make qemu-gdb<br>(8.2s)<br>&#x3D;&#x3D; Test   usertests: all tests &#x3D;&#x3D;<br>  usertests: all tests: OK<br>&#x3D;&#x3D; Test time &#x3D;&#x3D;<br>time: OK<br>Score: 46&#x2F;46</p>
+</blockquote>
+<p><em>全文完，感谢阅读。</em></p>
+]]></content>
+      <categories>
+        <category>OS</category>
+      </categories>
+      <tags>
+        <tag>学习</tag>
+        <tag>笔记</tag>
+        <tag>操作系统</tag>
+        <tag>MIT 6.S081</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>MIT 6.S081学习笔记（第七章）</title>
     <url>/2023/12/13/MIT%206.S081%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E7%AC%AC%E4%B8%83%E7%AB%A0%EF%BC%89/</url>
     <content><![CDATA[<span id="more"></span>
@@ -6157,109 +6260,6 @@
 </ul>
 </blockquote>
 <p>参考：<a href="https://blog.miigon.net/posts/s081-lab8-locks/#memory-allocator-moderate">锁优化</a>、<a href="https://github.com/Miigon/blog/issues/8">讨论</a>。</p>
-<p><em>全文完，感谢阅读。</em></p>
-]]></content>
-      <categories>
-        <category>OS</category>
-      </categories>
-      <tags>
-        <tag>学习</tag>
-        <tag>笔记</tag>
-        <tag>操作系统</tag>
-        <tag>MIT 6.S081</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>MIT 6.S081学习笔记（第三章）</title>
-    <url>/2023/11/22/MIT%206.S081%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E7%AC%AC%E4%B8%89%E7%AB%A0%EF%BC%89/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="〇、前言"><a href="#〇、前言" class="headerlink" title="〇、前言"></a>〇、前言</h2><p>本文主要完成<strong>MIT 6.S081</strong> 实验三：<strong>page tables</strong>。<br>开始之前，切换分支：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ git fetch<br>$ git checkout pgtbl<br>$ make clean<br></code></pre></td></tr></table></figure>
-<h2 id="一、Speed-up-system-calls-easy"><a href="#一、Speed-up-system-calls-easy" class="headerlink" title="一、Speed up system calls (easy)"></a>一、Speed up system calls (easy)</h2><p>这个实验比底下两个都难，但是它的难度是简单？</p>
-<h3 id="Question-requirements"><a href="#Question-requirements" class="headerlink" title="Question requirements"></a>Question requirements</h3><blockquote>
-<p>Some operating systems (e.g., Linux) speed up certain system calls by sharing data in a read-only region between userspace and the kernel. This eliminates the need for kernel crossings when performing these system calls. To help you learn how to insert mappings into a page table, your first task is to implement this optimization for the getpid() system call in xv6.</p>
-</blockquote>
-<p>这个实验就是让我来加速 <code>getpid()</code> 这个系统调用。</p>
-<p>如果用户态调用系统调用（比如<code>getpid()</code>），那么就需要切换到内核态，这中间就会带来开销。对于加速系统调用，思路就是不让它切换到核心态，仍然能运行一些核心态才能运行的操作，比如获取某个进程的 pid（也就是这节的 <code>getpid()</code>，这当然是安全的无关紧要的越权，因为它只是读取 <strong>PTE_R</strong>，不修改 <strong>PTE_W</strong>，也不执行 <strong>PTE_X</strong>）。</p>
-<p>在这里我们使用 <code>ugetpid(void)</code> 进行代替 <code>getpid()</code>：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> LAB_PGTBL</span><br><span class="hljs-type">int</span><br><span class="hljs-title function_">ugetpid</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">usyscall</span> *<span class="hljs-title">u</span> =</span> (<span class="hljs-keyword">struct</span> usyscall *)USYSCALL;<br>  <span class="hljs-keyword">return</span> u-&gt;pid;<br>&#125;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br></code></pre></td></tr></table></figure>
-<p>可以看到它直接操作 <code>USYSCALL</code>，本质上是一个指针，进行强转之后，直接返回 <code>u-&gt;pid</code>。</p>
-<p>所以只要为每一个进程分配一个 <strong>USYSCALL</strong> 页 ，这个页程序直接可以在用户态读取它。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> LAB_PGTBL</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> USYSCALL (TRAPFRAME - PGSIZE)</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">usyscall</span> &#123;</span><br>  <span class="hljs-type">int</span> pid;  <span class="hljs-comment">// Process ID</span><br>&#125;;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br></code></pre></td></tr></table></figure>
-<p>这个结构已经被定义好了，我们只需要将它放到进程结构体中：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span>&#123;</span><br>    ...<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">usyscall</span> *<span class="hljs-title">usyscall</span>;</span><br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>为它分配一定的空间，这个在初始化中就可以完成了：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">struct</span> proc * <span class="hljs-title function_">allocproc</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>&#123;<br>    ...<br>    found:<br>        ...<br>    <span class="hljs-comment">// Allocate a speed up syscall page</span><br>    <span class="hljs-keyword">if</span> ((p-&gt;usyscall = (<span class="hljs-keyword">struct</span> usyscall *)kalloc()) == <span class="hljs-number">0</span>) &#123;<br>        freeproc(p);<br>        release(&amp;p-&gt;lock);<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    &#125;<br>    <span class="hljs-comment">// An empty user page table.</span><br>    p-&gt;pagetable = proc_pagetable(p);<br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>到此，完成了基本工作：</p>
-<ul>
-<li>定义一个我们需要的结构体（已经定义好）；</li>
-<li>将它增加到 <code>struct proc</code>字段；</li>
-<li>为这个新的字段分配空间。</li>
-</ul>
-<p>现在我们就要把这个 <code>USYSCALL</code> 页面映射到进程的页表上（建立 <strong>PTE</strong>，并设置 <strong>PTE_R</strong> 、<strong>PTE_U</strong> 标记 ）：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">pagetable_t</span> <span class="hljs-title function_">proc_pagetable</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> proc *p)</span>&#123;<br>    ...<br>    <span class="hljs-keyword">if</span> (mappages(pagetable, USYSCALL, PGSIZE, (uint64)(p-&gt;usyscall),<br>                 PTE_R | PTE_U) &lt; <span class="hljs-number">0</span>) &#123;<br>        uvmunmap(pagetable, TRAMPOLINE, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>);<br>        uvmunmap(pagetable, TRAPFRAME, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>);<br>        uvmfree(pagetable, <span class="hljs-number">0</span>);<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> pagetable;<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>进程在启动的时候，我们自然要对这个新的字段要赋值，也就是初始化：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">struct</span> proc * <span class="hljs-title function_">allocproc</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>&#123;<br>    ...<br>    p-&gt;usyscall-&gt;pid = p-&gt;pid;<br>    <span class="hljs-keyword">return</span> p;<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>初始化之后，这样用户进程在用户态直接调用 <code>ugetpid()</code>，就直接获取 <code>struct proc</code> 字段就好了，不用再陷入了。</p>
-<p>我们来看看测试程序是怎么判断的：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span><br><span class="hljs-title function_">ugetpid_test</span><span class="hljs-params">()</span><br>&#123;<br>  <span class="hljs-type">int</span> i;<br><br>  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;ugetpid_test starting\n&quot;</span>);<br>  testname = <span class="hljs-string">&quot;ugetpid_test&quot;</span>;<br><br>  <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">64</span>; i++) &#123;<br>    <span class="hljs-type">int</span> ret = fork();<br>    <span class="hljs-keyword">if</span> (ret != <span class="hljs-number">0</span>) &#123;<br>      wait(&amp;ret);<br>      <span class="hljs-keyword">if</span> (ret != <span class="hljs-number">0</span>)<br>        <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);<br>      <span class="hljs-keyword">continue</span>;<br>    &#125;<br>    <span class="hljs-keyword">if</span> (getpid() != ugetpid())<br>      err(<span class="hljs-string">&quot;missmatched PID&quot;</span>);<br>    <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);<br>  &#125;<br>  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;ugetpid_test: OK\n&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>很明显，<code>if (getpid() != ugetpid())</code> 分别<strong>陷入</strong>和 <strong>不陷入</strong> 获取 <code>pid</code>，通过对比给结果。</p>
-<p>那么有一个问题，进程在结束的时候，也应该将 PTE 释放掉：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">freeproc</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> proc*p)</span>&#123;<br>    ...<br>    <span class="hljs-keyword">if</span> (p-&gt;usyscall) kfree((<span class="hljs-type">void</span> *)p-&gt;usyscall);<br>    p-&gt;usyscall = <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>以及在 <code>proc_freepagetable()</code> 中解除映射，不然会报错（因为页表已经失效了）：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span><br><span class="hljs-title function_">proc_freepagetable</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span> pagetable, uint64 sz)</span><br>&#123;<br>  ...<br>  uvmunmap(pagetable, USYSCALL, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>);<br>  uvmfree(pagetable, sz);<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>运行一下，没什么问题：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">******:~/xv6-labs-2023<span class="hljs-comment"># ./grade-lab-pgtbl ugetpid</span><br>make: <span class="hljs-string">&#x27;kernel/kernel&#x27;</span> is up to <span class="hljs-built_in">date</span>.<br>== Test pgtbltest == (2.4s)<br>== Test   pgtbltest: ugetpid ==<br>  pgtbltest: ugetpid: OK<br></code></pre></td></tr></table></figure>
-<h3 id="Which-other-xv6-system-call-s-could-be-made-faster-using-this-shared-page-Explain-how"><a href="#Which-other-xv6-system-call-s-could-be-made-faster-using-this-shared-page-Explain-how" class="headerlink" title="Which other xv6 system call(s) could be made faster using this shared page? Explain how."></a>Which other xv6 system call(s) could be made faster using this shared page? Explain how.</h3><p>任何直接或间接调用 <code>copyout()</code> 的系统调用都会被加速，因为它节省了复制数据的时间。此外，纯粹用于信息检索的系统调用，比如本节中提到的 <code>getpid()</code>，也会更快。<strong>这是因为不再需要陷入操作系统，对应的数据可以在用户模式下读取</strong>。</p>
-<h2 id="二、Print-a-page-table-easy"><a href="#二、Print-a-page-table-easy" class="headerlink" title="二、Print a page table (easy)"></a>二、Print a page table (easy)</h2><h3 id="Question-requirements-1"><a href="#Question-requirements-1" class="headerlink" title="Question requirements"></a>Question requirements</h3><blockquote>
-<p>Define a function called vmprint(). It should take a pagetable_t argument, and print that pagetable in the format described below. Insert if(p-&gt;pid&#x3D;&#x3D;1) vmprint(p-&gt;pagetable) in exec.c just before the return argc, to print the first process’s page table. You receive full credit for this part of the lab if you pass the pte printout test of make grade.</p>
-</blockquote>
-<h3 id="Some-hints"><a href="#Some-hints" class="headerlink" title="Some hints:"></a>Some hints:</h3><ul>
-<li>You can put vmprint() in <code>kernel/vm.c</code>.</li>
-<li>Use the macros at the end of the file <code>kernel/riscv.h</code>.</li>
-<li>The function freewalk may be inspirational.</li>
-<li>Define the prototype for vmprint in <code>kernel/defs.h</code> so that you can call it from <code>exec.c</code>.</li>
-<li>Use %p in your printf calls to print out full 64-bit hex PTEs and addresses as shown in the example.</li>
-</ul>
-<p>很简单，只需要按照提示做，就可以了。先在 <code>exec.c</code>加入：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">exec</span><span class="hljs-params">(<span class="hljs-type">char</span> *path, <span class="hljs-type">char</span> **argv)</span>&#123;<br>  ...<br>  proc_freepagetable(oldpagetable, oldsz);<br>  <span class="hljs-comment">// 增加的代码</span><br>  <span class="hljs-keyword">if</span>(p-&gt;pid==<span class="hljs-number">1</span>)<br>    vmprint(p-&gt;pagetable);<br>  <span class="hljs-keyword">return</span> argc; <span class="hljs-comment">// this ends up in a0, the first argument to main(argc, argv)</span><br><br> bad:<br> ...<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>思路就是递归遍历<strong>PTE</strong>以及标记位 <strong>PTE_V</strong>，在 <code>vm.c</code>加入：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">printpgtb</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span> pagetable, <span class="hljs-type">int</span> depth)</span>&#123;<br>  <span class="hljs-comment">// 遍历</span><br>  <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">512</span>; i++)&#123;<br>    <span class="hljs-type">pte_t</span> pte = pagetable[i];<br>    <span class="hljs-keyword">if</span>(pte &amp; PTE_V)&#123;<br>      <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;..&quot;</span>);<br>      <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> j=<span class="hljs-number">0</span>;j&lt;depth;j++) &#123;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot; ..&quot;</span>);<br>      &#125;<br>      <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%d: pte %p pa %p\n&quot;</span>, i, pte, PTE2PA(pte));<br>      <span class="hljs-comment">// 如果页表条目有效且没有读取、写入或执行权限，则继续递归调用 printpgtb 函数，打印下一级页表的内容</span><br>      <span class="hljs-keyword">if</span>((pte &amp; PTE_V) &amp;&amp; (pte &amp; (PTE_R|PTE_W|PTE_X)) == <span class="hljs-number">0</span>) &#123;<br>        uint64 child = PTE2PA(pte);<br>        printpgtb((<span class="hljs-type">pagetable_t</span>)child, depth+<span class="hljs-number">1</span>);<br>      &#125;<br>    &#125;<br>  &#125;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">vmprint</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span> pagetable)</span> &#123;<br>  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;page table %p\n&quot;</span>, pagetable);<br>  printpgtb(pagetable, <span class="hljs-number">0</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>也别忘了在 <code>defs.h</code>加函数声明：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// vm.c</span><br>...<br><span class="hljs-type">int</span>             <span class="hljs-title function_">copyinstr</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span>, <span class="hljs-type">char</span> *, uint64, uint64)</span>;<br><span class="hljs-type">void</span>            <span class="hljs-title function_">vmprint</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span>)</span>;<br></code></pre></td></tr></table></figure>
-
-<h2 id="Detect-which-pages-have-been-accessed-hard"><a href="#Detect-which-pages-have-been-accessed-hard" class="headerlink" title="Detect which pages have been accessed (hard)"></a>Detect which pages have been accessed (hard)</h2><h3 id="Question-requirements-2"><a href="#Question-requirements-2" class="headerlink" title="Question requirements"></a>Question requirements</h3><blockquote>
-<p>Some garbage collectors (a form of automatic memory management) can benefit from information about which pages have been accessed (read or write). In this part of the lab, you will add a new feature to xv6 that detects and reports this information to userspace by inspecting the access bits in the RISC-V page table. The RISC-V hardware page walker marks these bits in the PTE whenever it resolves a TLB miss.</p>
-</blockquote>
-<h3 id="Some-hints-1"><a href="#Some-hints-1" class="headerlink" title="Some hints"></a>Some hints</h3><ul>
-<li>Read <code>pgaccess_test()</code> in <code>user/pgtbltest.c</code> to see how pgaccess is used.</li>
-<li>Start by implementing <code>sys_pgaccess()</code> in <code>kernel/sysproc.c</code>.</li>
-<li>You’ll need to parse arguments using <code>argaddr()</code> and <code>argint()</code>.</li>
-<li>For the output bitmask, it’s easier to store a temporary buffer in the kernel and copy it to the user (via <code>copyout()</code>) after filling it with the right bits.</li>
-<li>It’s okay to set an upper limit on the number of pages that can be scanned.<br><code>walk()</code> in <code>kernel/vm.c</code> is very useful for finding the right <strong>PTEs</strong>.</li>
-<li>You’ll need to define <strong>PTE_A</strong>, the access bit, in <code>kernel/riscv.h</code>. Consult the RISC-V privileged architecture manual to determine its value.</li>
-<li>Be sure to clear <strong>PTE_A</strong> after checking if it is set. Otherwise, it won’t be possible to determine if the page was accessed since the last time <code>pgaccess()</code> was called (i.e., the bit will be set forever).</li>
-<li><code>vmprint()</code> may come in handy to debug page tables.</li>
-</ul>
-<h3 id="思路："><a href="#思路：" class="headerlink" title="思路："></a>思路：</h3><ul>
-<li>手动添加访问标志；</li>
-<li>获取一些参数；</li>
-<li>利用参数对页表项遍历，对访问标志进行提取，提取到 <code>bitmask</code> 中；</li>
-<li>将 <code>bitmask</code>返回。</li>
-</ul>
-<p>这个实验和第一个加速系统调用实验类似。首先需要手动设置一些标记 <strong>PTE_A</strong>。<br>在<code>kernel/riscv.h</code>中加入访问标志：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> PTE_A (1L &lt;&lt; 6)</span><br></code></pre></td></tr></table></figure>
-<p>获取参数，需要获取的参数就是要检查的页起始地址、页数、用户空间地址（答案返回的地方）。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> uint64<br><span class="hljs-title function_">argraw</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span><br>&#123;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">p</span> =</span> myproc();<br>  <span class="hljs-keyword">switch</span> (n) &#123;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">0</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a0;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">1</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a1;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">2</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a2;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">3</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a3;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">4</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a4;<br>  <span class="hljs-keyword">case</span> <span class="hljs-number">5</span>:<br>    <span class="hljs-keyword">return</span> p-&gt;trapframe-&gt;a5;<br>  &#125;<br>  panic(<span class="hljs-string">&quot;argraw&quot;</span>);<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-<p><code>argraw()</code>的作用就是获取用户进程<code>trap</code>内核之前的寄存器的信息。<code>a0</code>保存的是用户进程的起始地址（虚拟地址），<code>a1</code> 保存的是进程的页面数。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c">uint64 startaddr;<br><span class="hljs-type">int</span> npage;<br>uint64 useraddr;<br>argaddr(<span class="hljs-number">0</span>, &amp;startaddr);<br>argint(<span class="hljs-number">1</span>, &amp;npage);<br>argaddr(<span class="hljs-number">2</span>, &amp;useraddr);<br></code></pre></td></tr></table></figure>
-<p>整个函数如下：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span><br><span class="hljs-title function_">sys_pgaccess</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>  <span class="hljs-comment">//  parse arguments using argaddr() and argint().</span><br>  uint64 startaddr;<br>  <span class="hljs-type">int</span> npage;<br>  uint64 useraddr;<br>  argaddr(<span class="hljs-number">0</span>, &amp;startaddr);<br>  argint(<span class="hljs-number">1</span>, &amp;npage);<br>  argaddr(<span class="hljs-number">2</span>, &amp;useraddr);<br>  uint64 bitmask = <span class="hljs-number">0</span>;<br>  <span class="hljs-comment">// 取反</span><br>  uint64 complement = ~PTE_A;<br><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">p</span> =</span> myproc();<br>  <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; npage; ++i) &#123;<br>    <span class="hljs-type">pte_t</span> *pte = walk(p-&gt;pagetable, startaddr+i*PGSIZE, <span class="hljs-number">0</span>);<br>    <span class="hljs-keyword">if</span> (*pte &amp; PTE_A) &#123;<br>      bitmask |= (<span class="hljs-number">1</span> &lt;&lt; i);<br>      <span class="hljs-comment">// 清空标记</span><br>      *pte &amp;= complement;<br>    &#125;<br>  &#125;<br>  <span class="hljs-comment">// copyout</span><br>  copyout(p-&gt;pagetable, useraddr, (<span class="hljs-type">char</span> *)&amp;bitmask, <span class="hljs-keyword">sizeof</span>(bitmask));<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>运行测试：</p>
-<blockquote>
-<p>&#x3D;&#x3D; Test pgtbltest &#x3D;&#x3D;<br>$ make qemu-gdb<br>(3.6s)<br>&#x3D;&#x3D; Test   pgtbltest: ugetpid &#x3D;&#x3D;<br>  pgtbltest: ugetpid: OK<br>&#x3D;&#x3D; Test   pgtbltest: pgaccess &#x3D;&#x3D;<br>  pgtbltest: pgaccess: OK<br>&#x3D;&#x3D; Test pte printout &#x3D;&#x3D;<br>$ make qemu-gdb<br>pte printout: OK (0.8s)<br>&#x3D;&#x3D; Test answers-pgtbl.txt &#x3D;&#x3D;<br>answers-pgtbl.txt: OK<br>&#x3D;&#x3D; Test usertests &#x3D;&#x3D;<br>$ make qemu-gdb<br>(8.2s)<br>&#x3D;&#x3D; Test   usertests: all tests &#x3D;&#x3D;<br>  usertests: all tests: OK<br>&#x3D;&#x3D; Test time &#x3D;&#x3D;<br>time: OK<br>Score: 46&#x2F;46</p>
-</blockquote>
 <p><em>全文完，感谢阅读。</em></p>
 ]]></content>
       <categories>
@@ -7159,6 +7159,120 @@
       </tags>
   </entry>
   <entry>
+    <title>NEMU 代码导读</title>
+    <url>/2024/08/12/NEMU%E4%BB%A3%E7%A0%81%E5%AF%BC%E8%AF%BB/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="项目构建"><a href="#项目构建" class="headerlink" title="项目构建"></a>项目构建</h2><p>首先得了解一些 make 的行为，重要的就是查看make 的行为以及make 的子进程如何与系统进行交互，比如 :</p>
+<ul>
+<li>strace -f make</li>
+<li>make -nB # 只打印命令不执行 B强制构建</li>
+<li>make -d</li>
+<li>make -debug&#x3D;v</li>
+</ul>
+<p>具体RTFM。</p>
+<ul>
+<li>nemu&#x2F;Makefile</li>
+<li><ul>
+<li>SRCS: 和YEMU差不多, 是需要编译的源文件</li>
+</ul>
+</li>
+<li><ul>
+<li>CFLAGS: 刚才看到的编译选项</li>
+</ul>
+</li>
+<li><ul>
+<li>include $(NEMU_HOME)&#x2F;scripts&#x2F;native.mk: 包含其他文件</li>
+</ul>
+</li>
+<li>nemu&#x2F;scripts&#x2F;native.mk</li>
+<li><ul>
+<li>一些用于运行和清除编译结果的伪目标</li>
+</ul>
+</li>
+<li>nemu&#x2F;scripts&#x2F;build.mk</li>
+<li><ul>
+<li>编译规则</li>
+</ul>
+</li>
+<li><ul>
+<li>包含源文件与头文件的依赖关系(由gcc的-MMD选项生成, 并通过fixdep工具处理)</li>
+</ul>
+</li>
+</ul>
+<h2 id="代码选讲"><a href="#代码选讲" class="headerlink" title="代码选讲"></a>代码选讲</h2><h3 id="gdb"><a href="#gdb" class="headerlink" title="gdb"></a>gdb</h3><p>使用 gdb 来查看程序入口，是一种很好的方法，并且可以根据 gdb 的操作可以看到程序依次执行的各个函数。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">(gdb) b main<br>Breakpoint 1 at 0x5080: file src/nemu-main.c, line 59.<br>(gdb)<br></code></pre></td></tr></table></figure>
+
+<p>可以使用 GDB 来 RTFSC：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">(gdb) layout src   <span class="hljs-comment"># layout split还可以看到汇编代码, 但目前不需要</span><br></code></pre></td></tr></table></figure>
+
+<p>一些常用的命令：</p>
+<ul>
+<li>r - 重新开始执行程序</li>
+<li>s - 单步执行一行源代码 &#x2F; n - 类似但不进入函数(可用于跳过库函数)</li>
+<li>finish - 执行直到当前函数返回</li>
+<li>p - 打印变量或寄存器的值</li>
+<li>x - 扫描内存</li>
+<li>bt - 查看调用栈</li>
+<li>b - 设置断点 &#x2F; watch - 设置监视点</li>
+<li>help xxx - 查看xxx命令的帮助</li>
+</ul>
+<h3 id="RTFSC"><a href="#RTFSC" class="headerlink" title="RTFSC"></a>RTFSC</h3><figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">char</span>* argv[])</span> &#123;<br>    <span class="hljs-comment">/* Initialize the monitor. */</span><br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> CONFIG_TARGET_AM</span><br>    am_init_monitor();<br><span class="hljs-meta">#<span class="hljs-keyword">else</span></span><br><br>    init_monitor(argc, argv);<br>    <span class="hljs-comment">// test_expr();</span><br><br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br><br>    <span class="hljs-comment">/* Start engine. */</span><br>    engine_start();<br><br>    <span class="hljs-keyword">return</span> is_exit_status_bad();<br>&#125;<br><br><br></code></pre></td></tr></table></figure>
+
+<p>首先，执行的是init_monitor(argc, argv):</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">init_monitor</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">char</span>* argv[])</span> &#123;<br>    <span class="hljs-comment">/* Perform some global initialization. */</span><br><br>    <span class="hljs-comment">/* Parse arguments. */</span><br>    parse_args(argc, argv);<br><br>    <span class="hljs-comment">/* Set random seed. */</span><br>    init_rand();<br><br>    <span class="hljs-comment">/* Open the log file. */</span><br>    init_log(log_file);<br><br>    <span class="hljs-comment">/* Initialize memory. */</span><br>    init_mem();<br><br>    <span class="hljs-comment">/* Initialize devices. */</span><br>    IFDEF(CONFIG_DEVICE, init_device());<br><br>    <span class="hljs-comment">/* Perform ISA dependent initialization. */</span><br>    init_isa();<br><br>    <span class="hljs-comment">/* Load the image to memory. This will overwrite the built-in image. */</span><br>    <span class="hljs-type">long</span> img_size = load_img();<br><br>    <span class="hljs-comment">/* Initialize differential testing. */</span><br>    init_difftest(diff_so_file, img_size, difftest_port);<br><br>    <span class="hljs-comment">/* Initialize the simple debugger. */</span><br>    init_sdb();<br><br><span class="hljs-meta">#<span class="hljs-keyword">ifndef</span> CONFIG_ISA_loongarch32r</span><br>    IFDEF(CONFIG_ITRACE,<br>          init_disasm(<br>              MUXDEF(CONFIG_ISA_x86, <span class="hljs-string">&quot;i686&quot;</span>,<br>                     MUXDEF(CONFIG_ISA_mips32, <span class="hljs-string">&quot;mipsel&quot;</span>,<br>                            MUXDEF(CONFIG_ISA_riscv,<br>                                   MUXDEF(CONFIG_RV64, <span class="hljs-string">&quot;riscv64&quot;</span>, <span class="hljs-string">&quot;riscv32&quot;</span>),<br>                                   <span class="hljs-string">&quot;bad&quot;</span>))) <span class="hljs-string">&quot;-pc-linux-gnu&quot;</span>));<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br><br>    <span class="hljs-comment">/* Display welcome message. */</span><br>    welcome();<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>通过init_monitor初始化NEMU的大部分功能。</p>
+<p>首先是解析参数，nemu 是一个命令行工具，它在启动的时候，可以接受参数。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">parse_args</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">char</span>* argv[])</span> &#123;<br>    <span class="hljs-type">const</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">option</span> <span class="hljs-title">table</span>[] =</span> &#123;<br>        &#123;<span class="hljs-string">&quot;batch&quot;</span>, no_argument, <span class="hljs-literal">NULL</span>, <span class="hljs-string">&#x27;b&#x27;</span>&#125;,<br>        &#123;<span class="hljs-string">&quot;log&quot;</span>, required_argument, <span class="hljs-literal">NULL</span>, <span class="hljs-string">&#x27;l&#x27;</span>&#125;,<br>        &#123;<span class="hljs-string">&quot;diff&quot;</span>, required_argument, <span class="hljs-literal">NULL</span>, <span class="hljs-string">&#x27;d&#x27;</span>&#125;,<br>        &#123;<span class="hljs-string">&quot;port&quot;</span>, required_argument, <span class="hljs-literal">NULL</span>, <span class="hljs-string">&#x27;p&#x27;</span>&#125;,<br>        &#123;<span class="hljs-string">&quot;help&quot;</span>, no_argument, <span class="hljs-literal">NULL</span>, <span class="hljs-string">&#x27;h&#x27;</span>&#125;,<br>        &#123;<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-literal">NULL</span>, <span class="hljs-number">0</span>&#125;,<br>    &#125;;<br>    <span class="hljs-type">int</span> o;<br>    <span class="hljs-keyword">while</span> ((o = getopt_long(argc, argv, <span class="hljs-string">&quot;-bhl:d:p:&quot;</span>, table, <span class="hljs-literal">NULL</span>)) != <span class="hljs-number">-1</span>) &#123;<br>        <span class="hljs-keyword">switch</span> (o) &#123;<br>            <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;b&#x27;</span>:<br>                sdb_set_batch_mode();<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;p&#x27;</span>:<br>                <span class="hljs-built_in">sscanf</span>(optarg, <span class="hljs-string">&quot;%d&quot;</span>, &amp;difftest_port);<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;l&#x27;</span>:<br>                log_file = optarg;<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;d&#x27;</span>:<br>                diff_so_file = optarg;<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">case</span> <span class="hljs-number">1</span>:<br>                img_file = optarg;<br>                <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>            <span class="hljs-keyword">default</span>:<br>                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Usage: %s [OPTION...] IMAGE [args]\n\n&quot;</span>, argv[<span class="hljs-number">0</span>]);<br>                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\t-b,--batch              run with batch mode\n&quot;</span>);<br>                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\t-l,--log=FILE           output log to FILE\n&quot;</span>);<br>                <span class="hljs-built_in">printf</span>(<br>                    <span class="hljs-string">&quot;\t-d,--diff=REF_SO        run DiffTest with reference &quot;</span><br>                    <span class="hljs-string">&quot;REF_SO\n&quot;</span>);<br>                <span class="hljs-built_in">printf</span>(<br>                    <span class="hljs-string">&quot;\t-p,--port=PORT          run DiffTest with port PORT\n&quot;</span>);<br>                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\n&quot;</span>);<br>                <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<p>接着是，init_rand()，初始化随机数。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">init_rand</span><span class="hljs-params">()</span> &#123;<br>  srand(get_time_internal());<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>接下来进行日志功能，打开日志文件：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">init_log</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">char</span> *log_file)</span> &#123;<br>  log_fp = <span class="hljs-built_in">stdout</span>;<br>  <span class="hljs-keyword">if</span> (log_file != <span class="hljs-literal">NULL</span>) &#123;<br>    FILE *fp = fopen(log_file, <span class="hljs-string">&quot;w&quot;</span>);<br>    Assert(fp, <span class="hljs-string">&quot;Can not open &#x27;%s&#x27;&quot;</span>, log_file);<br>    log_fp = fp;<br>  &#125;<br>  Log(<span class="hljs-string">&quot;Log is written to %s&quot;</span>, log_file ? log_file : <span class="hljs-string">&quot;stdout&quot;</span>);<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>接着是 init_mem()，初始化状态机的 M</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">init_mem</span><span class="hljs-params">()</span> &#123;<br><span class="hljs-meta">#<span class="hljs-keyword">if</span>   defined(CONFIG_PMEM_MALLOC)</span><br>  pmem = <span class="hljs-built_in">malloc</span>(CONFIG_MSIZE);<br>  assert(pmem);<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br>  IFDEF(CONFIG_MEM_RANDOM, <span class="hljs-built_in">memset</span>(pmem, rand(), CONFIG_MSIZE));<br>  Log(<span class="hljs-string">&quot;physical memory area [&quot;</span> FMT_PADDR <span class="hljs-string">&quot;, &quot;</span> FMT_PADDR <span class="hljs-string">&quot;]&quot;</span>, PMEM_LEFT, PMEM_RIGHT);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这是将内存初始化为随机数，可以暴露访问初始化内存的未定义行为。</p>
+<p>接下来是初始化状态机的状态：init_isa():</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><br><span class="hljs-type">void</span> <span class="hljs-title function_">init_isa</span><span class="hljs-params">()</span> &#123;<br>  <span class="hljs-comment">/* Load built-in image. */</span><br>  <span class="hljs-built_in">memcpy</span>(guest_to_host(RESET_VECTOR), img, <span class="hljs-keyword">sizeof</span>(img));<br><br>  <span class="hljs-comment">/* Initialize this virtual computer system. */</span><br>  restart();<br>&#125;<br><br><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">restart</span><span class="hljs-params">()</span> &#123;<br>  <span class="hljs-comment">/* Set the initial program counter. */</span><br>  cpu.pc = RESET_VECTOR;<br><br>  <span class="hljs-comment">/* The zero register is always 0. */</span><br>  cpu.gpr[<span class="hljs-number">0</span>] = <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这个过程是将 img 中的一些指令复制到 host 地址中执行。接着设置客户机的 pc 为 0，以及 cpu.gpr[0] &#x3D; 0。零寄存器很好用，可以方便得让 CPU 产生 0.</p>
+<p>接着为load_img，但是参数中并没有给出，因此直接略过：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">long</span> <span class="hljs-title function_">load_img</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">if</span> (img_file == <span class="hljs-literal">NULL</span>) &#123;<br>        Log(<span class="hljs-string">&quot;No image is given. Use the default build-in image.&quot;</span>);<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">4096</span>;  <span class="hljs-comment">// built-in image size</span><br>    &#125;<br><br>    FILE* fp = fopen(img_file, <span class="hljs-string">&quot;rb&quot;</span>);<br>    Assert(fp, <span class="hljs-string">&quot;Can not open &#x27;%s&#x27;&quot;</span>, img_file);<br><br>    fseek(fp, <span class="hljs-number">0</span>, SEEK_END);<br>    <span class="hljs-type">long</span> size = ftell(fp);<br><br>    Log(<span class="hljs-string">&quot;The image is %s, size = %ld&quot;</span>, img_file, size);<br><br>    fseek(fp, <span class="hljs-number">0</span>, SEEK_SET);<br>    <span class="hljs-type">int</span> ret = fread(guest_to_host(RESET_VECTOR), size, <span class="hljs-number">1</span>, fp);<br>    assert(ret == <span class="hljs-number">1</span>);<br><br>    fclose(fp);<br>    <span class="hljs-keyword">return</span> size;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>接着就是初始化 sdb 了。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">init_sdb</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-comment">/* Compile the regular expressions. */</span><br>    init_regex();<br><br>    <span class="hljs-comment">/* Initialize the watchpoint pool. */</span><br>    init_wp_pool();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>接着就是，welcome()</p>
+<ul>
+<li>输出欢迎信息</li>
+<li>以及trace的状态信息</li>
+<li>还输出了编译的时间和日期</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">welcome</span><span class="hljs-params">()</span> &#123;<br>    Log(<span class="hljs-string">&quot;Trace: %s&quot;</span>, MUXDEF(CONFIG_TRACE, ANSI_FMT(<span class="hljs-string">&quot;ON&quot;</span>, ANSI_FG_GREEN),<br>                            ANSI_FMT(<span class="hljs-string">&quot;OFF&quot;</span>, ANSI_FG_RED)));<br>    IFDEF(CONFIG_TRACE,<br>          Log(<span class="hljs-string">&quot;If trace is enabled, a log file will be generated &quot;</span><br>              <span class="hljs-string">&quot;to record the trace. This may lead to a large log file. &quot;</span><br>              <span class="hljs-string">&quot;If it is not necessary, you can disable it in menuconfig&quot;</span>));<br>    Log(<span class="hljs-string">&quot;Build time: %s, %s&quot;</span>, __TIME__, __DATE__);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Welcome to %s-NEMU!\n&quot;</span>,<br>           ANSI_FMT(str(__GUEST_ISA__), ANSI_FG_YELLOW ANSI_BG_RED));<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;For help, type \&quot;help\&quot;\n&quot;</span>);<br>    Log(<span class="hljs-string">&quot;Exercise: Please remove me in the source code and compile NEMU &quot;</span><br>        <span class="hljs-string">&quot;again.&quot;</span>);<br>    assert(<span class="hljs-number">1</span>);<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>接着回到 main，执行engine_start()–&gt;sdb_mainloop():</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">sdb_mainloop</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">if</span> (is_batch_mode) &#123;<br>        cmd_c(<span class="hljs-literal">NULL</span>);<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">char</span>* str; (str = rl_gets()) != <span class="hljs-literal">NULL</span>;) &#123;<br>        <span class="hljs-type">char</span>* str_end = str + <span class="hljs-built_in">strlen</span>(str);<br><br>        <span class="hljs-comment">/* extract the first token as the command */</span><br>        <span class="hljs-type">char</span>* cmd = strtok(str, <span class="hljs-string">&quot; &quot;</span>);<br>        <span class="hljs-keyword">if</span> (cmd == <span class="hljs-literal">NULL</span>) &#123;<br>            <span class="hljs-keyword">continue</span>;<br>        &#125;<br><br>        <span class="hljs-comment">/* treat the remaining string as the arguments,</span><br><span class="hljs-comment">         * which may need further parsing</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-type">char</span>* args = cmd + <span class="hljs-built_in">strlen</span>(cmd) + <span class="hljs-number">1</span>;<br>        <span class="hljs-keyword">if</span> (args &gt;= str_end) &#123;<br>            args = <span class="hljs-literal">NULL</span>;<br>        &#125;<br><br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> CONFIG_DEVICE</span><br>        <span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">sdl_clear_event_queue</span><span class="hljs-params">()</span>;<br>        sdl_clear_event_queue();<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br><br>        <span class="hljs-type">int</span> i;<br>        <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; NR_CMD; i++) &#123;<br>            <span class="hljs-keyword">if</span> (<span class="hljs-built_in">strcmp</span>(cmd, cmd_table[i].name) == <span class="hljs-number">0</span>) &#123;<br>                <span class="hljs-keyword">if</span> (cmd_table[i].handler(args) &lt; <span class="hljs-number">0</span>) &#123;<br>                    <span class="hljs-keyword">return</span>;<br>                &#125;<br>                <span class="hljs-keyword">break</span>;<br>            &#125;<br>        &#125;<br><br>        <span class="hljs-keyword">if</span> (i == NR_CMD) &#123;<br>            <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Unknown command &#x27;%s&#x27;\n&quot;</span>, cmd);<br>        &#125;<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>这里就是 PA1 的 sdb 了。</p>
+<h3 id="指令执行"><a href="#指令执行" class="headerlink" title="指令执行"></a>指令执行</h3><p>执行指令和 YEMU 中的 inst_cycle 很相似，类似于 CPU 执行一个一个指令。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><br><span class="hljs-type">int</span> <span class="hljs-title function_">isa_exec_once</span><span class="hljs-params">(Decode *s)</span> &#123;<br>  s-&gt;isa.inst.val = inst_fetch(&amp;s-&gt;snpc, <span class="hljs-number">4</span>);<br>  <span class="hljs-keyword">return</span> decode_exec(s);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>其中 decode 解码和执行：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">decode_exec</span><span class="hljs-params">(Decode *s)</span> &#123;<br>  <span class="hljs-type">int</span> rd = <span class="hljs-number">0</span>;<br>  <span class="hljs-type">word_t</span> src1 = <span class="hljs-number">0</span>, src2 = <span class="hljs-number">0</span>, imm = <span class="hljs-number">0</span>;<br>  s-&gt;dnpc = s-&gt;snpc;<br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> INSTPAT_INST(s) ((s)-&gt;isa.inst.val)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> INSTPAT_MATCH(s, name, type, ... <span class="hljs-comment">/* execute body */</span> ) &#123; \</span><br><span class="hljs-meta">  decode_operand(s, &amp;rd, &amp;src1, &amp;src2, &amp;imm, concat(TYPE_, type)); \</span><br><span class="hljs-meta">  __VA_ARGS__ ; \</span><br><span class="hljs-meta">&#125;</span><br><br>  INSTPAT_START();<br>  INSTPAT(<span class="hljs-string">&quot;??????? ????? ????? ??? ????? 00101 11&quot;</span>, auipc  , U, R(rd) = s-&gt;pc + imm);<br>  INSTPAT(<span class="hljs-string">&quot;??????? ????? ????? 100 ????? 00000 11&quot;</span>, lbu    , I, R(rd) = Mr(src1 + imm, <span class="hljs-number">1</span>));<br>  INSTPAT(<span class="hljs-string">&quot;??????? ????? ????? 000 ????? 01000 11&quot;</span>, sb     , S, Mw(src1 + imm, <span class="hljs-number">1</span>, src2));<br><br>  INSTPAT(<span class="hljs-string">&quot;0000000 00001 00000 000 00000 11100 11&quot;</span>, ebreak , N, NEMUTRAP(s-&gt;pc, R(<span class="hljs-number">10</span>))); <span class="hljs-comment">// R(10) is $a0</span><br>  INSTPAT(<span class="hljs-string">&quot;??????? ????? ????? ??? ????? ????? ??&quot;</span>, inv    , N, INV(s-&gt;pc));<br>  INSTPAT_END();<br><br>  R(<span class="hljs-number">0</span>) = <span class="hljs-number">0</span>; <span class="hljs-comment">// reset $zero to 0</span><br><br>  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>以上，就是 nemu 的一个大概的过程，当然要想更全面理解 nemu，需要深入仔细阅读源码。</p>
+]]></content>
+      <categories>
+        <category>OS</category>
+        <category>RISCV</category>
+      </categories>
+      <tags>
+        <tag>模拟器</tag>
+        <tag>NEMU</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>MIT 6.S081学习笔记（第四章）</title>
     <url>/2023/11/24/MIT%206.S081%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E7%AC%AC%E5%9B%9B%E7%AB%A0%EF%BC%89/</url>
     <content><![CDATA[<span id="more"></span>
@@ -7281,120 +7395,6 @@
         <tag>笔记</tag>
         <tag>操作系统</tag>
         <tag>MIT 6.S081</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>NEMU 代码导读</title>
-    <url>/2024/08/12/NEMU%E4%BB%A3%E7%A0%81%E5%AF%BC%E8%AF%BB/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<h2 id="项目构建"><a href="#项目构建" class="headerlink" title="项目构建"></a>项目构建</h2><p>首先得了解一些 make 的行为，重要的就是查看make 的行为以及make 的子进程如何与系统进行交互，比如 :</p>
-<ul>
-<li>strace -f make</li>
-<li>make -nB # 只打印命令不执行 B强制构建</li>
-<li>make -d</li>
-<li>make -debug&#x3D;v</li>
-</ul>
-<p>具体RTFM。</p>
-<ul>
-<li>nemu&#x2F;Makefile</li>
-<li><ul>
-<li>SRCS: 和YEMU差不多, 是需要编译的源文件</li>
-</ul>
-</li>
-<li><ul>
-<li>CFLAGS: 刚才看到的编译选项</li>
-</ul>
-</li>
-<li><ul>
-<li>include $(NEMU_HOME)&#x2F;scripts&#x2F;native.mk: 包含其他文件</li>
-</ul>
-</li>
-<li>nemu&#x2F;scripts&#x2F;native.mk</li>
-<li><ul>
-<li>一些用于运行和清除编译结果的伪目标</li>
-</ul>
-</li>
-<li>nemu&#x2F;scripts&#x2F;build.mk</li>
-<li><ul>
-<li>编译规则</li>
-</ul>
-</li>
-<li><ul>
-<li>包含源文件与头文件的依赖关系(由gcc的-MMD选项生成, 并通过fixdep工具处理)</li>
-</ul>
-</li>
-</ul>
-<h2 id="代码选讲"><a href="#代码选讲" class="headerlink" title="代码选讲"></a>代码选讲</h2><h3 id="gdb"><a href="#gdb" class="headerlink" title="gdb"></a>gdb</h3><p>使用 gdb 来查看程序入口，是一种很好的方法，并且可以根据 gdb 的操作可以看到程序依次执行的各个函数。</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">(gdb) b main<br>Breakpoint 1 at 0x5080: file src/nemu-main.c, line 59.<br>(gdb)<br></code></pre></td></tr></table></figure>
-
-<p>可以使用 GDB 来 RTFSC：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">(gdb) layout src   <span class="hljs-comment"># layout split还可以看到汇编代码, 但目前不需要</span><br></code></pre></td></tr></table></figure>
-
-<p>一些常用的命令：</p>
-<ul>
-<li>r - 重新开始执行程序</li>
-<li>s - 单步执行一行源代码 &#x2F; n - 类似但不进入函数(可用于跳过库函数)</li>
-<li>finish - 执行直到当前函数返回</li>
-<li>p - 打印变量或寄存器的值</li>
-<li>x - 扫描内存</li>
-<li>bt - 查看调用栈</li>
-<li>b - 设置断点 &#x2F; watch - 设置监视点</li>
-<li>help xxx - 查看xxx命令的帮助</li>
-</ul>
-<h3 id="RTFSC"><a href="#RTFSC" class="headerlink" title="RTFSC"></a>RTFSC</h3><figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">char</span>* argv[])</span> &#123;<br>    <span class="hljs-comment">/* Initialize the monitor. */</span><br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> CONFIG_TARGET_AM</span><br>    am_init_monitor();<br><span class="hljs-meta">#<span class="hljs-keyword">else</span></span><br><br>    init_monitor(argc, argv);<br>    <span class="hljs-comment">// test_expr();</span><br><br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br><br>    <span class="hljs-comment">/* Start engine. */</span><br>    engine_start();<br><br>    <span class="hljs-keyword">return</span> is_exit_status_bad();<br>&#125;<br><br><br></code></pre></td></tr></table></figure>
-
-<p>首先，执行的是init_monitor(argc, argv):</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">init_monitor</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">char</span>* argv[])</span> &#123;<br>    <span class="hljs-comment">/* Perform some global initialization. */</span><br><br>    <span class="hljs-comment">/* Parse arguments. */</span><br>    parse_args(argc, argv);<br><br>    <span class="hljs-comment">/* Set random seed. */</span><br>    init_rand();<br><br>    <span class="hljs-comment">/* Open the log file. */</span><br>    init_log(log_file);<br><br>    <span class="hljs-comment">/* Initialize memory. */</span><br>    init_mem();<br><br>    <span class="hljs-comment">/* Initialize devices. */</span><br>    IFDEF(CONFIG_DEVICE, init_device());<br><br>    <span class="hljs-comment">/* Perform ISA dependent initialization. */</span><br>    init_isa();<br><br>    <span class="hljs-comment">/* Load the image to memory. This will overwrite the built-in image. */</span><br>    <span class="hljs-type">long</span> img_size = load_img();<br><br>    <span class="hljs-comment">/* Initialize differential testing. */</span><br>    init_difftest(diff_so_file, img_size, difftest_port);<br><br>    <span class="hljs-comment">/* Initialize the simple debugger. */</span><br>    init_sdb();<br><br><span class="hljs-meta">#<span class="hljs-keyword">ifndef</span> CONFIG_ISA_loongarch32r</span><br>    IFDEF(CONFIG_ITRACE,<br>          init_disasm(<br>              MUXDEF(CONFIG_ISA_x86, <span class="hljs-string">&quot;i686&quot;</span>,<br>                     MUXDEF(CONFIG_ISA_mips32, <span class="hljs-string">&quot;mipsel&quot;</span>,<br>                            MUXDEF(CONFIG_ISA_riscv,<br>                                   MUXDEF(CONFIG_RV64, <span class="hljs-string">&quot;riscv64&quot;</span>, <span class="hljs-string">&quot;riscv32&quot;</span>),<br>                                   <span class="hljs-string">&quot;bad&quot;</span>))) <span class="hljs-string">&quot;-pc-linux-gnu&quot;</span>));<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br><br>    <span class="hljs-comment">/* Display welcome message. */</span><br>    welcome();<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>通过init_monitor初始化NEMU的大部分功能。</p>
-<p>首先是解析参数，nemu 是一个命令行工具，它在启动的时候，可以接受参数。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">parse_args</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">char</span>* argv[])</span> &#123;<br>    <span class="hljs-type">const</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">option</span> <span class="hljs-title">table</span>[] =</span> &#123;<br>        &#123;<span class="hljs-string">&quot;batch&quot;</span>, no_argument, <span class="hljs-literal">NULL</span>, <span class="hljs-string">&#x27;b&#x27;</span>&#125;,<br>        &#123;<span class="hljs-string">&quot;log&quot;</span>, required_argument, <span class="hljs-literal">NULL</span>, <span class="hljs-string">&#x27;l&#x27;</span>&#125;,<br>        &#123;<span class="hljs-string">&quot;diff&quot;</span>, required_argument, <span class="hljs-literal">NULL</span>, <span class="hljs-string">&#x27;d&#x27;</span>&#125;,<br>        &#123;<span class="hljs-string">&quot;port&quot;</span>, required_argument, <span class="hljs-literal">NULL</span>, <span class="hljs-string">&#x27;p&#x27;</span>&#125;,<br>        &#123;<span class="hljs-string">&quot;help&quot;</span>, no_argument, <span class="hljs-literal">NULL</span>, <span class="hljs-string">&#x27;h&#x27;</span>&#125;,<br>        &#123;<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-literal">NULL</span>, <span class="hljs-number">0</span>&#125;,<br>    &#125;;<br>    <span class="hljs-type">int</span> o;<br>    <span class="hljs-keyword">while</span> ((o = getopt_long(argc, argv, <span class="hljs-string">&quot;-bhl:d:p:&quot;</span>, table, <span class="hljs-literal">NULL</span>)) != <span class="hljs-number">-1</span>) &#123;<br>        <span class="hljs-keyword">switch</span> (o) &#123;<br>            <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;b&#x27;</span>:<br>                sdb_set_batch_mode();<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;p&#x27;</span>:<br>                <span class="hljs-built_in">sscanf</span>(optarg, <span class="hljs-string">&quot;%d&quot;</span>, &amp;difftest_port);<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;l&#x27;</span>:<br>                log_file = optarg;<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;d&#x27;</span>:<br>                diff_so_file = optarg;<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">case</span> <span class="hljs-number">1</span>:<br>                img_file = optarg;<br>                <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>            <span class="hljs-keyword">default</span>:<br>                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Usage: %s [OPTION...] IMAGE [args]\n\n&quot;</span>, argv[<span class="hljs-number">0</span>]);<br>                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\t-b,--batch              run with batch mode\n&quot;</span>);<br>                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\t-l,--log=FILE           output log to FILE\n&quot;</span>);<br>                <span class="hljs-built_in">printf</span>(<br>                    <span class="hljs-string">&quot;\t-d,--diff=REF_SO        run DiffTest with reference &quot;</span><br>                    <span class="hljs-string">&quot;REF_SO\n&quot;</span>);<br>                <span class="hljs-built_in">printf</span>(<br>                    <span class="hljs-string">&quot;\t-p,--port=PORT          run DiffTest with port PORT\n&quot;</span>);<br>                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\n&quot;</span>);<br>                <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br><br></code></pre></td></tr></table></figure>
-<p>接着是，init_rand()，初始化随机数。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">init_rand</span><span class="hljs-params">()</span> &#123;<br>  srand(get_time_internal());<br>&#125;<br><br></code></pre></td></tr></table></figure>
-
-<p>接下来进行日志功能，打开日志文件：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">init_log</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">char</span> *log_file)</span> &#123;<br>  log_fp = <span class="hljs-built_in">stdout</span>;<br>  <span class="hljs-keyword">if</span> (log_file != <span class="hljs-literal">NULL</span>) &#123;<br>    FILE *fp = fopen(log_file, <span class="hljs-string">&quot;w&quot;</span>);<br>    Assert(fp, <span class="hljs-string">&quot;Can not open &#x27;%s&#x27;&quot;</span>, log_file);<br>    log_fp = fp;<br>  &#125;<br>  Log(<span class="hljs-string">&quot;Log is written to %s&quot;</span>, log_file ? log_file : <span class="hljs-string">&quot;stdout&quot;</span>);<br>&#125;<br><br></code></pre></td></tr></table></figure>
-
-<p>接着是 init_mem()，初始化状态机的 M</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">init_mem</span><span class="hljs-params">()</span> &#123;<br><span class="hljs-meta">#<span class="hljs-keyword">if</span>   defined(CONFIG_PMEM_MALLOC)</span><br>  pmem = <span class="hljs-built_in">malloc</span>(CONFIG_MSIZE);<br>  assert(pmem);<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br>  IFDEF(CONFIG_MEM_RANDOM, <span class="hljs-built_in">memset</span>(pmem, rand(), CONFIG_MSIZE));<br>  Log(<span class="hljs-string">&quot;physical memory area [&quot;</span> FMT_PADDR <span class="hljs-string">&quot;, &quot;</span> FMT_PADDR <span class="hljs-string">&quot;]&quot;</span>, PMEM_LEFT, PMEM_RIGHT);<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>这是将内存初始化为随机数，可以暴露访问初始化内存的未定义行为。</p>
-<p>接下来是初始化状态机的状态：init_isa():</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><br><span class="hljs-type">void</span> <span class="hljs-title function_">init_isa</span><span class="hljs-params">()</span> &#123;<br>  <span class="hljs-comment">/* Load built-in image. */</span><br>  <span class="hljs-built_in">memcpy</span>(guest_to_host(RESET_VECTOR), img, <span class="hljs-keyword">sizeof</span>(img));<br><br>  <span class="hljs-comment">/* Initialize this virtual computer system. */</span><br>  restart();<br>&#125;<br><br><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">restart</span><span class="hljs-params">()</span> &#123;<br>  <span class="hljs-comment">/* Set the initial program counter. */</span><br>  cpu.pc = RESET_VECTOR;<br><br>  <span class="hljs-comment">/* The zero register is always 0. */</span><br>  cpu.gpr[<span class="hljs-number">0</span>] = <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>这个过程是将 img 中的一些指令复制到 host 地址中执行。接着设置客户机的 pc 为 0，以及 cpu.gpr[0] &#x3D; 0。零寄存器很好用，可以方便得让 CPU 产生 0.</p>
-<p>接着为load_img，但是参数中并没有给出，因此直接略过：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">long</span> <span class="hljs-title function_">load_img</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">if</span> (img_file == <span class="hljs-literal">NULL</span>) &#123;<br>        Log(<span class="hljs-string">&quot;No image is given. Use the default build-in image.&quot;</span>);<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">4096</span>;  <span class="hljs-comment">// built-in image size</span><br>    &#125;<br><br>    FILE* fp = fopen(img_file, <span class="hljs-string">&quot;rb&quot;</span>);<br>    Assert(fp, <span class="hljs-string">&quot;Can not open &#x27;%s&#x27;&quot;</span>, img_file);<br><br>    fseek(fp, <span class="hljs-number">0</span>, SEEK_END);<br>    <span class="hljs-type">long</span> size = ftell(fp);<br><br>    Log(<span class="hljs-string">&quot;The image is %s, size = %ld&quot;</span>, img_file, size);<br><br>    fseek(fp, <span class="hljs-number">0</span>, SEEK_SET);<br>    <span class="hljs-type">int</span> ret = fread(guest_to_host(RESET_VECTOR), size, <span class="hljs-number">1</span>, fp);<br>    assert(ret == <span class="hljs-number">1</span>);<br><br>    fclose(fp);<br>    <span class="hljs-keyword">return</span> size;<br>&#125;<br><br></code></pre></td></tr></table></figure>
-
-<p>接着就是初始化 sdb 了。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">init_sdb</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-comment">/* Compile the regular expressions. */</span><br>    init_regex();<br><br>    <span class="hljs-comment">/* Initialize the watchpoint pool. */</span><br>    init_wp_pool();<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>接着就是，welcome()</p>
-<ul>
-<li>输出欢迎信息</li>
-<li>以及trace的状态信息</li>
-<li>还输出了编译的时间和日期</li>
-</ul>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">welcome</span><span class="hljs-params">()</span> &#123;<br>    Log(<span class="hljs-string">&quot;Trace: %s&quot;</span>, MUXDEF(CONFIG_TRACE, ANSI_FMT(<span class="hljs-string">&quot;ON&quot;</span>, ANSI_FG_GREEN),<br>                            ANSI_FMT(<span class="hljs-string">&quot;OFF&quot;</span>, ANSI_FG_RED)));<br>    IFDEF(CONFIG_TRACE,<br>          Log(<span class="hljs-string">&quot;If trace is enabled, a log file will be generated &quot;</span><br>              <span class="hljs-string">&quot;to record the trace. This may lead to a large log file. &quot;</span><br>              <span class="hljs-string">&quot;If it is not necessary, you can disable it in menuconfig&quot;</span>));<br>    Log(<span class="hljs-string">&quot;Build time: %s, %s&quot;</span>, __TIME__, __DATE__);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Welcome to %s-NEMU!\n&quot;</span>,<br>           ANSI_FMT(str(__GUEST_ISA__), ANSI_FG_YELLOW ANSI_BG_RED));<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;For help, type \&quot;help\&quot;\n&quot;</span>);<br>    Log(<span class="hljs-string">&quot;Exercise: Please remove me in the source code and compile NEMU &quot;</span><br>        <span class="hljs-string">&quot;again.&quot;</span>);<br>    assert(<span class="hljs-number">1</span>);<br>&#125;<br><br></code></pre></td></tr></table></figure>
-
-<p>接着回到 main，执行engine_start()–&gt;sdb_mainloop():</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">sdb_mainloop</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">if</span> (is_batch_mode) &#123;<br>        cmd_c(<span class="hljs-literal">NULL</span>);<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">char</span>* str; (str = rl_gets()) != <span class="hljs-literal">NULL</span>;) &#123;<br>        <span class="hljs-type">char</span>* str_end = str + <span class="hljs-built_in">strlen</span>(str);<br><br>        <span class="hljs-comment">/* extract the first token as the command */</span><br>        <span class="hljs-type">char</span>* cmd = strtok(str, <span class="hljs-string">&quot; &quot;</span>);<br>        <span class="hljs-keyword">if</span> (cmd == <span class="hljs-literal">NULL</span>) &#123;<br>            <span class="hljs-keyword">continue</span>;<br>        &#125;<br><br>        <span class="hljs-comment">/* treat the remaining string as the arguments,</span><br><span class="hljs-comment">         * which may need further parsing</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-type">char</span>* args = cmd + <span class="hljs-built_in">strlen</span>(cmd) + <span class="hljs-number">1</span>;<br>        <span class="hljs-keyword">if</span> (args &gt;= str_end) &#123;<br>            args = <span class="hljs-literal">NULL</span>;<br>        &#125;<br><br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> CONFIG_DEVICE</span><br>        <span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">sdl_clear_event_queue</span><span class="hljs-params">()</span>;<br>        sdl_clear_event_queue();<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br><br>        <span class="hljs-type">int</span> i;<br>        <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; NR_CMD; i++) &#123;<br>            <span class="hljs-keyword">if</span> (<span class="hljs-built_in">strcmp</span>(cmd, cmd_table[i].name) == <span class="hljs-number">0</span>) &#123;<br>                <span class="hljs-keyword">if</span> (cmd_table[i].handler(args) &lt; <span class="hljs-number">0</span>) &#123;<br>                    <span class="hljs-keyword">return</span>;<br>                &#125;<br>                <span class="hljs-keyword">break</span>;<br>            &#125;<br>        &#125;<br><br>        <span class="hljs-keyword">if</span> (i == NR_CMD) &#123;<br>            <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Unknown command &#x27;%s&#x27;\n&quot;</span>, cmd);<br>        &#125;<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
-
-<p>这里就是 PA1 的 sdb 了。</p>
-<h3 id="指令执行"><a href="#指令执行" class="headerlink" title="指令执行"></a>指令执行</h3><p>执行指令和 YEMU 中的 inst_cycle 很相似，类似于 CPU 执行一个一个指令。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><br><span class="hljs-type">int</span> <span class="hljs-title function_">isa_exec_once</span><span class="hljs-params">(Decode *s)</span> &#123;<br>  s-&gt;isa.inst.val = inst_fetch(&amp;s-&gt;snpc, <span class="hljs-number">4</span>);<br>  <span class="hljs-keyword">return</span> decode_exec(s);<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>其中 decode 解码和执行：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">decode_exec</span><span class="hljs-params">(Decode *s)</span> &#123;<br>  <span class="hljs-type">int</span> rd = <span class="hljs-number">0</span>;<br>  <span class="hljs-type">word_t</span> src1 = <span class="hljs-number">0</span>, src2 = <span class="hljs-number">0</span>, imm = <span class="hljs-number">0</span>;<br>  s-&gt;dnpc = s-&gt;snpc;<br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> INSTPAT_INST(s) ((s)-&gt;isa.inst.val)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> INSTPAT_MATCH(s, name, type, ... <span class="hljs-comment">/* execute body */</span> ) &#123; \</span><br><span class="hljs-meta">  decode_operand(s, &amp;rd, &amp;src1, &amp;src2, &amp;imm, concat(TYPE_, type)); \</span><br><span class="hljs-meta">  __VA_ARGS__ ; \</span><br><span class="hljs-meta">&#125;</span><br><br>  INSTPAT_START();<br>  INSTPAT(<span class="hljs-string">&quot;??????? ????? ????? ??? ????? 00101 11&quot;</span>, auipc  , U, R(rd) = s-&gt;pc + imm);<br>  INSTPAT(<span class="hljs-string">&quot;??????? ????? ????? 100 ????? 00000 11&quot;</span>, lbu    , I, R(rd) = Mr(src1 + imm, <span class="hljs-number">1</span>));<br>  INSTPAT(<span class="hljs-string">&quot;??????? ????? ????? 000 ????? 01000 11&quot;</span>, sb     , S, Mw(src1 + imm, <span class="hljs-number">1</span>, src2));<br><br>  INSTPAT(<span class="hljs-string">&quot;0000000 00001 00000 000 00000 11100 11&quot;</span>, ebreak , N, NEMUTRAP(s-&gt;pc, R(<span class="hljs-number">10</span>))); <span class="hljs-comment">// R(10) is $a0</span><br>  INSTPAT(<span class="hljs-string">&quot;??????? ????? ????? ??? ????? ????? ??&quot;</span>, inv    , N, INV(s-&gt;pc));<br>  INSTPAT_END();<br><br>  R(<span class="hljs-number">0</span>) = <span class="hljs-number">0</span>; <span class="hljs-comment">// reset $zero to 0</span><br><br>  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>以上，就是 nemu 的一个大概的过程，当然要想更全面理解 nemu，需要深入仔细阅读源码。</p>
-]]></content>
-      <categories>
-        <category>OS</category>
-        <category>RISCV</category>
-      </categories>
-      <tags>
-        <tag>模拟器</tag>
-        <tag>NEMU</tag>
       </tags>
   </entry>
   <entry>
