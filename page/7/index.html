@@ -222,6 +222,82 @@
     
     
       <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2024/06/10/debugger%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9Adwarf%20%E6%96%87%E4%BB%B6/" target="_self">
+          <img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/cat2_4article_face.jpg" alt="debugger（三）：dwarf 文件">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/06/10/debugger%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9Adwarf%20%E6%96%87%E4%BB%B6/" target="_self">
+          debugger（三）：dwarf 文件
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt " href="/2024/06/10/debugger%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9Adwarf%20%E6%96%87%E4%BB%B6/" target="_self">
+        <div>
+          〇、前言事实上，一个成熟的 debugger 是不会利用 break 0xADDR 类似的命令来打断点的，这个需要改进，使得它可以直接利用函数名、行数等来打断点。这就需要生成编译信息，只需要在编译的时候，在目标文件中加以下参数： 12# 添加编译器标志set(CMAKE_CXX_FLAGS &quot;$&#123;CMAKE_CXX_FLAGS&#125; -g -O0 -gdwarf-2&
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-06-10 21:46" pubdate>
+              2024-06-10
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/C/" class="category-chain-item">C++</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/C/debugger/" class="category-chain-item">debugger</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/c/">#c++</a>
+            
+              <a href="/tags/debugger/">#debugger</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2024/06/10/debugger%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E8%AF%BB%E3%80%81%E5%86%99%E5%86%85%E5%AD%98%E4%BB%A5%E5%8F%8A%E5%AF%84%E5%AD%98%E5%99%A8/" target="_self">
           <img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/cat2_4article_face.jpg" alt="debugger（二）：读、写内存以及寄存器">
         </a>
@@ -862,78 +938,11 @@
     </article>
   </div>
 
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2024/05/14/C++%E5%B9%B6%E5%8F%91%EF%BC%9A%E9%94%81/" target="_self">
-          <img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/cat2_4article_face.jpg" alt="C++并发：锁">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/05/14/C++%E5%B9%B6%E5%8F%91%EF%BC%9A%E9%94%81/" target="_self">
-          C++并发：锁
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt " href="/2024/05/14/C++%E5%B9%B6%E5%8F%91%EF%BC%9A%E9%94%81/" target="_self">
-        <div>
-          一、前言C++中的锁和同步原语的多样化选择使得程序员可以根据具体的线程和数据保护需求来选择最合适的工具。这些工具的正确使用可以大大提高程序的稳定性和性能，本文讨论了部分锁。 二、std::lock在C++中，std::lock 是一个用于一次性锁定两个或多个互斥量（mutexes）的函数，而且还保证不会发生死锁。这是通过采用一种称为“死锁避免算法”的技术来实现的，该技术能够保证多个互斥量按照一
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-05-14 17:38" pubdate>
-              2024-05-14
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/C/" class="category-chain-item">C++</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/c/">#c++</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
 
 
   <nav aria-label="navigation">
     <span class="pagination" id="pagination">
-      <a class="extend prev" rel="prev" href="/page/6/#board"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/#board">5</a><a class="page-number" href="/page/6/#board">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/#board">8</a><a class="page-number" href="/page/9/#board">9</a><span class="space">&hellip;</span><a class="page-number" href="/page/18/#board">18</a><a class="extend next" rel="next" href="/page/8/#board"><i class="iconfont icon-arrowright"></i></a>
+      <a class="extend prev" rel="prev" href="/page/6/#board"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/#board">5</a><a class="page-number" href="/page/6/#board">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/#board">8</a><a class="page-number" href="/page/9/#board">9</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/#board">19</a><a class="extend next" rel="next" href="/page/8/#board"><i class="iconfont icon-arrowright"></i></a>
     </span>
   </nav>
 
