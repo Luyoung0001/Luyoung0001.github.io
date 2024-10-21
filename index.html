@@ -222,6 +222,82 @@
     
     
       <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2024/10/21/RT-Thread/" target="_self">
+          <img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/cat2_4article_face.jpg" alt="RT-Thread in PA4.1 的思考">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/10/21/RT-Thread/" target="_self">
+          RT-Thread in PA4.1 的思考
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt " href="/2024/10/21/RT-Thread/" target="_self">
+        <div>
+          前言前面谈到了异常响应机制，如果在上下文恢复的时候，做点手脚，比如别让它回到原来的上下文，而是回到了另一个进程的上下文，那么这就是进程切换，也是多道程序的基础。 yield OS前言就是 yield OS 的核心思想了，实现kcontext 后，别忘了修改 trap.S，使得 a0 这个返回值传到 sp。 1234567Context* kcontext(Area kstack, void (
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-10-21 22:20" pubdate>
+              2024-10-21
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/ysyx/" class="category-chain-item">ysyx</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/ysyx/nemu/" class="category-chain-item">nemu</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/ysyx/">#ysyx</a>
+            
+              <a href="/tags/pa4-1/">#pa4.1</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2024/10/18/%E5%BC%82%E5%B8%B8%E5%93%8D%E5%BA%94%E6%9C%BA%E5%88%B6/" target="_self">
           <img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/cat2_4article_face.jpg" alt="异常响应机制">
         </a>
@@ -892,89 +968,6 @@
               <a href="/tags/%E6%A8%A1%E6%8B%9F%E5%99%A8/">#模拟器</a>
             
               <a href="/tags/YPC/">#YPC</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2024/09/19/Chisel%E7%9A%84%E6%B5%8B%E8%AF%95%E6%A8%A1%E5%9D%97/" target="_self">
-          <img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/cat2_4article_face.jpg" alt="Chisel 测试模块">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/09/19/Chisel%E7%9A%84%E6%B5%8B%E8%AF%95%E6%A8%A1%E5%9D%97/" target="_self">
-          Chisel 测试模块
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt " href="/2024/09/19/Chisel%E7%9A%84%E6%B5%8B%E8%AF%95%E6%A8%A1%E5%9D%97/" target="_self">
-        <div>
-          一个普通的测试模块12345678910111213141516171819202122232425import chisel3._import chiseltest._import org.scalatest.flatspec.AnyFlatSpecclass FlipFlopTest extends AnyFlatSpec with ChiselScalatestTester &#123;
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-09-19 22:20" pubdate>
-              2024-09-19
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/Scala/" class="category-chain-item">Scala</a>
-  
-  
-    <span>></span>
-    
-  <a href="/categories/Scala/Chisel/" class="category-chain-item">Chisel</a>
-  
-  
-    <span>></span>
-    
-  <a href="/categories/Scala/Chisel/PA2/" class="category-chain-item">PA2</a>
-  
-  
-
-  
-
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Scala/">#Scala</a>
-            
-              <a href="/tags/Chisel/">#Chisel</a>
             
           </div>
         
