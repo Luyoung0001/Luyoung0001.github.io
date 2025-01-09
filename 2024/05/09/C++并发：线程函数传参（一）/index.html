@@ -24,7 +24,7 @@
 <meta property="og:description" content="一、问题当创建 std::thread 对象时，传递给线程的函数的所有参数都会被复制或移动到新创建的线程的内存空间中。这是为了确保线程的执行不会依赖于父线程可能销毁的栈上变量，从这个机制上看，这是很合理的。 在新的线程的栈上，这些变量都会以右值的方式传递给线程函数，这主要是为了提高传参的性能。但是在某些情况下，这些右值并不能满足线程函数的参数。如果线程函数需要引用参数，直接传递普通变量会因为无">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-05-09T15:39:44.000Z">
-<meta property="article:modified_time" content="2024-09-11T00:07:43.768Z">
+<meta property="article:modified_time" content="2025-01-05T12:23:09.668Z">
 <meta property="article:author" content="Luyoung">
 <meta property="article:tag" content="c++">
 <meta property="article:tag" content="多线程">
