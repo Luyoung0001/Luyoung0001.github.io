@@ -222,6 +222,84 @@
     
     
       <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2024/09/12/%E8%B0%83%E7%94%A8glibc%E7%9A%84%E6%8A%80%E5%B7%A7/" target="_self">
+          <img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/cat2_4article_face.jpg" alt="调用 glibc 的技巧">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/09/12/%E8%B0%83%E7%94%A8glibc%E7%9A%84%E6%8A%80%E5%B7%A7/" target="_self">
+          调用 glibc 的技巧
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt " href="/2024/09/12/%E8%B0%83%E7%94%A8glibc%E7%9A%84%E6%8A%80%E5%B7%A7/" target="_self">
+        <div>
+          一、一个问题1234native的IOE是基于SDL库实现的, 这些库很有可能会调用glibc的库函数, 例如malloc()和free(). 但我们自己实现的klib通常不能完美地符合glibc的标准, 因此直觉上看, 如果定义了__NATIVE_USE_KLIB__, 很可能会导致SDL库产生不正确的行为.不过你会发现, 即使定义了__NATIVE_USE_KLIB__, 也可以正确地在n
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-09-12 12:57" pubdate>
+              2024-09-12
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/ysyx/" class="category-chain-item">ysyx</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/ysyx/PA2/" class="category-chain-item">PA2</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/PA2/">#PA2</a>
+            
+              <a href="/tags/glibc/">#glibc</a>
+            
+              <a href="/tags/%E7%BC%96%E8%AF%91%E6%8A%80%E5%B7%A7/">#编译技巧</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2024/09/12/nemu%E6%A1%86%E6%9E%B6%E7%BB%86%E8%8A%82%E7%A0%94%E7%A9%B6(%E4%BA%8C)/" target="_self">
           <img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/cat2_4article_face.jpg" alt="nemu框架细节研究（二）">
         </a>
@@ -888,82 +966,6 @@
             <i class="iconfont icon-date"></i>
             <time datetime="2024-08-13 11:22" pubdate>
               2024-08-13
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/OS/" class="category-chain-item">OS</a>
-  
-  
-    <span>></span>
-    
-  <a href="/categories/OS/RISCV/" class="category-chain-item">RISCV</a>
-  
-  
-
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E6%A8%A1%E6%8B%9F%E5%99%A8/">#模拟器</a>
-            
-              <a href="/tags/NEMU/">#NEMU</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2024/08/12/NEMU%E4%BB%A3%E7%A0%81%E5%AF%BC%E8%AF%BB/" target="_self">
-          <img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/cat2_4article_face.jpg" alt="NEMU 代码导读">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/08/12/NEMU%E4%BB%A3%E7%A0%81%E5%AF%BC%E8%AF%BB/" target="_self">
-          NEMU 代码导读
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt " href="/2024/08/12/NEMU%E4%BB%A3%E7%A0%81%E5%AF%BC%E8%AF%BB/" target="_self">
-        <div>
-          项目构建首先得了解一些 make 的行为，重要的就是查看make 的行为以及make 的子进程如何与系统进行交互，比如 :  strace -f make make -nB # 只打印命令不执行 B强制构建 make -d make -debug&#x3D;v  具体RTFM。  nemu&#x2F;Makefile  SRCS: 和YEMU差不多, 是需要编译的源文件    CFLAGS:
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-08-12 11:22" pubdate>
-              2024-08-12
             </time>
           </div>
         
