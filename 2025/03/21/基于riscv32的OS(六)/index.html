@@ -1,0 +1,746 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="中断 和 异常相关寄存器不管是 中断 还是 异常，大致处理流程都是一致的。 mcause当 trap 发生时，hart 会设置该寄存器通知我们 trap 发生的原因。最高位 Interrupt 为 1 时标识了当前 trap 为 interrupt，否则是 exception。剩余的 Exception Code 用于标识具体的 interrupt 或者 exception 的种类。 mtvec（">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于 riscv32 的 OS 设计：Trap 和 Exception">
+<meta property="og:url" content="http://blog.luliang.online/2025/03/21/%E5%9F%BA%E4%BA%8Eriscv32%E7%9A%84OS(%E5%85%AD)/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="中断 和 异常相关寄存器不管是 中断 还是 异常，大致处理流程都是一致的。 mcause当 trap 发生时，hart 会设置该寄存器通知我们 trap 发生的原因。最高位 Interrupt 为 1 时标识了当前 trap 为 interrupt，否则是 exception。剩余的 Exception Code 用于标识具体的 interrupt 或者 exception 的种类。 mtvec（">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-03-21T05:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.452Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="OS">
+<meta property="article:tag" content="riscv">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>基于 riscv32 的 OS 设计：Trap 和 Exception - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="基于 riscv32 的 OS 设计：Trap 和 Exception"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-03-21 13:03" pubdate>
+          2025年3月21日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          12 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">基于 riscv32 的 OS 设计：Trap 和 Exception</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="中断-和-异常相关寄存器"><a href="#中断-和-异常相关寄存器" class="headerlink" title="中断 和 异常相关寄存器"></a>中断 和 异常相关寄存器</h2><p>不管是 中断 还是 异常，大致处理流程都是一致的。</p>
+<h3 id="mcause"><a href="#mcause" class="headerlink" title="mcause"></a>mcause</h3><p>当 trap 发生时，hart 会设置该寄存器通知我们 trap 发生的原因。最高位 Interrupt 为 1 时标识了当前 trap 为 interrupt，否则是 exception。剩余的 Exception Code 用于标识具体的 interrupt 或者 exception 的种类。</p>
+<h3 id="mtvec（Machine-Trap-Vector-Base-Address）"><a href="#mtvec（Machine-Trap-Vector-Base-Address）" class="headerlink" title="mtvec（Machine Trap-Vector Base-Address）"></a>mtvec（Machine Trap-Vector Base-Address）</h3><p>BASE：trap 入口函数的基地址，必须保证四字节对齐。MODE：进一步用于控制入口函数的地址配置方式：</p>
+<ul>
+<li>Direct：所有的 exception 和 interrupt 发生后 PC 都跳转到 BASE 指定的地址处。</li>
+<li>Vectored：exception 处理方式同 Direct；但 interrupt 的入口地址以数组方式排列。</li>
+</ul>
+<h3 id="mepc（Machine-Exception-Program-Counter）"><a href="#mepc（Machine-Exception-Program-Counter）" class="headerlink" title="mepc（Machine Exception Program Counter）"></a>mepc（Machine Exception Program Counter）</h3><ul>
+<li>当 trap 发生时，pc 会被替换为 mtvec 设定的地址，同时 hart 会设置 mepc 为当前指令或者下一条指令的地址，当 我们需要退出 trap 时可以调用特殊的 mret 指令，该指令会将 mepc 中的值恢复到 pc 中（实现返回的效果）。</li>
+<li>在处理 trap 的程序中我们可以修改 mepc 的值达到改变 mret 返回地址的目的。</li>
+</ul>
+<h3 id="mstatus（Machine-Status）"><a href="#mstatus（Machine-Status）" class="headerlink" title="mstatus（Machine Status）"></a>mstatus（Machine Status）</h3><ul>
+<li>xIE（x&#x3D;M&#x2F;S&#x2F;U）: 分别用于打开（1）或者关闭（0） M&#x2F;S&#x2F;U 模式下的全局中断。当 trap 发生时， hart 会自动将 xIE 设置为 0。</li>
+<li>xPIE（x&#x3D;M&#x2F;S&#x2F;U）:当 trap 发生时用于保存 trap 发生之前的 xIE 值。</li>
+<li>xPP（x&#x3D;M&#x2F;S）:当 trap 发生时用于保存 trap 发生之前的权限级别值。<br>注意没有 UPP。</li>
+<li>其他标志位涉及内存访问权限、虚拟<br>内存控制等，暂不考虑。</li>
+</ul>
+<h2 id="riscv-trap-的处理流程"><a href="#riscv-trap-的处理流程" class="headerlink" title="riscv trap 的处理流程"></a>riscv trap 的处理流程</h2><p>主要有四个流程：</p>
+<ul>
+<li>trap 初始化：设置 trap 向量地址；</li>
+<li>trap 的 top half：硬件执行一些操作；</li>
+<li>trap 的 bottom half：软件执行一些操作；</li>
+<li>从 trap 返回。</li>
+</ul>
+<h3 id="trap-初始化"><a href="#trap-初始化" class="headerlink" title="trap 初始化"></a>trap 初始化</h3><p>设置 trap 向量地址。我们通过 kernel 来看：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;os.h&quot;</span></span><br><span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">uart_init</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;<br><span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">page_init</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;<br><span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">sched_init</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;<br><span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">schedule</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;<br><span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">os_main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;<br><span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">trap_init</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">start_kernel</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    uart_init();<br>    uart_puts(<span class="hljs-string">&quot;Hello, RVOS!\n&quot;</span>);<br><br>    page_init();<br><br>    trap_init();<br><br>    sched_init();<br><br>    os_main();<br><br>    schedule();<br><br>    uart_puts(<span class="hljs-string">&quot;Would not go here!\n&quot;</span>);<br>    <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) &#123;<br>    &#125;;  <span class="hljs-comment">// stop here!</span><br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>首先 start_kernel trap 初始化：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">void</span> <span class="hljs-title function_">w_mtvec</span><span class="hljs-params">(<span class="hljs-type">reg_t</span> x)</span> &#123;<br>    <span class="hljs-keyword">asm</span> <span class="hljs-title function_">volatile</span><span class="hljs-params">(<span class="hljs-string">&quot;csrw mtvec, %0&quot;</span> : : <span class="hljs-string">&quot;r&quot;</span>(x))</span>;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">trap_init</span><span class="hljs-params">()</span> &#123;<br>    w_mtvec((<span class="hljs-type">reg_t</span>)trap_vector);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这个函数会给 mcsr 寄存器的 mtvec 设置一个 trap 处理函数入口的 base address。</p>
+<h3 id="top-half-（代码不可见，CPU-硬件自动完成）"><a href="#top-half-（代码不可见，CPU-硬件自动完成）" class="headerlink" title="top half （代码不可见，CPU 硬件自动完成）"></a>top half （代码不可见，CPU 硬件自动完成）</h3><p>trap 发生，hart 自动执行如下状态转换：</p>
+<ul>
+<li>把 mstatus 的 MIE 值复制到 MPIE 中，清除 mstatus 中的 MIE 标<br>志位，效果是中断被禁止。</li>
+<li>设置 mepc ，同时 PC 被设置为 mtvec。（需要注意的是，对于<br> exception， mepc 指向导致异常的指令；对于 interrupt，它指向被<br>中断的指令的下一条指令的位置。）</li>
+<li>根据 trap 的种类设置 mcause，并根据需要为 mtval 设置附加信息。</li>
+<li>将 trap 发生之前的权限模式保存在 mstatus 的 MPP 域中，再把<br>hart 权限模式更改为 M（也就是说无论在任何 Level 下触发 trap，<br>hart 首先切换到 Machine 模式）。</li>
+</ul>
+<p>也就是说，当 trap 发生时，硬件会修改的寄存器有：mstatus、mepc、mcause。</p>
+<h3 id="bottom-half-软件做的事情"><a href="#bottom-half-软件做的事情" class="headerlink" title="bottom half (软件做的事情)"></a>bottom half (软件做的事情)</h3><h4 id="保存上下文"><a href="#保存上下文" class="headerlink" title="保存上下文"></a>保存上下文</h4><p>这个和前面的保存上下文完全一致：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs asm">trap_vector:<br>	csrrw	t6, mscratch, t6<br>	reg_save t6<br>	mv	t5, t6<br><br>	csrr	t6, mscratch<br>	STORE	t6, 30*SIZE_REG(t5)<br>	csrw	mscratch, t5<br></code></pre></td></tr></table></figure>
+
+<h4 id="调用-trap-handler"><a href="#调用-trap-handler" class="headerlink" title="调用 trap handler"></a>调用 trap handler</h4><p>调用 函数需要传参，riscv 规定将参数保存到 a*寄存器：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs asm">csrr	a0, mepc<br>csrr	a1, mcause<br>call	trap_handler<br></code></pre></td></tr></table></figure>
+
+<h4 id="从-trap-handler-返回"><a href="#从-trap-handler-返回" class="headerlink" title="从 trap handler 返回"></a>从 trap handler 返回</h4><p>由于硬件已经给相关的寄存器中打入相应的信号了，比如 mepc、mcause 等，因此我们认为底层可靠，只需要按照riscv 约定来写代码。</p>
+<p>这个函数就是 trap 处理函数了：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs C"><br><span class="hljs-type">reg_t</span> <span class="hljs-title function_">trap_handler</span><span class="hljs-params">(<span class="hljs-type">reg_t</span> epc, <span class="hljs-type">reg_t</span> cause)</span> &#123;<br>    <span class="hljs-type">reg_t</span> return_pc = epc;<br>    <span class="hljs-type">reg_t</span> cause_code = cause &amp; MCAUSE_MASK_ECODE;<br><br>    <span class="hljs-keyword">if</span> (cause &amp; MCAUSE_MASK_INTERRUPT) &#123;<br>    <span class="hljs-comment">// 中断</span><br>        <span class="hljs-keyword">switch</span> (cause_code) &#123;<br>            <span class="hljs-keyword">case</span> <span class="hljs-number">3</span>:<br>                uart_puts(<span class="hljs-string">&quot;software interruption!\n&quot;</span>);<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">case</span> <span class="hljs-number">7</span>:<br>                uart_puts(<span class="hljs-string">&quot;timer interruption!\n&quot;</span>);<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">case</span> <span class="hljs-number">11</span>:<br>                uart_puts(<span class="hljs-string">&quot;external interruption!\n&quot;</span>);<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">default</span>:<br>                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Unknown async exception! Code = %ld\n&quot;</span>, cause_code);<br>                <span class="hljs-keyword">break</span>;<br>        &#125;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>    <span class="hljs-comment">// 异常</span><br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Sync exceptions! Code = %ld\n&quot;</span>, cause_code);<br>        return_pc += <span class="hljs-number">4</span>;<br>    &#125;<br><br>    <span class="hljs-keyword">return</span> return_pc;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里的异常处理相当简单，什么都不做直接打印完信息后，直接执行下一跳指令。事实上，这里只是一个演示。异常返回地址应该永远是 epc，意味着 retry。</p>
+<h4 id="恢复上下文"><a href="#恢复上下文" class="headerlink" title="恢复上下文"></a>恢复上下文</h4><p>返回后，参数在 a0 中：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs asm">   csrw	mepc, a0<br>csrr	t6, mscratch<br>reg_restore t6<br></code></pre></td></tr></table></figure>
+
+<p>将 a0 复制到 mepc 中，接着恢复当前上下文（这个和切换 task 不一样，这trap 处理的过程中，mscratch 保持不变）。</p>
+<h4 id="执行-mret"><a href="#执行-mret" class="headerlink" title="执行 mret"></a>执行 mret</h4><p>调用 mret 指令实现 trap 的返回。</p>
+<p>如果写过 riscv 的 CPU，mret 的语义如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">define</span> MRET(dnpc) &#123; dnpc = cpu.csr.mepc; &#125;</span><br><br></code></pre></td></tr></table></figure>
+
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><p>首先创建两个task：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">user_task0</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>&#123;<br>	uart_puts(<span class="hljs-string">&quot;Task 0: Created!\n&quot;</span>);<br>	<span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) &#123;<br>		uart_puts(<span class="hljs-string">&quot;Task 0: Running...\n&quot;</span>);<br><br>		trap_test();<br><br>		task_delay(DELAY);<br>		task_yield();<br>	&#125;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">user_task1</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>&#123;<br>	uart_puts(<span class="hljs-string">&quot;Task 1: Created!\n&quot;</span>);<br>	<span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) &#123;<br>		uart_puts(<span class="hljs-string">&quot;Task 1: Running...\n&quot;</span>);<br>		task_delay(DELAY);<br>		task_yield();<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>其中 task0 会调用 trap_test，而 trap_test 会触发 类型为异常的 trap：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">trap_test</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-comment">/*</span><br><span class="hljs-comment">     * Synchronous exception code = 7</span><br><span class="hljs-comment">     * Store/AMO access fault</span><br><span class="hljs-comment">     */</span><br>    *(<span class="hljs-type">int</span>*)<span class="hljs-number">0x00000000</span> = <span class="hljs-number">100</span>;<br>    uart_puts(<span class="hljs-string">&quot;Yeah! I&#x27;m return back from trap!\n&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>接着进入 trap 执行流程。处理完后，接着调用 task_yiled 切换到 task1。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs bash">Press Ctrl-A and <span class="hljs-keyword">then</span> X to <span class="hljs-built_in">exit</span> QEMU<br>------------------------------------<br>Hello, RVOS!<br>HEAP_START = 0x800070ec(aligned to 0x80008000), HEAP_SIZE = 0x07ff8f14,<br>num of reserved pages = 8, num of pages to be allocated <span class="hljs-keyword">for</span> heap = 32752<br>TEXT:   0x80000000 -&gt; 0x8000339c<br>RODATA: 0x8000339c -&gt; 0x8000369e<br>DATA:   0x80004000 -&gt; 0x80004004<br>BSS:    0x80004010 -&gt; 0x800070ec<br>HEAP:   0x80010000 -&gt; 0x88000000<br>Task 0: Created!<br>Task 0: Running...<br>Sync exceptions! Code = 7<br>Yeah! I<span class="hljs-string">&#x27;m return back from trap!</span><br><span class="hljs-string">Task 1: Created!</span><br><span class="hljs-string">Task 1: Running...</span><br><span class="hljs-string">Task 0: Running...</span><br><span class="hljs-string">Sync exceptions! Code = 7</span><br><span class="hljs-string">Yeah! I&#x27;</span>m <span class="hljs-built_in">return</span> back from <span class="hljs-built_in">trap</span>!<br>Task 1: Running...<br><br></code></pre></td></tr></table></figure>
+
+<p>但是按照标准的异常处理来说，我们应该尝试再次执行指令：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs C">    <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-comment">/* Synchronous trap - exception */</span><br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Sync exceptions! Code = %ld\n&quot;</span>, cause_code);<br>    &#125;<br><span class="hljs-keyword">return</span> return_pc;<br></code></pre></td></tr></table></figure>
+
+<p>这时候：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs bash">...<br>Sync exceptions! Code = 7<br>Sync exceptions! Code = 7<br>Sync exceptions! Code = 7<br>Sync exceptions! Code = 7<br>Sync exceptions! Code = 7<br>Sync exceptions! Code = 7<br>Sync exceptions! Code = 7<br>Sync exceptions! Code = 7<br>Sync exceptions! Code = 7<br>Sync exceptions! Code = 7<br>...<br></code></pre></td></tr></table></figure>
+
+<p>以上就是 trap 的大概情况了。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/OS/" class="category-chain-item">OS</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/OS/" class="print-no-link">#OS</a>
+      
+        <a href="/tags/riscv/" class="print-no-link">#riscv</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>基于 riscv32 的 OS 设计：Trap 和 Exception</div>
+      <div>http://blog.luliang.online/2025/03/21/基于riscv32的OS(六)/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年3月21日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/03/23/%E5%9F%BA%E4%BA%8Eriscv32%E7%9A%84OS(%E4%B8%83)/" title="基于 riscv32 的 OS 设计：外部设备中断（uart）">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">基于 riscv32 的 OS 设计：外部设备中断（uart）</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/03/20/%E5%9F%BA%E4%BA%8Eriscv32%E7%9A%84OS(%E4%BA%94)/" title="基于 riscv32 的 OS 设计：多任务">
+                        <span class="hidden-mobile">基于 riscv32 的 OS 设计：多任务</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

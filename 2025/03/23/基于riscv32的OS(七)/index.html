@@ -1,0 +1,831 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="RISC-V 中断（Interrupt）的分类一共有三种中断：  本地软件中断； 本地时钟中断； 外部中断；  中断的控制很复杂，具有多个级别的开关，以确保系统能够灵活、高效地处理各种中断： 1. 设备级别：  这是中断控制的最底层。每个外围设备（例如，UART、SPI、GPIO）都有自己的中断使能位。 通过设置这些位，可以控制设备是否能够产生中断请求。 如果设备级别的中断被禁用，即使设备产生了中">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于 riscv32 的 OS 设计：外部设备中断（uart）">
+<meta property="og:url" content="http://blog.luliang.online/2025/03/23/%E5%9F%BA%E4%BA%8Eriscv32%E7%9A%84OS(%E4%B8%83)/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="RISC-V 中断（Interrupt）的分类一共有三种中断：  本地软件中断； 本地时钟中断； 外部中断；  中断的控制很复杂，具有多个级别的开关，以确保系统能够灵活、高效地处理各种中断： 1. 设备级别：  这是中断控制的最底层。每个外围设备（例如，UART、SPI、GPIO）都有自己的中断使能位。 通过设置这些位，可以控制设备是否能够产生中断请求。 如果设备级别的中断被禁用，即使设备产生了中">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-03-23T05:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.452Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="OS">
+<meta property="article:tag" content="riscv">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>基于 riscv32 的 OS 设计：外部设备中断（uart） - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="基于 riscv32 的 OS 设计：外部设备中断（uart）"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-03-23 13:03" pubdate>
+          2025年3月23日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          21 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">基于 riscv32 的 OS 设计：外部设备中断（uart）</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="RISC-V-中断（Interrupt）的分类"><a href="#RISC-V-中断（Interrupt）的分类" class="headerlink" title="RISC-V 中断（Interrupt）的分类"></a>RISC-V 中断（Interrupt）的分类</h2><p>一共有三种中断：</p>
+<ul>
+<li>本地软件中断；</li>
+<li>本地时钟中断；</li>
+<li>外部中断；</li>
+</ul>
+<p>中断的控制很复杂，具有多个级别的开关，以确保系统能够灵活、高效地处理各种中断：</p>
+<p><strong>1. 设备级别：</strong></p>
+<ul>
+<li>这是中断控制的最底层。每个外围设备（例如，UART、SPI、GPIO）都有自己的中断使能位。</li>
+<li>通过设置这些位，可以控制设备是否能够产生中断请求。</li>
+<li>如果设备级别的中断被禁用，即使设备产生了中断事件，也不会向上一级的中断控制器（PLIC）发送中断请求。</li>
+</ul>
+<p><strong>2. PLIC 级别：</strong></p>
+<ul>
+<li>PLIC（Platform-Level Interrupt Controller，平台级中断控制器）是 RISC-V 系统中负责管理和分发外部中断的核心组件。</li>
+<li>PLIC 具有以下几个关键的控制级别：<ul>
+<li><strong>中断使能位：</strong><ul>
+<li>PLIC 允许为每个外部中断源独立设置使能位。</li>
+<li>只有当 PLIC 中的相应中断使能位被设置时，来自该中断源的中断请求才会被传递给 CPU。</li>
+</ul>
+</li>
+<li><strong>中断优先级：</strong><ul>
+<li>PLIC 允许为每个中断源分配优先级。</li>
+<li>当多个中断同时发生时，PLIC 根据优先级决定哪个中断先被处理。</li>
+</ul>
+</li>
+<li><strong>中断目标：</strong><ul>
+<li>PLIC 允许将中断路由到特定的 CPU 核心（hart）。</li>
+<li>这使得系统能够灵活地将中断分配给不同的 CPU 核心进行处理。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>3. CPU 全局级别：</strong></p>
+<ul>
+<li>RISC-V CPU 具有全局中断使能位，通常位于 <code>mstatus</code> 寄存器中。</li>
+<li>当全局中断使能位被禁用时，CPU 将忽略所有来自 PLIC 的中断请求。</li>
+<li>全局中断使能位通常用于在执行关键代码段时临时禁用中断，以确保代码的原子性。</li>
+</ul>
+<p><strong>4. CPU 局部级别：</strong></p>
+<ul>
+<li>除了全局中断使能位之外，RISC-V CPU 还具有局部中断使能位，用于控制特定类型的中断。</li>
+<li>例如，<code>mie</code> 寄存器用于控制机器模式下的中断使能，<code>sie</code> 寄存器用于控制超级用户模式下的中断使能。</li>
+<li>通过设置这些局部中断使能位，可以更细粒度地控制 CPU 响应哪些类型的中断。</li>
+</ul>
+<h2 id="RISC-V-中断编程中涉及的寄存器"><a href="#RISC-V-中断编程中涉及的寄存器" class="headerlink" title="RISC-V 中断编程中涉及的寄存器"></a>RISC-V 中断编程中涉及的寄存器</h2><h3 id="mstatus（Machine-Status）"><a href="#mstatus（Machine-Status）" class="headerlink" title="mstatus（Machine Status）"></a>mstatus（Machine Status）</h3><p>用于跟踪和控制 hart 的当前操作状态（特别地，包括关闭和打开全局中断）。</p>
+<h3 id="mie、mip"><a href="#mie、mip" class="headerlink" title="mie、mip"></a>mie、mip</h3><p>mie(Machine Interrupt Enable) ：打开（1）或者关闭（0）M&#x2F;S&#x2F;U 模式下对应的 External&#x2F;Timer&#x2F;Software 中断。</p>
+<p>mip(Machine Interrupt Pending) ：获取当前 M&#x2F;S&#x2F;U 模式下对应的 External&#x2F;Timer&#x2F;Software 中断是否发生。</p>
+<h2 id="RISC-V-中断处理流程"><a href="#RISC-V-中断处理流程" class="headerlink" title="RISC-V 中断处理流程"></a>RISC-V 中断处理流程</h2><p>中断发生时 hart 自动执行如下状态转换：</p>
+<ul>
+<li>把 mstatus 的 MIE 值复制到 MPIE 中，清除 mstatus 中的 MIE 标<br>志位，效果是中断被禁止。</li>
+<li>当前的 PC 的下一条指令地址被复制到 mepc 中，同时 PC 被设置为<br>mtvec。注意如果我们设置 mtvec.MODE &#x3D; vetcored，PC &#x3D;<br>mtvec.BASE + 4 × exception-code。</li>
+<li>根据 interrupt 的种类设置 mcause，并根据需要为 mtval 设置附加<br>信息。</li>
+<li>将 trap 发生之前的权限模式保存在 mstatus 的 MPP 域中，再把<br>hart 权限模式更改为 M。</li>
+</ul>
+<p>退出中断 ：编程调用 MRET 指令。</p>
+<h2 id="PLIC-介绍"><a href="#PLIC-介绍" class="headerlink" title="PLIC 介绍"></a>PLIC 介绍</h2><p>PLIC 编程接口 - 寄存器</p>
+<ul>
+<li><p>RISC-V 规范规定，PLIC 的寄存器编址采用内存映射（memory map）方式。每个寄存器的宽度为 32-bit。</p>
+</li>
+<li><p>具体寄存器编址采用 base + offset 的格式，且 base 由各个特定platform 自己定义。针对 QEMU-virt，其 PLIC 的设计参考了 FU540-C000，base 为 0x0c000000。</p>
+</li>
+<li><p>每个 PLIC 中断源对应一个寄存器，用于配置该中断源的优先级。</p>
+</li>
+<li><p>QEMU-virt 支持 7 个优先级。 0 表示对该中断源禁用中断。其余优先级，1 最低，7 最高。</p>
+</li>
+<li><p>如果两个中断源优先级相同，则根据中断源的 ID 值进一步区分优先级，ID 值越小的优先级越高。</p>
+</li>
+<li><p>每个 PLIC 包含 2 个 32 位的 Pending 寄存器，每一个 bit 对应一个中断源，如果为 1 表示该中断源上发生了中断（进入 Pending 状态），有待 hart 处理，否则表示该中断源上当前无中断发生。</p>
+</li>
+<li><p>Pending 寄存器中断的 Pending 状态可以通过 claim 方式清除。</p>
+</li>
+<li><p>第一个 Pending 寄存器的第 0 位对应不存在的 0 号中断源，其值永远为 0。</p>
+</li>
+<li><p>每个 Hart 有 2 个 Enable 寄存器 （Enable1 和 Enable2）用于针对该 Hart 启动或者关闭某路中断源。</p>
+</li>
+<li><p>每个中断源对应 Enable 寄存器的一个 bit，其中 Enable1 负责控制 1 ~ 31 号中断源；Enable2 负责控制 32 ~ 53 号中断源。 将对应的 bit 位设置为 1 表示使能该中断源，否则表示关闭该中断源。</p>
+</li>
+<li><p>每个 Hart 有 1 个 Threshold 寄存器用于设置中断优先级的阈值。</p>
+</li>
+<li><p>所有小于或者等于（&lt;&#x3D;）该阈值的中断源即使发生了也会被 PLIC 丢弃。特别地，当阈值为 0 时允许所有中断源上发生的中断；当阈值为 7 时丢弃所有中断源上发生的中断。</p>
+</li>
+<li><p>Claim 和 Complete 是同一个寄存器，每个 Hart 一个。</p>
+</li>
+<li><p>对该寄存器执行读操作称之为 Claim，即获取当前发生的最高优先级的中断源 ID。Claim 成功后会清除对应的 Pending 位。</p>
+</li>
+<li><p>对该寄存器执行写操作称之为 Complete。所谓 Complete 指的是通知 PLIC 对该路中断的处理已经结束。</p>
+</li>
+</ul>
+<h2 id="采用中断方式从-UART-实现输入"><a href="#采用中断方式从-UART-实现输入" class="headerlink" title="采用中断方式从 UART 实现输入"></a>采用中断方式从 UART 实现输入</h2><p>本实验尝试使用 uart 进行字符输入，这是一种常见的中断源。</p>
+<p>首先我们要打开 uart 的中断写入（以 CPU 为参照）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">uint8_t</span> ier = uart_read_reg(IER);<br>uart_write_reg(IER, ier | (<span class="hljs-number">1</span> &lt;&lt; <span class="hljs-number">0</span>));<br></code></pre></td></tr></table></figure>
+
+<p>这样，我们在键盘输入字符的时候，uart 接受到字符后，设备就会以中断的方式通知 CPU。</p>
+<p>接着，我们设置 PLIC：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;os.h&quot;</span></span><br><br><span class="hljs-type">void</span> <span class="hljs-title function_">plic_init</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-type">int</span> hart = r_tp();<br><br>    <span class="hljs-comment">/*</span><br><span class="hljs-comment">     * Set priority for UART0.</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * Each PLIC interrupt source can be assigned a priority by writing</span><br><span class="hljs-comment">     * to its 32-bit memory-mapped priority register.</span><br><span class="hljs-comment">     * The QEMU-virt (the same as FU540-C000) supports 7 levels of priority.</span><br><span class="hljs-comment">     * A priority value of 0 is reserved to mean &quot;never interrupt&quot; and</span><br><span class="hljs-comment">     * effectively disables the interrupt.</span><br><span class="hljs-comment">     * Priority 1 is the lowest active priority, and priority 7 is the highest.</span><br><span class="hljs-comment">     * Ties between global interrupts of the same priority are broken by</span><br><span class="hljs-comment">     * the Interrupt ID; interrupts with the lowest ID have the highest</span><br><span class="hljs-comment">     * effective priority.</span><br><span class="hljs-comment">     */</span><br>    *(<span class="hljs-type">uint32_t</span>*)PLIC_PRIORITY(UART0_IRQ) = <span class="hljs-number">1</span>;<br><br>    <span class="hljs-comment">/*</span><br><span class="hljs-comment">     * Enable UART0</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * Each global interrupt can be enabled by setting the corresponding</span><br><span class="hljs-comment">     * bit in the enables registers.</span><br><span class="hljs-comment">     */</span><br>    *(<span class="hljs-type">uint32_t</span>*)PLIC_MENABLE(hart, UART0_IRQ) = (<span class="hljs-number">1</span> &lt;&lt; (UART0_IRQ % <span class="hljs-number">32</span>));<br><br>    <span class="hljs-comment">/*</span><br><span class="hljs-comment">     * Set priority threshold for UART0.</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * PLIC will mask all interrupts of a priority less than or equal to</span><br><span class="hljs-comment">     * threshold. Maximum threshold is 7. For example, a threshold value of zero</span><br><span class="hljs-comment">     * permits all interrupts with non-zero priority, whereas a value of 7 masks</span><br><span class="hljs-comment">     * all interrupts. Notice, the threshold is global for PLIC, not for each</span><br><span class="hljs-comment">     * interrupt source.</span><br><span class="hljs-comment">     */</span><br>    *(<span class="hljs-type">uint32_t</span>*)PLIC_MTHRESHOLD(hart) = <span class="hljs-number">0</span>;<br><br>    <span class="hljs-comment">/* enable machine-mode external interrupts. */</span><br>    w_mie(r_mie() | MIE_MEIE);<br><br>    <span class="hljs-comment">/* enable machine-mode global interrupts. */</span><br>    w_mstatus(r_mstatus() | MSTATUS_MIE);<br>&#125;<br><br><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * DESCRIPTION:</span><br><span class="hljs-comment"> *	Query the PLIC what interrupt we should serve.</span><br><span class="hljs-comment"> *	Perform an interrupt claim by reading the claim register, which</span><br><span class="hljs-comment"> *	returns the ID of the highest-priority pending interrupt or zero if</span><br><span class="hljs-comment"> *there is no pending interrupt. A successful claim also atomically clears the</span><br><span class="hljs-comment"> *corresponding pending bit on the interrupt source. RETURN VALUE: the ID of the</span><br><span class="hljs-comment"> *highest-priority pending interrupt or zero if there is no pending interrupt.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">int</span> <span class="hljs-title function_">plic_claim</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-type">int</span> hart = r_tp();<br>    <span class="hljs-type">int</span> irq = *(<span class="hljs-type">uint32_t</span>*)PLIC_MCLAIM(hart);<br>    <span class="hljs-keyword">return</span> irq;<br>&#125;<br><br><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * DESCRIPTION:</span><br><span class="hljs-comment"> *	Writing the interrupt ID it received from the claim (irq) to the</span><br><span class="hljs-comment"> *	complete register would signal the PLIC we&#x27;ve served this IRQ.</span><br><span class="hljs-comment"> *	The PLIC does not check whether the completion ID is the same as the</span><br><span class="hljs-comment"> *	last claim ID for that target. If the completion ID does not match an</span><br><span class="hljs-comment"> *	interrupt source that is currently enabled for the target, the</span><br><span class="hljs-comment"> *completion is silently ignored. RETURN VALUE: none</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">plic_complete</span><span class="hljs-params">(<span class="hljs-type">int</span> irq)</span> &#123;<br>    <span class="hljs-type">int</span> hart = r_tp();<br>    *(<span class="hljs-type">uint32_t</span>*)PLIC_MCOMPLETE(hart) = irq;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>当 uart 接受到字符后，会发起中断：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">reg_t</span> <span class="hljs-title function_">trap_handler</span><span class="hljs-params">(<span class="hljs-type">reg_t</span> epc, <span class="hljs-type">reg_t</span> cause)</span> &#123;<br>    <span class="hljs-type">reg_t</span> return_pc = epc;<br>    <span class="hljs-type">reg_t</span> cause_code = cause &amp; MCAUSE_MASK_ECODE;<br><br>    <span class="hljs-keyword">if</span> (cause &amp; MCAUSE_MASK_INTERRUPT) &#123;<br>        <span class="hljs-comment">/* Asynchronous trap - interrupt */</span><br>        <span class="hljs-keyword">switch</span> (cause_code) &#123;<br>            <span class="hljs-keyword">case</span> <span class="hljs-number">11</span>:<br>                uart_puts(<span class="hljs-string">&quot;external interruption!\n&quot;</span>);<br>                external_interrupt_handler();<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">default</span>:<br>                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Unknown async exception! Code = %ld\n&quot;</span>, cause_code);<br>                <span class="hljs-keyword">break</span>;<br>        &#125;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-comment">/* Synchronous trap - exception */</span><br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Sync exceptions! Code = %ld\n&quot;</span>, cause_code);<br>        panic(<span class="hljs-string">&quot;OOPS! What can I do!&quot;</span>);<br>        <span class="hljs-comment">// return_pc += 4;</span><br>    &#125;<br><br>    <span class="hljs-keyword">return</span> return_pc;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>CPU 收到中断后，会进入中断处理程序，也就是 trap。由于 uart 是 外部中断，因此 cause 为 11。之后进入到 external_interrupt_handler：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs C"><br><span class="hljs-type">void</span> <span class="hljs-title function_">external_interrupt_handler</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">int</span> irq = plic_claim();<br><br>    <span class="hljs-keyword">if</span> (irq == UART0_IRQ) &#123;<br>        uart_isr();<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (irq) &#123;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;unexpected interrupt irq = %d\n&quot;</span>, irq);<br>    &#125;<br><br>    <span class="hljs-keyword">if</span> (irq) &#123;<br>        plic_complete(irq);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这个函数专门处理外部中断，如果是 uart 中断，则：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">int</span> <span class="hljs-title function_">uart_getc</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-keyword">while</span> (<span class="hljs-number">0</span> == (uart_read_reg(LSR) &amp; LSR_RX_READY))<br>        ;<br>    <span class="hljs-keyword">return</span> uart_read_reg(RHR);<br>&#125;<br><br><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * handle a uart interrupt, raised because input has arrived, called from</span><br><span class="hljs-comment"> * trap.c.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">uart_isr</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    uart_putc((<span class="hljs-type">char</span>)uart_getc());<br>    <span class="hljs-comment">/* add a new line just to look better */</span><br>    uart_putc(<span class="hljs-string">&#x27;\n&#x27;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>因此，它接受到字符后，又将字符打印到终端了。</p>
+<p>运行程序：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs bash">$ make run<br>Press Ctrl-A and <span class="hljs-keyword">then</span> X to <span class="hljs-built_in">exit</span> QEMU<br>------------------------------------<br>Hello, RVOS!<br>HEAP_START = 0x800070ec(aligned to 0x80008000), HEAP_SIZE = 0x07ff8f14,<br>num of reserved pages = 8, num of pages to be allocated <span class="hljs-keyword">for</span> heap = 32752<br>TEXT:   0x80000000 -&gt; 0x800036c8<br>RODATA: 0x800036c8 -&gt; 0x80003a02<br>DATA:   0x80004000 -&gt; 0x80004004<br>BSS:    0x80004010 -&gt; 0x800070ec<br>HEAP:   0x80010000 -&gt; 0x88000000<br>Task 0: Created!<br>Task 0: Running...<br>Task 1: Created!<br>Task 1: Running...<br>Task 0: Running...<br>external interruption!<br>d<br>Task 1: Running...<br>external interruption!<br><br></code></pre></td></tr></table></figure>
+
+<p>在 RISC-V 架构中，UART（通用异步收发器）通过 PLIC（平台级中断控制器）向 CPU 发起中断的流程如下：</p>
+<p><strong>1. UART 中断请求：</strong></p>
+<ul>
+<li>当 UART 接收到数据（例如，键盘输入的字符）或发生其他中断事件（例如，发送缓冲区为空）时，它会产生一个中断请求信号。</li>
+<li>这个中断请求信号会连接到 PLIC 的一个外部中断源输入引脚。</li>
+</ul>
+<p><strong>2. PLIC 中断处理：</strong></p>
+<ul>
+<li>PLIC 接收到来自 UART 的中断请求信号。</li>
+<li>PLIC 根据配置的中断优先级和目标 CPU 核心（hart），决定是否将中断请求传递给 CPU。</li>
+<li>如果 PLIC 允许该中断（即，中断使能位已设置，且优先级足够高），它会将中断请求信号发送给目标 CPU 核心。</li>
+</ul>
+<p><strong>3. CPU 中断处理：</strong></p>
+<ul>
+<li>CPU 接收到来自 PLIC 的中断请求信号。</li>
+<li>CPU 根据当前的中断使能状态（例如，<code>mstatus</code> 寄存器中的全局中断使能位）和局部中断使能状态（例如，<code>mie</code> 寄存器中的机器模式中断使能位），决定是否响应中断。</li>
+<li>如果 CPU 允许该中断，它会执行以下操作：<ul>
+<li>保存当前 CPU 的上下文（例如，寄存器状态、程序计数器）。</li>
+<li>跳转到中断处理程序（中断向量表中的相应条目）。</li>
+<li>执行中断处理程序，处理 UART 中断事件。</li>
+<li>恢复之前保存的 CPU 上下文。</li>
+<li>返回到中断发生前的程序执行位置。</li>
+</ul>
+</li>
+</ul>
+<p><strong>关键组件和配置：</strong></p>
+<ul>
+<li><strong>UART 中断使能：</strong><ul>
+<li>UART 内部的寄存器（例如，IER 寄存器）用于启用或禁用特定的 UART 中断事件。</li>
+</ul>
+</li>
+<li><strong>PLIC 中断使能和优先级：</strong><ul>
+<li>PLIC 的寄存器用于配置每个外部中断源的使能状态和优先级。</li>
+<li>PLIC 还允许将中断路由到特定的 CPU 核心。</li>
+</ul>
+</li>
+<li><strong>CPU 中断使能：</strong><ul>
+<li><code>mstatus</code> 寄存器中的全局中断使能位用于控制 CPU 是否响应所有中断。</li>
+<li><code>mie</code> 寄存器中的局部中断使能位用于控制 CPU 响应哪些类型的中断。</li>
+</ul>
+</li>
+<li><strong>中断向量表：</strong><ul>
+<li>中断向量表是一个存储中断处理程序地址的表格。</li>
+<li>CPU 根据中断类型，从中断向量表中查找相应的中断处理程序地址。</li>
+</ul>
+</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/OS/" class="category-chain-item">OS</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/OS/" class="print-no-link">#OS</a>
+      
+        <a href="/tags/riscv/" class="print-no-link">#riscv</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>基于 riscv32 的 OS 设计：外部设备中断（uart）</div>
+      <div>http://blog.luliang.online/2025/03/23/基于riscv32的OS(七)/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年3月23日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/03/24/%E5%9F%BA%E4%BA%8Eriscv32%E7%9A%84OS(%E5%85%AB)/" title="基于 riscv32 的 OS 设计：硬件定时器">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">基于 riscv32 的 OS 设计：硬件定时器</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/03/21/%E5%9F%BA%E4%BA%8Eriscv32%E7%9A%84OS(%E5%85%AD)/" title="基于 riscv32 的 OS 设计：Trap 和 Exception">
+                        <span class="hidden-mobile">基于 riscv32 的 OS 设计：Trap 和 Exception</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

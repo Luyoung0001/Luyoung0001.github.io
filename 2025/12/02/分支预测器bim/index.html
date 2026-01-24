@@ -1,0 +1,764 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="bimThis module implements a Bimodal Branch Predictor using 2-bit saturating counters. The prediction is based on the MSB of the counter:  Counter &#x3D; 0 (00): Strongly Not Taken Counter &#x3D; 1 (01">
+<meta property="og:type" content="article">
+<meta property="og:title" content="riscv-boom&#39;s bim">
+<meta property="og:url" content="http://blog.luliang.online/2025/12/02/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E5%99%A8bim/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="bimThis module implements a Bimodal Branch Predictor using 2-bit saturating counters. The prediction is based on the MSB of the counter:  Counter &#x3D; 0 (00): Strongly Not Taken Counter &#x3D; 1 (01">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-12-02T07:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.450Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="分支预测">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>riscv-boom&#39;s bim - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="riscv-boom&#39;s bim"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-12-02 15:03" pubdate>
+          2025年12月2日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          15 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">riscv-boom&#39;s bim</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="bim"><a href="#bim" class="headerlink" title="bim"></a>bim</h2><p>This module implements a Bimodal Branch Predictor using 2-bit saturating counters. The prediction is based on the MSB of the counter:</p>
+<ul>
+<li>Counter &#x3D; 0 (00): Strongly Not Taken</li>
+<li>Counter &#x3D; 1 (01): Weakly Not Taken</li>
+<li>Counter &#x3D; 2 (10): Weakly Taken</li>
+<li>Counter &#x3D; 3 (11): Strongly Taken</li>
+</ul>
+<p>Key Features:</p>
+<ul>
+<li>Multi-column memory organization for banking</li>
+<li>Write bypass to handle read-after-write hazards</li>
+<li>Pipeline stages: s0 (request) -&gt; s1 (SRAM read) -&gt; s2 (response)</li>
+</ul>
+<h2 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h2><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BoomBIMParams</span>(<span class="hljs-params"></span></span><br><span class="hljs-params"><span class="hljs-class">  nSets: <span class="hljs-type">Int</span> = 2048,     <span class="hljs-comment">// 总条目数</span></span></span><br><span class="hljs-params"><span class="hljs-class">  nCols: <span class="hljs-type">Int</span> = 8,         <span class="hljs-comment">// 列数 (关键创新)</span></span></span><br><span class="hljs-params"><span class="hljs-class">  singlePorted: <span class="hljs-type">Boolean</span> = true, <span class="hljs-comment">// 是否用单端口 SRAM</span></span></span><br><span class="hljs-params"><span class="hljs-class">  useFlops: <span class="hljs-type">Boolean</span> = false,   <span class="hljs-comment">// 是否用寄存器阵列</span></span></span><br><span class="hljs-params"><span class="hljs-class">  slow: <span class="hljs-type">Boolean</span> = false        <span class="hljs-comment">// 是否用慢速模式</span></span></span><br><span class="hljs-params"><span class="hljs-class"></span>)</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="元数据"><a href="#元数据" class="headerlink" title="元数据"></a>元数据</h2><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BIMMeta</span>(<span class="hljs-params">implicit p: <span class="hljs-type">Parameters</span></span>) <span class="hljs-keyword">extends</span> <span class="hljs-title">BoomBundle</span> ...</span><br>&#123;<br>  <span class="hljs-keyword">val</span> bims  = <span class="hljs-type">Vec</span>(bankWidth, <span class="hljs-type">UInt</span>(<span class="hljs-number">2.</span><span class="hljs-type">W</span>))<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="地址分解"><a href="#地址分解" class="headerlink" title="地址分解"></a>地址分解</h2><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-comment">// s0_idx 是来自上游的、完整的 11-bit 索引 (log2(2048)=11)</span><br><span class="hljs-keyword">val</span> s0_col_mask = <span class="hljs-type">UIntToOH</span>(s0_idx(log2Ceil(nCols)<span class="hljs-number">-1</span>,<span class="hljs-number">0</span>)) &amp; <span class="hljs-type">Fill</span>(nCols, s0_valid)<br><span class="hljs-keyword">val</span> s0_col_idx  = s0_idx &gt;&gt; log2Ceil(nCols) <span class="hljs-comment">// s0_idx &gt;&gt; 3</span><br><br></code></pre></td></tr></table></figure>
+
+<h2 id="更新bim"><a href="#更新bim" class="headerlink" title="更新bim"></a>更新bim</h2><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-keyword">for</span> (c &lt;- <span class="hljs-number">0</span> until nCols) &#123;<br>    <span class="hljs-keyword">val</span> rdata = <span class="hljs-type">Wire</span>(<span class="hljs-type">Vec</span>(bankWidth, <span class="hljs-type">UInt</span>(<span class="hljs-number">2.</span><span class="hljs-type">W</span>)))<br>    rdata := <span class="hljs-type">DontCare</span><br>    <span class="hljs-keyword">val</span> (ren, ridx) = <span class="hljs-keyword">if</span> (params.slow) (s1_col_mask(c), s1_col_idx) <span class="hljs-keyword">else</span> (s0_col_mask(c), s0_col_idx)<br>    <span class="hljs-keyword">val</span> wen = <span class="hljs-type">WireInit</span>(doing_reset || (s1_update.valid &amp;&amp; s1_update.bits.is_commit_update &amp;&amp; s1_update_col_mask(c) &amp;&amp; !ren))<br>    <span class="hljs-keyword">if</span> (params.slow) &#123;<br>      s2_req_rdata_all(c) := rdata<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>      s2_req_rdata_all(c) := <span class="hljs-type">RegNext</span>(rdata)<br>    &#125;<br>    <span class="hljs-keyword">if</span> (params.useFlops) &#123;<br>      <span class="hljs-keyword">val</span> data = <span class="hljs-type">Reg</span>(<span class="hljs-type">Vec</span>(nSetsPerCol, <span class="hljs-type">Vec</span>(bankWidth, <span class="hljs-type">UInt</span>(<span class="hljs-number">2.</span><span class="hljs-type">W</span>))))<br>      when (wen &amp;&amp; doing_reset) &#123;<br>        data(reset_idx) := <span class="hljs-type">VecInit</span>(<span class="hljs-type">Seq</span>.fill(bankWidth) &#123; <span class="hljs-number">2.</span><span class="hljs-type">U</span> &#125;)<br>      &#125; .elsewhen (wen) &#123;<br>        <span class="hljs-keyword">for</span> (i &lt;- <span class="hljs-number">0</span> until bankWidth) &#123;<br>          when (s1_update_wmask(i)) &#123;<br>            data(s1_update_col_idx)(i) := s1_update_wdata(i)<br>          &#125;<br>        &#125;<br>      &#125;<br>      when (<span class="hljs-type">RegNext</span>(ren) &amp;&amp; !(wen &amp;&amp; params.singlePorted.<span class="hljs-type">B</span>)) &#123;<br>        rdata := data(<span class="hljs-type">RegNext</span>(ridx))<br>      &#125;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>      <span class="hljs-keyword">val</span> data = <span class="hljs-type">SyncReadMem</span>(nSetsPerCol, <span class="hljs-type">Vec</span>(bankWidth, <span class="hljs-type">UInt</span>(<span class="hljs-number">2.</span><span class="hljs-type">W</span>)))<br>      data.suggestName(<span class="hljs-string">s&quot;bim_col_<span class="hljs-subst">$&#123;c&#125;</span>&quot;</span>)<br>      <span class="hljs-keyword">val</span> r = <span class="hljs-keyword">if</span> (params.singlePorted) data.read(ridx, ren &amp;&amp; !wen) <span class="hljs-keyword">else</span> data.read(ridx, ren)<br>      rdata := r<br>      when (wen) &#123;<br>        <span class="hljs-keyword">val</span> widx = <span class="hljs-type">Mux</span>(doing_reset, reset_idx, s1_update_col_idx)<br>        <span class="hljs-keyword">val</span> wdata = <span class="hljs-type">Mux</span>(doing_reset, <span class="hljs-type">VecInit</span>(<span class="hljs-type">Seq</span>.fill(bankWidth) &#123; <span class="hljs-number">2.</span><span class="hljs-type">U</span> &#125;), s1_update_wdata)<br>        <span class="hljs-keyword">val</span> wmask = <span class="hljs-type">Mux</span>(doing_reset, (~(<span class="hljs-number">0.</span><span class="hljs-type">U</span>(bankWidth.<span class="hljs-type">W</span>))), s1_update_wmask.asUInt)<br>        data.write(widx, wdata, wmask.asBools)<br>      &#125;<br>    &#125;<br>  &#125;<br></code></pre></td></tr></table></figure>
+<h2 id="BIM-分支预测器工作流程详解"><a href="#BIM-分支预测器工作流程详解" class="headerlink" title="BIM 分支预测器工作流程详解"></a>BIM 分支预测器工作流程详解</h2><h3 id="1-整体架构概览"><a href="#1-整体架构概览" class="headerlink" title="1. 整体架构概览"></a>1. 整体架构概览</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────┐<br>│                         BIM Branch Predictor                                 │<br>│                                                                              │<br>│  ┌─────────────────────────────────────────────────────────────────────┐    │<br>│  │                    存储结构 (nCols 个列)                              │    │<br>│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐       ┌──────────┐          │    │<br>│  │  │  Col 0   │ │  Col 1   │ │  Col 2   │  ...  │ Col N-1  │          │    │<br>│  │  │ ──────── │ │ ──────── │ │ ──────── │       │ ──────── │          │    │<br>│  │  │ Set 0    │ │ Set 0    │ │ Set 0    │       │ Set 0    │          │    │<br>│  │  │ Set 1    │ │ Set 1    │ │ Set 1    │       │ Set 1    │          │    │<br>│  │  │  ...     │ │  ...     │ │  ...     │       │  ...     │          │    │<br>│  │  │ Set M-1  │ │ Set M-1  │ │ Set M-1  │       │ Set M-1  │          │    │<br>│  │  └──────────┘ └──────────┘ └──────────┘       └──────────┘          │    │<br>│  │                                                                      │    │<br>│  │  每个 Set 包含 bankWidth 个 2-bit 计数器                               │    │<br>│  │  总共: nSets = 2048, nCols = 8, nSetsPerCol = 256                    │    │<br>│  └─────────────────────────────────────────────────────────────────────┘    │<br>│                                                                              │<br>│  ┌─────────────────────────────────────────────────────────────────────┐    │<br>│  │                    写旁路缓冲 (Write Bypass)                          │    │<br>│  │  ┌─────────────────────┐  ┌─────────────────────┐                    │    │<br>│  │  │ Entry 0             │  │ Entry 1             │                    │    │<br>│  │  │ idx: wrbypass_idxs  │  │ idx: wrbypass_idxs  │                    │    │<br>│  │  │ data: wrbypass      │  │ data: wrbypass      │                    │    │<br>│  │  └─────────────────────┘  └─────────────────────┘                    │    │<br>│  └─────────────────────────────────────────────────────────────────────┘    │<br>└─────────────────────────────────────────────────────────────────────────────┘<br><br></code></pre></td></tr></table></figure>
+<h3 id="2-2-bit-饱和计数器状态机"><a href="#2-2-bit-饱和计数器状态机" class="headerlink" title="2. 2-bit 饱和计数器状态机"></a>2. 2-bit 饱和计数器状态机</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>                    ┌───────────────────────────────────────┐<br>                    │        2-bit 饱和计数器 (BIM)          │<br>                    └───────────────────────────────────────┘<br><br>     预测: Not Taken (NT)              预测: Taken (T)<br>    ┌─────────────────────┐         ┌─────────────────────┐<br>    │                     │         │                     │<br>    │  ┌─────┐   ┌─────┐  │         │  ┌─────┐   ┌─────┐  │<br>    │  │ 00  │◄──│ 01  │◄─┼─────────┼──│ 10  │◄──│ 11  │  │<br>    │  │ SNT │   │ WNT │  │   NT    │  │ WT  │   │ ST  │  │<br>    │  └──┬──┘   └──┬──┘  │         │  └──┬──┘   └──┬──┘  │<br>    │     │        │      │         │     │        │      │<br>    │     └───┬────┘      │         │     └───┬────┘      │<br>    │         │           │         │         │           │<br>    └─────────┼───────────┘         └─────────┼───────────┘<br>              │                               │<br>              │           Taken               │<br>              └───────────────────────────────┘<br><br>    SNT = 强不跳转 (00)    WNT = 弱不跳转 (01)<br>    WT  = 弱跳转   (10)    ST  = 强跳转   (11)<br><br>    预测逻辑: 取最高位 bit[1]，若为1则预测跳转<br><br>bimWrite 函数逻辑 (bim.scala:43-49):<br>输入: 当前值 v, 是否跳转 taken<br>输出: 新的计数器值<br><br>if (v == 3 &amp;&amp; taken)     → 保持 3 (已饱和)<br>elif (v == 0 &amp;&amp; !taken)  → 保持 0 (已饱和)<br>elif (taken)             → v + 1 (增加)<br>else                     → v - 1 (减少)<br><br></code></pre></td></tr></table></figure>
+<h3 id="3-索引计算与列选择"><a href="#3-索引计算与列选择" class="headerlink" title="3. 索引计算与列选择"></a>3. 索引计算与列选择</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────┐<br>│                        PC 索引映射                                   │<br>└─────────────────────────────────────────────────────────────────────┘<br><br>         PC / s0_idx (假设 log2(nSets) = 11 bits)<br>    ┌────────────────────────────────────────┐<br>    │  高位 (8 bits)    │   低位 (3 bits)    │<br>    │  col_idx          │   col_mask         │<br>    └────────────────────────────────────────┘<br>              │                   │<br>              │                   ▼<br>              │         ┌─────────────────────┐<br>              │         │   UIntToOH 解码     │<br>              │         │ 生成列选择 one-hot   │<br>              │         └─────────────────────┘<br>              │                   │<br>              ▼                   ▼<br>    ┌─────────────────┐  ┌──────────────────────────────┐<br>    │ 行地址 (row)    │  │ 列选择掩码 (col_mask)         │<br>    │ 选择哪一行 set  │  │ 例: 低3位=5 → 00100000        │<br>    └─────────────────┘  └──────────────────────────────┘<br><br>示例:<br>  s0_idx = 0b10110101011 (11 bits, nSets=2048)<br><br>  col_mask = UIntToOH(011) = 0b00001000  (选择 Col 3)<br>  col_idx  = 0b10110101 = 181           (选择第 181 行)<br><br></code></pre></td></tr></table></figure>
+<h3 id="4-流水线时序-非慢速模式"><a href="#4-流水线时序-非慢速模式" class="headerlink" title="4. 流水线时序 (非慢速模式)"></a>4. 流水线时序 (非慢速模式)</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────┐<br>│                            预测流水线时序                                    │<br>└─────────────────────────────────────────────────────────────────────────────┘<br><br>  周期     S0 (取指)        S1 (访问)         S2 (输出)         S3 (延迟输出)<br>   │           │                │                 │                  │<br>   ▼           ▼                ▼                 ▼                  ▼<br> ──────────────────────────────────────────────────────────────────────────────<br>   │                            │                 │                  │<br>   │  ┌──────────────┐          │                 │                  │<br>   │  │ s0_idx 计算   │          │                 │                  │<br>   │  │ s0_col_mask   │          │                 │                  │<br>   │  │ s0_col_idx    │──────────│                 │                  │<br>   │  └──────────────┘   RegNext │                 │                  │<br>   │                            │                 │                  │<br>   │                     ┌──────▼──────┐          │                  │<br>   │                     │ s1_col_mask │          │                  │<br>   │                     │ s1_col_idx  │          │                  │<br>   │                     │             │          │                  │<br>   │                     │ 发起 SRAM   │          │                  │<br>   │                     │ 读请求      │──────────│                  │<br>   │                     └─────────────┘  RegNext │                  │<br>   │                                              │                  │<br>   │                                      ┌───────▼───────┐          │<br>   │                                      │ s2_req_rdata  │          │<br>   │                                      │ (SRAM 返回)   │          │<br>   │                                      │               │          │<br>   │                                      │ s2_resp 计算  │──────────│<br>   │                                      │ = rdata[1]    │  RegNext │<br>   │                                      │               │          │<br>   │                                      │ io.resp.f2    │          │<br>   │                                      └───────────────┘          │<br>   │                                                                 │<br>   │                                                         ┌───────▼───────┐<br>   │                                                         │ io.resp.f3    │<br>   │                                                         │ io.f3_meta    │<br>   │                                                         └───────────────┘<br> ──────────────────────────────────────────────────────────────────────────────<br><br>    关键路径:<br>    - f2 输出: S0 索引 → S1 SRAM 读 → S2 输出预测<br>    - f3 输出: 再延迟一个周期用于其他预测器使用<br><br></code></pre></td></tr></table></figure>
+<h3 id="5-更新流水线"><a href="#5-更新流水线" class="headerlink" title="5. 更新流水线"></a>5. 更新流水线</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────┐<br>│                            更新路径详解                                      │<br>└─────────────────────────────────────────────────────────────────────────────┘<br><br>                         s1_update (来自后端的更新请求)<br>                                    │<br>                                    ▼<br>        ┌───────────────────────────────────────────────────────────┐<br>        │                    解析更新信息                            │<br>        │  s1_update_idx      = 更新地址索引                         │<br>        │  s1_update_meta     = 保存的旧 BIM 值                      │<br>        │  s1_update_col_mask = 列选择掩码                           │<br>        │  s1_update_col_idx  = 行地址                              │<br>        └───────────────────────────────────────────────────────────┘<br>                                    │<br>                                    ▼<br>        ┌───────────────────────────────────────────────────────────┐<br>        │                    写旁路检查                              │<br>        │                                                           │<br>        │   wrbypass_hits = 检查更新地址是否命中旁路缓冲              │<br>        │                                                           │<br>        │   if (hit) &#123;                                              │<br>        │       old_bim = wrbypass[hit_idx]  // 使用旁路中的新值     │<br>        │   &#125; else &#123;                                                │<br>        │       old_bim = s1_update_meta     // 使用元数据中的旧值    │<br>        │   &#125;                                                       │<br>        └───────────────────────────────────────────────────────────┘<br>                                    │<br>                                    ▼<br>        ┌───────────────────────────────────────────────────────────┐<br>        │              计算新的计数器值 (每个 bank)                   │<br>        │                                                           │<br>        │  for w in 0..bankWidth:                                   │<br>        │    if (br_mask[w] || cfi_idx == w):                       │<br>        │      was_taken = 判断该指令是否真实跳转                     │<br>        │      s1_update_wdata[w] = bimWrite(old_bim[w], was_taken) │<br>        │      s1_update_wmask[w] = true                            │<br>        └───────────────────────────────────────────────────────────┘<br>                                    │<br>                    ┌───────────────┴───────────────┐<br>                    ▼                               ▼<br>        ┌───────────────────────┐       ┌───────────────────────┐<br>        │     写入 SRAM          │       │   更新写旁路缓冲       │<br>        │                        │       │                        │<br>        │  - 仅在 commit 时写入   │       │  if (hit):             │<br>        │  - 读写冲突时优先读     │       │    更新原条目           │<br>        │                        │       │  else:                 │<br>        │                        │       │    分配新条目           │<br>        │                        │       │    wrbypass_enq_idx++  │<br>        └───────────────────────┘       └───────────────────────┘<br><br></code></pre></td></tr></table></figure>
+<h3 id="6-写旁路机制详解"><a href="#6-写旁路机制详解" class="headerlink" title="6. 写旁路机制详解"></a>6. 写旁路机制详解</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────┐<br>│                         写旁路 (Write Bypass) 机制                           │<br>└─────────────────────────────────────────────────────────────────────────────┘<br><br>问题: SRAM 写入后不能立即读出 (需要至少1个周期延迟)<br>解决: 用寄存器缓存最近的写入，读取时先检查旁路<br><br>结构:<br>    ┌────────────────────────────────────────────────────────────┐<br>    │  wrbypass_idxs[0]  │  wrbypass_idxs[1]  │ (地址标签)        │<br>    ├────────────────────┼────────────────────┤                   │<br>    │  wrbypass[0]       │  wrbypass[1]       │ (数据: bankWidth  │<br>    │  [b0][b1]..[bN]    │  [b0][b1]..[bN]    │   个 2-bit 计数器) │<br>    └────────────────────┴────────────────────┘                   │<br>                                                                  │<br>    wrbypass_enq_idx: 循环队列入队指针                              │<br>    └────────────────────────────────────────────────────────────┘<br><br>工作流程:<br><br>    更新请求到达<br>         │<br>         ▼<br>    ┌─────────────────────────────────────┐<br>    │ 比较 s1_update_idx 与所有 wrbypass_idxs │<br>    └─────────────────────────────────────┘<br>         │<br>    ┌────┴────┐<br>    │         │<br>    ▼         ▼<br>  命中       未命中<br>    │         │<br>    │         ▼<br>    │    使用 s1_update_meta<br>    │    (原始预测时保存的值)<br>    │         │<br>    ▼         │<br>使用 wrbypass │<br>(最新写入值)  │<br>    │         │<br>    └────┬────┘<br>         │<br>         ▼<br>    计算新值并写入<br>         │<br>         ▼<br>    ┌────┴────┐<br>    │         │<br>    ▼         ▼<br>  命中       未命中<br>    │         │<br>    │         ▼<br>    │    分配新条目<br>    │    wrbypass_enq_idx++<br>    │         │<br>    ▼         │<br>更新原条目     │<br>    │         │<br>    └────┬────┘<br>         │<br>         ▼<br>       完成<br><br>这解决了 &quot;read-after-write&quot; 冲突问题<br><br></code></pre></td></tr></table></figure>
+<h3 id="7-多列存储结构详解"><a href="#7-多列存储结构详解" class="headerlink" title="7. 多列存储结构详解"></a>7. 多列存储结构详解</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────┐<br>│                        列组织 (Column Organization)                          │<br>└─────────────────────────────────────────────────────────────────────────────┘<br><br>为什么要分列?<br>  1. 减少每个 SRAM 块的大小，便于物理实现<br>  2. 在单端口配置下，不同列可以同时读写不同地址<br><br>存储布局:<br>                     nCols = 8 列<br>    ┌─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┐<br>    │Col 0│Col 1│Col 2│Col 3│Col 4│Col 5│Col 6│Col 7│<br>    ├─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤<br>Row0│ S0  │ S1  │ S2  │ S3  │ S4  │ S5  │ S6  │ S7  │<br>    ├─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤<br>Row1│ S8  │ S9  │ S10 │ S11 │ S12 │ S13 │ S14 │ S15 │<br>    ├─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤<br> ...│ ... │ ... │ ... │ ... │ ... │ ... │ ... │ ... │<br>    ├─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤<br>R255│S2040│S2041│S2042│S2043│S2044│S2045│S2046│S2047│<br>    └─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┘<br><br>    每个单元格 (Set) 包含:<br>    ┌───────────────────────────────────────────┐<br>    │  Bank 0   Bank 1   Bank 2  ...  Bank N-1  │<br>    │  ┌─────┐ ┌─────┐ ┌─────┐      ┌─────┐     │<br>    │  │ 2b  │ │ 2b  │ │ 2b  │ ... │ 2b  │     │<br>    │  └─────┘ └─────┘ └─────┘      └─────┘     │<br>    └───────────────────────────────────────────┘<br><br>    总位宽 = bankWidth * 2 bits<br><br>读取路径:<br>    s0_idx 索引<br>         │<br>         ├─ 低 3 位 → col_mask (选择哪一列)<br>         │<br>         └─ 高 8 位 → col_idx  (选择哪一行)<br>                           │<br>                           ▼<br>                    只有一列被激活读取<br>                           │<br>                           ▼<br>                    Mux1H(col_mask, 所有列输出)<br>                           │<br>                           ▼<br>                    s2_req_rdata<br><br></code></pre></td></tr></table></figure>
+<h3 id="8-复位逻辑"><a href="#8-复位逻辑" class="headerlink" title="8. 复位逻辑"></a>8. 复位逻辑</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────┐<br>│                            复位流程                                          │<br>└─────────────────────────────────────────────────────────────────────────────┘<br><br>    系统复位<br>        │<br>        ▼<br>    doing_reset = true<br>    reset_idx = 0<br>        │<br>        ▼<br>    ┌─────────────────────────────────────┐<br>    │  每个周期:                           │<br>    │    1. 向所有列的 reset_idx 行写入     │<br>    │       初始值 = 2 (弱跳转 WT)          │<br>    │    2. reset_idx++                   │<br>    │    3. 预测输出被屏蔽 (!doing_reset)   │<br>    └─────────────────────────────────────┘<br>        │<br>        │  经过 nSetsPerCol (256) 个周期<br>        ▼<br>    reset_idx == nSetsPerCol - 1<br>        │<br>        ▼<br>    doing_reset = false<br>        │<br>        ▼<br>    正常工作<br><br>注意: 复位写入优先级高于正常更新写入<br>      wdata = Mux(doing_reset, 初始值, 更新值)<br><br></code></pre></td></tr></table></figure>
+<h3 id="9-单端口-vs-双端口模式"><a href="#9-单端口-vs-双端口模式" class="headerlink" title="9. 单端口 vs 双端口模式"></a>9. 单端口 vs 双端口模式</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────┐<br>│                     存储访问模式 (singlePorted 参数)                         │<br>└─────────────────────────────────────────────────────────────────────────────┘<br><br>单端口模式 (singlePorted = true, 默认):<br>─────────────────────────────────────────<br>    同一周期只能读或写，不能同时进行<br><br>    读请求       写请求<br>        │           │<br>        ▼           ▼<br>    ┌─────────────────────────────────┐<br>    │  if (读 &amp;&amp; 写 &amp;&amp; 同一列) &#123;       │<br>    │      优先写，禁止读              │<br>    │      ren = ren &amp;&amp; !wen          │<br>    │  &#125;                              │<br>    └─────────────────────────────────┘<br><br>    优势: 面积小，功耗低<br>    劣势: 可能丢失预测机会<br><br>双端口模式 (singlePorted = false):<br>─────────────────────────────────────────<br>    可同时读写<br><br>    读请求       写请求<br>        │           │<br>        ▼           ▼<br>    ┌─────────────────────────────────┐<br>    │  读写可以并行进行                 │<br>    │  ren = ren (不受写影响)          │<br>    └─────────────────────────────────┘<br><br>    优势: 不丢失预测<br>    劣势: 面积大，功耗高<br><br></code></pre></td></tr></table></figure>
+<h3 id="10-完整数据流总结"><a href="#10-完整数据流总结" class="headerlink" title="10. 完整数据流总结"></a>10. 完整数据流总结</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────┐<br>│                         完整数据流图                                         │<br>└─────────────────────────────────────────────────────────────────────────────┘<br><br>                              ┌─────────────────┐<br>                              │    取指请求      │<br>                              │   (s0_idx)      │<br>                              └────────┬────────┘<br>                                       │<br>              ┌────────────────────────┼────────────────────────┐<br>              │                        │                        │<br>              ▼                        ▼                        ▼<br>    ┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐<br>    │  计算 col_mask   │      │  计算 col_idx   │      │    更新路径      │<br>    │  (列选择 1-hot)  │      │  (行地址)       │      │  (s1_update)    │<br>    └────────┬────────┘      └────────┬────────┘      └────────┬────────┘<br>             │                        │                        │<br>             └────────────┬───────────┘                        │<br>                          │                                    │<br>                          ▼                                    ▼<br>                   ┌──────────────┐                   ┌──────────────┐<br>                   │   S1: 寄存    │                   │  写旁路检查   │<br>                   │   col_mask    │                   │              │<br>                   │   col_idx     │                   │              │<br>                   └──────┬───────┘                   └──────┬───────┘<br>                          │                                   │<br>                          ▼                                   ▼<br>             ┌────────────────────────────────────────────────────┐<br>             │                  SRAM 阵列 (nCols 列)              │<br>             │  ┌────────┐  ┌────────┐      ┌────────┐           │<br>             │  │ Col 0  │  │ Col 1  │ ...  │ Col N-1│           │<br>             │  │        │  │        │      │        │           │<br>             │  │ R   W  │  │ R   W  │      │ R   W  │           │<br>             │  └────────┘  └────────┘      └────────┘           │<br>             └────────────────────┬───────────────────────────────┘<br>                                  │<br>                                  ▼<br>                          ┌──────────────┐<br>                          │   S2: Mux1H  │<br>                          │  选择对应列   │<br>                          │  s2_req_rdata│<br>                          └──────┬───────┘<br>                                 │<br>                    ┌────────────┼────────────┐<br>                    │            │            │<br>                    ▼            ▼            ▼<br>           ┌─────────────┐ ┌──────────┐ ┌──────────┐<br>           │ 预测输出     │ │ 元数据    │ │ 更新旁路  │<br>           │             │ │          │ │          │<br>           │ taken =     │ │ bims =   │ │ 写入     │<br>           │ rdata[w][1] │ │ rdata    │ │ wrbypass │<br>           └──────┬──────┘ └────┬─────┘ └──────────┘<br>                  │             │<br>                  ▼             ▼<br>           ┌─────────────┐ ┌──────────┐<br>           │ io.resp.f2  │ │ S3: 寄存  │<br>           │ (即时输出)   │ │          │<br>           └─────────────┘ └────┬─────┘<br>                                │<br>                    ┌───────────┴───────────┐<br>                    ▼                       ▼<br>             ┌─────────────┐         ┌──────────┐<br>             │ io.resp.f3  │         │io.f3_meta│<br>             │ (延迟输出)   │         │(给TAGE用)│<br>             └─────────────┘         └──────────┘<br><br></code></pre></td></tr></table></figure>
+<h3 id="关键参数总结"><a href="#关键参数总结" class="headerlink" title="关键参数总结"></a>关键参数总结</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>默认值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>nSets</td>
+<td>2048</td>
+<td>总条目数</td>
+</tr>
+<tr>
+<td>nCols</td>
+<td>8</td>
+<td>列数 (存储分区数)</td>
+</tr>
+<tr>
+<td>nSetsPerCol</td>
+<td>256</td>
+<td>每列条目数</td>
+</tr>
+<tr>
+<td>nWrBypassEntries</td>
+<td>2</td>
+<td>写旁路缓冲条目数</td>
+</tr>
+<tr>
+<td>bankWidth</td>
+<td>来自参数</td>
+<td>每个取指包的指令数</td>
+</tr>
+<tr>
+<td>singlePorted</td>
+<td>true</td>
+<td>是否单端口 SRAM</td>
+</tr>
+<tr>
+<td>useFlops</td>
+<td>false</td>
+<td>是否用寄存器代替 SRAM</td>
+</tr>
+<tr>
+<td>slow</td>
+<td>false</td>
+<td>慢速模式 (多一拍延迟)</td>
+</tr>
+</tbody></table>
+<p>BIM 是一个简单但有效的基础预测器，通常与 TAGE 等更复杂的预测器配合使用，TAGE 的元数据中会包含 BIM 的预测值以便在更新时使用。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/" class="category-chain-item">计算机体系结构</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B/" class="print-no-link">#分支预测</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>riscv-boom&#39;s bim</div>
+      <div>http://blog.luliang.online/2025/12/02/分支预测器bim/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年12月2日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/12/02/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E5%99%A8btb/" title="riscv-boom&#39;s btb">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">riscv-boom&#39;s btb</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/12/02/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E5%99%A8ubtb/" title="riscv-boom&#39;s ubtb">
+                        <span class="hidden-mobile">riscv-boom&#39;s ubtb</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -1,0 +1,1131 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言昨天面试，有一个问题问到了链接脚本以及 elf 文件结构。感觉回答得不怎么样，很多概念的细节都想不起来了，面试官也没深问。于是我立即决定做一个实验好好回顾一下这一块儿的知识：  写一个比较复杂的测试程序，最好能包含各个段； 写一个简单的启动代码； 写一个简单的链接脚本； 写一个简单的库，包含类似于 printf、memcopy； 然后编译、链接，放在裸机上执行。  项目结构1234567891">
+<meta property="og:type" content="article">
+<meta property="og:title" content="编译和链接：以 qemu 上的裸机程序为例">
+<meta property="og:url" content="http://blog.luliang.online/2025/10/27/%E7%BC%96%E8%AF%91%E5%92%8C%E9%93%BE%E6%8E%A5/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="前言昨天面试，有一个问题问到了链接脚本以及 elf 文件结构。感觉回答得不怎么样，很多概念的细节都想不起来了，面试官也没深问。于是我立即决定做一个实验好好回顾一下这一块儿的知识：  写一个比较复杂的测试程序，最好能包含各个段； 写一个简单的启动代码； 写一个简单的链接脚本； 写一个简单的库，包含类似于 printf、memcopy； 然后编译、链接，放在裸机上执行。  项目结构1234567891">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-10-27T07:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.456Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="riscv32">
+<meta property="article:tag" content="编译">
+<meta property="article:tag" content="链接">
+<meta property="article:tag" content="qemu">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>编译和链接：以 qemu 上的裸机程序为例 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="编译和链接：以 qemu 上的裸机程序为例"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-10-27 15:03" pubdate>
+          2025年10月27日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          40 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">编译和链接：以 qemu 上的裸机程序为例</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>昨天面试，有一个问题问到了链接脚本以及 elf 文件结构。感觉回答得不怎么样，很多概念的细节都想不起来了，面试官也没深问。于是我立即决定做一个实验好好回顾一下这一块儿的知识：</p>
+<ul>
+<li>写一个比较复杂的测试程序，最好能包含各个段；</li>
+<li>写一个简单的启动代码；</li>
+<li>写一个简单的链接脚本；</li>
+<li>写一个简单的库，包含类似于 printf、memcopy；</li>
+<li>然后编译、链接，放在裸机上执行。</li>
+</ul>
+<h2 id="项目结构"><a href="#项目结构" class="headerlink" title="项目结构"></a>项目结构</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs bash">tree .<br>.<br>├── compile_commands.json<br>├── debug.gdb<br>├── include<br>│   ├── hello.h<br>│   ├── mylib.h<br>│   └── world.h<br>├── linker.ld<br>├── main.c<br>├── Makefile<br>├── qemu.log<br>├── README.md<br>└── src<br>    ├── hello.c<br>    ├── mylib.c<br>    ├── startup.s<br>    ├── trm.c<br>    └── world.c<br></code></pre></td></tr></table></figure>
+
+<p>include&#x2F; 中放的是各个头文件，src&#x2F; 中放的是函数的实现。其它文件比如链接脚本 linker.ld、main.c 放在根目录。</p>
+<h2 id="部分代码以及说明"><a href="#部分代码以及说明" class="headerlink" title="部分代码以及说明"></a>部分代码以及说明</h2><p>mylib.h：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">ifndef</span> _MYLIB_H_</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> _MYLIB_H_</span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdint.h&gt;</span></span><br><span class="hljs-type">void</span>* <span class="hljs-title function_">memcpy</span><span class="hljs-params">(<span class="hljs-type">void</span>* out, <span class="hljs-type">const</span> <span class="hljs-type">void</span>* in, <span class="hljs-type">uint32_t</span> n)</span>;<br><span class="hljs-type">void</span> <span class="hljs-title function_">print_str</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">char</span> *s)</span>;<br><span class="hljs-type">void</span> <span class="hljs-title function_">uart_putc</span><span class="hljs-params">(<span class="hljs-type">char</span> c)</span>;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br></code></pre></td></tr></table></figure>
+
+<p>hello.h、world.h:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">ifndef</span> _HELLO_H_</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> _HELLO_H_</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">say_hello</span><span class="hljs-params">()</span>;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br><br><br><span class="hljs-meta">#<span class="hljs-keyword">ifndef</span> _WORLD_H_</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> _WORLD_H_</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">say_world</span><span class="hljs-params">()</span>;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br></code></pre></td></tr></table></figure>
+
+<p>接着是启动代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs S">.section entry, &quot;ax&quot;<br>.globl _start<br>.type _start, @function<br><br>_start:<br>  mv s0, zero<br>  la sp, _stack_pointer<br>  jal _trm_init<br></code></pre></td></tr></table></figure>
+
+<p>_stack_pointer 来自于 链接脚本中定义的符号：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><code class="hljs c">OUTPUT_FORMAT(<span class="hljs-string">&quot;elf32-littleriscv&quot;</span>)<br>OUTPUT_ARCH(riscv)<br>ENTRY(_start)<br><br>MEMORY &#123;<br>  flash (rx) : ORIGIN = <span class="hljs-number">0x80000000</span>, LENGTH = <span class="hljs-number">128</span>M<br>  sram (rwx) : ORIGIN = <span class="hljs-number">0x80040000</span>, LENGTH = <span class="hljs-number">128</span>M - <span class="hljs-number">256</span>K<br>&#125;<br><br>SECTIONS &#123;<br>  .entry :ALIGN(<span class="hljs-number">4</span>)&#123;<br>    *(entry)<br>  &#125; &gt; flash<br><br>  .text :ALIGN(<span class="hljs-number">4</span>)&#123;<br>    *(.text*)<br>  &#125; &gt; flash<br><br>  .rodata :ALIGN(<span class="hljs-number">4</span>) &#123;<br>    *(.rodata*)<br>    *(.srodata*)<br>  &#125; &gt; flash<br><br>  .data :ALIGN(<span class="hljs-number">4</span>) &#123;<br>    *(.data*)<br>    *(.sdata*)<br>  &#125; &gt; sram AT&gt; flash<br><br>  _sdata = ADDR(.data);<br>  _edata = ADDR(.data) + SIZEOF(.data);<br>  _sidata = LOADADDR(.data);<br><br>  .bss :ALIGN(<span class="hljs-number">4</span>) &#123;<br>    *(.bss*)<br>    *(.sbss*)<br>    *(.scommon*)<br>  &#125; &gt; sram<br><br>  _sbss = ADDR(.bss);<br>  _ebss = ADDR(.bss) + SIZEOF(.bss);<br><br>  _heap_end = ORIGIN(sram) + LENGTH(sram);<br>  _stack_pointer = _heap_end;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>本来我的想在 0x20000000 处定义 flash，在 0x0f000000 处定义 sram。但是 qemu-system-riscv32 默认从 0x1000 处执行代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs gdb">0x00001000 in ?? ()<br>(gdb) x/20wx 0x1000<br>0x1000:	0x00000297	0x02828613	0xf1402573	0x0202a583<br>0x1010:	0x0182a283	0x00028067	0x80000000	0x00000000<br>0x1020:	0x87e00000	0x00000000	0x4942534f	0x00000002<br>0x1030:	0x80000000	0x00000001	0x00000000	0x00000000<br>0x1040:	0x00000000	0x00000000	0x00000000	0x00000000<br></code></pre></td></tr></table></figure>
+
+<p>也就是这些：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs asm">0:   00000297          auipc   t0,0x0<br>4:   02828613          addi    a2,t0,40<br>8:   f1402573          csrr    a0,mhartid<br>c:   0202a583          lw      a1,32(t0)<br>10:  0182a283          lw      t0,24(t0)<br>14:  00028067          jr      t0<br></code></pre></td></tr></table></figure>
+
+<p>作用就是：</p>
+<ul>
+<li>初始化 t0 和 a2：计算后续数据地址;</li>
+<li>读取 Hart ID：检查当前 CPU 核心（多核场景下可能需要区分）;</li>
+<li>加载配置数据：从 0x1020 和 0x1018 加载参数到 a1 和 t0;</li>
+<li>跳转到主程序：通过 jr t0 跳转到 0x80000000（用户代码入口）。</li>
+</ul>
+<p>既然它能跳转到 0x80000000，那么我就有办法来完成这个实验了：我打算在 0x8000000 处当做 flash、0x80040000 当做 sram 来完成实验。</p>
+<h2 id="链接-链接脚本"><a href="#链接-链接脚本" class="headerlink" title="链接 &amp; 链接脚本"></a>链接 &amp; 链接脚本</h2><p>链接脚本非常重要，我刚开始并没有很好的理解链接脚本中定义的变量，事实上它不是变量，它被称为符号更贴切。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c">_sdata = ADDR(.data);<br>_edata = ADDR(.data) + SIZEOF(.data);<br>_sidata = LOADADDR(.data);<br><br>_sbss = ADDR(.bss);<br>_ebss = ADDR(.bss) + SIZEOF(.bss);<br><br>_heap_end = ORIGIN(sram) + LENGTH(sram);<br>_stack_pointer = _heap_end;<br></code></pre></td></tr></table></figure>
+
+<p>比如对于 _sdata，我之前的理解的是有一个变量 _sdata，它的值是 .data 段的开始地址。后来发现并不是这样，不然无法解释以下代码：<br>trm.c:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;mylib.h&gt;</span></span><br><br><span class="hljs-keyword">extern</span> <span class="hljs-type">char</span> _sidata, _sdata, _edata, _sbss, _ebss;<br><span class="hljs-keyword">extern</span> <span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span>;<br><br><span class="hljs-comment">// 简单串口输出实现</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">uart_putc</span><span class="hljs-params">(<span class="hljs-type">char</span> c)</span> &#123;<br>    <span class="hljs-comment">// 实现向串口发送单个字符</span><br>    <span class="hljs-keyword">volatile</span> <span class="hljs-type">char</span> *uart = (<span class="hljs-keyword">volatile</span> <span class="hljs-type">char</span>*)<span class="hljs-number">0x10000000</span>;<br>    *uart = c;<br>&#125;<br><br><span class="hljs-comment">/* 初始化 .data 段 */</span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">init_data</span><span class="hljs-params">(<span class="hljs-type">char</span>* sidata, <span class="hljs-type">char</span>* sdata, <span class="hljs-type">char</span>* edata)</span> &#123;<br>    <span class="hljs-type">uintptr_t</span> size = (<span class="hljs-type">uintptr_t</span>)edata - (<span class="hljs-type">uintptr_t</span>)sdata;<br>    <span class="hljs-keyword">if</span> (size &gt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-built_in">memcpy</span>((<span class="hljs-type">void</span>*)sdata, (<span class="hljs-type">void</span>*)sidata, size);<br>    &#125;<br>&#125;<br><span class="hljs-comment">/* 清零 .bss 段 */</span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">zero_bss</span><span class="hljs-params">(<span class="hljs-type">char</span>* sbss, <span class="hljs-type">char</span>* ebss)</span> &#123;<br>    <span class="hljs-keyword">while</span> (sbss &lt; ebss) &#123;<br>        *sbss = <span class="hljs-number">0</span>;<br>        sbss++;<br>    &#125;<br>&#125;<br><br><span class="hljs-type">void</span> _trm_init() &#123;<br>    init_data(&amp;_sidata, &amp;_sdata, &amp;_edata);<br>    zero_bss(&amp;_sbss, &amp;_ebss);<br>    (<span class="hljs-type">void</span>) main();<br>    <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这个 C 代码中使用了 extern 关键字来声明char 类型的 _sidata 等来告知编译器外部定义了一个 _sidata 变量。而且这里有一个巧妙的用法：_trm_init() 并没有使用这些变量的值，它使用了这些变量的地址。于是编译器编译好这些代码后会空着这些参数，链接的时候才会去回填这些变量的地址。</p>
+<p>但是事实是，这个变量根本不存在，怎么办呢？于是后面在链接的时候，借助链接脚本，链接器从符号表中找到了符号 _sidata，并且它有地址，这时候就会完成对上述目标文件的回填。</p>
+<p>从 trm.o 文件的信息也可以看到：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs bash">rvojbdump -d ./build/trm.o<br>...<br>000000e0 &lt;_trm_init&gt;:<br>  e0:   ff010113                addi    sp,sp,-16<br>  e4:   00112623                sw      ra,12(sp)<br>  e8:   00812423                sw      s0,8(sp)<br>  ec:   01010413                addi    s0,sp,16<br>  f0:   000007b7                lui     a5,0x0<br>  f4:   00078613                <span class="hljs-built_in">mv</span>      a2,a5<br>  f8:   000007b7                lui     a5,0x0<br>  <span class="hljs-built_in">fc</span>:   00078593                <span class="hljs-built_in">mv</span>      a1,a5<br> 100:   000007b7                lui     a5,0x0<br> 104:   00078513                <span class="hljs-built_in">mv</span>      a0,a5<br> 108:   00000097                auipc   ra,0x0<br> 10c:   000080e7                jalr    ra <span class="hljs-comment"># 108 &lt;_trm_init+0x28&gt;</span><br> 110:   000007b7                lui     a5,0x0<br> 114:   00078593                <span class="hljs-built_in">mv</span>      a1,a5<br> 118:   000007b7                lui     a5,0x0<br> 11c:   00078513                <span class="hljs-built_in">mv</span>      a0,a5<br> 120:   00000097                auipc   ra,0x0<br> 124:   000080e7                jalr    ra <span class="hljs-comment"># 120 &lt;_trm_init+0x40&gt;</span><br> 128:   00000097                auipc   ra,0x0<br> 12c:   000080e7                jalr    ra <span class="hljs-comment"># 128 &lt;_trm_init+0x48&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>关键点在于符号如 <code>_sidata</code>, <code>_sdata</code>, <code>_edata</code> 等目前是未解析的（地址为0），这将在链接阶段通过链接脚本和符号表解决。</p>
+<h3 id="当前未链接状态的分析"><a href="#当前未链接状态的分析" class="headerlink" title="当前未链接状态的分析"></a>当前未链接状态的分析</h3><p>在反汇编中可以看到：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs assembly">000000e0 &lt;_trm_init&gt;:<br>  ...<br>  f0:   000007b7                lui     a5,0x0       # 加载 _sidata 高20位 (当前为0)<br>  f4:   00078613                mv      a2,a5        # a2 = _sidata<br>  f8:   000007b7                lui     a5,0x0       # 加载 _sdata 高20位<br>  fc:   00078593                mv      a1,a5        # a1 = _sdata<br> 100:   000007b7                lui     a5,0x0       # 加载 _edata 高20位<br> 104:   00078513                mv      a0,a5        # a0 = _edata<br> 108:   00000097                auipc   ra,0x0       # 调用 init_data<br></code></pre></td></tr></table></figure>
+
+<p>所有符号地址当前都是0，因为：</p>
+<ul>
+<li>这些符号在 <code>trm.c</code> 中是 <code>extern</code> 声明</li>
+<li>它们的实际定义在链接脚本中</li>
+<li>链接器会在链接阶段解析这些符号的真实地址</li>
+</ul>
+<h3 id="链接阶段的关键处理"><a href="#链接阶段的关键处理" class="headerlink" title="链接阶段的关键处理"></a>链接阶段的关键处理</h3><p>链接器会执行以下关键操作：</p>
+<h4 id="符号解析与重定位"><a href="#符号解析与重定位" class="headerlink" title="符号解析与重定位"></a>符号解析与重定位</h4><ul>
+<li><strong>符号表合并</strong>：链接器收集所有目标文件（.o）的符号表</li>
+<li><strong>地址分配</strong>：根据链接脚本的布局确定每个段的基地址</li>
+<li><strong>重定位</strong>：修改代码中的地址引用（如 <code>lui a5,0x0</code> → <code>lui a5,%hi(_sdata)</code>）</li>
+</ul>
+<h4 id="链接脚本的核心作用"><a href="#链接脚本的核心作用" class="headerlink" title="链接脚本的核心作用"></a>链接脚本的核心作用</h4><p>链接脚本 linker.ld:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><code class="hljs ld">OUTPUT_FORMAT(&quot;elf32-littleriscv&quot;)<br>OUTPUT_ARCH(riscv)<br>ENTRY(_start)<br><br>MEMORY &#123;<br>  flash (rx) : ORIGIN = 0x80000000, LENGTH = 128M<br>  sram (rwx) : ORIGIN = 0x80040000, LENGTH = 128M - 256K<br>&#125;<br><br>SECTIONS &#123;<br>  .entry :ALIGN(4)&#123;<br>    *(entry)<br>  &#125; &gt; flash<br><br>  .text :ALIGN(4)&#123;<br>    *(.text*)<br>  &#125; &gt; flash<br><br>  .rodata :ALIGN(4) &#123;<br>    *(.rodata*)<br>    *(.srodata*)<br>  &#125; &gt; flash<br><br>  .data :ALIGN(4) &#123;<br>    *(.data*)<br>    *(.sdata*)<br>  &#125; &gt; sram AT&gt; flash<br><br>  _sdata = ADDR(.data);<br>  _edata = ADDR(.data) + SIZEOF(.data);<br>  _sidata = LOADADDR(.data);<br><br>  .bss :ALIGN(4) &#123;<br>    *(.bss*)<br>    *(.sbss*)<br>    *(.scommon*)<br>  &#125; &gt; sram<br><br>  _sbss = ADDR(.bss);<br>  _ebss = ADDR(.bss) + SIZEOF(.bss);<br><br>  _heap_end = ORIGIN(sram) + LENGTH(sram);<br>  _stack_pointer = _heap_end;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>它会创建特殊的符号表。</p>
+<h4 id="重定位过程详解"><a href="#重定位过程详解" class="headerlink" title="重定位过程详解"></a>重定位过程详解</h4><p>先看看链接后的代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs assembly">800001f0 &lt;_trm_init&gt;:<br>800001f0:	ff010113          	addi	sp,sp,-16<br>800001f4:	00112623          	sw	ra,12(sp)<br>800001f8:	00812423          	sw	s0,8(sp)<br>800001fc:	01010413          	addi	s0,sp,16<br>80000200:	800407b7          	lui	a5,0x80040<br>80000204:	01078613          	addi	a2,a5,16 # 80040010 &lt;_heap_end+0xf8040010&gt;<br>80000208:	800407b7          	lui	a5,0x80040<br>8000020c:	00078593          	mv	a1,a5<br>80000210:	800007b7          	lui	a5,0x80000<br>80000214:	31c78513          	addi	a0,a5,796 # 8000031c &lt;_heap_end+0xf800031c&gt;<br>80000218:	f35ff0ef          	jal	ra,8000014c &lt;init_data&gt;<br>8000021c:	800407b7          	lui	a5,0x80040<br>80000220:	01478593          	addi	a1,a5,20 # 80040014 &lt;_heap_end+0xf8040014&gt;<br>80000224:	800407b7          	lui	a5,0x80040<br>80000228:	01078513          	addi	a0,a5,16 # 80040010 &lt;_heap_end+0xf8040010&gt;<br>8000022c:	f79ff0ef          	jal	ra,800001a4 &lt;zero_bss&gt;<br>80000230:	03c000ef          	jal	ra,8000026c &lt;main&gt;<br>80000234:	0000006f          	j	80000234 &lt;_trm_init+0x44&gt;<br></code></pre></td></tr></table></figure>
+<p>链接器会：</p>
+<ol>
+<li>计算 <code>_sidata</code>, <code>_sdata</code>, <code>_edata</code> 的实际地址</li>
+<li>修改指令中的地址占位符：<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs diff"><span class="hljs-deletion">- lui a5,0x0         # 原始未链接代码</span><br><span class="hljs-addition">+ lui a5,%hi(_sdata) # 链接后：加载地址高20位</span><br><span class="hljs-addition">+ addi a5,a5,%lo(_sdata) # 加载地址低12位</span><br></code></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="3-链接后的预期结果"><a href="#3-链接后的预期结果" class="headerlink" title="3. 链接后的预期结果"></a>3. <strong>链接后的预期结果</strong></h3><p>链接完成后，代码会变成类似这样：</p>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><code class="hljs diff"><span class="hljs-deletion">- e0:   ff010113                addi    sp,sp,-16</span><br><span class="hljs-addition">+ 800001f0:	ff010113            add     sp,sp,-16</span><br><br><span class="hljs-deletion">- e4:   00112623                sw      ra,12(sp)</span><br><span class="hljs-addition">+ 800001f4:	00112623            sw      ra,12(sp)</span><br><br><span class="hljs-deletion">- e8:   00812423                sw      s0,8(sp)</span><br><span class="hljs-addition">+ 800001f8:	00812423            sw      s0,8(sp)</span><br><br><span class="hljs-deletion">- ec:   01010413                addi    s0,sp,16</span><br><span class="hljs-addition">+ 800001fc:	01010413            addi    s0,sp,16</span><br><br><span class="hljs-deletion">- f0:   000007b7                lui     a5,0x0</span><br><span class="hljs-addition">+ 80000200:	800407b7            lui     a5,0x80040</span><br><br><span class="hljs-deletion">- f4:   00078613                mv      a2,a5</span><br><span class="hljs-addition">+ 80000204:	01078613            addi    a2,a5,16 # 80040010 &lt;_heap_end+0xf8040010&gt;</span><br><br><span class="hljs-deletion">- f8:   000007b7                lui     a5,0x0</span><br><span class="hljs-addition">+ 80000208:	800407b7            lui     a5,0x80040</span><br><br><span class="hljs-deletion">- fc:   00078593                mv      a1,a5</span><br><span class="hljs-addition">+ 8000020c:	00078593            mv      a1,a5</span><br><br><span class="hljs-deletion">- 100:   000007b7                lui     a5,0x0</span><br><span class="hljs-addition">+ 80000210:	800007b7             lui     a5,0x80000</span><br><br><span class="hljs-deletion">- 104:   00078513                mv      a0,a5</span><br><span class="hljs-addition">+ 80000214:	31c78513             addi    a0,a5,796 # 8000031c &lt;_heap_end+0xf800031c&gt;</span><br><br><span class="hljs-deletion">- 108:   00000097                auipc   ra,0x0</span><br><span class="hljs-deletion">- 10c:   000080e7                jalr    ra # 108 &lt;_trm_init+0x28&gt;</span><br><span class="hljs-addition">+ 80000218:	f35ff0ef             jal     ra,8000014c &lt;init_data&gt;</span><br><br><span class="hljs-deletion">- 110:   000007b7                lui     a5,0x0</span><br><span class="hljs-addition">+ 8000021c:	800407b7             lui     a5,0x80040</span><br><br><span class="hljs-deletion">- 114:   00078593                mv      a1,a5</span><br><span class="hljs-addition">+ 80000220:	01478593             addi    a1,a5,20 # 80040014 &lt;_heap_end+0xf8040014&gt;</span><br><br><span class="hljs-deletion">- 118:   000007b7                lui     a5,0x0</span><br><span class="hljs-addition">+ 80000224:	800407b7             lui     a5,0x80040</span><br><br><span class="hljs-deletion">- 11c:   00078513                mv      a0,a5</span><br><span class="hljs-addition">+ 80000228:	01078513             addi    a0,a5,16 # 80040010 &lt;_heap_end+0xf8040010&gt;</span><br><br><span class="hljs-deletion">- 120:   00000097                auipc   ra,0x0</span><br><span class="hljs-deletion">- 124:   000080e7                jalr    ra # 120 &lt;_trm_init+0x40&gt;</span><br><span class="hljs-addition">+ 8000022c:	f79ff0ef             jar     ra,800001a4 &lt;zero_bss&gt;</span><br><br><span class="hljs-deletion">- 128:   00000097                auipc   ra,0x0</span><br><span class="hljs-deletion">- 12c:   000080e7                jalr    ra # 128 &lt;_trm_init+0x48&gt;</span><br><span class="hljs-addition">+ 80000230:	03c000ef             jal     ra,8000026c &lt;main&gt;</span><br><br></code></pre></td></tr></table></figure>
+<p>从上面的 diff 中可以看到一个很清晰的回填过程。</p>
+<p>因此可以暂时有这些结论：</p>
+<ol>
+<li><p><strong>符号而非变量</strong>：</p>
+<ul>
+<li><code>_sdata</code>, <code>_edata</code>, <code>_sidata</code> 不是程序中的真实变量</li>
+<li>它们是链接器在链接过程中创建的<strong>符号标签</strong></li>
+<li>这些符号不占用任何内存空间，只是地址的别名</li>
+</ul>
+</li>
+<li><p><strong>地址值的载体</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs ld">_sdata = ADDR(.data);        // .data段的运行时地址(VMA)<br>_sidata = LOADADDR(.data);   // .data段的加载地址(LMA)<br></code></pre></td></tr></table></figure>
+<ul>
+<li>等号不是赋值，而是<strong>地址绑定</strong></li>
+<li>链接器会计算这些表达式的值并存储在符号表中</li>
+</ul>
+</li>
+</ol>
+<h3 id="具体实现机制"><a href="#具体实现机制" class="headerlink" title="具体实现机制"></a>具体实现机制</h3><ol>
+<li><p><strong>符号表创建</strong>：</p>
+<ul>
+<li>链接器解析链接脚本时，会创建特殊符号表项：<figure class="highlight dns"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs dns">符号名   类型    值<br>_sdata   D    <span class="hljs-number">0x80040000</span><br>_edata   B    <span class="hljs-number">0x80040010</span><br>_sidata  <span class="hljs-keyword">A</span>    <span class="hljs-number">0</span>x8000031c<br></code></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p><strong>重定位过程</strong>：</p>
+<ul>
+<li>当遇到 <code>lui a5,0x0</code> 这样的指令：</li>
+<li>检查重定位条目：<code>偏移0xf0，类型R_RISCV_HI20，符号_sdata</code></li>
+<li>计算：<code>(0x80040000 &gt;&gt; 12) &amp; 0xFFFFF</code></li>
+<li>修改指令：<code>lui a5, 0x80040</code></li>
+</ul>
+</li>
+<li><p><strong>地址回填示例</strong>：<br>原始指令：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs asm">f0:   000007b7                lui     a5,0x0   # 加载_sdata<br></code></pre></td></tr></table></figure>
+<p>链接后变为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs asm">800000f0:   800207b7                lui     a5,0x80020<br></code></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="关键特性"><a href="#关键特性" class="headerlink" title="关键特性"></a>关键特性</h3><ol>
+<li><p><strong>零存储开销</strong>：</p>
+<ul>
+<li>这些符号不占用.data&#x2F;.bss空间</li>
+<li>只存在于符号表中，链接后地址直接编码到指令里</li>
+</ul>
+</li>
+<li><p><strong>强类型地址</strong>：</p>
+<ul>
+<li>在C代码中声明为<code>extern char _sdata;</code></li>
+<li>实际使用的是<code>&amp;_sdata</code>获取地址值</li>
+<li>类型<code>char</code>只是占位符，实际可以是任意类型</li>
+</ul>
+</li>
+<li><p><strong>链接时计算</strong>：</p>
+<ul>
+<li><code>_edata = _sdata + SIZEOF(.data)</code></li>
+<li>链接器在布局完成后计算具体值</li>
+<li>所有表达式在链接阶段解析为常量</li>
+</ul>
+</li>
+</ol>
+<h3 id="验证方法"><a href="#验证方法" class="headerlink" title="验证方法"></a>验证方法</h3><ol>
+<li><p><strong>查看符号表</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs bash">riscv64-linux-gnu-nm bin/firmware.elf | grep -E <span class="hljs-string">&#x27;_sdata|_edata|_sidata|_sbss|_ebss|_stack&#x27;</span><br>80040014 B _ebss<br>80040010 D _edata<br>80040010 B _sbss<br>80040000 D _sdata<br>8000031c A _sidata<br>88000000 A _stack_pointer<br></code></pre></td></tr></table></figure>
+</li>
+<li><p><strong>反汇编验证</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">80000200:	800407b7          	lui	a5,0x80040<br>80000204:	01078613          	addi	a2,a5,16 <span class="hljs-comment"># 80040010 &lt;_heap_end+0xf8040010&gt;</span><br></code></pre></td></tr></table></figure></li>
+</ol>
+<h2 id="遇到的问题"><a href="#遇到的问题" class="headerlink" title="遇到的问题"></a>遇到的问题</h2><p>此时，有一个关建的编译参数和链接参数出现了：-fno-pic、-Wl,-no-pie。为什么我不加这两个参数，编译出来的代码就很奇怪，这个两个选项到底有什么用？</p>
+<p>对于启动代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs s">_start:<br>mv s0, zero<br>la sp, _stack_pointer<br>jal _trm_init<br></code></pre></td></tr></table></figure>
+<p>取消 -fno-pic、-Wl,-no-pie 选项前：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs s">80000000 &lt;_start&gt;:<br>80000000:	00000413          	li	s0,0<br>80000004:	08000117          	auipc	sp,0x8000<br>80000008:	ffc10113          	addi	sp,sp,-4 # 88000000 &lt;_heap_end&gt;<br>8000000c:	1e4000ef          	jal	ra,800001f0 &lt;_trm_init&gt;<br></code></pre></td></tr></table></figure>
+<p>取消 -fno-pic、-Wl,-no-pie 选项后：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs s">80000000:	00000413          	li	s0,0<br>80000004:	00040117          	auipc	sp,0x40<br>80000008:	09812103          	lw	sp,152(sp) # 8004009c &lt;_GLOBAL_OFFSET_TABLE_+0x4&gt;<br>8000000c:	1e8000ef          	jal	ra,800001f4 &lt;_trm_init&gt;<br></code></pre></td></tr></table></figure>
+<p>显然，对于裸机程序，前面的代码是我们想要的，而后面的代码，错误的编译成了 lw 指令，为什么呢？</p>
+<p>DeepSeekR1 解答：</p>
+<p>您观察到的现象非常关键，这涉及到位置无关代码(PIC)和位置无关可执行文件(PIE)的概念。让我详细解释为什么在裸机程序中需要禁用这些特性。</p>
+<h3 id="问题核心：位置无关代码-PIC-vs-固定地址代码"><a href="#问题核心：位置无关代码-PIC-vs-固定地址代码" class="headerlink" title="问题核心：位置无关代码(PIC) vs 固定地址代码"></a>问题核心：位置无关代码(PIC) vs 固定地址代码</h3><h4 id="1-fno-pic-编译选项"><a href="#1-fno-pic-编译选项" class="headerlink" title="1. -fno-pic 编译选项"></a>1. <strong><code>-fno-pic</code> 编译选项</strong></h4><ul>
+<li><strong>作用</strong>：禁用位置无关代码生成</li>
+<li><strong>默认行为</strong>：GCC默认启用<code>-fpic</code>（位置无关代码）</li>
+<li><strong>裸机程序问题</strong>：<ul>
+<li>PIC代码假设会被加载到任意地址运行</li>
+<li>使用相对偏移访问全局变量&#x2F;函数</li>
+<li>需要运行时重定位支持（<strong>裸机没有</strong>），这是重点！！！</li>
+</ul>
+</li>
+</ul>
+<h4 id="2-Wl-no-pie-链接选项"><a href="#2-Wl-no-pie-链接选项" class="headerlink" title="2. -Wl,-no-pie 链接选项"></a>2. <strong><code>-Wl,-no-pie</code> 链接选项</strong></h4><ul>
+<li><strong>作用</strong>：禁用位置无关可执行文件</li>
+<li><strong>默认行为</strong>：现代Linux发行版默认启用PIE</li>
+<li><strong>裸机程序问题</strong>：<ul>
+<li>PIE可执行文件没有固定加载地址</li>
+<li>需要动态链接器支持（<strong>裸机没有</strong>），这是重点！！！</li>
+</ul>
+</li>
+</ul>
+<h3 id="代码对比分析"><a href="#代码对比分析" class="headerlink" title="代码对比分析"></a>代码对比分析</h3><h4 id="取消选项前（正确）："><a href="#取消选项前（正确）：" class="headerlink" title="取消选项前（正确）："></a>取消选项前（正确）：</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs assembly">80000000:	00000413          	li	s0,0<br>80000004:	08000117          	auipc	sp,0x8000   # PC相对加载<br>80000008:	ffc10113          	addi	sp,sp,-4    # 调整得到绝对地址<br>8000000c:	1e4000ef          	jal	ra,800001f0 &lt;_trm_init&gt;<br></code></pre></td></tr></table></figure>
+<ul>
+<li><code>auipc sp,0x8000</code>：计算PC + 0x8000000</li>
+<li><code>addi sp,sp,-4</code>：微调得到精确地址</li>
+<li><strong>直接访问符号地址</strong>，适合裸机</li>
+</ul>
+<h4 id="取消选项后（错误）："><a href="#取消选项后（错误）：" class="headerlink" title="取消选项后（错误）："></a>取消选项后（错误）：</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs assembly">80000000:	00000413          	li	s0,0<br>80000004:	00040117          	auipc	sp,0x40     # 计算GOT位置<br>80000008:	09812103          	lw	sp,152(sp) # 从GOT加载地址<br>8000000c:	1e8000ef          	jal	ra,800001f4 &lt;_trm_init&gt;<br></code></pre></td></tr></table></figure>
+<ul>
+<li><code>auipc sp,0x40</code>：计算全局偏移表(GOT)位置</li>
+<li><code>lw sp,152(sp)</code>：从GOT加载实际地址，此时什么都加载不到！！！</li>
+<li><strong>间接访问</strong>，需要运行时重定位</li>
+</ul>
+<h3 id="为什么PIC-PIE不适合裸机程序"><a href="#为什么PIC-PIE不适合裸机程序" class="headerlink" title="为什么PIC&#x2F;PIE不适合裸机程序"></a>为什么PIC&#x2F;PIE不适合裸机程序</h3><ol>
+<li><p><strong>缺少动态链接器</strong>：</p>
+<ul>
+<li>PIC&#x2F;PIE需要运行时重定位</li>
+<li>裸机环境没有动态链接器（如ld.so）</li>
+<li>GOT表无法初始化</li>
+</ul>
+</li>
+<li><p><strong>固定地址需求</strong>：</p>
+<ul>
+<li>裸机启动地址固定（如0x80000000）</li>
+<li>中断向量表等必须位于固定位置</li>
+<li>PIC的灵活性反而成为负担</li>
+</ul>
+</li>
+<li><p><strong>性能开销</strong>：</p>
+<ul>
+<li>PIC需要额外的间接访问</li>
+<li>每条全局访问都需要GOT查找</li>
+<li>裸机程序通常追求极致性能</li>
+</ul>
+</li>
+<li><p><strong>启动代码特殊性</strong>：</p>
+<ul>
+<li>启动时内存系统未初始化</li>
+<li>GOT表可能位于未初始化的内存区域</li>
+<li>无法处理重定位前的访问</li>
+</ul>
+</li>
+</ol>
+<h3 id="解决方案：禁用PIC-PIE"><a href="#解决方案：禁用PIC-PIE" class="headerlink" title="解决方案：禁用PIC&#x2F;PIE"></a>解决方案：禁用PIC&#x2F;PIE</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 编译选项</span><br>riscv64-unknown-elf-gcc -fno-pic -c start.S<br><br><span class="hljs-comment"># 链接选项</span><br>riscv64-unknown-elf-ld -Wl,-no-pie -T link.ld -o firmware.elf<br></code></pre></td></tr></table></figure>
+
+<h3 id="选项详解"><a href="#选项详解" class="headerlink" title="选项详解"></a>选项详解</h3><table>
+<thead>
+<tr>
+<th>选项</th>
+<th>作用</th>
+<th>裸机必要性</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>-fno-pic</code></td>
+<td>禁用位置无关代码</td>
+<td>必须</td>
+</tr>
+<tr>
+<td><code>-Wl,-no-pie</code></td>
+<td>禁用位置无关可执行文件</td>
+<td>必须</td>
+</tr>
+<tr>
+<td><code>-nostdlib</code></td>
+<td>禁用标准库</td>
+<td>推荐</td>
+</tr>
+<tr>
+<td><code>-nostartfiles</code></td>
+<td>禁用默认启动文件</td>
+<td>推荐</td>
+</tr>
+<tr>
+<td><code>-static</code></td>
+<td>静态链接</td>
+<td>推荐</td>
+</tr>
+</tbody></table>
+<h3 id="深入技术细节"><a href="#深入技术细节" class="headerlink" title="深入技术细节"></a>深入技术细节</h3><h4 id="1-PIC如何工作"><a href="#1-PIC如何工作" class="headerlink" title="1. PIC如何工作"></a>1. PIC如何工作</h4><pre><code class=" mermaid">graph LR
+    A[代码] --&gt; B[访问全局变量]
+    B --&gt; C&#123;是否PIC?&#125;
+    C --&gt;|是| D[通过GOT间接访问]
+    C --&gt;|否| E[直接访问]
+    D --&gt; F[GOT表]
+    F --&gt; G[运行时重定位]
+</code></pre>
+
+<h4 id="2-启动代码的正确处理"><a href="#2-启动代码的正确处理" class="headerlink" title="2. 启动代码的正确处理"></a>2. 启动代码的正确处理</h4><p>裸机启动代码需要：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// 正确的启动代码示例</span><br><span class="hljs-type">void</span> _start() &#123;<br>    <span class="hljs-comment">// 1. 直接设置栈指针</span><br>    <span class="hljs-keyword">asm</span> <span class="hljs-title function_">volatile</span><span class="hljs-params">(<span class="hljs-string">&quot;la sp, _stack_top&quot;</span>)</span>;<br><br>    <span class="hljs-comment">// 2. 初始化数据段</span><br>    init_data();<br><br>    <span class="hljs-comment">// 3. 清零BSS段</span><br>    zero_bss();<br><br>    <span class="hljs-comment">// 4. 调用主函数</span><br>    main();<br><br>    <span class="hljs-comment">// 5. 无限循环</span><br>    <span class="hljs-keyword">while</span>(<span class="hljs-number">1</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>在裸机程序开发中：</p>
+<ol>
+<li>**必须使用<code>-fno-pic</code>**：避免生成依赖GOT的代码</li>
+<li>**必须使用<code>-Wl,-no-pie</code>**：生成固定地址的可执行文件</li>
+<li><strong>避免间接访问</strong>：启动代码应直接操作硬件地址</li>
+<li><strong>简化内存模型</strong>：裸机没有虚拟内存&#x2F;动态链接支持</li>
+</ol>
+<p>基本上解决了我的疑问。</p>
+<h2 id="运行结果"><a href="#运行结果" class="headerlink" title="运行结果"></a>运行结果</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs bash">make qemu_run<br>128+0 records <span class="hljs-keyword">in</span><br>128+0 records out<br>134217728 bytes (134 MB, 128 MiB) copied, 0.28816 s, 466 MB/s<br>1+1 records <span class="hljs-keyword">in</span><br>1+1 records out<br>812 bytes copied, 0.000487525 s, 1.7 MB/s<br>hello hello hello world<br>world<br>world<br>world<br>world<br>hello world<br>hello world<br>hello world<br>hello world<br>hello world<br>hello world<br>hello world<br></code></pre></td></tr></table></figure>
+
+<h2 id="依然存在的疑问：elf-文件分析"><a href="#依然存在的疑问：elf-文件分析" class="headerlink" title="依然存在的疑问：elf 文件分析"></a>依然存在的疑问：elf 文件分析</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs bash">rvobjdump -h ./bin/firmware.elf<br><br>./bin/firmware.elf:     file format elf32-littleriscv<br><br>Sections:<br>Idx Name          Size      VMA       LMA       File off  Algn<br>  0 .entry        00000010  80000000  80000000  00001000  2**2<br>                  CONTENTS, ALLOC, LOAD, READONLY, CODE<br>  1 .text         000002fc  80000010  80000010  00001010  2**2<br>                  CONTENTS, ALLOC, LOAD, READONLY, CODE<br>  2 .rodata       0000000f  8000030c  8000030c  0000130c  2**2<br>                  CONTENTS, ALLOC, LOAD, READONLY, DATA<br>  3 .data         00000010  80040000  8000031c  00002000  2**2<br>                  CONTENTS, ALLOC, LOAD, DATA<br>  4 .bss          00000004  80040010  8000032c  00002010  2**2<br>                  ALLOC<br>  5 .debug_info   0000050a  00000000  00000000  00002010  2**0<br>                  CONTENTS, READONLY, DEBUGGING, OCTETS<br>  6 .debug_abbrev 000003a3  00000000  00000000  0000251a  2**0<br>                  CONTENTS, READONLY, DEBUGGING, OCTETS<br>  7 .debug_aranges 000000c0  00000000  00000000  000028c0  2**3<br>                  CONTENTS, READONLY, DEBUGGING, OCTETS<br>  8 .debug_line   00000400  00000000  00000000  00002980  2**0<br>                  CONTENTS, READONLY, DEBUGGING, OCTETS<br>  9 .debug_str    000001b2  00000000  00000000  00002d80  2**0<br>                  CONTENTS, READONLY, DEBUGGING, OCTETS<br> 10 .debug_line_str 000000bf  00000000  00000000  00002f32  2**0<br>                  CONTENTS, READONLY, DEBUGGING, OCTETS<br> 11 .comment      0000002b  00000000  00000000  00002ff1  2**0<br>                  CONTENTS, READONLY<br> 12 .riscv.attributes 0000002e  00000000  00000000  0000301c  2**0<br>                  CONTENTS, READONLY<br> 13 .debug_frame  000001a0  00000000  00000000  0000304c  2**2<br>                  CONTENTS, READONLY, DEBUGGING, OCTETS<br></code></pre></td></tr></table></figure>
+
+<p>这里抛出的问题是：<strong>一个 elf 文件有那么多的段，bss、data、rodata 分别放的是什么数据？</strong></p>
+<h3 id="各数据段详解"><a href="#各数据段详解" class="headerlink" title="各数据段详解"></a>各数据段详解</h3><table>
+<thead>
+<tr>
+<th>段名</th>
+<th>大小</th>
+<th>VMA</th>
+<th>LMA</th>
+<th>文件偏移</th>
+<th>作用</th>
+<th>是否占用磁盘空间</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>.rodata</strong></td>
+<td>0x0f (15)</td>
+<td>0x8000030c</td>
+<td>0x8000030c</td>
+<td>0x0000130c</td>
+<td><strong>只读数据</strong>：字符串常量、const全局变量、跳转表等</td>
+<td>✅ 是</td>
+</tr>
+<tr>
+<td><strong>.data</strong></td>
+<td>0x10 (16)</td>
+<td>0x80040000</td>
+<td>0x8000031c</td>
+<td>0x00002000</td>
+<td><strong>已初始化数据</strong>：非零初始值的全局&#x2F;静态变量</td>
+<td>✅ 是</td>
+</tr>
+<tr>
+<td><strong>.bss</strong></td>
+<td>0x04 (4)</td>
+<td>0x80040010</td>
+<td>0x8000032c</td>
+<td>0x00002010</td>
+<td><strong>未初始化数据</strong>：零初始值或未初始化的全局&#x2F;静态变量</td>
+<td>❌ 否</td>
+</tr>
+</tbody></table>
+<h3 id="关键特性分析"><a href="#关键特性分析" class="headerlink" title="关键特性分析"></a>关键特性分析</h3><ol>
+<li><p>**.rodata (Read-Only Data)**：</p>
+<ul>
+<li><strong>内容</strong>：程序中的常量数据<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">const</span> <span class="hljs-type">int</span> version = <span class="hljs-number">1</span>;<br><span class="hljs-type">const</span> <span class="hljs-type">char</span>* msg = <span class="hljs-string">&quot;Hello, World!&quot;</span>;<br></code></pre></td></tr></table></figure></li>
+<li><strong>内存映射</strong>：VMA &#x3D; LMA &#x3D; 0x8000030c<ul>
+<li>直接存储在ROM&#x2F;Flash中</li>
+<li>运行时无需复制，直接从加载地址访问</li>
+</ul>
+</li>
+<li><strong>文件占用</strong>：有实际内容（15字节），存储在文件偏移0x130c处</li>
+</ul>
+</li>
+<li><p>**.data (Initialized Data)**：</p>
+<ul>
+<li><strong>内容</strong>：初始值非零的全局&#x2F;静态变量<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> global_counter = <span class="hljs-number">42</span>;<br><span class="hljs-type">static</span> <span class="hljs-type">float</span> pi = <span class="hljs-number">3.14</span>;<br></code></pre></td></tr></table></figure></li>
+<li><strong>双重地址</strong>：<ul>
+<li>LMA (0x8000031c)：ROM中的存储位置</li>
+<li>VMA (0x80040000)：RAM中的运行时位置</li>
+</ul>
+</li>
+<li><strong>启动过程</strong>：需要从ROM复制到RAM</li>
+<li><strong>文件占用</strong>：有实际内容（16字节），存储在文件偏移0x2000处</li>
+</ul>
+</li>
+<li><p>**.bss (Block Started by Symbol)**：</p>
+<ul>
+<li><strong>内容</strong>：初始值为零或未初始化的变量<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> uninitialized_var;<br><span class="hljs-type">static</span> <span class="hljs-type">char</span> buffer[<span class="hljs-number">1024</span>] = &#123;<span class="hljs-number">0</span>&#125;;<br></code></pre></td></tr></table></figure></li>
+<li><strong>零初始化</strong>：启动时需要清零</li>
+<li><strong>关键特性</strong>：<ul>
+<li>在ELF文件中<strong>不占用空间</strong>（文件偏移0x2010后无内容）</li>
+<li>运行时在RAM中分配空间（此处4字节）</li>
+<li>LMA (0x8000032c) 仅表示加载结束位置，无实际数据</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h3 id="内存布局图示"><a href="#内存布局图示" class="headerlink" title="内存布局图示"></a>内存布局图示</h3><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs haskell"><span class="hljs-type">ROM</span>/<span class="hljs-type">Flash</span> 区域 (<span class="hljs-type">LMA</span>)          <span class="hljs-type">RAM</span> 区域 (<span class="hljs-type">VMA</span>)<br>┌───────────────────┐        ┌───────────────────┐<br>│ <span class="hljs-number">0x80000000</span>: .text │        │                   │<br>│ ...               │        │                   │<br>├───────────────────┤        ├───────────────────┤<br>│ <span class="hljs-number">0x8000030c</span>:       │        │ <span class="hljs-number">0x80040000</span>:       │<br>│   .rodata (15B)   │        │   .<span class="hljs-class"><span class="hljs-keyword">data</span> (16B)     │</span><br>├───────────────────┤        ├───────────────────┤<br>│ <span class="hljs-number">0x8000031c</span>:       │        │ <span class="hljs-number">0x80040010</span>:       │<br>│   .<span class="hljs-class"><span class="hljs-keyword">data</span> (<span class="hljs-type">LMA</span>)     │───────&gt;│   .bss (4B)       │</span><br>├───────────────────┤        └───────────────────┘<br>│ <span class="hljs-number">0x8000032c</span>:       │<br>│   (<span class="hljs-type">LMA</span> end)       │<br>└───────────────────┘<br></code></pre></td></tr></table></figure>
+
+<h3 id="启动代码的处理"><a href="#启动代码的处理" class="headerlink" title="启动代码的处理"></a>启动代码的处理</h3><p>在<code>_trm_init</code>函数中需要：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/* 复制.data段 */</span><br><span class="hljs-built_in">memcpy</span>(&amp;_sdata, &amp;_sidata, (<span class="hljs-type">size_t</span>)(&amp;_edata - &amp;_sdata));<br><br><span class="hljs-comment">/* 清零.bss段 */</span><br><span class="hljs-built_in">memset</span>(&amp;_sbss, <span class="hljs-number">0</span>, (<span class="hljs-type">size_t</span>)(&amp;_ebss - &amp;_sbss));<br></code></pre></td></tr></table></figure>
+
+<h3 id="为什么-bss不占磁盘空间？"><a href="#为什么-bss不占磁盘空间？" class="headerlink" title="为什么.bss不占磁盘空间？"></a>为什么.bss不占磁盘空间？</h3><ol>
+<li><p><strong>效率优化</strong>：</p>
+<ul>
+<li>所有.bss变量初始值都是0</li>
+<li>存储大量零值会浪费磁盘空间</li>
+<li>改为记录”此区域需要清零”的元数据</li>
+</ul>
+</li>
+<li><p><strong>ELF实现</strong>：</p>
+<ul>
+<li>在Program Header中标记为<code>PT_LOAD</code></li>
+<li><code>p_memsz &gt; p_filesz</code> 表示需要额外清零的内存</li>
+<li>查看详细信息：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">riscv64-unknown-elf-readelf -l firmware.elf<br></code></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ol>
+<h3 id="验证方法-1"><a href="#验证方法-1" class="headerlink" title="验证方法"></a>验证方法</h3><p><strong>查看各段大小</strong>：<br>   <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">riscv64-unknown-elf-size bin/firmware.elf<br>text    data     bss     dec     hex filename<br>795      16       4     815     32f bin/firmware.elf<br></code></pre></td></tr></table></figure><br>   这里的 4 意味着在 sram 中将会占用 4 字节空间。，但在 flash 中体积为 0。</p>
+<h3 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h3><ul>
+<li><strong>.rodata</strong>：只读常量，存储在ROM，直接访问</li>
+<li><strong>.data</strong>：已初始化变量，存储在ROM，需复制到RAM</li>
+<li><strong>.bss</strong>：未初始化变量，<strong>不占磁盘空间</strong>，启动时清零</li>
+<li><strong>关键区别</strong>：<ul>
+<li>.data有实际磁盘内容</li>
+<li>.bss只有内存分配需求</li>
+<li>.rodata有内容但不可写</li>
+</ul>
+</li>
+</ul>
+<p>elf 中的 bss 只有描述的元数据，比如在链接脚本中：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs s">.bss :ALIGN(4) &#123;<br>   *(.bss*)<br>   *(.sbss*)<br>   *(.scommon*)<br> &#125; &gt; sram<br> _sbss = ADDR(.bss);<br> _ebss = ADDR(.bss) + SIZEOF(.bss);<br></code></pre></td></tr></table></figure>
+
+<p>链接后形成的 elf 文件中 bss 并没有 size，但是如果有 boatloader，我们必须利用 _sbss、_ebss 信息来为 bss 在 sram 中开辟内存空间并初始化：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/* 清零 .bss 段 */</span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">zero_bss</span><span class="hljs-params">(<span class="hljs-type">char</span>* sbss, <span class="hljs-type">char</span>* ebss)</span> &#123;<br>    <span class="hljs-keyword">while</span> (sbss &lt; ebss) &#123;<br>        *sbss = <span class="hljs-number">0</span>;<br>        sbss++;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+<h3 id="1-bss段在ELF文件中的本质"><a href="#1-bss段在ELF文件中的本质" class="headerlink" title="1. .bss段在ELF文件中的本质"></a>1. .bss段在ELF文件中的本质</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs lds">.bss :ALIGN(4) &#123;<br>    *(.bss*)<br>    *(.sbss*)<br>    *(.scommon*)<br>&#125; &gt; sram<br><br>_sbss = ADDR(.bss);<br>_ebss = ADDR(.bss) + SIZEOF(.bss);<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>ELF文件中的.bss</strong>：<ul>
+<li>只有描述性元数据（起始地址、大小、内存属性）</li>
+<li><strong>没有实际内容</strong>（因为所有初始值都是0）</li>
+<li>在section header中标记为<code>NOBITS</code>类型</li>
+<li>查看验证：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs bash">riscv64-unknown-elf-readelf -S bin/firmware.elf<br>There are 18 section headers, starting at offset 0x36a0:<br><br>Section Headers:<br>[Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al<br>[ 0]                   NULL            00000000 000000 000000 00      0   0  0<br>[ 1] .entry            PROGBITS        80000000 001000 000010 00  AX  0   0  4<br>[ 2] .text             PROGBITS        80000010 001010 0002fc 00  AX  0   0  4<br>[ 3] .rodata           PROGBITS        8000030c 00130c 00000f 00   A  0   0  4<br>[ 4] .data             PROGBITS        80040000 002000 000010 00  WA  0   0  4<br>[ 5] .bss              NOBITS          80040010 002010 000004 00  WA  0   0  4<br>[ 6] .debug_info       PROGBITS        00000000 002010 00050a 00      0   0  1<br>[ 7] .debug_abbrev     PROGBITS        00000000 00251a 0003a3 00      0   0  1<br>[ 8] .debug_aranges    PROGBITS        00000000 0028c0 0000c0 00      0   0  8<br>[ 9] .debug_line       PROGBITS        00000000 002980 000400 00      0   0  1<br>[10] .debug_str        PROGBITS        00000000 002d80 0001b2 01  MS  0   0  1<br>[11] .debug_line_str   PROGBITS        00000000 002f32 0000bf 01  MS  0   0  1<br>[12] .comment          PROGBITS        00000000 002ff1 00002b 01  MS  0   0  1<br>[13] .riscv.attributes RISCV_ATTRIBUTE 00000000 00301c 00002e 00      0   0  1<br>[14] .debug_frame      PROGBITS        00000000 00304c 0001a0 00      0   0  4<br>[15] .symtab           SYMTAB          00000000 0031ec 000310 10     16  29  4<br>[16] .strtab           STRTAB          00000000 0034fc 0000f0 00      0   0  1<br>[17] .shstrtab         STRTAB          00000000 0035ec 0000b3 00      0   0  1<br>Key to Flags:<br>W (write), A (alloc), X (execute), M (merge), S (strings), I (info),<br>L (<span class="hljs-built_in">link</span> order), O (extra OS processing required), G (group), T (TLS),<br>C (compressed), x (unknown), o (OS specific), E (exclude),<br>p (processor specific)<br></code></pre></td></tr></table></figure>
+注意<code>Type=NOBITS</code>和<code>Off=02010</code>（文件偏移）这个偏移被.debug_info 使用了！因此实际文件无内容。</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-启动代码的必要处理"><a href="#2-启动代码的必要处理" class="headerlink" title="2. 启动代码的必要处理"></a>2. 启动代码的必要处理</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/* 清零 .bss 段 */</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">zero_bss</span><span class="hljs-params">(<span class="hljs-type">char</span>* sbss, <span class="hljs-type">char</span>* ebss)</span> &#123;<br>    <span class="hljs-keyword">while</span> (sbss &lt; ebss) &#123;<br>        *sbss = <span class="hljs-number">0</span>;  <span class="hljs-comment">// 逐字节清零</span><br>        sbss++;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="3-完整启动序列"><a href="#3-完整启动序列" class="headerlink" title="3. 完整启动序列"></a>3. 完整启动序列</h3><p>在bootloader或启动代码中必须包含：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// 声明链接脚本提供的符号</span><br><span class="hljs-keyword">extern</span> <span class="hljs-type">char</span> _sbss[], _ebss[];<br><br><span class="hljs-type">void</span> _start() &#123;<br>    <span class="hljs-comment">// 1. 初始化栈指针</span><br>    <span class="hljs-keyword">asm</span> <span class="hljs-title function_">volatile</span><span class="hljs-params">(<span class="hljs-string">&quot;la sp, _stack_top&quot;</span>)</span>;<br><br>    <span class="hljs-comment">// 2. 复制.data段（从ROM到RAM）</span><br>    <span class="hljs-keyword">extern</span> <span class="hljs-type">char</span> _sdata[], _edata[], _sidata[];<br>    <span class="hljs-built_in">memcpy</span>(_sdata, _sidata, (<span class="hljs-type">size_t</span>)(_edata - _sdata));<br><br>    <span class="hljs-comment">// 3. 清零.bss段（关键步骤！）</span><br>    zero_bss(_sbss, _ebss);<br><br>    <span class="hljs-comment">// 4. 调用主程序</span><br>    main();<br><br>    <span class="hljs-comment">// 5. 退出处理</span><br>    <span class="hljs-keyword">while</span>(<span class="hljs-number">1</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="4-为什么必须手动清零？"><a href="#4-为什么必须手动清零？" class="headerlink" title="4. 为什么必须手动清零？"></a>4. 为什么必须手动清零？</h3><ol>
+<li><p><strong>C语言规范要求</strong>：</p>
+<ul>
+<li>C标准规定全局变量必须初始化为0</li>
+<li>未初始化变量行为是未定义的</li>
+</ul>
+</li>
+<li><p><strong>硬件特性</strong>：</p>
+<ul>
+<li>RAM上电后内容随机</li>
+<li>不保证为0值</li>
+</ul>
+</li>
+<li><p><strong>安全考虑</strong>：</p>
+<ul>
+<li>防止敏感信息泄漏</li>
+<li>确保程序行为可预测</li>
+</ul>
+</li>
+<li><p><strong>优化意义</strong>：</p>
+<ul>
+<li>避免存储大量零值节省Flash空间</li>
+<li>启动时一次性清零效率更高</li>
+</ul>
+</li>
+</ol>
+<h3 id="5-特殊情况处理"><a href="#5-特殊情况处理" class="headerlink" title="5. 特殊情况处理"></a>5. 特殊情况处理</h3><h4 id="5-1-部分初始化的-bss变量"><a href="#5-1-部分初始化的-bss变量" class="headerlink" title="5.1 部分初始化的.bss变量"></a>5.1 部分初始化的.bss变量</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// 显式初始化为0 -&gt; 仍放入.bss</span><br><span class="hljs-type">uint8_t</span> buffer[<span class="hljs-number">1024</span>] = &#123;<span class="hljs-number">0</span>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h4 id="5-2-非零初始化的”伪-bss”"><a href="#5-2-非零初始化的”伪-bss”" class="headerlink" title="5.2 非零初始化的”伪.bss”"></a>5.2 非零初始化的”伪.bss”</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// 实际放入.data段（占用Flash空间）</span><br><span class="hljs-type">uint8_t</span> non_zero_buffer[<span class="hljs-number">1024</span>] = &#123;<span class="hljs-number">1</span>&#125;;<br></code></pre></td></tr></table></figure>
+
+
+<h3 id="bss-总结"><a href="#bss-总结" class="headerlink" title="bss 总结"></a>bss 总结</h3><ol>
+<li><strong>.bss段在ELF中只有元数据</strong>，没有实际内容</li>
+<li>**必须使用<code>_sbss</code>和<code>_ebss</code>**来定位内存区域</li>
+<li><strong>启动代码必须手动清零</strong>.bss区域</li>
+<li><code>zero_bss()</code>函数是实现这一点的标准方式</li>
+</ol>
+<p>这种设计是嵌入式系统的核心优化之一，它：</p>
+<ul>
+<li>显著减小可执行文件大小</li>
+<li>符合C语言规范要求</li>
+<li>允许灵活的内存布局</li>
+<li>确保程序启动状态的确定性</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%BB%93%E6%9E%84/" class="category-chain-item">计算机系统结构</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/riscv32/" class="print-no-link">#riscv32</a>
+      
+        <a href="/tags/%E7%BC%96%E8%AF%91/" class="print-no-link">#编译</a>
+      
+        <a href="/tags/%E9%93%BE%E6%8E%A5/" class="print-no-link">#链接</a>
+      
+        <a href="/tags/qemu/" class="print-no-link">#qemu</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>编译和链接：以 qemu 上的裸机程序为例</div>
+      <div>http://blog.luliang.online/2025/10/27/编译和链接/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年10月27日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/10/30/%E6%AF%95%E4%B8%9A%E8%AE%BE%E8%AE%A1/" title="毕业设计大纲">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">毕业设计大纲</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/10/22/Linux%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0(2)/" title="Linux 驱动开发学习日记：分离的思想和总线设备驱动模型">
+                        <span class="hidden-mobile">Linux 驱动开发学习日记：分离的思想和总线设备驱动模型</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

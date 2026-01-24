@@ -1,0 +1,717 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="difftest之前做 ysyx 中的处理器设计的时候，使用了 基于 nemu 的 difftest。那个 difftest 的原理是：  nemu 被编译成一个库，暴露出了一些接口供 CPU 调用； 仿真程序将 img 装到各自的内存； 当 CPU 执行一步的时候，REF CPU 也执行一步； 接着对比两者的所有的 寄存器包括 PC； 如果寄存器不同，那么就发出报告信息，程序员可以进行 debu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LA 挑战赛：加上 difftest">
+<meta property="og:url" content="http://blog.luliang.online/2025/04/05/LA%E6%8C%91%E6%88%98%E8%B5%9B2/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="difftest之前做 ysyx 中的处理器设计的时候，使用了 基于 nemu 的 difftest。那个 difftest 的原理是：  nemu 被编译成一个库，暴露出了一些接口供 CPU 调用； 仿真程序将 img 装到各自的内存； 当 CPU 执行一步的时候，REF CPU 也执行一步； 接着对比两者的所有的 寄存器包括 PC； 如果寄存器不同，那么就发出报告信息，程序员可以进行 debu">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-04-05T05:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.425Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="LoongArch">
+<meta property="article:tag" content="CPU">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>LA 挑战赛：加上 difftest - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="LA 挑战赛：加上 difftest"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-04-05 13:03" pubdate>
+          2025年4月5日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          10 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">LA 挑战赛：加上 difftest</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="difftest"><a href="#difftest" class="headerlink" title="difftest"></a>difftest</h2><p>之前做 ysyx 中的处理器设计的时候，使用了 基于 nemu 的 difftest。那个 difftest 的原理是：</p>
+<ul>
+<li>nemu 被编译成一个库，暴露出了一些接口供 CPU 调用；</li>
+<li>仿真程序将 img 装到各自的内存；</li>
+<li>当 CPU 执行一步的时候，REF CPU 也执行一步；</li>
+<li>接着对比两者的所有的 寄存器包括 PC；</li>
+<li>如果寄存器不同，那么就发出报告信息，程序员可以进行 debug。</li>
+</ul>
+<p>这种 difftest 的思路和方法不错，每执行完同一条指令就立即进行对比的。</p>
+<p>但是我见过一种更好的 difftest，也就是我使用的 <a target="_blank" rel="noopener" href="https://gitee.com/loongson-edu/cdp_ede_local">cdp_ede_local</a>，它效率更高。它的思路是，有一个 REF CPU，它先跑一遍 test_func 用例。接着 REF 生成 golden_trace.txt，它记录信息很有讲究，它记录了 4 个信息： we、pc、wnum、value。</p>
+<p>we 这条指令是否修改通用寄存器，pc 是这条指令的地址，wnum 是修改的寄存器编号，value 是修改的值，下面就是一段 trace：</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs txt">1 1c000000 0c ffffffff<br>1 1c000004 0c ffffffff<br>1 1c010000 04 bfaff000<br>1 1c010004 04 bfaff040<br>1 1c010008 05 bfaff000<br>1 1c01000c 05 bfaff030<br>1 1c010010 06 bfaff000<br>1 1c010014 06 bfaff020<br>1 1c010018 18 bfaff000<br>1 1c01001c 18 bfaff050<br>1 1c010020 0d 00000000<br>...<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，这里的 we 几乎都是 1，这意味着我们事实上只需要 trace 修改寄存器的指令就行了，这种思路很好诠释了 CPU 系统是状态机，它只需要记录每条指令执行后 CPU 状态的改变就行了，看到这里，我已经想到了优化 nemu 的 difftest 的思路（每次只需比较要回写的寄存器就行了，没必要比较所有的寄存器）。</p>
+<p>接着，我的 CPU 就可以在执行完后，当执行的指令要回写寄存器的时候，就读取一行 golden_trace.txt，接着作比较就行了：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">int</span> <span class="hljs-title function_">difftest</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">uint32_t</span> we = top-&gt;rootp-&gt;verilator_top-&gt;debug_wb_rf_we;<br>    <span class="hljs-type">uint32_t</span> wnum = top-&gt;rootp-&gt;verilator_top-&gt;debug_wb_rf_wnum;<br>    <span class="hljs-type">uint32_t</span> pc = top-&gt;rootp-&gt;verilator_top-&gt;debug_wb_pc;<br>    <span class="hljs-type">uint32_t</span> value = top-&gt;rootp-&gt;verilator_top-&gt;debug_wb_rf_wdata;<br>    <span class="hljs-keyword">if</span> (we)<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;--&gt;CPU %d %08x %02x %08x\n&quot;</span>, we == <span class="hljs-number">15</span>, pc, wnum, value);<br><br>    <span class="hljs-type">int</span> temp_we = (we == <span class="hljs-number">15</span> ? <span class="hljs-number">1</span> : <span class="hljs-number">0</span>);<br>    <span class="hljs-keyword">if</span> (temp_we == <span class="hljs-number">1</span>) &#123;<br>        read_ref();<br>        <span class="hljs-keyword">return</span> wnum == ref_struct.wnum &amp;&amp; pc == ref_struct.pc &amp;&amp;<br>               value == ref_struct.value;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="对-cdp-ede-local-项目的改造"><a href="#对-cdp-ede-local-项目的改造" class="headerlink" title="对 cdp_ede_local 项目的改造"></a>对 cdp_ede_local 项目的改造</h2><p>是的，我要将 cdp_ede_local 改造成基于 verilator 的仿真框架，这还是挺有挑战性的，但是想到可以更快地进行推进，很值。毕竟 cdp_ede_local 每次difftest 要启动 vivado，时间成本很高。</p>
+<h3 id="ip-核的模拟"><a href="#ip-核的模拟" class="headerlink" title="ip 核的模拟"></a>ip 核的模拟</h3><p>原本的框架提供了 ram 的核，我要使用 verilator 的话没办法用它，因此我可以利用 DPI-C 来模拟 data_ram：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">module</span> data_ram(<br>    <span class="hljs-keyword">input</span> clk,<br>    <span class="hljs-keyword">input</span> we,<br>    <span class="hljs-keyword">input</span>  [<span class="hljs-number">31</span>:<span class="hljs-number">0</span>] a,<br>    <span class="hljs-keyword">input</span>  [<span class="hljs-number">31</span>:<span class="hljs-number">0</span>] d,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">31</span>:<span class="hljs-number">0</span>] spo<br>);<br>    <span class="hljs-keyword">initial</span> <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">end</span><br><br>    <span class="hljs-comment">// dpi-c</span><br>    <span class="hljs-keyword">import</span> <span class="hljs-string">&quot;DPI-C&quot;</span> <span class="hljs-keyword">function</span> <span class="hljs-keyword">int</span> data_ram_read(<span class="hljs-keyword">input</span> <span class="hljs-keyword">int</span> addr);<br>    <span class="hljs-keyword">import</span> <span class="hljs-string">&quot;DPI-C&quot;</span> <span class="hljs-keyword">function</span> <span class="hljs-keyword">void</span> data_ram_write(<span class="hljs-keyword">input</span> <span class="hljs-keyword">int</span> addr, <span class="hljs-keyword">input</span> <span class="hljs-keyword">int</span> wdata);<br><br>    <span class="hljs-keyword">always</span> @(clk) <span class="hljs-keyword">begin</span><br>        <span class="hljs-keyword">if</span> (we) <span class="hljs-keyword">begin</span><br>            data_ram_write(a, d);<br>        <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">end</span><br><br>    <span class="hljs-keyword">assign</span> spo = data_ram_read(a);<br><br><br><span class="hljs-keyword">endmodule</span><br></code></pre></td></tr></table></figure>
+<p>inst_ram：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">module</span> inst_ram(<br>    <span class="hljs-keyword">input</span> clk,<br>    <span class="hljs-keyword">input</span> we,<br>    <span class="hljs-keyword">input</span>  [<span class="hljs-number">31</span>:<span class="hljs-number">0</span>] a,<br>    <span class="hljs-keyword">input</span>  [<span class="hljs-number">31</span>:<span class="hljs-number">0</span>] d,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">31</span>:<span class="hljs-number">0</span>] spo<br>);<br>    <span class="hljs-comment">// dpi-c</span><br>    <span class="hljs-keyword">import</span> <span class="hljs-string">&quot;DPI-C&quot;</span> <span class="hljs-keyword">function</span> <span class="hljs-keyword">int</span> inst_ram_read(<span class="hljs-keyword">input</span> <span class="hljs-keyword">int</span> addr);<br><br>        <span class="hljs-keyword">assign</span> spo = inst_ram_read(a);<br><br><span class="hljs-keyword">endmodule</span><br><br></code></pre></td></tr></table></figure>
+
+<p>接着，实现访存函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-keyword">extern</span> <span class="hljs-string">&quot;C&quot;</span> <span class="hljs-type">int</span> <span class="hljs-title function_">data_ram_read</span><span class="hljs-params">(<span class="hljs-type">int</span> addr)</span> &#123;<br>    <span class="hljs-comment">// gpio</span><br>    <span class="hljs-keyword">if</span> (addr == SW_INTER_ADDR) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0x0000aaaa</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> paddr_read(addr);<br>&#125;<br><span class="hljs-keyword">extern</span> <span class="hljs-string">&quot;C&quot;</span> <span class="hljs-type">int</span> <span class="hljs-title function_">inst_ram_read</span><span class="hljs-params">(<span class="hljs-type">int</span> addr)</span> &#123;<br>    <span class="hljs-keyword">return</span> paddr_read(addr);<br>&#125;<br><br><span class="hljs-keyword">extern</span> <span class="hljs-string">&quot;C&quot;</span> <span class="hljs-type">void</span> <span class="hljs-title function_">data_ram_write</span><span class="hljs-params">(<span class="hljs-type">int</span> addr, <span class="hljs-type">int</span> wdata)</span> &#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;data_write_addr:%08x---&gt;wdata:%08x\n&quot;</span>, addr, wdata);<br>    paddr_write(addr, wdata);<br>    <span class="hljs-comment">// 写完验证一下</span><br>    <span class="hljs-type">uint32_t</span> ans = data_ram_read(addr);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;data_wrote:%08x\n&quot;</span>, ans);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>至于底层，分配内存、加载镜像，就可以启动 verilator 了：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">init_system</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-comment">// 分配内存</span><br>    init_mem();<br>    <span class="hljs-comment">// 加载镜像</span><br>    load_inst();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="difftest-1"><a href="#difftest-1" class="headerlink" title="difftest"></a>difftest</h3><p>从 CPU 中拉出四根 debug 信号，verilator_top.v：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-comment">//debug</span><br><span class="hljs-keyword">wire</span> [<span class="hljs-number">31</span>:<span class="hljs-number">0</span>] debug_wb_pc<span class="hljs-comment">/* verilator public */</span>;<br><span class="hljs-keyword">wire</span> [ <span class="hljs-number">3</span>:<span class="hljs-number">0</span>] debug_wb_rf_we<span class="hljs-comment">/* verilator public */</span>;<br><span class="hljs-keyword">wire</span> [ <span class="hljs-number">4</span>:<span class="hljs-number">0</span>] debug_wb_rf_wnum<span class="hljs-comment">/* verilator public */</span>;<br><span class="hljs-keyword">wire</span> [<span class="hljs-number">31</span>:<span class="hljs-number">0</span>] debug_wb_rf_wdata<span class="hljs-comment">/* verilator public */</span>;<br></code></pre></td></tr></table></figure>
+
+<p>mycpu_top.v：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-comment">// debug info generate</span><br><span class="hljs-keyword">assign</span> debug_wb_pc       = pc;<br><span class="hljs-keyword">assign</span> debug_wb_rf_we   = &#123;<span class="hljs-number">4</span>&#123;rf_we&#125;&#125;;<br><span class="hljs-keyword">assign</span> debug_wb_rf_wnum  = dest;<br><span class="hljs-keyword">assign</span> debug_wb_rf_wdata = final_result;<br></code></pre></td></tr></table></figure>
+
+<p>这样，就可以了：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-comment">// 读取 trace，与拉到的信号进行比对</span><br><span class="hljs-type">int</span> <span class="hljs-title function_">difftest</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">uint32_t</span> we = top-&gt;rootp-&gt;verilator_top-&gt;debug_wb_rf_we;<br>    <span class="hljs-type">uint32_t</span> wnum = top-&gt;rootp-&gt;verilator_top-&gt;debug_wb_rf_wnum;<br>    <span class="hljs-type">uint32_t</span> pc = top-&gt;rootp-&gt;verilator_top-&gt;debug_wb_pc;<br>    <span class="hljs-type">uint32_t</span> value = top-&gt;rootp-&gt;verilator_top-&gt;debug_wb_rf_wdata;<br>    <span class="hljs-keyword">if</span> (we)<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;--&gt;CPU %d %08x %02x %08x\n&quot;</span>, we == <span class="hljs-number">15</span>, pc, wnum, value);<br><br>    <span class="hljs-type">int</span> temp_we = (we == <span class="hljs-number">15</span> ? <span class="hljs-number">1</span> : <span class="hljs-number">0</span>);<br>    <span class="hljs-keyword">if</span> (temp_we == <span class="hljs-number">1</span>) &#123;<br>        read_ref();<br>        <span class="hljs-keyword">return</span> wnum == ref_struct.wnum &amp;&amp; pc == ref_struct.pc &amp;&amp;<br>               value == ref_struct.value;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<h2 id="运行效果"><a href="#运行效果" class="headerlink" title="运行效果"></a>运行效果</h2><p>接下来就是 debug 了，cdp_ede_local 留了很多坑，原本是让读者基于 vivado 的 difftest 进行 debug 的，但是有了 verilator，很快就找到了所有的 bug：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">cpu_exec</span><span class="hljs-params">(<span class="hljs-type">uint64_t</span> n)</span> &#123;<br>    <span class="hljs-keyword">while</span> (n) &#123;<br>        <span class="hljs-comment">// 如果为 0 说明不一致，应该打印一些信息</span><br>        <span class="hljs-keyword">if</span> (difftest() == <span class="hljs-number">0</span>) &#123;<br>            <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Error!\n&quot;</span>);<br>            <span class="hljs-keyword">break</span>;<br>        &#125;<br>        <span class="hljs-comment">// 停机信号</span><br>        <span class="hljs-type">uint32_t</span> pc = top-&gt;rootp-&gt;verilator_top-&gt;__PVT__cpu__DOT__pc;<br>        <span class="hljs-type">uint32_t</span> stop_pc = <span class="hljs-number">0x1c000100</span>;<br>        <span class="hljs-keyword">if</span> (pc == stop_pc) &#123;<br>            <span class="hljs-keyword">break</span>;<br>        &#125;<br>        stepi();<br>        n--;<br>    &#125;<br>    top-&gt;final();<br>    tfp-&gt;close();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>如果执行到 0x1c000100，说明 EXP&#x3D;6 已经通过了测试，这 20 条指令的 bug 已经修复完成：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs bash">make clean &amp;&amp; make run<br>...<br>data_write_addr:bfaff040---&gt;wdata:00000001<br>data_wrote:00000001<br>data_write_addr:bfaff040---&gt;wdata:00000001<br>data_wrote:00000001<br>i:11990<br>data_write_addr:bfaff030---&gt;wdata:00000001<br>data_wrote:00000001<br>data_write_addr:bfaff030---&gt;wdata:00000001<br>data_wrote:00000001<br>i:11991<br>--&gt;CPU 1 1c010150 04 00000000<br>--&gt;REF 1 1c010150 04 00000000<br>i:11992<br>--&gt;CPU 1 1c010154 01 1c010158<br>--&gt;REF 1 1c010154 01 1c010158<br>i:11993<br>--&gt;CPU 1 1c000100 0c bfaff091<br>--&gt;REF 1 1c000100 0c bfaff091<br><br></code></pre></td></tr></table></figure>
+
+<p>这样，就完成了改造，虽然经过艰难险阻，但结果是成功的。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/CPU/" class="category-chain-item">CPU</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/LoongArch/" class="print-no-link">#LoongArch</a>
+      
+        <a href="/tags/CPU/" class="print-no-link">#CPU</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>LA 挑战赛：加上 difftest</div>
+      <div>http://blog.luliang.online/2025/04/05/LA挑战赛2/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年4月5日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/04/06/LA%E6%8C%91%E6%88%98%E8%B5%9B3/" title="LA 挑战赛：fpga 下板测试">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">LA 挑战赛：fpga 下板测试</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/04/03/LA%E6%8C%91%E6%88%98%E8%B5%9B1/" title="LA 挑战赛：开篇">
+                        <span class="hidden-mobile">LA 挑战赛：开篇</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

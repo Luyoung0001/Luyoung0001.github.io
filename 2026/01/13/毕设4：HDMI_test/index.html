@@ -1,0 +1,756 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="uart给系统接一个 uart 串口屏，也可以运行一些简单的程序，比如简单的命令行程序。但是肯定没有 HDMI 显示方便，上节已经实现了 uart 输出一个简单的 xOS 终端，uart 的上限也就如此了。 HDMI当需要在 HDMI 显示器上显示字符时：  软件渲染：CPU&#x2F;软件（如 xOS 的 hdmi_putc）根据字符 ASCII 码从字库中查找点阵数据，计算目标位置，并将对应的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="毕设(4)：HDMI_test">
+<meta property="og:url" content="http://blog.luliang.online/2026/01/13/%E6%AF%95%E8%AE%BE4%EF%BC%9AHDMI_test/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="uart给系统接一个 uart 串口屏，也可以运行一些简单的程序，比如简单的命令行程序。但是肯定没有 HDMI 显示方便，上节已经实现了 uart 输出一个简单的 xOS 终端，uart 的上限也就如此了。 HDMI当需要在 HDMI 显示器上显示字符时：  软件渲染：CPU&#x2F;软件（如 xOS 的 hdmi_putc）根据字符 ASCII 码从字库中查找点阵数据，计算目标位置，并将对应的">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-01-13T02:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.454Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="毕设">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>毕设(4)：HDMI_test - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="毕设(4)：HDMI_test"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-01-13 10:03" pubdate>
+          2026年1月13日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          13 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">毕设(4)：HDMI_test</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="uart"><a href="#uart" class="headerlink" title="uart"></a>uart</h2><p>给系统接一个 uart 串口屏，也可以运行一些简单的程序，比如简单的命令行程序。但是肯定没有 HDMI 显示方便，上节已经实现了 uart 输出一个简单的 xOS 终端，uart 的上限也就如此了。</p>
+<h2 id="HDMI"><a href="#HDMI" class="headerlink" title="HDMI"></a>HDMI</h2><p>当需要在 HDMI 显示器上显示字符时：</p>
+<ul>
+<li><p>软件渲染：CPU&#x2F;软件（如 xOS 的 hdmi_putc）根据字符 ASCII 码从字库中查找点阵数据，计算目标位置，并将对应的像素颜色值（如 RGB565 格式）写入帧缓冲区（FB）的特定内存位置。</p>
+</li>
+<li><p>主动读取：HDMI 控制器作为 AXI 总线主设备，在内部视频时序发生器的精确驱动下，主动地、以突发方式不断从 FB 的物理基地址开始，按行、按块地读取像素数据流。</p>
+</li>
+<li><p>TMDS 编码：控制器内部的 TMDS 编码器将从 FB 读取的像素数据流（可能经过色彩空间转换）编码成符合 HDMI 标准的 TMDS 字符流（包含像素数据和控制信号）。</p>
+</li>
+<li><p>差分输出：编码器输出的并行 TMDS 数据流由差分驱动器转换成 3 路数据差分信号对和1路时钟差分信号对。</p>
+</li>
+<li><p>物理传输：这 4 路高速差分信号通过HDMI物理连接器（PHY） 输出到 HDMI 线缆。</p>
+</li>
+<li><p>显示呈现：显示器接收这些差分信号，解码恢复像素数据和控制信号，驱动显示面板最终将字符图像呈现在屏幕上。</p>
+</li>
+</ul>
+<h2 id="仿真"><a href="#仿真" class="headerlink" title="仿真"></a>仿真</h2><p>思路是，从 soc_top 拉出 hdmi_master 的数据，在每一个指令周期检查相关 axi 信号，并决定是否将这个数据拉取到 simu 中的 framebuffer 中。等 framebuffer 中的数据攒够了，就可以通过 sdl2 库输出到窗口，这样就完成了 hdmi 显示器的模拟。</p>
+<h2 id="用户程序"><a href="#用户程序" class="headerlink" title="用户程序"></a>用户程序</h2><p>用户程序很简单，通过 <code>hdmi_init()</code> 来说明：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-comment">// 初始化 UART</span><br>    bsp_uart_init(<span class="hljs-number">0</span>, BAUDRATE);<br><br>    myprintf(<span class="hljs-string">&quot;\n&quot;</span>);<br>    myprintf(<span class="hljs-string">&quot;========================================\n&quot;</span>);<br>    myprintf(<span class="hljs-string">&quot;  LoongArch32R HDMI Display Test\n&quot;</span>);<br>    myprintf(<span class="hljs-string">&quot;========================================\n&quot;</span>);<br>    myprintf(<span class="hljs-string">&quot;\n&quot;</span>);<br><br>    <span class="hljs-comment">// 初始化 HDMI</span><br>    myprintf(<span class="hljs-string">&quot;Initializing HDMI...\n&quot;</span>);<br>    hdmi_init();<br>    myprintf(<span class="hljs-string">&quot;HDMI initialized!\n\n&quot;</span>);<br>    <span class="hljs-comment">// ...</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p><code>hdmi_init()</code> 本质上就做了一件事：往 framebuffer 中写 0（黑色）。</p>
+<p>在 CPU reset 释放后（锁相环锁定时），hdmi master 就不断的通过突发的方式读取 ddr 中的 framebuffer 了。因为我设置了一个 master 仲裁器，多个 master 请求 axi 总线，最终通过一些策略（绝不能把某些 master 通道饿死）决胜出一个 master。大多数时候，cpu master 是不会访问 ddr 的，因此通道被 hdmi master 专用。但是一旦 CPU 有 axi 请求，hdmi master 应该立即释放。换句话说，cpu master 的优先级最高。</p>
+<p>之后决胜出的 master 会经过 axi_slave_mux 路由，将请求可能转发到：</p>
+<ul>
+<li>ddr</li>
+<li>apb</li>
+<li>confreg</li>
+<li>brom</li>
+</ul>
+<p>对于 hdmi 就会转发到 ddr 中。</p>
+<p>仿真的思路就是，通过 soc_top 的 debug 接口，抓取 hdmi master 已经读取到的 ddr 数据：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-comment">// for HDMI trace (HDMI AXI interface)</span><br>,<span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span> [<span class="hljs-number">31</span>:<span class="hljs-number">0</span>] debug_hdmi_araddr  <span class="hljs-comment">// HDMI 读地址</span><br>,<span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span>        debug_hdmi_arvalid <span class="hljs-comment">// HDMI 读地址有效</span><br>,<span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span>        debug_hdmi_arready <span class="hljs-comment">// HDMI 读地址就绪</span><br>,<span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span> [<span class="hljs-number">31</span>:<span class="hljs-number">0</span>] debug_hdmi_rdata   <span class="hljs-comment">// HDMI 读数据</span><br>,<span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span>        debug_hdmi_rvalid  <span class="hljs-comment">// HDMI 读数据有效</span><br>,<span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span>        debug_hdmi_rready  <span class="hljs-comment">// HDMI 读数据就绪</span><br></code></pre></td></tr></table></figure>
+
+<p>仿真器：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs Cpp"><br><span class="hljs-comment">// HDMI data capture: 正确处理 AXI burst 传输</span><br><span class="hljs-comment">// 1. 在地址握手时，记录 burst 起始地址</span><br><span class="hljs-keyword">if</span> (hdmi_sim &amp;&amp; top-&gt;debug_hdmi_arvalid &amp;&amp; top-&gt;debug_hdmi_arready) &#123;<br>    hdmi_burst_addr = top-&gt;debug_hdmi_araddr;<br>    hdmi_beat_count = <span class="hljs-number">0</span>;<br>&#125;<br><br><span class="hljs-comment">// 2. 在每个有效数据周期（rvalid &amp;&amp; rready）捕获数据</span><br><span class="hljs-comment">// AXI burst 传输中，所有16个 beat 的 rvalid 都为1，需要全部捕获</span><br><span class="hljs-keyword">if</span> (hdmi_sim &amp;&amp; top-&gt;debug_hdmi_rvalid &amp;&amp; top-&gt;debug_hdmi_rready) &#123;<br>    <span class="hljs-type">uint32_t</span> hdmi_data = top-&gt;debug_hdmi_rdata;<br>    <span class="hljs-comment">// 计算当前 beat 的地址（每个 beat 4 字节）</span><br>    <span class="hljs-type">uint32_t</span> current_addr = hdmi_burst_addr + hdmi_beat_count * <span class="hljs-number">4</span>;<br><br>    <span class="hljs-comment">// 只捕获显存地址范围内的数据</span><br>    <span class="hljs-keyword">if</span> (HDMISimulator::<span class="hljs-built_in">is_hdmi_fb_addr</span>(current_addr)) &#123;<br>        hdmi_sim-&gt;<span class="hljs-built_in">capture_read</span>(current_addr, hdmi_data);<br>    &#125;<br><br>    <span class="hljs-comment">// 递增 beat 计数</span><br>    hdmi_beat_count++;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>再把抓来的数据收集到仿真环境中的缓存中，就可以利用 SDL2 等来做呈现，这样 hdmi 仿真器就成功了：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs Cpp"><br><span class="hljs-comment">// 分配临时 RGB8888 缓冲区</span><br><span class="hljs-type">uint8_t</span> *rgb8888_buffer = <span class="hljs-keyword">new</span> <span class="hljs-type">uint8_t</span>[HDMI_WIDTH * HDMI_HEIGHT * <span class="hljs-number">4</span>];<br><br><span class="hljs-comment">// 转换 RGB565 -&gt; RGB888</span><br><span class="hljs-comment">// SDL_PIXELFORMAT_RGBA8888: R-G-B-A 字节顺序</span><br><span class="hljs-keyword">for</span> (<span class="hljs-type">uint32_t</span> i = <span class="hljs-number">0</span>; i &lt; HDMI_WIDTH * HDMI_HEIGHT; i++) &#123;<br>    <span class="hljs-type">uint8_t</span> r, g, b;<br>    <span class="hljs-built_in">rgb565_to_rgb888</span>(framebuffer[i], r, g, b);<br>    rgb8888_buffer[i * <span class="hljs-number">4</span> + <span class="hljs-number">0</span>] = <span class="hljs-number">255</span>; <span class="hljs-comment">// Alpha</span><br>    rgb8888_buffer[i * <span class="hljs-number">4</span> + <span class="hljs-number">1</span>] = b;   <span class="hljs-comment">// B</span><br>    rgb8888_buffer[i * <span class="hljs-number">4</span> + <span class="hljs-number">2</span>] = g;   <span class="hljs-comment">// G</span><br>    rgb8888_buffer[i * <span class="hljs-number">4</span> + <span class="hljs-number">3</span>] = r;   <span class="hljs-comment">// R</span><br>&#125;<br><br><span class="hljs-comment">// 更新纹理</span><br><span class="hljs-built_in">SDL_UpdateTexture</span>(texture, <span class="hljs-literal">nullptr</span>, rgb8888_buffer, HDMI_WIDTH * <span class="hljs-number">4</span>);<br><br><span class="hljs-comment">// 渲染到窗口</span><br><span class="hljs-built_in">SDL_RenderClear</span>(renderer);<br><span class="hljs-built_in">SDL_RenderCopy</span>(renderer, texture, <span class="hljs-literal">nullptr</span>, <span class="hljs-literal">nullptr</span>);<br><span class="hljs-built_in">SDL_RenderPresent</span>(renderer);<br><br><span class="hljs-keyword">delete</span>[] rgb8888_buffer;<br><br>frame_count++;<br><span class="hljs-keyword">if</span> (frame_count % <span class="hljs-number">60</span> == <span class="hljs-number">0</span>) &#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;[HDMI] Frame %u rendered\n&quot;</span>, frame_count);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="hdmi-驱动"><a href="#hdmi-驱动" class="headerlink" title="hdmi 驱动"></a>hdmi 驱动</h3><p>Xilinx 7系列（Artix-7, Kintex-7, Virtex-7）基本单元：</p>
+<ul>
+<li>每个 BRAM Primitive &#x3D; 36Kb</li>
+<li>36Kb &#x3D; 36,864 bits &#x3D; 4,608 bytes &#x3D; 4.5 KB</li>
+</ul>
+<p>可配置方式：</p>
+<ol>
+<li>RAMB36（36Kb 整块）</li>
+</ol>
+<ul>
+<li>数据宽度可配置：1, 2, 4, 9, 18, 36, 72 位</li>
+<li>深度相应调整<ul>
+<li>例如：4K × 9bit, 2K × 18bit, 1K × 36bit</li>
+</ul>
+</li>
+</ul>
+<ol start="2">
+<li>RAMB18（18Kb 半块）</li>
+</ol>
+<ul>
+<li>一个 RAMB36 可以分成 2 个 RAMB18</li>
+<li>每个 RAMB18 &#x3D; 18Kb &#x3D; 2.25 KB</li>
+</ul>
+<p>为了节省资源，在硬件中使用 bram 来做行缓冲。由于 1080P 每一行需要 1920 个像素，如果使用 RGB565，这样 1920 个像素总共会使用 960 * 32b &lt; 1024 * 36b，刚好用不到一个 bram 资源。于是 RGB565 就是非常好的选择：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-comment">// RGB565 颜色定义</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> RGB565(r, g, b) ((((r) &gt;&gt; 3) <span class="hljs-string">&lt;&lt; 11) | (((g) &gt;</span>&gt; 2) <span class="hljs-string">&lt;&lt; 5) | ((b) &gt;</span>&gt; 3))</span><br><br><span class="hljs-comment">// 常用颜色</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> COLOR_BLACK   RGB565(0, 0, 0)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> COLOR_WHITE   RGB565(255, 255, 255)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> COLOR_RED     RGB565(255, 0, 0)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> COLOR_GREEN   RGB565(0, 255, 0)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> COLOR_BLUE    RGB565(0, 0, 255)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> COLOR_YELLOW  RGB565(255, 255, 0)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> COLOR_CYAN    RGB565(0, 255, 255)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> COLOR_MAGENTA RGB565(255, 0, 255)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> COLOR_GRAY    RGB565(128, 128, 128)</span><br></code></pre></td></tr></table></figure>
+
+<p>如果想要绘制一个字符，只需要：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">static</span> <span class="hljs-keyword">volatile</span> <span class="hljs-type">uint16_t</span>* fb = (<span class="hljs-keyword">volatile</span> <span class="hljs-type">uint16_t</span>*)HDMI_FB_BASE_A;<br><span class="hljs-type">void</span> <span class="hljs-title function_">hdmi_draw_pixel</span><span class="hljs-params">(<span class="hljs-type">int</span> x, <span class="hljs-type">int</span> y, <span class="hljs-type">uint16_t</span> color)</span> &#123;<br>    <span class="hljs-keyword">if</span> (x &gt;= <span class="hljs-number">0</span> &amp;&amp; x &lt; HDMI_WIDTH &amp;&amp; y &gt;= <span class="hljs-number">0</span> &amp;&amp; y &lt; HDMI_HEIGHT) &#123;<br>        fb[y * HDMI_WIDTH + x] = color;<br>    &#125;<br>&#125;<br><span class="hljs-type">void</span> <span class="hljs-title function_">hdmi_draw_char</span><span class="hljs-params">(<span class="hljs-type">int</span> x, <span class="hljs-type">int</span> y, <span class="hljs-type">char</span> c, <span class="hljs-type">uint16_t</span> fg_color, <span class="hljs-type">uint16_t</span> bg_color)</span> &#123;<br>    <span class="hljs-keyword">if</span> (c &lt; <span class="hljs-number">32</span> || c &gt; <span class="hljs-number">126</span>) c = <span class="hljs-string">&#x27; &#x27;</span>;<br><br>    <span class="hljs-type">const</span> <span class="hljs-type">uint8_t</span>* glyph = font_8x8[c - <span class="hljs-number">32</span>];<br><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> row = <span class="hljs-number">0</span>; row &lt; <span class="hljs-number">8</span>; row++) &#123;<br>        <span class="hljs-type">uint8_t</span> line = glyph[row];<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> col = <span class="hljs-number">0</span>; col &lt; <span class="hljs-number">8</span>; col++) &#123;<br>            <span class="hljs-type">uint16_t</span> color = (line &amp; (<span class="hljs-number">1</span> &lt;&lt; (<span class="hljs-number">7</span> - col))) ? fg_color : bg_color;<br>            hdmi_draw_pixel(x + col, y + row, color);<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里面有一个 font_8x8 的概念，这是 8x8 ASCII 的字体，对于每一个字符，都对应于这个字符的绘制数据，比如对于 ‘$’：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-comment">// 0x24 &#x27;$&#x27;</span><br>&#123;<span class="hljs-number">0x0C</span>, <span class="hljs-number">0x3E</span>, <span class="hljs-number">0x03</span>, <span class="hljs-number">0x1E</span>, <span class="hljs-number">0x30</span>, <span class="hljs-number">0x1F</span>, <span class="hljs-number">0x0C</span>, <span class="hljs-number">0x00</span>&#125;,<br></code></pre></td></tr></table></figure>
+
+<p>其它图形的绘制也是类似。</p>
+<p>这样就完成了从应用到仿真，再到物理设计。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/loongarch32r/" class="category-chain-item">loongarch32r</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E6%AF%95%E8%AE%BE/" class="print-no-link">#毕设</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>毕设(4)：HDMI_test</div>
+      <div>http://blog.luliang.online/2026/01/13/毕设4：HDMI_test/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年1月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/01/15/%E6%AF%95%E8%AE%BE5%EF%BC%9Amylibc/" title="毕设(5)：mylibc">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">毕设(5)：mylibc</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/01/11/%E6%AF%95%E8%AE%BE3%EF%BC%9AxOS%20%E9%9B%8F%E5%BD%A2/" title="毕设(3)：xOS 雏形">
+                        <span class="hidden-mobile">毕设(3)：xOS 雏形</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

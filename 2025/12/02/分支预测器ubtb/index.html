@@ -1,0 +1,803 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="ubtbThis is the set-associative variant of the Micro BTB, as opposed to the fully-associative FAMicroBTB. It uses indexed addressing like a cache. Structure:  256 sets by default (configurable) Each e">
+<meta property="og:type" content="article">
+<meta property="og:title" content="riscv-boom&#39;s ubtb">
+<meta property="og:url" content="http://blog.luliang.online/2025/12/02/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E5%99%A8ubtb/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="ubtbThis is the set-associative variant of the Micro BTB, as opposed to the fully-associative FAMicroBTB. It uses indexed addressing like a cache. Structure:  256 sets by default (configurable) Each e">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-12-02T07:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.451Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="分支预测">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>riscv-boom&#39;s ubtb - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="riscv-boom&#39;s ubtb"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-12-02 15:03" pubdate>
+          2025年12月2日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          36 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">riscv-boom&#39;s ubtb</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="ubtb"><a href="#ubtb" class="headerlink" title="ubtb"></a>ubtb</h2><p>This is the set-associative variant of the Micro BTB, as opposed to the fully-associative FAMicroBTB. It uses indexed addressing like a cache.</p>
+<p>Structure:</p>
+<ul>
+<li>256 sets by default (configurable)</li>
+<li>Each entry stores: tag, is_br, 2-bit counter, offset (signed)</li>
+<li>Offset is stored instead of full target for space efficiency</li>
+<li>Target &#x3D; PC + slot_offset + stored_offset</li>
+</ul>
+<p>Key Features:</p>
+<ul>
+<li>SyncReadMem for meta and BTB storage (1-cycle read latency)</li>
+<li>Write bypass to handle read-after-write hazards</li>
+<li>Offset-based target calculation for reduced storage</li>
+</ul>
+<h3 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h3><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BoomMicroBTBParams</span>(<span class="hljs-params"></span></span><br><span class="hljs-params"><span class="hljs-class">  nSets: <span class="hljs-type">Int</span> = 256,</span></span><br><span class="hljs-params"><span class="hljs-class">  offsetSz: <span class="hljs-type">Int</span> = 13</span></span><br><span class="hljs-params"><span class="hljs-class"></span>)</span><br><br><span class="hljs-keyword">val</span> nWrBypassEntries = <span class="hljs-number">2</span><br><span class="hljs-keyword">val</span> btbEntrySz = offsetSz<br><br></code></pre></td></tr></table></figure>
+
+<h3 id="基本组成"><a href="#基本组成" class="headerlink" title="基本组成"></a>基本组成</h3><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MicroBTBEntry</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Bundle</span> </span>&#123;<br>    <span class="hljs-keyword">val</span> offset   = <span class="hljs-type">SInt</span>(offsetSz.<span class="hljs-type">W</span>)<br>&#125;<br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MicroBTBMeta</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Bundle</span> </span>&#123;<br>    <span class="hljs-keyword">val</span> is_br = <span class="hljs-type">Bool</span>()<br>    <span class="hljs-keyword">val</span> tag   = <span class="hljs-type">UInt</span>(tagSz.<span class="hljs-type">W</span>)<br>    <span class="hljs-keyword">val</span> ctr   = <span class="hljs-type">UInt</span>(<span class="hljs-number">2.</span><span class="hljs-type">W</span>)<br>&#125;<br><br><span class="hljs-keyword">val</span> meta     = <span class="hljs-type">SyncReadMem</span>(nSets, <span class="hljs-type">Vec</span>(bankWidth, <span class="hljs-type">UInt</span>(btbMetaSz.<span class="hljs-type">W</span>)))<br><span class="hljs-keyword">val</span> btb      = <span class="hljs-type">SyncReadMem</span>(nSets, <span class="hljs-type">Vec</span>(bankWidth, <span class="hljs-type">UInt</span>(btbEntrySz.<span class="hljs-type">W</span>)))<br><br><span class="hljs-comment">// bypass</span><br><span class="hljs-keyword">val</span> wrbypass_idxs    = <span class="hljs-type">Reg</span>(<span class="hljs-type">Vec</span>(nWrBypassEntries, <span class="hljs-type">UInt</span>(log2Ceil(nSets).<span class="hljs-type">W</span>)))<br><span class="hljs-keyword">val</span> wrbypass         = <span class="hljs-type">Reg</span>(<span class="hljs-type">Vec</span>(nWrBypassEntries, <span class="hljs-type">Vec</span>(bankWidth, <span class="hljs-keyword">new</span> <span class="hljs-type">MicroBTBMeta</span>)))<br><span class="hljs-keyword">val</span> wrbypass_enq_idx = <span class="hljs-type">RegInit</span>(<span class="hljs-number">0.</span><span class="hljs-type">U</span>(log2Ceil(nWrBypassEntries).<span class="hljs-type">W</span>))<br><br></code></pre></td></tr></table></figure>
+
+<h3 id="读取数据"><a href="#读取数据" class="headerlink" title="读取数据"></a>读取数据</h3><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs Scala"><span class="hljs-keyword">val</span> s1_req_rbtb  = <span class="hljs-type">VecInit</span>(btb.read(s0_idx , s0_valid).map(_.asTypeOf(<span class="hljs-keyword">new</span> <span class="hljs-type">MicroBTBEntry</span>)))<br><span class="hljs-keyword">val</span> s1_req_rmeta = <span class="hljs-type">VecInit</span>(meta.read(s0_idx, s0_valid).map(_.asTypeOf(<span class="hljs-keyword">new</span> <span class="hljs-type">MicroBTBMeta</span>)))<br><span class="hljs-keyword">val</span> s1_req_tag   = s1_idx &gt;&gt; log2Ceil(nSets)<br><br><br><span class="hljs-keyword">val</span> s1_resp   = <span class="hljs-type">Wire</span>(<span class="hljs-type">Vec</span>(bankWidth, <span class="hljs-type">Valid</span>(<span class="hljs-type">UInt</span>(vaddrBitsExtended.<span class="hljs-type">W</span>))))<br><span class="hljs-keyword">val</span> s1_taken  = <span class="hljs-type">Wire</span>(<span class="hljs-type">Vec</span>(bankWidth, <span class="hljs-type">Bool</span>()))<br><span class="hljs-keyword">val</span> s1_is_br  = <span class="hljs-type">Wire</span>(<span class="hljs-type">Vec</span>(bankWidth, <span class="hljs-type">Bool</span>()))<br><span class="hljs-keyword">val</span> s1_is_jal = <span class="hljs-type">Wire</span>(<span class="hljs-type">Vec</span>(bankWidth, <span class="hljs-type">Bool</span>()))<br></code></pre></td></tr></table></figure>
+
+<h3 id="查询结果"><a href="#查询结果" class="headerlink" title="查询结果"></a>查询结果</h3><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-keyword">for</span> (w &lt;- <span class="hljs-number">0</span> until bankWidth) &#123;<br>    s1_resp(w).valid := !doing_reset &amp;&amp; s1_valid &amp;&amp; s1_req_tag(tagSz<span class="hljs-number">-1</span>,<span class="hljs-number">0</span>) === s1_req_rmeta(w).tag<br>    s1_resp(w).bits  := (s1_pc.asSInt + (w &lt;&lt; <span class="hljs-number">1</span>).<span class="hljs-type">S</span> + s1_req_rbtb(w).offset).asUInt<br>    s1_is_br(w)  := !doing_reset &amp;&amp; s1_resp(w).valid &amp;&amp;  s1_req_rmeta(w).is_br<br>    s1_is_jal(w) := !doing_reset &amp;&amp; s1_resp(w).valid &amp;&amp; !s1_req_rmeta(w).is_br<br>    s1_taken(w)  := !doing_reset &amp;&amp; (!s1_req_rmeta(w).is_br || s1_req_rmeta(w).ctr(<span class="hljs-number">1</span>))<br>    s1_meta.ctrs(w) := s1_req_rmeta(w).ctr<br>&#125;<br><br><span class="hljs-keyword">for</span> (w &lt;- <span class="hljs-number">0</span> until bankWidth) &#123;<br>    io.resp.f1(w).predicted_pc := s1_resp(w)<br>    io.resp.f1(w).is_br        := s1_is_br(w)<br>    io.resp.f1(w).is_jal       := s1_is_jal(w)<br>    io.resp.f1(w).taken        := s1_taken(w)<br><br>    io.resp.f2(w) := <span class="hljs-type">RegNext</span>(io.resp.f1(w))<br>    io.resp.f3(w) := <span class="hljs-type">RegNext</span>(io.resp.f2(w))<br>&#125;<br>io.f3_meta := <span class="hljs-type">RegNext</span>(<span class="hljs-type">RegNext</span>(s1_meta.asUInt))<br></code></pre></td></tr></table></figure>
+
+<h3 id="更新"><a href="#更新" class="headerlink" title="更新"></a>更新</h3><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-comment">// 获取 nWrBypassEntries 的命中列表</span><br><span class="hljs-keyword">val</span> wrbypass_hits = <span class="hljs-type">VecInit</span>((<span class="hljs-number">0</span> until nWrBypassEntries) map &#123; i =&gt;<br>    !doing_reset &amp;&amp;<br>    wrbypass_idxs(i) === s1_update_idx(log2Ceil(nSets)<span class="hljs-number">-1</span>,<span class="hljs-number">0</span>)<br>&#125;)<br><span class="hljs-comment">// 在列表中判断是否命中</span><br><span class="hljs-keyword">val</span> wrbypass_hit  = wrbypass_hits.reduce(_||_)<br><span class="hljs-comment">// 判断命中的最领先的索引</span><br><span class="hljs-keyword">val</span> wrbypass_hit_idx = <span class="hljs-type">PriorityEncoder</span>(wrbypass_hits)<br><br><span class="hljs-keyword">val</span> max_offset_value = (~(<span class="hljs-number">0.</span><span class="hljs-type">U</span>)((offsetSz<span class="hljs-number">-1</span>).<span class="hljs-type">W</span>)).asSInt<br><span class="hljs-keyword">val</span> min_offset_value = <span class="hljs-type">Cat</span>(<span class="hljs-number">1.</span><span class="hljs-type">B</span>, (<span class="hljs-number">0.</span><span class="hljs-type">U</span>)((offsetSz<span class="hljs-number">-1</span>).<span class="hljs-type">W</span>)).asSInt<br><br><span class="hljs-comment">// 可以看到这里就是在做逆运算求 offset</span><br><span class="hljs-keyword">val</span> new_offset_value = (s1_update.bits.target.asSInt -<br>(s1_update.bits.pc + (s1_update.bits.cfi_idx.bits &lt;&lt; <span class="hljs-number">1</span>)).asSInt)<br><span class="hljs-keyword">val</span> s1_update_wbtb_data     = <span class="hljs-type">Wire</span>(<span class="hljs-keyword">new</span> <span class="hljs-type">MicroBTBEntry</span>)<br>s1_update_wbtb_data.offset := new_offset_value<br><span class="hljs-keyword">val</span> s1_update_wbtb_mask = (<span class="hljs-type">UIntToOH</span>(s1_update_cfi_idx) &amp;<br>    <span class="hljs-type">Fill</span>(bankWidth, s1_update.bits.cfi_idx.valid &amp;&amp; s1_update.valid &amp;&amp; s1_update.bits.cfi_taken &amp;&amp; s1_update.bits.is_commit_update))<br><br><span class="hljs-keyword">val</span> s1_update_wmeta_mask = ((s1_update_wbtb_mask | s1_update.bits.br_mask) &amp;<br>    <span class="hljs-type">Fill</span>(bankWidth, s1_update.valid &amp;&amp; s1_update.bits.is_commit_update))<br><span class="hljs-keyword">val</span> s1_update_wmeta_data = <span class="hljs-type">Wire</span>(<span class="hljs-type">Vec</span>(bankWidth, <span class="hljs-keyword">new</span> <span class="hljs-type">MicroBTBMeta</span>))<br><span class="hljs-keyword">for</span> (w &lt;- <span class="hljs-number">0</span> until bankWidth) &#123;<br>    s1_update_wmeta_data(w).tag     := s1_update_idx &gt;&gt; log2Ceil(nSets)<br>    s1_update_wmeta_data(w).is_br   := s1_update.bits.br_mask(w)<br><br>    <span class="hljs-keyword">val</span> was_taken =  (s1_update.bits.cfi_idx.valid &amp;&amp; s1_update.bits.cfi_idx.bits === w.<span class="hljs-type">U</span> &amp;&amp;<br>    (<br>        (s1_update.bits.cfi_is_br &amp;&amp; s1_update.bits.cfi_taken) ||<br>        s1_update.bits.cfi_is_jal<br>    )<br>    )<br>    <span class="hljs-keyword">val</span> old_bim_value = <span class="hljs-type">Mux</span>(wrbypass_hit, wrbypass(wrbypass_hit_idx)(w).ctr, s1_update_meta.ctrs(w))<br>    s1_update_wmeta_data(w).ctr     := bimWrite(old_bim_value, was_taken)<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<h3 id="写-sram"><a href="#写-sram" class="headerlink" title="写 sram"></a>写 sram</h3><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs scala">btb.write(<br>  <span class="hljs-type">Mux</span>(doing_reset,<br>    reset_idx,<br>    s1_update_idx),<br>  <span class="hljs-type">Mux</span>(doing_reset,<br>    <span class="hljs-type">VecInit</span>(<span class="hljs-type">Seq</span>.fill(bankWidth) &#123; <span class="hljs-number">0.</span><span class="hljs-type">U</span>(btbEntrySz.<span class="hljs-type">W</span>) &#125;),<br>    <span class="hljs-comment">// data = [wbtb_data, wbtb_data, wbtb_data, wbtb_data]</span><br>    <span class="hljs-type">VecInit</span>(<span class="hljs-type">Seq</span>.fill(bankWidth) &#123; s1_update_wbtb_data.asUInt &#125;)),<br>  <span class="hljs-type">Mux</span>(doing_reset,<br>    (~(<span class="hljs-number">0.</span><span class="hljs-type">U</span>(bankWidth.<span class="hljs-type">W</span>))),<br>    s1_update_wbtb_mask).asBools<br>)<br><br><span class="hljs-comment">// def write(addr: UInt, data: Vec[T], mask: Seq[Bool]): Unit</span><br><span class="hljs-comment">//           ────────────  ─────────────  ──────────────</span><br><span class="hljs-comment">//             写入地址       写入数据        写入掩码</span><br><span class="hljs-comment">//            (选择哪个Set)  (每个slot的值)  (哪些slot真正写入)</span><br>meta.write(<br>  <span class="hljs-type">Mux</span>(doing_reset,<br>    reset_idx,<br>    s1_update_idx),<br>  <span class="hljs-type">Mux</span>(doing_reset,<br>    <span class="hljs-type">VecInit</span>(<span class="hljs-type">Seq</span>.fill(bankWidth) &#123; <span class="hljs-number">0.</span><span class="hljs-type">U</span>(btbMetaSz.<span class="hljs-type">W</span>) &#125;),<br>    <span class="hljs-type">VecInit</span>(s1_update_wmeta_data.map(_.asUInt))),<br>  <span class="hljs-type">Mux</span>(doing_reset,<br>    (~(<span class="hljs-number">0.</span><span class="hljs-type">U</span>(bankWidth.<span class="hljs-type">W</span>))),<br>    s1_update_wmeta_mask).asBools<br>)<br><br>when (s1_update_wmeta_mask =/= <span class="hljs-number">0.</span><span class="hljs-type">U</span>) &#123;<br>  when (wrbypass_hit) &#123;<br>    wrbypass(wrbypass_hit_idx) := s1_update_wmeta_data<br>  &#125; .otherwise &#123;<br>    wrbypass(wrbypass_enq_idx)      := s1_update_wmeta_data<br>    wrbypass_idxs(wrbypass_enq_idx) := s1_update_idx<br>    wrbypass_enq_idx := <span class="hljs-type">WrapInc</span>(wrbypass_enq_idx, nWrBypassEntries)<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="框图说明"><a href="#框图说明" class="headerlink" title="框图说明"></a>框图说明</h2><h3 id="1-整体架构"><a href="#1-整体架构" class="headerlink" title="1. 整体架构"></a>1. 整体架构</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                           μBTB (Micro Branch Target Buffer)                     │<br>│                              params: nSets=256                                  │<br>│                                                                                 │<br>│   特点: 直接映射 (Direct-Mapped), 无 Way 选择, 更快的访问                        │<br>├─────────────────────────────────────────────────────────────────────────────────┤<br>│                                                                                 │<br>│  ┌─────────────────────────────────────────────────────────────────────────┐   │<br>│  │                          主存储结构                                      │   │<br>│  │                                                                          │   │<br>│  │   ┌────────────────────────────┐    ┌────────────────────────────┐      │   │<br>│  │   │       ubtb_meta            │    │       ubtb_data            │      │   │<br>│  │   │      [256 sets]            │    │      [256 sets]            │      │   │<br>│  │   │                            │    │                            │      │   │<br>│  │   │  ┌──────────────────────┐ │    │  ┌──────────────────────┐  │      │   │<br>│  │   │  │ Set 0:               │ │    │  │ Set 0:               │  │      │   │<br>│  │   │  │  [bankWidth entries] │ │    │  │  [bankWidth entries] │  │      │   │<br>│  │   │  │  ┌────┬────┬──────┐  │ │    │  │  ┌──────────────┐    │  │      │   │<br>│  │   │  │  │ctr │is_br│ tag │  │ │    │  │  │   offset     │    │  │      │   │<br>│  │   │  │  │(2b)│(1b) │(tag)│  │ │    │  │  │   (13 bits)  │    │  │      │   │<br>│  │   │  │  └────┴────┴──────┘  │ │    │  │  └──────────────┘    │  │      │   │<br>│  │   │  │  ...                 │ │    │  │  ...                 │  │      │   │<br>│  │   │  ├──────────────────────┤ │    │  ├──────────────────────┤  │      │   │<br>│  │   │  │ Set 1                │ │    │  │ Set 1                │  │      │   │<br>│  │   │  ├──────────────────────┤ │    │  ├──────────────────────┤  │      │   │<br>│  │   │  │ ...                  │ │    │  │ ...                  │  │      │   │<br>│  │   │  ├──────────────────────┤ │    │  ├──────────────────────┤  │      │   │<br>│  │   │  │ Set 255              │ │    │  │ Set 255              │  │      │   │<br>│  │   │  └──────────────────────┘ │    │  └──────────────────────┘  │      │   │<br>│  │   └────────────────────────────┘    └────────────────────────────┘      │   │<br>│  │                                                                          │   │<br>│  └─────────────────────────────────────────────────────────────────────────┘   │<br>│                                                                                 │<br>│  ┌─────────────────────────────────────────────────────────────────────────┐   │<br>│  │                       Write Bypass Buffer                                │   │<br>│  │                     [nWrBypassEntries = 2 entries]                       │   │<br>│  │                                                                          │   │<br>│  │   ┌──────────────────────────────────────────────────────────────────┐  │   │<br>│  │   │ Entry 0: idx + [bankWidth × MicroBTBMeta]                        │  │   │<br>│  │   ├──────────────────────────────────────────────────────────────────┤  │   │<br>│  │   │ Entry 1: idx + [bankWidth × MicroBTBMeta]                        │  │   │<br>│  │   └──────────────────────────────────────────────────────────────────┘  │   │<br>│  │                                                                          │   │<br>│  │   用途: 解决 SRAM 写后读 (RAW) 冲突，提供最新的计数器值                    │   │<br>│  └─────────────────────────────────────────────────────────────────────────┘   │<br>│                                                                                 │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br></code></pre></td></tr></table></figure>
+<h3 id="2-数据结构详解"><a href="#2-数据结构详解" class="headerlink" title="2. 数据结构详解"></a>2. 数据结构详解</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────┐<br>│                   MicroBTBEntry (数据项)                        │<br>├─────────────────────────────────────────────────────────────────┤<br>│  ┌─────────────────────────────────────────────────────────┐   │<br>│  │                  offset (13 bits)                        │   │<br>│  │              分支目标的 PC 偏移量 (有符号)                │   │<br>│  │                                                          │   │<br>│  │   注意: μBTB 没有 extended 位!                           │   │<br>│  │         只能处理 ±4KB 范围内的跳转                        │   │<br>│  │         远距离跳转需要依赖 BTB                            │   │<br>│  └─────────────────────────────────────────────────────────┘   │<br>│                        共 13 bits                               │<br>└─────────────────────────────────────────────────────────────────┘<br><br>┌─────────────────────────────────────────────────────────────────┐<br>│                   MicroBTBMeta (元数据)                         │<br>├─────────────────────────────────────────────────────────────────┤<br>│  ┌────────┬─────────┬──────────────────────────────────────┐   │<br>│  │  ctr   │  is_br  │              tag                     │   │<br>│  │ (2 bits)│ (1 bit) │           (tagSz bits)               │   │<br>│  └────────┴─────────┴──────────────────────────────────────┘   │<br>│                                                                 │<br>│  字段说明:                                                      │<br>│  ┌─────────────────────────────────────────────────────────┐   │<br>│  │  ctr (2-bit 饱和计数器):                                 │   │<br>│  │    00 = 强不跳转 (Strongly Not Taken)                   │   │<br>│  │    01 = 弱不跳转 (Weakly Not Taken)                     │   │<br>│  │    10 = 弱跳转   (Weakly Taken)                         │   │<br>│  │    11 = 强跳转   (Strongly Taken)                       │   │<br>│  │                                                          │   │<br>│  │  is_br:                                                  │   │<br>│  │    0 = JAL (无条件跳转, 总是 taken)                      │   │<br>│  │    1 = BR  (条件分支, 根据 ctr 预测)                     │   │<br>│  │                                                          │   │<br>│  │  tag: 地址高位, 用于验证是否命中                          │   │<br>│  └─────────────────────────────────────────────────────────┘   │<br>│                     共 (tagSz + 3) bits                         │<br>└─────────────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<h3 id="3-地址索引方式"><a href="#3-地址索引方式" class="headerlink" title="3. 地址索引方式"></a>3. 地址索引方式</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br><span class="line">308</span><br><span class="line">309</span><br><span class="line">310</span><br><span class="line">311</span><br><span class="line">312</span><br><span class="line">313</span><br><span class="line">314</span><br><span class="line">315</span><br><span class="line">316</span><br><span class="line">317</span><br><span class="line">318</span><br><span class="line">319</span><br><span class="line">320</span><br><span class="line">321</span><br><span class="line">322</span><br><span class="line">323</span><br><span class="line">324</span><br><span class="line">325</span><br><span class="line">326</span><br><span class="line">327</span><br><span class="line">328</span><br><span class="line">329</span><br><span class="line">330</span><br><span class="line">331</span><br><span class="line">332</span><br><span class="line">333</span><br><span class="line">334</span><br><span class="line">335</span><br><span class="line">336</span><br><span class="line">337</span><br><span class="line">338</span><br><span class="line">339</span><br><span class="line">340</span><br><span class="line">341</span><br><span class="line">342</span><br><span class="line">343</span><br><span class="line">344</span><br><span class="line">345</span><br><span class="line">346</span><br><span class="line">347</span><br><span class="line">348</span><br><span class="line">349</span><br><span class="line">350</span><br><span class="line">351</span><br><span class="line">352</span><br><span class="line">353</span><br><span class="line">354</span><br><span class="line">355</span><br><span class="line">356</span><br><span class="line">357</span><br><span class="line">358</span><br><span class="line">359</span><br><span class="line">360</span><br></pre></td><td class="code"><pre><code class="hljs txt">                            PC 地址结构<br>┌─────────────────────────────────────────────────────────────────┐<br>│                        vaddrBitsExtended                        │<br>├─────────────────────────────────────────────────────────────────┤<br>│                                                                 │<br>│  ┌───────────────────┬──────────────┬──────────────────┬───┐   │<br>│  │       tag         │     idx      │  fetchWidth偏移  │ 0 │   │<br>│  │     (tagSz)       │ log2(nSets)  │  log2(fetchWidth)│   │   │<br>│  │                   │   = 8 bits   │                  │   │   │<br>│  └───────────────────┴──────────────┴──────────────────┴───┘   │<br>│                                                                 │<br>│  与 BTB 的区别:                                                 │<br>│  - μBTB: nSets=256, idx=8 bits                                 │<br>│  - BTB:  nSets=128, idx=7 bits                                 │<br>│  - μBTB 更多 set，但没有 way (直接映射)                         │<br>│                                                                 │<br>└─────────────────────────────────────────────────────────────────┘<br><br>---<br>查询流程 (Lookup)<br><br>                              查询流程图<br>                                 │<br>                                 ▼<br>┌─────────────────────────────────────────────────────────────────┐<br>│                     Stage 0 (S0): 发起读请求                     │<br>├─────────────────────────────────────────────────────────────────┤<br>│                                                                 │<br>│   输入: s0_idx (从 PC 提取的索引)                                │<br>│                                                                 │<br>│   ┌─────────────────────────────────────────────────────────┐  │<br>│   │  并行读取 Meta 和 Data (直接映射，无需选择 Way):         │  │<br>│   │                                                          │  │<br>│   │     ┌─────────────────┐     ┌─────────────────┐         │  │<br>│   │     │   meta.read     │     │    btb.read     │         │  │<br>│   │     │   (s0_idx)      │     │    (s0_idx)     │         │  │<br>│   │     └────────┬────────┘     └────────┬────────┘         │  │<br>│   │              │                       │                   │  │<br>│   │              ▼                       ▼                   │  │<br>│   │     Vec[bankWidth]           Vec[bankWidth]              │  │<br>│   │     MicroBTBMeta             MicroBTBEntry               │  │<br>│   └─────────────────────────────────────────────────────────┘  │<br>│                                                                 │<br>└─────────────────────────────────────────────────────────────────┘<br>                                 │<br>                                 ▼<br>┌─────────────────────────────────────────────────────────────────┐<br>│                     Stage 1 (S1): Tag 比较 &amp; 预测生成            │<br>├─────────────────────────────────────────────────────────────────┤<br>│                                                                 │<br>│   输入: s1_req_rmeta, s1_req_rbtb (读出的数据)                   │<br>│         s1_req_tag (从 s1_idx 提取的 tag)                       │<br>│                                                                 │<br>│   ┌─────────────────────────────────────────────────────────┐  │<br>│   │  对每个 bank slot (w = 0 to bankWidth-1):               │  │<br>│   │                                                          │  │<br>│   │  1. Tag 比较 (判断命中):                                 │  │<br>│   │     ┌─────────────────────────────────────────────────┐ │  │<br>│   │     │ hit = (s1_req_tag == s1_req_rmeta(w).tag)       │ │  │<br>│   │     │                                                  │ │  │<br>│   │     │ s1_resp(w).valid = !doing_reset &amp;&amp;              │ │  │<br>│   │     │                    s1_valid &amp;&amp; hit              │ │  │<br>│   │     └─────────────────────────────────────────────────┘ │  │<br>│   │                                                          │  │<br>│   │  2. 计算目标地址 (PC 相对):                              │  │<br>│   │     ┌─────────────────────────────────────────────────┐ │  │<br>│   │     │ target = s1_pc + (w &lt;&lt; 1) + offset              │ │  │<br>│   │     │          ↑        ↑           ↑                 │ │  │<br>│   │     │       基地址   slot偏移    分支偏移               │ │  │<br>│   │     └─────────────────────────────────────────────────┘ │  │<br>│   │                                                          │  │<br>│   │  3. 生成分支类型:                                        │  │<br>│   │     ┌─────────────────────────────────────────────────┐ │  │<br>│   │     │ s1_is_br(w)  = valid &amp;&amp;  is_br                  │ │  │<br>│   │     │ s1_is_jal(w) = valid &amp;&amp; !is_br                  │ │  │<br>│   │     └─────────────────────────────────────────────────┘ │  │<br>│   │                                                          │  │<br>│   │  4. 预测是否 Taken (使用 2-bit 计数器):                  │  │<br>│   │     ┌─────────────────────────────────────────────────┐ │  │<br>│   │     │ s1_taken(w) = !is_br || ctr[1]                  │ │  │<br>│   │     │               ↑           ↑                     │ │  │<br>│   │     │          JAL总是taken  BR看ctr最高位             │ │  │<br>│   │     │                                                  │ │  │<br>│   │     │   ctr[1]=0 → Not Taken (00, 01)                 │ │  │<br>│   │     │   ctr[1]=1 → Taken     (10, 11)                 │ │  │<br>│   │     └─────────────────────────────────────────────────┘ │  │<br>│   └─────────────────────────────────────────────────────────┘  │<br>│                                                                 │<br>└─────────────────────────────────────────────────────────────────┘<br>                                 │<br>                                 ▼<br>┌─────────────────────────────────────────────────────────────────┐<br>│                     输出响应 (F1/F2/F3)                          │<br>├─────────────────────────────────────────────────────────────────┤<br>│                                                                 │<br>│   ┌─────────────────────────────────────────────────────────┐  │<br>│   │  F1 (S1 周期，最快响应!):                                │  │<br>│   │    io.resp.f1(w).predicted_pc = s1_resp(w)              │  │<br>│   │    io.resp.f1(w).is_br        = s1_is_br(w)             │  │<br>│   │    io.resp.f1(w).is_jal       = s1_is_jal(w)            │  │<br>│   │    io.resp.f1(w).taken        = s1_taken(w)             │  │<br>│   │                                                          │  │<br>│   │  F2 (S2 周期):                                          │  │<br>│   │    io.resp.f2(w) = RegNext(io.resp.f1(w))               │  │<br>│   │                                                          │  │<br>│   │  F3 (S3 周期):                                          │  │<br>│   │    io.resp.f3(w) = RegNext(io.resp.f2(w))               │  │<br>│   └─────────────────────────────────────────────────────────┘  │<br>│                                                                 │<br>│   关键区别: μBTB 在 F1 就能给出预测结果!                         │<br>│            BTB 需要到 F2 才能给出结果                            │<br>│                                                                 │<br>└─────────────────────────────────────────────────────────────────┘<br><br>---<br>更新流程 (Update)<br><br>                              更新流程图<br>                                 │<br>                                 ▼<br>┌─────────────────────────────────────────────────────────────────┐<br>│                     接收更新请求                                 │<br>├─────────────────────────────────────────────────────────────────┤<br>│                                                                 │<br>│   输入: s1_update (来自后端的更新信息)                           │<br>│   - s1_update.bits.pc           : 分支指令 PC                   │<br>│   - s1_update.bits.target       : 实际跳转目标                   │<br>│   - s1_update.bits.cfi_idx      : 分支在 fetch block 中的位置   │<br>│   - s1_update.bits.cfi_taken    : 分支是否 taken                │<br>│   - s1_update.bits.br_mask      : 哪些位置是分支指令             │<br>│   - s1_update.bits.cfi_is_br    : CFI 是否是条件分支            │<br>│   - s1_update.bits.cfi_is_jal   : CFI 是否是 JAL                │<br>│   - s1_update.bits.meta.ctrs    : 预测时的计数器值               │<br>│                                                                 │<br>└─────────────────────────────────────────────────────────────────┘<br>                                 │<br>                                 ▼<br>┌─────────────────────────────────────────────────────────────────┐<br>│                     Write Bypass 检查                            │<br>├─────────────────────────────────────────────────────────────────┤<br>│                                                                 │<br>│   ┌─────────────────────────────────────────────────────────┐  │<br>│   │  检查 Write Bypass Buffer 是否有更新的值:                │  │<br>│   │                                                          │  │<br>│   │  for i in 0..nWrBypassEntries:                          │  │<br>│   │      wrbypass_hits(i) = (wrbypass_idxs(i) == update_idx) │  │<br>│   │                                                          │  │<br>│   │  wrbypass_hit = wrbypass_hits.reduce(OR)                │  │<br>│   │  wrbypass_hit_idx = PriorityEncoder(wrbypass_hits)      │  │<br>│   │                                                          │  │<br>│   │  用途: SRAM 有 1 周期延迟，bypass 提供最新写入的值        │  │<br>│   └─────────────────────────────────────────────────────────┘  │<br>│                                                                 │<br>└─────────────────────────────────────────────────────────────────┘<br>                                 │<br>                                 ▼<br>┌─────────────────────────────────────────────────────────────────┐<br>│                     计算更新数据                                 │<br>├─────────────────────────────────────────────────────────────────┤<br>│                                                                 │<br>│   BTB Data 更新:                                                │<br>│   ┌─────────────────────────────────────────────────────────┐  │<br>│   │  new_offset = target - (pc + cfi_idx &lt;&lt; 1)              │  │<br>│   │                                                          │  │<br>│   │  s1_update_wbtb_data.offset = new_offset                │  │<br>│   │                                                          │  │<br>│   │  注意: μBTB 不检查 offset 是否超出范围!                  │  │<br>│   │        远跳转会被截断，依赖 BTB 处理                      │  │<br>│   │                                                          │  │<br>│   │  写入掩码:                                               │  │<br>│   │  wbtb_mask = OH(cfi_idx) &amp; cfi_valid &amp;                  │  │<br>│   │              cfi_taken &amp; is_commit_update                │  │<br>│   └─────────────────────────────────────────────────────────┘  │<br>│                                                                 │<br>│   Meta 更新 (包含计数器更新):                                   │<br>│   ┌─────────────────────────────────────────────────────────┐  │<br>│   │  for each bank slot w:                                  │  │<br>│   │                                                          │  │<br>│   │    wmeta_data(w).tag   = update_idx &gt;&gt; log2(nSets)      │  │<br>│   │    wmeta_data(w).is_br = br_mask(w)                     │  │<br>│   │                                                          │  │<br>│   │    // 判断该 slot 是否被 taken                           │  │<br>│   │    was_taken = cfi_idx == w &amp;&amp;                          │  │<br>│   │                ((cfi_is_br &amp;&amp; cfi_taken) || cfi_is_jal) │  │<br>│   │                                                          │  │<br>│   │    // 获取旧的计数器值 (优先使用 bypass)                  │  │<br>│   │    old_ctr = wrbypass_hit ?                             │  │<br>│   │              wrbypass(hit_idx)(w).ctr :                  │  │<br>│   │              update_meta.ctrs(w)                         │  │<br>│   │                                                          │  │<br>│   │    // 2-bit 饱和计数器更新                               │  │<br>│   │    wmeta_data(w).ctr = bimWrite(old_ctr, was_taken)     │  │<br>│   └─────────────────────────────────────────────────────────┘  │<br>│                                                                 │<br>└─────────────────────────────────────────────────────────────────┘<br>                                 │<br>                                 ▼<br>┌─────────────────────────────────────────────────────────────────┐<br>│                     2-bit 饱和计数器更新逻辑                      │<br>├─────────────────────────────────────────────────────────────────┤<br>│                                                                 │<br>│   ┌─────────────────────────────────────────────────────────┐  │<br>│   │                   bimWrite 函数                          │  │<br>│   │                                                          │  │<br>│   │                      Taken                               │  │<br>│   │                   ┌─────────┐                            │  │<br>│   │                   │         │                            │  │<br>│   │         ┌─────────▼─────────┐                            │  │<br>│   │    ┌────┤   00 (强NT)       │◄───┐                       │  │<br>│   │    │    └─────────┬─────────┘    │                       │  │<br>│   │    │              │ Taken        │ Not Taken             │  │<br>│   │    │ Not Taken    ▼              │                       │  │<br>│   │    │    ┌─────────────────────┐  │                       │  │<br>│   │    │    │   01 (弱NT)         │──┘                       │  │<br>│   │    │    └─────────┬───────────┘                          │  │<br>│   │    │              │ Taken                                │  │<br>│   │    │              ▼                                      │  │<br>│   │    │    ┌─────────────────────┐                          │  │<br>│   │    │    │   10 (弱T)          │──┐                       │  │<br>│   │    │    └─────────┬───────────┘  │ Not Taken             │  │<br>│   │    │              │ Taken        │                       │  │<br>│   │    │              ▼              │                       │  │<br>│   │    │    ┌─────────────────────┐  │                       │  │<br>│   │    └───►│   11 (强T)          │◄─┘                       │  │<br>│   │         └─────────┬───────────┘                          │  │<br>│   │                   │                                      │  │<br>│   │                   └─────────┐                            │  │<br>│   │                      Taken  │                            │  │<br>│   │                   (保持饱和)                              │  │<br>│   │                                                          │  │<br>│   │   代码逻辑:                                               │  │<br>│   │   if (v==3 &amp;&amp; taken)     → 3 (饱和)                      │  │<br>│   │   if (v==0 &amp;&amp; !taken)    → 0 (饱和)                      │  │<br>│   │   if (taken)             → v + 1                         │  │<br>│   │   else                   → v - 1                         │  │<br>│   └─────────────────────────────────────────────────────────┘  │<br>│                                                                 │<br>└─────────────────────────────────────────────────────────────────┘<br>                                 │<br>                                 ▼<br>┌─────────────────────────────────────────────────────────────────┐<br>│                     执行写入操作                                 │<br>├─────────────────────────────────────────────────────────────────┤<br>│                                                                 │<br>│   ┌─────────────────────────────────────────────────────────┐  │<br>│   │  1. 写入 SRAM (直接映射，无需选择 Way):                  │  │<br>│   │                                                          │  │<br>│   │     btb.write(                                          │  │<br>│   │       addr = doing_reset ? reset_idx : s1_update_idx,   │  │<br>│   │       data = [wbtb_data × bankWidth],                   │  │<br>│   │       mask = wbtb_mask                                  │  │<br>│   │     )                                                   │  │<br>│   │                                                          │  │<br>│   │     meta.write(                                         │  │<br>│   │       addr = doing_reset ? reset_idx : s1_update_idx,   │  │<br>│   │       data = wmeta_data,                                │  │<br>│   │       mask = wmeta_mask                                 │  │<br>│   │     )                                                   │  │<br>│   └─────────────────────────────────────────────────────────┘  │<br>│                                                                 │<br>│   ┌─────────────────────────────────────────────────────────┐  │<br>│   │  2. 更新 Write Bypass Buffer:                           │  │<br>│   │                                                          │  │<br>│   │     if (wmeta_mask != 0):                               │  │<br>│   │       if (wrbypass_hit):                                │  │<br>│   │         // 更新已有条目                                  │  │<br>│   │         wrbypass(hit_idx) := wmeta_data                 │  │<br>│   │       else:                                             │  │<br>│   │         // 分配新条目 (FIFO)                             │  │<br>│   │         wrbypass(enq_idx)      := wmeta_data            │  │<br>│   │         wrbypass_idxs(enq_idx) := update_idx            │  │<br>│   │         enq_idx := WrapInc(enq_idx, 2)                  │  │<br>│   └─────────────────────────────────────────────────────────┘  │<br>│                                                                 │<br>└─────────────────────────────────────────────────────────────────┘<br><br>---<br>μBTB vs BTB 对比<br><br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                           μBTB vs BTB 对比                                      │<br>├────────────────────┬────────────────────────┬───────────────────────────────────┤<br>│       特性         │         μBTB           │              BTB                  │<br>├────────────────────┼────────────────────────┼───────────────────────────────────┤<br>│  组织结构          │ 直接映射 (Direct)       │ 2-way 组相联                      │<br>│                    │ nSets=256              │ nSets=128, nWays=2                │<br>├────────────────────┼────────────────────────┼───────────────────────────────────┤<br>│  响应延迟          │ F1 (最快!)             │ F2                                │<br>├────────────────────┼────────────────────────┼───────────────────────────────────┤<br>│  目标地址存储      │ 仅 offset (13-bit)      │ offset + eBTB (完整地址)          │<br>│                    │ 范围: ±4KB             │ 支持任意远距离跳转                 │<br>├────────────────────┼────────────────────────┼───────────────────────────────────┤<br>│  分支预测          │ 内置 2-bit 饱和计数器   │ 无 (仅提供目标地址)               │<br>│                    │ 可直接预测 taken/NT    │ 需要配合其他预测器                 │<br>├────────────────────┼────────────────────────┼───────────────────────────────────┤<br>│  Write Bypass      │ 有 (2 entries)         │ 无                                │<br>│                    │ 解决 RAW 冲突           │                                   │<br>├────────────────────┼────────────────────────┼───────────────────────────────────┤<br>│  存储开销          │ 较小                    │ 较大 (多 Way + eBTB)              │<br>├────────────────────┼────────────────────────┼───────────────────────────────────┤<br>│  冲突处理          │ 直接覆盖 (容易冲突)     │ 多 Way 减少冲突                   │<br>├────────────────────┼────────────────────────┼───────────────────────────────────┤<br>│  用途              │ 快速首次预测            │ 精确预测, 远距离跳转               │<br>│                    │ 第一级预测器            │ 第二级预测器                       │<br>└────────────────────┴────────────────────────┴───────────────────────────────────┘<br><br>---<br>关键设计要点总结<br><br>┌─────────────────────────────────────────────────────────────────┐<br>│                     μBTB 设计要点总结                            │<br>├─────────────────────────────────────────────────────────────────┤<br>│                                                                 │<br>│  1. 极速响应 - F1 输出:                                         │<br>│     ┌──────────────────────────────────────────────────────┐   │<br>│     │  • μBTB 专门优化为低延迟                              │   │<br>│     │  • 在 F1 阶段就能给出预测，比 BTB 快 1 个周期          │   │<br>│     │  • 适合作为前端流水线的第一级预测器                    │   │<br>│     └──────────────────────────────────────────────────────┘   │<br>│                                                                 │<br>│  2. 直接映射 - 无 Way 选择:                                     │<br>│     ┌──────────────────────────────────────────────────────┐   │<br>│     │  • 省去 Way 选择逻辑，减少延迟                        │   │<br>│     │  • 代价是更高的冲突率                                 │   │<br>│     │  • 通过更多 Sets (256 vs 128) 部分缓解                │   │<br>│     └──────────────────────────────────────────────────────┘   │<br>│                                                                 │<br>│  3. 内置 2-bit 计数器:                                          │<br>│     ┌──────────────────────────────────────────────────────┐   │<br>│     │  • 可以直接进行 taken/not-taken 预测                  │   │<br>│     │  • BTB 不包含计数器，需要配合 BIM 等预测器            │   │<br>│     │  • 简化预测流程，减少组件间依赖                        │   │<br>│     └──────────────────────────────────────────────────────┘   │<br>│                                                                 │<br>│  4. Write Bypass Buffer:                                        │<br>│     ┌──────────────────────────────────────────────────────┐   │<br>│     │  • 2 个条目的小型缓冲区                               │   │<br>│     │  • 解决 SRAM 写后读 (RAW) 延迟问题                    │   │<br>│     │  • 保证计数器更新的正确性                             │   │<br>│     │  • FIFO 替换策略                                      │   │<br>│     └──────────────────────────────────────────────────────┘   │<br>│                                                                 │<br>│  5. 无远距离跳转支持:                                           │<br>│     ┌──────────────────────────────────────────────────────┐   │<br>│     │  • 只有 13-bit offset，范围 ±4KB                      │   │<br>│     │  • 没有 eBTB 扩展                                     │   │<br>│     │  • 远距离跳转依赖 BTB 处理                            │   │<br>│     │  • 保持 μBTB 结构简单、低延迟                         │   │<br>│     └──────────────────────────────────────────────────────┘   │<br>│                                                                 │<br>│  6. 流水线集成:                                                 │<br>│     ┌──────────────────────────────────────────────────────┐   │<br>│     │  S0: SRAM 读取                                        │   │<br>│     │  S1/F1: Tag 比较 + 预测输出 (μBTB 主输出)             │   │<br>│     │  F2: RegNext 传递 (BTB 主输出)                        │   │<br>│     │  F3: RegNext 传递 (最终确认)                          │   │<br>│     └──────────────────────────────────────────────────────┘   │<br>│                                                                 │<br>└─────────────────────────────────────────────────────────────────┘<br><br></code></pre></td></tr></table></figure>
+
+<h2 id="update-的过程"><a href="#update-的过程" class="headerlink" title="update 的过程"></a>update 的过程</h2><h3 id="1-整体时序概览"><a href="#1-整体时序概览" class="headerlink" title="1. 整体时序概览"></a>1. 整体时序概览</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                            μBTB 更新的完整生命周期                               │<br>├─────────────────────────────────────────────────────────────────────────────────┤<br>│                                                                                 │<br>│   时间线:                                                                        │<br>│                                                                                 │<br>│   ══════════════════════════════════════════════════════════════════════════   │<br>│   │ 预测阶段 │        执行阶段        │  提交阶段  │     更新阶段      │        │<br>│   ══════════════════════════════════════════════════════════════════════════   │<br>│        │                                    │              │                    │<br>│        ▼                                    ▼              ▼                    │<br>│   ┌─────────┐                         ┌─────────┐    ┌──────────┐              │<br>│   │ F1预测  │ ─────────────────────►  │ 分支执行 │───►│ 提交更新 │              │<br>│   │ 保存meta│                         │ 得到结果 │    │ s1_update│              │<br>│   └─────────┘                         └─────────┘    └──────────┘              │<br>│        │                                                   │                    │<br>│        │              ctr 值随 meta 一路传递               │                    │<br>│        └───────────────────────────────────────────────────┘                    │<br>│                                                                                 │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+<h3 id="2-预测阶段：保存-Meta-信息"><a href="#2-预测阶段：保存-Meta-信息" class="headerlink" title="2. 预测阶段：保存 Meta 信息"></a>2. 预测阶段：保存 Meta 信息</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                         预测阶段 (S0 → S1 → F3)                                  │<br>├─────────────────────────────────────────────────────────────────────────────────┤<br>│                                                                                 │<br>│   S0 周期: 发起 SRAM 读取                                                        │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │                                                                          │  │<br>│   │   PC = 0x1000                                                           │  │<br>│   │   s0_idx = PC[11:4] = 0x00  (假设)                                      │  │<br>│   │                                                                          │  │<br>│   │         ┌──────────────┐         ┌──────────────┐                       │  │<br>│   │         │  meta SRAM   │         │  btb SRAM    │                       │  │<br>│   │         │  read(0x00)  │         │  read(0x00)  │                       │  │<br>│   │         └──────┬───────┘         └──────┬───────┘                       │  │<br>│   │                │                        │                                │  │<br>│   │                ▼                        ▼                                │  │<br>│   │         (下一周期可用)            (下一周期可用)                          │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>│   S1 周期: 读取完成，生成预测，保存 meta                                         │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │                                                                          │  │<br>│   │   SRAM 返回数据:                                                         │  │<br>│   │   ┌─────────────────────────────────────────────────────────────────┐   │  │<br>│   │   │  s1_req_rmeta[bankWidth]:                                       │   │  │<br>│   │   │    slot 0: &#123;tag=0xABC, is_br=1, ctr=10&#125;  ← 条件分支，弱跳转      │   │  │<br>│   │   │    slot 1: &#123;tag=0xDEF, is_br=0, ctr=11&#125;  ← JAL                   │   │  │<br>│   │   │    slot 2: &#123;tag=0x000, is_br=0, ctr=00&#125;  ← 无效                  │   │  │<br>│   │   │    slot 3: &#123;tag=0x123, is_br=1, ctr=01&#125;  ← 条件分支，弱不跳转    │   │  │<br>│   │   └─────────────────────────────────────────────────────────────────┘   │  │<br>│   │                                                                          │  │<br>│   │   生成预测 &amp; 保存 meta:                                                  │  │<br>│   │   ┌─────────────────────────────────────────────────────────────────┐   │  │<br>│   │   │  s1_meta.ctrs[0] = 10  ← 保存当前 ctr 值!                       │   │  │<br>│   │   │  s1_meta.ctrs[1] = 11                                           │   │  │<br>│   │   │  s1_meta.ctrs[2] = 00                                           │   │  │<br>│   │   │  s1_meta.ctrs[3] = 01                                           │   │  │<br>│   │   │                                                                  │   │  │<br>│   │   │  这些 ctr 值会随预测结果一起传递给后端!                           │   │  │<br>│   │   └─────────────────────────────────────────────────────────────────┘   │  │<br>│   │                                                                          │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>│   F3 周期: meta 输出到流水线                                                    │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │                                                                          │  │<br>│   │   io.f3_meta := RegNext(RegNext(s1_meta.asUInt))                        │  │<br>│   │                                                                          │  │<br>│   │   meta (包含 ctrs) 随预测结果一起发送给后端                              │  │<br>│   │   后端会在分支执行/提交时把这个 meta 带回来                              │  │<br>│   │                                                                          │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+<h3 id="3-更新请求到达"><a href="#3-更新请求到达" class="headerlink" title="3. 更新请求到达"></a>3. 更新请求到达</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                         更新请求结构 (s1_update)                                 │<br>├─────────────────────────────────────────────────────────────────────────────────┤<br>│                                                                                 │<br>│   经过 N 个周期后，分支执行完毕，提交时发送更新请求:                              │<br>│                                                                                 │<br>│   s1_update.valid = true                                                        │<br>│   s1_update.bits:                                                               │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │                                                                          │  │<br>│   │   基本信息:                                                              │  │<br>│   │   ┌────────────────────────────────────────────────────────────────┐    │  │<br>│   │   │  pc              = 0x1000        (分支指令所在 fetch block)     │    │  │<br>│   │   │  target          = 0x1200        (实际跳转目标)                 │    │  │<br>│   │   │  cfi_idx.valid   = true          (有控制流指令)                 │    │  │<br>│   │   │  cfi_idx.bits    = 0             (在 slot 0)                   │    │  │<br>│   │   │  cfi_taken       = true          (实际跳转了)                   │    │  │<br>│   │   │  cfi_is_br       = true          (是条件分支)                   │    │  │<br>│   │   │  cfi_is_jal      = false         (不是 JAL)                    │    │  │<br>│   │   │  is_commit_update= true          (提交时更新)                   │    │  │<br>│   │   └────────────────────────────────────────────────────────────────┘    │  │<br>│   │                                                                          │  │<br>│   │   分支掩码:                                                              │  │<br>│   │   ┌────────────────────────────────────────────────────────────────┐    │  │<br>│   │   │  br_mask = 0b1001   (slot 0 和 slot 3 是分支指令)               │    │  │<br>│   │   └────────────────────────────────────────────────────────────────┘    │  │<br>│   │                                                                          │  │<br>│   │   预测时保存的 meta (从 F3 带回来的):                                     │  │<br>│   │   ┌────────────────────────────────────────────────────────────────┐    │  │<br>│   │   │  meta.ctrs[0] = 10   ← 预测时 slot 0 的 ctr 值                  │    │  │<br>│   │   │  meta.ctrs[1] = 11                                              │    │  │<br>│   │   │  meta.ctrs[2] = 00                                              │    │  │<br>│   │   │  meta.ctrs[3] = 01                                              │    │  │<br>│   │   └────────────────────────────────────────────────────────────────┘    │  │<br>│   │                                                                          │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+<h3 id="4-Write-Bypass-检查"><a href="#4-Write-Bypass-检查" class="headerlink" title="4. Write Bypass 检查"></a>4. Write Bypass 检查</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                         Step 1: Write Bypass 检查                                │<br>├─────────────────────────────────────────────────────────────────────────────────┤<br>│                                                                                 │<br>│   s1_update_idx = 0x00 (从 update.pc 提取)                                      │<br>│                                                                                 │<br>│   检查 bypass buffer:                                                           │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │                                                                          │  │<br>│   │   Write Bypass Buffer 当前状态:                                          │  │<br>│   │   ┌─────────┬──────────────────────────────────────────────────────┐    │  │<br>│   │   │ Entry 0 │ idx=0x05, meta=[ctr=11, ctr=00, ctr=10, ctr=01]      │    │  │<br>│   │   ├─────────┼──────────────────────────────────────────────────────┤    │  │<br>│   │   │ Entry 1 │ idx=0x10, meta=[ctr=00, ctr=11, ctr=01, ctr=10]      │    │  │<br>│   │   └─────────┴──────────────────────────────────────────────────────┘    │  │<br>│   │                                                                          │  │<br>│   │   比较:                                                                  │  │<br>│   │   wrbypass_hits[0] = (0x05 == 0x00) = false                             │  │<br>│   │   wrbypass_hits[1] = (0x10 == 0x00) = false                             │  │<br>│   │                                                                          │  │<br>│   │   wrbypass_hit = false  ← 没有命中!                                      │  │<br>│   │                                                                          │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>│   结论: 使用 s1_update_meta.ctrs (预测时保存的值)                               │<br>│                                                                                 │<br>│   ═══════════════════════════════════════════════════════════════════════════  │<br>│                                                                                 │<br>│   另一种情况 - Bypass 命中:                                                     │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │                                                                          │  │<br>│   │   假设 bypass buffer 状态:                                               │  │<br>│   │   ┌─────────┬──────────────────────────────────────────────────────┐    │  │<br>│   │   │ Entry 0 │ idx=0x00, meta=[ctr=11, ...]  ← 刚刚更新过!           │    │  │<br>│   │   └─────────┴──────────────────────────────────────────────────────┘    │  │<br>│   │                                                                          │  │<br>│   │   wrbypass_hits[0] = (0x00 == 0x00) = true ✓                            │  │<br>│   │   wrbypass_hit = true                                                   │  │<br>│   │   wrbypass_hit_idx = 0                                                  │  │<br>│   │                                                                          │  │<br>│   │   使用 wrbypass[0].ctr = 11 (bypass 中的最新值)                          │  │<br>│   │   而不是 s1_update_meta.ctrs = 10 (过时的值)                             │  │<br>│   │                                                                          │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+<h3 id="5-计算更新数据"><a href="#5-计算更新数据" class="headerlink" title="5. 计算更新数据"></a>5. 计算更新数据</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                         Step 2: 计算 BTB Data (offset)                           │<br>├─────────────────────────────────────────────────────────────────────────────────┤<br>│                                                                                 │<br>│   计算 offset:                                                                  │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │                                                                          │  │<br>│   │   分支指令 PC = pc + (cfi_idx &lt;&lt; 1)                                      │  │<br>│   │                = 0x1000 + (0 &lt;&lt; 1)                                       │  │<br>│   │                = 0x1000                                                  │  │<br>│   │                                                                          │  │<br>│   │   new_offset = target - 分支指令PC                                       │  │<br>│   │              = 0x1200 - 0x1000                                           │  │<br>│   │              = 0x200 (512)                                               │  │<br>│   │                                                                          │  │<br>│   │   s1_update_wbtb_data.offset = 0x200                                    │  │<br>│   │                                                                          │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>│   计算 wbtb_mask (哪些 slot 需要写入 BTB data):                                 │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │                                                                          │  │<br>│   │   条件: cfi_idx.valid &amp;&amp; cfi_taken &amp;&amp; is_commit_update                  │  │<br>│   │         true         &amp;&amp; true       &amp;&amp; true = true                       │  │<br>│   │                                                                          │  │<br>│   │   s1_update_wbtb_mask = UIntToOH(cfi_idx) &amp; Fill(bankWidth, true)       │  │<br>│   │                       = UIntToOH(0) &amp; 0b1111                             │  │<br>│   │                       = 0b0001 &amp; 0b1111                                  │  │<br>│   │                       = 0b0001                                           │  │<br>│   │                         ││││                                             │  │<br>│   │                         │││└─ slot 0: 写入 ✓ (taken 的分支)              │  │<br>│   │                         ││└── slot 1: 不写                               │  │<br>│   │                         │└─── slot 2: 不写                               │  │<br>│   │                         └──── slot 3: 不写                               │  │<br>│   │                                                                          │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                         Step 3: 计算 Meta Data                                   │<br>├─────────────────────────────────────────────────────────────────────────────────┤<br>│                                                                                 │<br>│   计算 wmeta_mask (哪些 slot 需要写入 meta):                                    │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │                                                                          │  │<br>│   │   s1_update_wmeta_mask = (wbtb_mask | br_mask) &amp; is_commit_update       │  │<br>│   │                        = (0b0001 | 0b1001) &amp; 0b1111                      │  │<br>│   │                        = 0b1001 &amp; 0b1111                                 │  │<br>│   │                        = 0b1001                                          │  │<br>│   │                          ││││                                            │  │<br>│   │                          │││└─ slot 0: 写入 ✓ (是分支)                   │  │<br>│   │                          ││└── slot 1: 不写                              │  │<br>│   │                          │└─── slot 2: 不写                              │  │<br>│   │                          └──── slot 3: 写入 ✓ (是分支)                   │  │<br>│   │                                                                          │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>│   对每个 slot 计算 wmeta_data:                                                  │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │                                                                          │  │<br>│   │   ┌─────────────────────────────────────────────────────────────────┐   │  │<br>│   │   │                      Slot 0 的计算                               │   │  │<br>│   │   ├─────────────────────────────────────────────────────────────────┤   │  │<br>│   │   │                                                                  │   │  │<br>│   │   │   tag = s1_update_idx &gt;&gt; log2(nSets) = 更新地址的高位            │   │  │<br>│   │   │   is_br = br_mask[0] = 1 (是条件分支)                           │   │  │<br>│   │   │                                                                  │   │  │<br>│   │   │   was_taken 判断:                                                │   │  │<br>│   │   │     cfi_idx.valid = true                                        │   │  │<br>│   │   │     cfi_idx.bits == 0 = true (就是 slot 0)                      │   │  │<br>│   │   │     cfi_is_br &amp;&amp; cfi_taken = true &amp;&amp; true = true                │   │  │<br>│   │   │     → was_taken = true                                          │   │  │<br>│   │   │                                                                  │   │  │<br>│   │   │   获取旧 ctr:                                                    │   │  │<br>│   │   │     wrbypass_hit = false                                        │   │  │<br>│   │   │     → old_ctr = s1_update_meta.ctrs[0] = 10 (二进制)            │   │  │<br>│   │   │                                                                  │   │  │<br>│   │   │   更新 ctr (bimWrite):                                          │   │  │<br>│   │   │     old_ctr = 10 (弱跳转), was_taken = true                     │   │  │<br>│   │   │     → new_ctr = 10 + 1 = 11 (强跳转)                            │   │  │<br>│   │   │                                                                  │   │  │<br>│   │   │   wmeta_data[0] = &#123;tag=..., is_br=1, ctr=11&#125;                    │   │  │<br>│   │   └─────────────────────────────────────────────────────────────────┘   │  │<br>│   │                                                                          │  │<br>│   │   ┌─────────────────────────────────────────────────────────────────┐   │  │<br>│   │   │                      Slot 3 的计算                               │   │  │<br>│   │   ├─────────────────────────────────────────────────────────────────┤   │  │<br>│   │   │                                                                  │   │  │<br>│   │   │   tag = 更新地址的高位                                           │   │  │<br>│   │   │   is_br = br_mask[3] = 1 (是条件分支)                           │   │  │<br>│   │   │                                                                  │   │  │<br>│   │   │   was_taken 判断:                                                │   │  │<br>│   │   │     cfi_idx.bits == 3 = false (CFI 在 slot 0，不是 slot 3)      │   │  │<br>│   │   │     → was_taken = false                                         │   │  │<br>│   │   │                                                                  │   │  │<br>│   │   │   获取旧 ctr:                                                    │   │  │<br>│   │   │     old_ctr = s1_update_meta.ctrs[3] = 01 (弱不跳转)            │   │  │<br>│   │   │                                                                  │   │  │<br>│   │   │   更新 ctr (bimWrite):                                          │   │  │<br>│   │   │     old_ctr = 01, was_taken = false                             │   │  │<br>│   │   │     → new_ctr = 01 - 1 = 00 (强不跳转)                          │   │  │<br>│   │   │                                                                  │   │  │<br>│   │   │   wmeta_data[3] = &#123;tag=..., is_br=1, ctr=00&#125;                    │   │  │<br>│   │   └─────────────────────────────────────────────────────────────────┘   │  │<br>│   │                                                                          │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+<h3 id="6-执行-SRAM-写入"><a href="#6-执行-SRAM-写入" class="headerlink" title="6. 执行 SRAM 写入"></a>6. 执行 SRAM 写入</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                         Step 4: 写入 SRAM                                        │<br>├─────────────────────────────────────────────────────────────────────────────────┤<br>│                                                                                 │<br>│   BTB Data 写入:                                                                │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │                                                                          │  │<br>│   │   btb.write(                                                            │  │<br>│   │     addr = 0x00,                                                        │  │<br>│   │     data = [0x200, 0x200, 0x200, 0x200],  ← 所有 slot 用同一个 offset   │  │<br>│   │     mask = [1, 0, 0, 0]                   ← 只写 slot 0                 │  │<br>│   │   )                                                                     │  │<br>│   │                                                                          │  │<br>│   │   SRAM 操作:                                                            │  │<br>│   │   ┌─────────────────────────────────────────────────────────────────┐  │  │<br>│   │   │ Set 0x00:                                                        │  │  │<br>│   │   │   slot 0: offset = 0x200  ← 写入新值                            │  │  │<br>│   │   │   slot 1: (保持不变)                                             │  │  │<br>│   │   │   slot 2: (保持不变)                                             │  │  │<br>│   │   │   slot 3: (保持不变)                                             │  │  │<br>│   │   └─────────────────────────────────────────────────────────────────┘  │  │<br>│   │                                                                          │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>│   Meta 写入:                                                                    │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │                                                                          │  │<br>│   │   meta.write(                                                           │  │<br>│   │     addr = 0x00,                                                        │  │<br>│   │     data = [wmeta_data[0], wmeta_data[1], wmeta_data[2], wmeta_data[3]],│  │<br>│   │     mask = [1, 0, 0, 1]                   ← 写 slot 0 和 slot 3         │  │<br>│   │   )                                                                     │  │<br>│   │                                                                          │  │<br>│   │   SRAM 操作:                                                            │  │<br>│   │   ┌─────────────────────────────────────────────────────────────────┐  │  │<br>│   │   │ Set 0x00:                                                        │  │  │<br>│   │   │   slot 0: &#123;tag, is_br=1, ctr=11&#125;  ← 写入，ctr: 10→11            │  │  │<br>│   │   │   slot 1: (保持不变)                                             │  │  │<br>│   │   │   slot 2: (保持不变)                                             │  │  │<br>│   │   │   slot 3: &#123;tag, is_br=1, ctr=00&#125;  ← 写入，ctr: 01→00            │  │  │<br>│   │   └─────────────────────────────────────────────────────────────────┘  │  │<br>│   │                                                                          │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+<h3 id="7-更新-Write-Bypass-Buffer"><a href="#7-更新-Write-Bypass-Buffer" class="headerlink" title="7. 更新 Write Bypass Buffer"></a>7. 更新 Write Bypass Buffer</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                         Step 5: 更新 Write Bypass                                │<br>├─────────────────────────────────────────────────────────────────────────────────┤<br>│                                                                                 │<br>│   条件: wmeta_mask != 0 (有 meta 被写入)                                        │<br>│         0b1001 != 0 → true                                                      │<br>│                                                                                 │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │                                                                          │  │<br>│   │   wrbypass_hit = false，所以分配新条目:                                  │  │<br>│   │                                                                          │  │<br>│   │   之前 bypass buffer:                                                    │  │<br>│   │   ┌─────────┬──────────────────────────────────────────────────────┐    │  │<br>│   │   │ Entry 0 │ idx=0x05, meta=[...]                                 │    │  │<br>│   │   ├─────────┼──────────────────────────────────────────────────────┤    │  │<br>│   │   │ Entry 1 │ idx=0x10, meta=[...]                                 │    │  │<br>│   │   └─────────┴──────────────────────────────────────────────────────┘    │  │<br>│   │   wrbypass_enq_idx = 0                                                  │  │<br>│   │                                                                          │  │<br>│   │   执行写入:                                                              │  │<br>│   │   wrbypass[0] := wmeta_data                                             │  │<br>│   │   wrbypass_idxs[0] := 0x00                                              │  │<br>│   │   wrbypass_enq_idx := WrapInc(0, 2) = 1                                 │  │<br>│   │                                                                          │  │<br>│   │   之后 bypass buffer:                                                    │  │<br>│   │   ┌─────────┬──────────────────────────────────────────────────────┐    │  │<br>│   │   │ Entry 0 │ idx=0x00, meta=[ctr=11, -, -, ctr=00]  ← 新写入!     │    │  │<br>│   │   ├─────────┼──────────────────────────────────────────────────────┤    │  │<br>│   │   │ Entry 1 │ idx=0x10, meta=[...]  (保持)                         │    │  │<br>│   │   └─────────┴──────────────────────────────────────────────────────┘    │  │<br>│   │   wrbypass_enq_idx = 1  ← 下次写 entry 1                                │  │<br>│   │                                                                          │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+<h3 id="8-完整流程总结图"><a href="#8-完整流程总结图" class="headerlink" title="8. 完整流程总结图"></a>8. 完整流程总结图</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                            μBTB 更新完整流程                                     │<br>├─────────────────────────────────────────────────────────────────────────────────┤<br>│                                                                                 │<br>│   s1_update 到达                                                                │<br>│        │                                                                        │<br>│        ▼                                                                        │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │  1. 提取 update_idx                                                     │  │<br>│   │     s1_update_idx = update.pc 的索引部分                                │  │<br>│   └───────────────────────────────┬─────────────────────────────────────────┘  │<br>│                                   │                                             │<br>│                                   ▼                                             │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │  2. 检查 Write Bypass                                                   │  │<br>│   │     ┌─────────────────────────────────────────────────────────────┐    │  │<br>│   │     │  for each bypass entry:                                     │    │  │<br>│   │     │    hit = (bypass_idx == update_idx)                         │    │  │<br>│   │     └─────────────────────────────────────────────────────────────┘    │  │<br>│   └───────────────────────────────┬─────────────────────────────────────────┘  │<br>│                                   │                                             │<br>│                    ┌──────────────┴──────────────┐                              │<br>│                    ▼                             ▼                              │<br>│            ┌─────────────┐               ┌─────────────┐                        │<br>│            │ Bypass Hit  │               │ Bypass Miss │                        │<br>│            └──────┬──────┘               └──────┬──────┘                        │<br>│                   │                             │                               │<br>│                   ▼                             ▼                               │<br>│   ┌───────────────────────────┐  ┌───────────────────────────┐                 │<br>│   │ old_ctr = bypass[hit].ctr │  │ old_ctr = update_meta.ctr │                 │<br>│   │ (最新值)                   │  │ (预测时保存的值)           │                 │<br>│   └─────────────┬─────────────┘  └─────────────┬─────────────┘                 │<br>│                 │                              │                                │<br>│                 └──────────────┬───────────────┘                                │<br>│                                │                                                │<br>│                                ▼                                                │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │  3. 计算新值                                                            │  │<br>│   │     ┌─────────────────────────────────────────────────────────────┐    │  │<br>│   │     │  new_offset = target - (pc + cfi_idx &lt;&lt; 1)                  │    │  │<br>│   │     │  new_ctr = bimWrite(old_ctr, was_taken)                     │    │  │<br>│   │     │  new_tag = update_idx &gt;&gt; log2(nSets)                        │    │  │<br>│   │     │  new_is_br = br_mask[slot]                                  │    │  │<br>│   │     └─────────────────────────────────────────────────────────────┘    │  │<br>│   └───────────────────────────────┬─────────────────────────────────────────┘  │<br>│                                   │                                             │<br>│                                   ▼                                             │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │  4. 计算写入掩码                                                        │  │<br>│   │     ┌─────────────────────────────────────────────────────────────┐    │  │<br>│   │     │  wbtb_mask = OH(cfi_idx) &amp; cfi_valid &amp; taken &amp; commit       │    │  │<br>│   │     │  wmeta_mask = (wbtb_mask | br_mask) &amp; commit                │    │  │<br>│   │     └─────────────────────────────────────────────────────────────┘    │  │<br>│   └───────────────────────────────┬─────────────────────────────────────────┘  │<br>│                                   │                                             │<br>│                                   ▼                                             │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │  5. 写入 SRAM                                                           │  │<br>│   │     ┌─────────────────────────────────────────────────────────────┐    │  │<br>│   │     │  btb.write(addr=idx, data=offset, mask=wbtb_mask)           │    │  │<br>│   │     │  meta.write(addr=idx, data=wmeta, mask=wmeta_mask)          │    │  │<br>│   │     └─────────────────────────────────────────────────────────────┘    │  │<br>│   └───────────────────────────────┬─────────────────────────────────────────┘  │<br>│                                   │                                             │<br>│                                   ▼                                             │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │  6. 更新 Write Bypass Buffer                                            │  │<br>│   │     ┌─────────────────────────────────────────────────────────────┐    │  │<br>│   │     │  if (wmeta_mask != 0):                                      │    │  │<br>│   │     │    if (bypass_hit):                                         │    │  │<br>│   │     │      bypass[hit_idx] := wmeta_data   // 更新已有条目         │    │  │<br>│   │     │    else:                                                    │    │  │<br>│   │     │      bypass[enq_idx] := wmeta_data   // 分配新条目           │    │  │<br>│   │     │      bypass_idxs[enq_idx] := idx                            │    │  │<br>│   │     │      enq_idx := (enq_idx + 1) % 2    // FIFO                │    │  │<br>│   │     └─────────────────────────────────────────────────────────────┘    │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>│   更新完成 ✓                                                                    │<br>│                                                                                 │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+<h3 id="9-Bypass-解决的实际问题示例"><a href="#9-Bypass-解决的实际问题示例" class="headerlink" title="9. Bypass 解决的实际问题示例"></a>9. Bypass 解决的实际问题示例</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                     Bypass 解决 RAW 冲突的实际例子                               │<br>├─────────────────────────────────────────────────────────────────────────────────┤<br>│                                                                                 │<br>│   场景: 循环中的分支，连续两次提交更新                                           │<br>│                                                                                 │<br>│   for (int i = 0; i &lt; 100; i++) &#123;   // 分支在 0x1000                            │<br>│       ...                                                                       │<br>│   &#125;                                                                             │<br>│                                                                                 │<br>│   ═══════════════════════════════════════════════════════════════════════════  │<br>│                                                                                 │<br>│   Cycle N: 第一次迭代提交，分支 taken                                           │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │  update arrives: idx=0x10, ctr from meta = 10                           │  │<br>│   │  bypass check: miss                                                     │  │<br>│   │  old_ctr = 10 (from meta)                                               │  │<br>│   │  new_ctr = 10 + 1 = 11                                                  │  │<br>│   │  SRAM write: ctr = 11                                                   │  │<br>│   │  bypass write: entry[0] = &#123;idx=0x10, ctr=11&#125;                            │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>│   Cycle N+1: 第二次迭代提交，分支又 taken                                       │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │  update arrives: idx=0x10, ctr from meta = 10  ← 还是旧值!              │  │<br>│   │  (因为 meta 是预测时保存的，那时 SRAM 里是 10)                           │  │<br>│   │                                                                          │  │<br>│   │  bypass check: HIT! entry[0].idx == 0x10                                │  │<br>│   │  old_ctr = 11 (from bypass, 最新值!)                                    │  │<br>│   │  new_ctr = 11 + 1 = ... 饱和到 11                                       │  │<br>│   │  SRAM write: ctr = 11                                                   │  │<br>│   │  bypass update: entry[0] = &#123;idx=0x10, ctr=11&#125;                           │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>│   如果没有 bypass:                                                              │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │  Cycle N+1:                                                             │  │<br>│   │  old_ctr = 10 (from meta, 过时!)                                        │  │<br>│   │  new_ctr = 10 + 1 = 11                                                  │  │<br>│   │  SRAM write: ctr = 11                                                   │  │<br>│   │                                                                          │  │<br>│   │  两次 taken，结果都是 ctr=11，丢失了一次更新!                            │  │<br>│   │  正确应该: taken 两次后 ctr 应该保持 11 (饱和)                           │  │<br>│   │  但如果初始是 01，两次 taken 应该是 01→10→11                             │  │<br>│   │  没有 bypass 会变成 01→10, 01→10 (错误!)                                │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>操作</th>
+<th>数据来源</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>预测</td>
+<td>读 SRAM，保存 ctr 到 meta</td>
+<td>SRAM</td>
+</tr>
+<tr>
+<td>执行</td>
+<td>meta 随预测结果传递到后端</td>
+<td>流水线寄存器</td>
+</tr>
+<tr>
+<td>提交</td>
+<td>发送 update，带回 meta</td>
+<td>后端</td>
+</tr>
+<tr>
+<td>更新</td>
+<td>检查 bypass，获取最新 ctr</td>
+<td>bypass &gt; meta</td>
+</tr>
+<tr>
+<td>更新</td>
+<td>计算新 ctr，写 SRAM</td>
+<td>bimWrite</td>
+</tr>
+<tr>
+<td>更新</td>
+<td>写 bypass buffer</td>
+<td>wmeta_data</td>
+</tr>
+</tbody></table>
+<p>Write Bypass 的本质: 一个 2 条目的小缓存，记录最近写入 SRAM 的数据，用于解决 SRAM 写延迟导致的 RAW 冲突，保证计数器更新的正确性。</p>
+<h3 id="mask"><a href="#mask" class="headerlink" title="mask"></a>mask</h3><p>这是 Chisel SyncReadMem 的 带掩码写入 (Masked Write) 功能，允许只更新一个 Set 中的部分 slot，而不是全部覆盖。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-type">SyncReadMem</span>.write 的签名<br><br><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">write</span></span>(addr: <span class="hljs-type">UInt</span>, data: <span class="hljs-type">Vec</span>[<span class="hljs-type">T</span>], mask: <span class="hljs-type">Seq</span>[<span class="hljs-type">Bool</span>]): <span class="hljs-type">Unit</span><br><span class="hljs-comment">//        ────────────  ─────────────  ──────────────</span><br><span class="hljs-comment">//        写入地址       写入数据        写入掩码</span><br><span class="hljs-comment">//        (选择哪个Set)  (每个slot的值)  (哪些slot真正写入)</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="图解-Mask-写入机制"><a href="#图解-Mask-写入机制" class="headerlink" title="图解 Mask 写入机制"></a>图解 Mask 写入机制</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                         Masked Write 工作原理                                    │<br>├─────────────────────────────────────────────────────────────────────────────────┤<br>│                                                                                 │<br>│   假设 bankWidth = 4，写入 addr = 0x10                                          │<br>│                                                                                 │<br>│   写入参数:                                                                      │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │  addr = 0x10                                                            │  │<br>│   │  data = [0x200, 0x200, 0x200, 0x200]   ← 4 个 slot 的数据                │  │<br>│   │  mask = [true, false, false, true]     ← 0b1001                         │  │<br>│   │          ─────  ─────  ─────  ────                                      │  │<br>│   │          slot0  slot1  slot2  slot3                                     │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>│   SRAM Set 0x10 写入前:                                                         │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │  slot 0: 0x100  (旧值)                                                  │  │<br>│   │  slot 1: 0x050  (旧值)                                                  │  │<br>│   │  slot 2: 0x080  (旧值)                                                  │  │<br>│   │  slot 3: 0x0A0  (旧值)                                                  │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>│   Mask 作用:                                                                    │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │                                                                          │  │<br>│   │  slot 0: mask[0]=true  → 写入 data[0]=0x200  ✓                          │  │<br>│   │  slot 1: mask[1]=false → 保持旧值 0x050      ✗                          │  │<br>│   │  slot 2: mask[2]=false → 保持旧值 0x080      ✗                          │  │<br>│   │  slot 3: mask[3]=true  → 写入 data[3]=0x200  ✓                          │  │<br>│   │                                                                          │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>│   SRAM Set 0x10 写入后:                                                         │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │  slot 0: 0x200  ← 新值                                                  │  │<br>│   │  slot 1: 0x050  ← 保持不变                                              │  │<br>│   │  slot 2: 0x080  ← 保持不变                                              │  │<br>│   │  slot 3: 0x200  ← 新值                                                  │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+<h3 id="代码中的两种情况"><a href="#代码中的两种情况" class="headerlink" title="代码中的两种情况"></a>代码中的两种情况</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                         Reset vs Normal Update                                   │<br>├─────────────────────────────────────────────────────────────────────────────────┤<br>│                                                                                 │<br>│   情况 1: doing_reset = true (复位阶段)                                         │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │                                                                          │  │<br>│   │  addr = reset_idx (0, 1, 2, ... nSets-1 依次清零)                       │  │<br>│   │  data = [0, 0, 0, 0]                                                    │  │<br>│   │  mask = ~0 = 0b1111 = [true, true, true, true]                          │  │<br>│   │                                                                          │  │<br>│   │  效果: 整个 Set 的所有 slot 全部清零                                     │  │<br>│   │                                                                          │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>│   情况 2: doing_reset = false (正常更新)                                        │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │                                                                          │  │<br>│   │  addr = s1_update_idx                                                   │  │<br>│   │  data = [wbtb_data, wbtb_data, wbtb_data, wbtb_data]                    │  │<br>│   │  mask = s1_update_wbtb_mask (例如 0b0001)                               │  │<br>│   │                                                                          │  │<br>│   │  效果: 只更新 mask 为 1 的 slot，其他保持不变                            │  │<br>│   │                                                                          │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+<h3 id="为什么需要-Mask？"><a href="#为什么需要-Mask？" class="headerlink" title="为什么需要 Mask？"></a>为什么需要 Mask？</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                           Mask 的必要性                                          │<br>├─────────────────────────────────────────────────────────────────────────────────┤<br>│                                                                                 │<br>│   一个 Fetch Block 可能包含多个分支，但只有部分需要更新:                         │<br>│                                                                                 │<br>│   ┌─────────┬─────────┬─────────┬─────────┐                                    │<br>│   │ slot 0  │ slot 1  │ slot 2  │ slot 3  │                                    │<br>│   │ BR (T)  │  ADD    │  SUB    │ BR (NT) │                                    │<br>│   │ taken!  │ 非分支  │ 非分支  │ 未执行  │                                    │<br>│   └─────────┴─────────┴─────────┴─────────┘                                    │<br>│                                                                                 │<br>│   这次更新:                                                                      │<br>│   - slot 0 的分支 taken 了，需要更新 offset                                     │<br>│   - slot 1, 2 不是分支，不更新                                                  │<br>│   - slot 3 的分支还没执行到 (被 slot 0 跳走了)，不更新                          │<br>│                                                                                 │<br>│   wbtb_mask = 0b0001 → 只写 slot 0                                             │<br>│                                                                                 │<br>│   如果没有 mask，强制写入所有 slot:                                             │<br>│   - slot 1, 2, 3 的有效数据会被错误覆盖!                                        │<br>│                                                                                 │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+<h3 id="硬件实现"><a href="#硬件实现" class="headerlink" title="硬件实现"></a>硬件实现</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                         SRAM Mask 硬件实现                                       │<br>├─────────────────────────────────────────────────────────────────────────────────┤<br>│                                                                                 │<br>│   每个 slot 有独立的写使能信号:                                                  │<br>│                                                                                 │<br>│   ┌─────────────────────────────────────────────────────────────────────────┐  │<br>│   │                                                                          │  │<br>│   │              addr                                                        │  │<br>│   │                │                                                         │  │<br>│   │                ▼                                                         │  │<br>│   │         ┌─────────────┐                                                  │  │<br>│   │         │  地址译码器  │                                                  │  │<br>│   │         └──────┬──────┘                                                  │  │<br>│   │                │ word_select                                             │  │<br>│   │                ▼                                                         │  │<br>│   │   ┌────────────────────────────────────────────────────────┐            │  │<br>│   │   │                    SRAM Array                          │            │  │<br>│   │   │  ┌─────────┬─────────┬─────────┬─────────┐            │            │  │<br>│   │   │  │ slot 0  │ slot 1  │ slot 2  │ slot 3  │            │            │  │<br>│   │   │  │         │         │         │         │            │            │  │<br>│   │   │  │  WE[0]  │  WE[1]  │  WE[2]  │  WE[3]  │ ← 独立写使能│            │  │<br>│   │   │  │    ↑    │    ↑    │    ↑    │    ↑    │            │            │  │<br>│   │   │  └────┼────┴────┼────┴────┼────┴────┼────┘            │            │  │<br>│   │   └───────┼─────────┼─────────┼─────────┼──────────────────┘            │  │<br>│   │           │         │         │         │                                │  │<br>│   │       mask[0]   mask[1]   mask[2]   mask[3]                              │  │<br>│   │       (true)    (false)   (false)   (true)                               │  │<br>│   │           │         │         │         │                                │  │<br>│   │       WE[0]=1   WE[1]=0   WE[2]=0   WE[3]=1                              │  │<br>│   │       写入!     不写      不写      写入!                                 │  │<br>│   │                                                                          │  │<br>│   └─────────────────────────────────────────────────────────────────────────┘  │<br>│                                                                                 │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+<h3 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h3><table>
+<thead>
+<tr>
+<th>概念</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>mask</td>
+<td>布尔向量，指定哪些 slot 真正写入</td>
+</tr>
+<tr>
+<td>mask[i]&#x3D;true</td>
+<td>slot i 写入 data[i]</td>
+</tr>
+<tr>
+<td>mask[i]&#x3D;false</td>
+<td>slot i 保持原值不变</td>
+</tr>
+<tr>
+<td>Reset 时</td>
+<td>mask 全 1，清零整个 Set</td>
+</tr>
+<tr>
+<td>Update 时</td>
+<td>mask 只在需要更新的 slot 为 1</td>
+</tr>
+<tr>
+<td>硬件实现</td>
+<td>每个 slot 有独立的写使能 (Write Enable)</td>
+</tr>
+</tbody></table>
+<p>这就是 字节&#x2F;字掩码写入 (Byte&#x2F;Word Mask Write)，是 SRAM 的标准功能，Chisel 的 SyncReadMem 直接支持这个特性。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/" class="category-chain-item">计算机体系结构</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B/" class="print-no-link">#分支预测</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>riscv-boom&#39;s ubtb</div>
+      <div>http://blog.luliang.online/2025/12/02/分支预测器ubtb/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年12月2日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/12/02/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E5%99%A8bim/" title="riscv-boom&#39;s bim">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">riscv-boom&#39;s bim</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/11/27/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E5%99%A84/" title="Branch Prediction for riscv-boom">
+                        <span class="hidden-mobile">Branch Prediction for riscv-boom</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

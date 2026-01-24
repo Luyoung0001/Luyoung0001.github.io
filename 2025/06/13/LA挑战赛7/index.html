@@ -1,0 +1,958 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言OpenLA500 的 dcache 是一个简单的 cache，实现了 《CPU 设计实战》中 有关cache 的所有需求，因此它值得研究和学习。 体系结构cache 是内存的一部分内容拷贝，因此 CPU 访存的时候首先访问 cache，若命中就返回，若未命中就会 refill 然后返回（数据或者 write 的 OK 信息）。 cache 的三种映射方式中，组相联是最好的，它结合了全相联和直">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LA 挑战赛：OpenLA500 的 cache 研究">
+<meta property="og:url" content="http://blog.luliang.online/2025/06/13/LA%E6%8C%91%E6%88%98%E8%B5%9B7/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="前言OpenLA500 的 dcache 是一个简单的 cache，实现了 《CPU 设计实战》中 有关cache 的所有需求，因此它值得研究和学习。 体系结构cache 是内存的一部分内容拷贝，因此 CPU 访存的时候首先访问 cache，若命中就返回，若未命中就会 refill 然后返回（数据或者 write 的 OK 信息）。 cache 的三种映射方式中，组相联是最好的，它结合了全相联和直">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/cache.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/state_mechine.png">
+<meta property="article:published_time" content="2025-06-13T05:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.425Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="CPU">
+<meta property="article:tag" content="cache">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/cache.png">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>LA 挑战赛：OpenLA500 的 cache 研究 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="LA 挑战赛：OpenLA500 的 cache 研究"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-06-13 13:03" pubdate>
+          2025年6月13日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          46 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">LA 挑战赛：OpenLA500 的 cache 研究</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>OpenLA500 的 dcache 是一个简单的 cache，实现了 《CPU 设计实战》中 有关cache 的所有需求，因此它值得研究和学习。</p>
+<h2 id="体系结构"><a href="#体系结构" class="headerlink" title="体系结构"></a>体系结构</h2><p>cache 是内存的一部分内容拷贝，因此 CPU 访存的时候首先访问 cache，若命中就返回，若未命中就会 refill 然后返回（数据或者 write 的 OK 信息）。</p>
+<p>cache 的三种映射方式中，组相联是最好的，它结合了全相联和直接映射的优点。 OpenLA500 中使用了 2 路组相连，cache line 大小为 16B，2 路 cache 的 data 一共 8KB，每一路的 cache line 有 256 个。</p>
+<p>因此，可以计算出规格为：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">wire</span> [<span class="hljs-number">31</span>:<span class="hljs-number">0</span>] vaddr;<br><br><span class="hljs-keyword">wire</span> [<span class="hljs-number">3</span>:<span class="hljs-number">0</span>] offset = vaddr[<span class="hljs-number">3</span>:<span class="hljs-number">0</span>];<br><span class="hljs-keyword">wire</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] index = vaddr[<span class="hljs-number">11</span>:<span class="hljs-number">4</span>];<br><span class="hljs-keyword">wire</span> [<span class="hljs-number">19</span>:<span class="hljs-number">0</span>] tag = vaddr[<span class="hljs-number">31</span>:<span class="hljs-number">12</span>];<br></code></pre></td></tr></table></figure>
+
+<p>映射示意图如下：<br><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/cache.png"></p>
+<p>首先按照 vaddr 的 index 域进行查找，找到两路 tag 和 状态位，比如脏位 D、有效位 V。接着比较 Tag 算出 Hit，再根据 Offset 选出 rdata。</p>
+<h2 id="cache"><a href="#cache" class="headerlink" title="cache"></a>cache</h2><h3 id="cache-行为分析"><a href="#cache-行为分析" class="headerlink" title="cache 行为分析"></a>cache 行为分析</h3><p>我们依据在读、写操作访问 Cache 执行过程中所属的不同阶段，将对 Cache 模块进行的访问归纳为四种：</p>
+<ul>
+<li>Look Up：Read，进行 cache 命中尝试，可能命中也可能不命中。命中返回读取数据；</li>
+<li>Hit Write：Write，如果命中进行这个操作；</li>
+<li>Replace：如果没命中，随机选取一个 way，将对应的index 的 cache line 标记，这就是腾出的位置，供 Refill 使用；</li>
+<li>Refill：就返回的 16B 数据填入cache line，当然还得注意 Repalce 的 cache line 是否有脏位，如果有，得写回去。</li>
+</ul>
+<p>总结下来，一共需要这几张表：</p>
+<ul>
+<li>TAGV RAM：选用 RAM 256×21（深度 × 宽度），共实例化 2 块，每路 1 块。</li>
+<li>DATA Bank RAM：选用 RAM 256×32（深度 × 宽度），共实例化 8 块，每路 4 块。</li>
+</ul>
+<h3 id="cache-模块的-io"><a href="#cache-模块的-io" class="headerlink" title="cache 模块的 io"></a>cache 模块的 io</h3><p>《CPU设计实战》建议了以下接口：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">module</span> cache(<br>        <span class="hljs-comment">// to from IFU</span><br>        <span class="hljs-keyword">input</span> <span class="hljs-keyword">wire</span>  valid,<br>        <span class="hljs-keyword">input</span> <span class="hljs-keyword">wire</span>  op,     <span class="hljs-comment">// 0: read, 1: write</span><br>        <span class="hljs-keyword">input</span> <span class="hljs-keyword">wire</span>  [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>]  index,<br>        <span class="hljs-keyword">input</span> <span class="hljs-keyword">wire</span>  [<span class="hljs-number">19</span>:<span class="hljs-number">0</span>] tag,     <span class="hljs-comment">// paddr 的 tag</span><br>        <span class="hljs-keyword">input</span> <span class="hljs-keyword">wire</span>  [<span class="hljs-number">3</span>:<span class="hljs-number">0</span>]  offset,<br>        <span class="hljs-keyword">input</span> <span class="hljs-keyword">wire</span>  [<span class="hljs-number">3</span>:<span class="hljs-number">0</span>]  wstrb,<br>        <span class="hljs-keyword">input</span> <span class="hljs-keyword">wire</span>  [<span class="hljs-number">31</span>:<span class="hljs-number">0</span>] wdata,<br><br>        <span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span> addr_ok,<br>        <span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span> data_ok,<br>        <span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span> [<span class="hljs-number">31</span>:<span class="hljs-number">0</span>] rdata,<br><br>        <span class="hljs-comment">//to from axi_bridge</span><br>        <span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span> rd_req,<br>        <span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span> [<span class="hljs-number">2</span>:<span class="hljs-number">0</span>]  rd_type,<br>        <span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span> [<span class="hljs-number">31</span>:<span class="hljs-number">0</span>] rd_addr,<br>        <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span> rd_rdy,<br><br>        <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span> ret_valid,<br>        <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span> ret_last,<br>        <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span> [<span class="hljs-number">31</span>:<span class="hljs-number">0</span>] ret_data,<br><br>        <span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span> wr_req,<br>        <span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span> [<span class="hljs-number">2</span>:<span class="hljs-number">0</span>]  wr_type,<br>        <span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span> [<span class="hljs-number">31</span>:<span class="hljs-number">0</span>] wr_addr,<br>        <span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span> [<span class="hljs-number">3</span>:<span class="hljs-number">0</span>] wr_wstrb,<br>        <span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span> [<span class="hljs-number">31</span>:<span class="hljs-number">0</span>] wr_data,<br>        <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span> wr_rdy<br>    );<br></code></pre></td></tr></table></figure>
+
+<h3 id="cache-内部除-cache-表之外的数据通路"><a href="#cache-内部除-cache-表之外的数据通路" class="headerlink" title="cache 内部除 cache 表之外的数据通路"></a>cache 内部除 cache 表之外的数据通路</h3><p>《CPU设计实战》建议了对 cache 的四种操作：Look Up、Hit Write、Replace 和 Refill。</p>
+<p>当 cache 被设计成阻塞式时，这意味着 Look Up、Replace &amp; Refill 可以复用内部的一些数据通路。它们的核心部分是 Request Buffer、Tag Compare、Data Select、Miss Buffer 和 LFSR。Hit Write 是游离于 Look Up 和 Replace &amp; Refill 之外的单独访问，其核心部分是 Write Buffer。</p>
+<h4 id="Request-Buffer"><a href="#Request-Buffer" class="headerlink" title="Request Buffer"></a>Request Buffer</h4><p>Request Buffer 是为了将当前的请求锁存下来，因为请求数据要用多个周期。</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">reg</span>         request_buffer_op;<br><span class="hljs-keyword">reg</span> [ <span class="hljs-number">7</span>:<span class="hljs-number">0</span>]  request_buffer_index;<br><span class="hljs-keyword">reg</span> [<span class="hljs-number">19</span>:<span class="hljs-number">0</span>]  request_buffer_tag;<br><span class="hljs-keyword">reg</span> [ <span class="hljs-number">3</span>:<span class="hljs-number">0</span>]  request_buffer_offset;<br><span class="hljs-keyword">reg</span> [ <span class="hljs-number">3</span>:<span class="hljs-number">0</span>]  request_buffer_wstrb;<br><span class="hljs-keyword">reg</span> [<span class="hljs-number">31</span>:<span class="hljs-number">0</span>]  request_buffer_wdata;<br></code></pre></td></tr></table></figure>
+
+<h4 id="Tag-Compare"><a href="#Tag-Compare" class="headerlink" title="Tag Compare"></a>Tag Compare</h4><p>Tag Compare 数据通路是将每一路 Cache 中读出的 Tag 和 Request Buffer 寄存下来的 tag（记为 reg_tag）进行相等比较，生成是否命中的结果。</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-comment">// Tag Compare</span><br><span class="hljs-keyword">generate</span><br>    <span class="hljs-keyword">for</span>(i=<span class="hljs-number">0</span>;i&lt;<span class="hljs-number">2</span>;i=i+<span class="hljs-number">1</span>) <span class="hljs-keyword">begin</span>:gen_way_hit<br>        <span class="hljs-keyword">assign</span> way_hit[i]= way_tagv_douta[i][<span class="hljs-number">0</span>] &amp;&amp; (tag == way_tagv_douta[i][<span class="hljs-number">20</span>:<span class="hljs-number">1</span>]);<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">endgenerate</span><br><br><span class="hljs-keyword">assign</span> cache_hit = |way_hit;<br></code></pre></td></tr></table></figure>
+<h4 id="Data-Select"><a href="#Data-Select" class="headerlink" title="Data Select"></a>Data Select</h4><p>Data Select 数据通路是对两路 Cache 中读出的 Data 信息进行选择，得到各种访问操作需要的结果。</p>
+<p>对于 Replace，replace_way 指定哪一路就把哪一路的数据拿出来。</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-comment">// Data Select</span><br><span class="hljs-keyword">generate</span><br>    <span class="hljs-keyword">for</span>(i=<span class="hljs-number">0</span>;i&lt;<span class="hljs-number">2</span>;i=i+<span class="hljs-number">1</span>) <span class="hljs-keyword">begin</span>:gen_way_data<br>        <span class="hljs-keyword">assign</span> way_data[i] = &#123;way_bank_douta[i][<span class="hljs-number">3</span>],<br>                              way_bank_douta[i][<span class="hljs-number">2</span>],<br>                              way_bank_douta[i][<span class="hljs-number">1</span>],<br>                              way_bank_douta[i][<span class="hljs-number">0</span>]&#125;;<br>        <span class="hljs-keyword">assign</span> way_load_word[i] = way_data[i][request_buffer_offset[<span class="hljs-number">3</span>:<span class="hljs-number">2</span>]*<span class="hljs-number">32</span> +: <span class="hljs-number">32</span>];<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">endgenerate</span><br><span class="hljs-keyword">assign</span> load_res = &#123;<span class="hljs-number">32</span>&#123;way_hit[<span class="hljs-number">0</span>]&#125;&#125; &amp; way_load_word[<span class="hljs-number">0</span>] |<br>       &#123;<span class="hljs-number">32</span>&#123;way_hit[<span class="hljs-number">1</span>]&#125;&#125; &amp; way_load_word[<span class="hljs-number">1</span>];<br><span class="hljs-keyword">assign</span> replace_data = replace_way ? way1_data : way0_data;<br></code></pre></td></tr></table></figure>
+
+<h4 id="Miss-Buffer"><a href="#Miss-Buffer" class="headerlink" title="Miss Buffer"></a>Miss Buffer</h4><p>Miss Buffer 用于记录缺失 Cache 行准备要替换的路信息，以及已经从 AXI 总线返回了几个 32 位数据。缺失处理时需要的地址、是否是 Store 指令等信息依然维护在 Request Buffer 中。</p>
+<h4 id="LFSR"><a href="#LFSR" class="headerlink" title="LFSR"></a>LFSR</h4><p>LFSR 是线性反馈移位寄存器（Linear Feedback Shift Register），我们采用伪随机替换算法，LFSR 会作为伪随机数源。</p>
+<h4 id="Write-Buffer"><a href="#Write-Buffer" class="headerlink" title="Write Buffer"></a>Write Buffer</h4><p>Write Buffer 是在 Hit Write（Store 操作在 Look Up 时发现命中 Cache）时启动的，它会寄存 Store 要写入的 way、bank、index、bank 内字节写使能和写数据，然后使用寄存后的值写入 cache 中。</p>
+<h3 id="cache-状态机"><a href="#cache-状态机" class="headerlink" title="cache 状态机"></a>cache 状态机</h3><p>《CPU设计实战》建议的是一个阻塞式的 cache，cache 缺失的时候不会接收新的请求，因此 Look Up 和 Replace &amp; Refill 处理可以共用一个状态机，称之为主状态机。另外，Hit Write 是游离<br>于 Look Up 和 Replace &amp; Refill 之外的单独访问，我们单独使用一个状态机维护，称之为 Write Buffer 状态机。</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">localparam</span> main_idle    = <span class="hljs-number">5&#x27;b00001</span>;<br><span class="hljs-keyword">localparam</span> main_lookup  = <span class="hljs-number">5&#x27;b00010</span>;<br><span class="hljs-keyword">localparam</span> main_miss    = <span class="hljs-number">5&#x27;b00100</span>;<br><span class="hljs-keyword">localparam</span> main_replace = <span class="hljs-number">5&#x27;b01000</span>;<br><span class="hljs-keyword">localparam</span> main_refill  = <span class="hljs-number">5&#x27;b10000</span>;<br><br><span class="hljs-keyword">localparam</span> write_buffer_idle  = <span class="hljs-number">1&#x27;b0</span>;<br><span class="hljs-keyword">localparam</span> write_buffer_write = <span class="hljs-number">1&#x27;b1</span>;<br><br><span class="hljs-keyword">reg</span> [<span class="hljs-number">4</span>:<span class="hljs-number">0</span>] main_state;<br><span class="hljs-keyword">reg</span>       write_buffer_state;<br></code></pre></td></tr></table></figure>
+
+<p>状态机状态转移图如下：</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/state_mechine.png"></p>
+<h3 id="非缓存访问的处理"><a href="#非缓存访问的处理" class="headerlink" title="非缓存访问的处理"></a>非缓存访问的处理</h3><p>LoongArch32 精简版支持两种存储访问类型，分别是一致可缓存（Coherent Cache，CC）和强序非缓存（Strongly-ordered Uncached，SUC）。</p>
+<p>比如，绝大多数外设的状态寄存器和控制寄存器就不能采用可缓存类型的存储访问。比如，要控制某个设备，得往某一个内存进行写入操作，但是如果仅仅写到了 cache 中，这个设备将不会有任何影响；同理，如果设备往某一个地址中写了值，CPU 仅仅读取了 cache，也达不到目标效果。</p>
+<p>因此，发往 cache 的请求必须携带一个信息，要能区分当前请求是可缓存还是不可缓存。如果是非缓存，就可以复用 Cache Miss 的数据通路，也就是给 AXI 发请求，然后直接返回。</p>
+<p>这个复用非常重要：举个例子来说，一个非缓存的 load 指令携带着非缓存的标志进入 Cache 模块后，Cache 模块内部也会检查一下 Cache，然后并不看 Cache Tag 的比较结果而是直接将其当作 Cache Miss 进行后续处理。因为 Cache 缺失时要向总线外发送访存请求，所以非缓存自然就利用这个流程发起总线请求，然后等待数据返回，只不过此时不需要真的替换一个 Cache 行。怎么区分呢？那就要看当前的 Request Buffer 中记录的存储访问类型了。</p>
+<h3 id="cache-维护指令：cacop"><a href="#cache-维护指令：cacop" class="headerlink" title="cache 维护指令：cacop"></a>cache 维护指令：cacop</h3><p>CACOP 指令主要用于 Cache 的初始化以及 Cache 一致性维护。它能对 cache 进行一些操作，比如：</p>
+<ul>
+<li>Invalid 操作实质上就是把相应 Cache 行的 V 写成 0；</li>
+<li>部分 CACOP 指令要对 Cache 进行 Hit 判断；</li>
+<li>部分 CACOP 指令需要读出一个 Cache 行并将其写回内存。</li>
+</ul>
+<p>因此 CACOP 本质上就是在 Cache 中进行一些操作，而这些操作已经被解耦且实现了。</p>
+<h2 id="OpenLA500-dcache-的数据通路"><a href="#OpenLA500-dcache-的数据通路" class="headerlink" title="OpenLA500 dcache 的数据通路"></a>OpenLA500 dcache 的数据通路</h2><h3 id="CPU接口信号"><a href="#CPU接口信号" class="headerlink" title="CPU接口信号"></a>CPU接口信号</h3><ul>
+<li><strong>valid</strong>: CPU请求有效信号，表示CPU发起了一次访问请求</li>
+<li><strong>op</strong>: 操作类型 (0&#x3D;读操作, 1&#x3D;写操作)，缓存指令被视为读操作</li>
+<li><strong>size[2:0]</strong>: 访问数据大小编码 (000&#x3D;1B, 001&#x3D;2B, 010&#x3D;4B, 011&#x3D;8B, 100&#x3D;16B等)</li>
+<li><strong>index[7:0]</strong>: 缓存索引，用于选择缓存行 (8位&#x3D;256个缓存行)</li>
+<li><strong>tag[19:0]</strong>: 缓存标签，用于标识缓存行</li>
+<li><strong>offset[3:0]</strong>: 块内偏移，用于选择缓存行内的字节</li>
+<li><strong>wstrb[3:0]</strong>: 写字节使能，每位对应一个字节的写使能</li>
+<li><strong>wdata[31:0]</strong>: 写数据</li>
+<li><strong>addr_ok</strong>: 地址握手信号，表示缓存可以接受新请求</li>
+<li><strong>data_ok</strong>: 数据握手信号，表示数据已准备好</li>
+<li><strong>rdata[31:0]</strong>: 读取的数据</li>
+</ul>
+<h3 id="特殊操作信号"><a href="#特殊操作信号" class="headerlink" title="特殊操作信号"></a>特殊操作信号</h3><ul>
+<li><strong>uncache_en</strong>: 非缓存访问使能，绕过缓存直接访问内存</li>
+<li><strong>dcacop_op_en</strong>: 数据缓存操作指令使能</li>
+<li><strong>cacop_op_mode[1:0]</strong>: 缓存操作模式<ul>
+<li>00: 存储标签 (Store Tag)</li>
+<li>01: 索引无效 (Index Invalidate)</li>
+<li>10: 命中无效 (Hit Invalidate)</li>
+<li>11: 索引无效 (Index Invalidate)</li>
+</ul>
+</li>
+<li><strong>preld_hint[4:0]</strong>: 预取提示信息</li>
+<li><strong>preld_en</strong>: 预取使能信号</li>
+<li><strong>tlb_excp_cancel_req</strong>: TLB异常取消请求</li>
+<li><strong>sc_cancel_req</strong>: 条件存储取消请求</li>
+<li><strong>dcache_empty</strong>: 缓存空闲状态指示</li>
+</ul>
+<h3 id="AXI总线接口信号"><a href="#AXI总线接口信号" class="headerlink" title="AXI总线接口信号"></a>AXI总线接口信号</h3><h4 id="读通道"><a href="#读通道" class="headerlink" title="读通道"></a>读通道</h4><ul>
+<li><strong>rd_req</strong>: 读请求信号</li>
+<li><strong>rd_type[2:0]</strong>: 读传输类型 (与size编码相同)</li>
+<li><strong>rd_addr[31:0]</strong>: 读地址</li>
+<li><strong>rd_rdy</strong>: 读请求就绪信号</li>
+<li><strong>ret_valid</strong>: 返回数据有效信号</li>
+<li><strong>ret_last</strong>: 最后一个返回数据信号</li>
+<li><strong>ret_data[31:0]</strong>: 返回的数据</li>
+</ul>
+<h4 id="写通道"><a href="#写通道" class="headerlink" title="写通道"></a>写通道</h4><ul>
+<li><strong>wr_req</strong>: 写请求信号</li>
+<li><strong>wr_type[2:0]</strong>: 写传输类型</li>
+<li><strong>wr_addr[31:0]</strong>: 写地址</li>
+<li><strong>wr_wstrb[3:0]</strong>: 写字节选通</li>
+<li><strong>wr_data[127:0]</strong>: 写数据 (可写整个缓存行128位)</li>
+<li><strong>wr_rdy</strong>: 写请求就绪信号</li>
+</ul>
+<h3 id="性能计数器接口"><a href="#性能计数器接口" class="headerlink" title="性能计数器接口"></a>性能计数器接口</h3><ul>
+<li><strong>cache_miss</strong>: 缓存未命中指示信号</li>
+</ul>
+<h3 id="状态机相关"><a href="#状态机相关" class="headerlink" title="状态机相关"></a>状态机相关</h3><ul>
+<li><strong>main_state[4:0]</strong>: 主状态机状态<ul>
+<li>main_idle (00001): 空闲状态</li>
+<li>main_lookup (00010): 查找状态</li>
+<li>main_miss (00100): 未命中状态</li>
+<li>main_replace (01000): 替换状态</li>
+<li>main_refill (10000): 重填状态</li>
+</ul>
+</li>
+<li><strong>write_buffer_state</strong>: 写缓冲状态机</li>
+</ul>
+<h3 id="请求缓冲器"><a href="#请求缓冲器" class="headerlink" title="请求缓冲器"></a>请求缓冲器</h3><p>保存当前处理的请求信息：</p>
+<ul>
+<li><strong>request_buffer_op</strong>: 缓存的操作类型</li>
+<li><strong>request_buffer_size[2:0]</strong>: 缓存的访问大小</li>
+<li><strong>request_buffer_index[7:0]</strong>: 缓存的索引</li>
+<li><strong>request_buffer_tag[19:0]</strong>: 缓存的标签</li>
+<li><strong>request_buffer_offset[3:0]</strong>: 缓存的偏移</li>
+<li><strong>request_buffer_wstrb[3:0]</strong>: 缓存的写使能</li>
+<li><strong>request_buffer_wdata[31:0]</strong>: 缓存的写数据</li>
+<li><strong>request_buffer_uncache_en</strong>: 缓存的非缓存访问标志</li>
+<li><strong>request_buffer_dcacop</strong>: 缓存的cacop操作标志</li>
+<li><strong>request_buffer_cacop_op_mode[1:0]</strong>: 缓存的cacop模式</li>
+</ul>
+<h3 id="未命中处理"><a href="#未命中处理" class="headerlink" title="未命中处理"></a>未命中处理</h3><ul>
+<li><strong>miss_buffer_replace_way[1:0]</strong>: 未命中时要替换的路</li>
+<li><strong>miss_buffer_ret_num[1:0]</strong>: 返回数据的计数器</li>
+<li><strong>ret_num_add_one[1:0]</strong>: 返回计数器加1</li>
+</ul>
+<h3 id="写缓冲器"><a href="#写缓冲器" class="headerlink" title="写缓冲器"></a>写缓冲器</h3><ul>
+<li><strong>write_buffer_index[7:0]</strong>: 写缓冲索引</li>
+<li><strong>write_buffer_wstrb[3:0]</strong>: 写缓冲字节使能</li>
+<li><strong>write_buffer_wdata[31:0]</strong>: 写缓冲数据</li>
+<li><strong>write_buffer_way[1:0]</strong>: 写缓冲路选择</li>
+<li><strong>write_buffer_offset[3:0]</strong>: 写缓冲偏移</li>
+</ul>
+<h3 id="存储器接口信号"><a href="#存储器接口信号" class="headerlink" title="存储器接口信号"></a>存储器接口信号</h3><h4 id="数据存储器-每路4个bank"><a href="#数据存储器-每路4个bank" class="headerlink" title="数据存储器 (每路4个bank)"></a>数据存储器 (每路4个bank)</h4><ul>
+<li><strong>way_bank_addra[1:0][3:0][7:0]</strong>: 数据bank地址</li>
+<li><strong>way_bank_dina[1:0][3:0][31:0]</strong>: 数据bank输入数据</li>
+<li><strong>way_bank_douta[1:0][3:0][31:0]</strong>: 数据bank输出数据</li>
+<li><strong>way_bank_ena[1:0][3:0]</strong>: 数据bank使能</li>
+<li><strong>way_bank_wea[1:0][3:0][3:0]</strong>: 数据bank写使能</li>
+</ul>
+<h4 id="Tag-V-存储器"><a href="#Tag-V-存储器" class="headerlink" title="Tag&amp;V 存储器"></a>Tag&amp;V 存储器</h4><ul>
+<li><strong>way_tagv_addra[1:0][7:0]</strong>: 标签地址</li>
+<li><strong>way_tagv_dina[1:0][20:0]</strong>: 标签输入 [20:1]&#x3D;标签, [0]&#x3D;有效位</li>
+<li><strong>way_tagv_douta[1:0][20:0]</strong>: 标签输出</li>
+<li><strong>way_tagv_ena[1:0]</strong>: 标签使能</li>
+<li><strong>way_tagv_wea[1:0]</strong>: 标签写使能</li>
+</ul>
+<h3 id="缓存逻辑信号"><a href="#缓存逻辑信号" class="headerlink" title="缓存逻辑信号"></a>缓存逻辑信号</h3><ul>
+<li><strong>way_d_reg[255:0][1:0]</strong>: 脏位寄存器数组</li>
+<li><strong>way_d[1:0]</strong>: 当前访问的脏位状态</li>
+<li><strong>way_hit[1:0]</strong>: 路命中信号</li>
+<li><strong>cache_hit</strong>: 缓存命中信号</li>
+<li><strong>way_load_word[1:0][31:0]</strong>: 每路加载的字</li>
+<li><strong>way_data[1:0][127:0]</strong>: 每路的完整缓存行数据</li>
+<li><strong>load_res[31:0]</strong>: 最终的加载结果</li>
+</ul>
+<h3 id="替换策略信号"><a href="#替换策略信号" class="headerlink" title="替换策略信号"></a>替换策略信号</h3><ul>
+<li><strong>replace_data[127:0]</strong>: 要替换的数据</li>
+<li><strong>replace_d</strong>: 替换行的脏位</li>
+<li><strong>replace_v</strong>: 替换行的有效位</li>
+<li><strong>replace_tag[19:0]</strong>: 替换行的标签</li>
+<li><strong>random_val[1:0]</strong>: 随机值 (用于随机替换)</li>
+<li><strong>chosen_way[3:0]</strong>: 选择的路 (解码后)</li>
+<li><strong>replace_way[1:0]</strong>: 最终替换的路</li>
+<li><strong>invalid_way[1:0]</strong>: 无效路</li>
+<li><strong>has_invalid_way</strong>: 是否有无效路</li>
+<li><strong>rand_repl_way[1:0]</strong>: 随机替换路</li>
+</ul>
+<h3 id="控制信号"><a href="#控制信号" class="headerlink" title="控制信号"></a>控制信号</h3><ul>
+<li><strong>main_idle2lookup</strong>: 从空闲到查找状态转换条件</li>
+<li><strong>main_lookup2lookup</strong>: 查找状态保持条件</li>
+<li><strong>main_state_is_xxx</strong>: 各状态判断信号</li>
+<li><strong>write_state_is_xxx</strong>: 写状态判断信号</li>
+<li><strong>cancel_req</strong>: 取消请求信号</li>
+<li><strong>req_or_inst_valid</strong>: 请求或指令有效信号</li>
+</ul>
+<h3 id="非缓存访问信号"><a href="#非缓存访问信号" class="headerlink" title="非缓存访问信号"></a>非缓存访问信号</h3><ul>
+<li><strong>request_uncache_en</strong>: 请求的非缓存访问标志</li>
+<li><strong>uncache_wr</strong>: 非缓存写操作</li>
+<li><strong>uncache_wr_buffer</strong>: 缓存的非缓存写标志</li>
+<li><strong>uncache_wr_type[2:0]</strong>: 非缓存写类型</li>
+</ul>
+<h3 id="缓存操作指令信号"><a href="#缓存操作指令信号" class="headerlink" title="缓存操作指令信号"></a>缓存操作指令信号</h3><ul>
+<li><strong>cacop_op_mode0&#x2F;1&#x2F;2</strong>: 各种cacop模式判断</li>
+<li><strong>cacop_op_mode2_hit_wr</strong>: mode2命中写信号</li>
+<li><strong>cacop_chose_way[3:0]</strong>: cacop选择的路</li>
+</ul>
+<h3 id="预取信号"><a href="#预取信号" class="headerlink" title="预取信号"></a>预取信号</h3><ul>
+<li><strong>preld_st_en</strong>: 预取存储使能</li>
+<li><strong>preld_ld_en</strong>: 预取加载使能</li>
+<li><strong>preld_ld_st_en</strong>: 预取加载存储使能</li>
+</ul>
+<h3 id="其他控制信号"><a href="#其他控制信号" class="headerlink" title="其他控制信号"></a>其他控制信号</h3><ul>
+<li><strong>way_wr_en[1:0]</strong>: 路写使能</li>
+<li><strong>refill_data[31:0]</strong>: 重填数据</li>
+<li><strong>write_in[31:0]</strong>: 写入数据 (考虑字节使能)</li>
+<li><strong>rd_req_buffer</strong>: 读请求缓冲</li>
+<li><strong>lookup_way_hit_buffer[1:0]</strong>: 查找命中缓冲</li>
+</ul>
+<h2 id="OpenLA500-dcache-的控制逻辑"><a href="#OpenLA500-dcache-的控制逻辑" class="headerlink" title="OpenLA500 dcache 的控制逻辑"></a>OpenLA500 dcache 的控制逻辑</h2><h3 id="main-状态机"><a href="#main-状态机" class="headerlink" title="main 状态机"></a>main 状态机</h3><p>这里需要围绕状态机的几种状态，来分析 cache 模块的 io 情况。</p>
+<h4 id="reset"><a href="#reset" class="headerlink" title="reset"></a>reset</h4><p>reset 信号很容易被忽视，事实上，在大部分情况下，只要模块中设计存在寄存器，比如常见的状态机、时序电路等，一般都需要进行 reset。但也有例外，比如 CSR 的某些未定义的位（按理说不能够简单的 reset 成 0，但是这样做也无妨，毕竟 CSR 中某些未定义的位也不会用到）。</p>
+<p>main 状态机中 reset 了一些触发器，比如：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs Verilog">main_state &lt;= main_idle;<br><br><span class="hljs-comment">// 请求 buffer</span><br>request_buffer_op         &lt;=  <span class="hljs-number">1&#x27;b0</span>;<br>request_buffer_preld      &lt;=  <span class="hljs-number">1&#x27;b0</span>;<br>request_buffer_size       &lt;=  <span class="hljs-number">3&#x27;b0</span>;<br>request_buffer_index      &lt;=  <span class="hljs-number">8&#x27;b0</span>;<br>request_buffer_tag        &lt;= <span class="hljs-number">20&#x27;b0</span>;<br>request_buffer_offset     &lt;=  <span class="hljs-number">4&#x27;b0</span>;<br>request_buffer_wstrb      &lt;=  <span class="hljs-number">4&#x27;b0</span>;<br>request_buffer_wdata      &lt;= <span class="hljs-number">32&#x27;b0</span>;<br>request_buffer_uncache_en &lt;=  <span class="hljs-number">1&#x27;b0</span>;<br><br>request_buffer_cacop_op_mode &lt;= <span class="hljs-number">2&#x27;b0</span>;<br>request_buffer_dcacop        &lt;= <span class="hljs-number">1&#x27;b0</span>;<br><br>miss_buffer_replace_way &lt;= <span class="hljs-number">2&#x27;b0</span>;<br><br>wr_req &lt;= <span class="hljs-number">1&#x27;b0</span>; <span class="hljs-comment">// 这里是一个 reg 类型的输出</span><br></code></pre></td></tr></table></figure>
+<h4 id="main-idle"><a href="#main-idle" class="headerlink" title="main_idle"></a>main_idle</h4><p>接下来进入了 main_idle 状态，这个时候就可能会接收到来自 CPU （IFU、IDU、EXU）的请求了。</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs Verilog">main_idle: <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (req_or_inst_valid &amp;&amp; main_idle2lookup) <span class="hljs-keyword">begin</span><br>    <span class="hljs-comment">// 如果请求有效，且没有冲突，就状态转移</span><br>        main_state &lt;= main_lookup;<br><br>        request_buffer_op         &lt;= op        ;<br>        request_buffer_preld      &lt;= preld_en     ;<br>        request_buffer_size       &lt;= size      ;<br>        request_buffer_index      &lt;= index     ;<br>        request_buffer_offset     &lt;= offset    ;<br>        request_buffer_wstrb      &lt;= wstrb     ;<br>        request_buffer_wdata      &lt;= wdata     ;<br><br>        request_buffer_cacop_op_mode &lt;= cacop_op_mode ;<br>        request_buffer_dcacop        &lt;= dcacop_op_en ;<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
+
+<p>注意到，这里有一个条件才能进行下一步的状态转移：req_or_inst_valid &amp;&amp; main_idle2lookup。</p>
+<p>事实上：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">assign</span> req_or_inst_valid = valid || dcacop_op_en || preld_en;<br><span class="hljs-keyword">assign</span> main_idle2lookup   = !(write_state_is_full &amp;&amp; ((write_buffer_offset[<span class="hljs-number">3</span>:<span class="hljs-number">2</span>] == offset[<span class="hljs-number">3</span>:<span class="hljs-number">2</span>]) || dcacop_op_en));<br></code></pre></td></tr></table></figure>
+
+<p>对于 <code>req_or_inst_valid</code>，我的理解是，请求有效有三个源头，分别是：</p>
+<ul>
+<li>常规请求：比如 inst、data 的读写；</li>
+<li>cacop 指令；</li>
+<li>数据预加载，可能用于性能提升？</li>
+</ul>
+<p>对于 <code>main_idle2lookup</code>，这个信号用来阻塞 idle 进入 lookup 的。什么时候不能进入 lookup 呢？请求冲突的时候。因此后面的逻辑给出了什么情况下会冲突。<code>write_state_is_full</code> 的生成逻辑为 <code>assign write_state_is_full = (write_buffer_state == write_buffer_write);</code>，此时是写命中的处理过程。也就是说，当写事务正在处理并且写的 cache line 的某个字和当前请求的字冲突，或者当前的写事务是由于 cacop 引起的，那么就要阻塞。这种情况下只能等写事务完成后才能处理新的请求。</p>
+<h4 id="main-lookup："><a href="#main-lookup：" class="headerlink" title="main_lookup："></a>main_lookup：</h4><p>再来看下一个状态 main_lookup：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs Verilog">main_lookup: <span class="hljs-keyword">begin</span><br>                <span class="hljs-keyword">if</span> (req_or_inst_valid &amp;&amp; main_lookup2lookup) <span class="hljs-keyword">begin</span><br>                    <span class="hljs-comment">// 如果还有不冲突的请求且命中，就继续处理</span><br>                    main_state &lt;= main_lookup;<br><br>                    request_buffer_op         &lt;= op        ;<br>                    request_buffer_preld      &lt;= preld_en  ;<br>                    request_buffer_size       &lt;= size      ;<br>                    request_buffer_index      &lt;= index     ;<br>                    request_buffer_offset     &lt;= offset    ;<br>                    request_buffer_wstrb      &lt;= wstrb     ;<br>                    request_buffer_wdata      &lt;= wdata     ;<br><br>                    request_buffer_cacop_op_mode &lt;= cacop_op_mode ;<br>                    request_buffer_dcacop        &lt;= dcacop_op_en  ;<br>                <span class="hljs-keyword">end</span><br>                <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (cancel_req) <span class="hljs-keyword">begin</span><br>                    <span class="hljs-comment">// 请求取消</span><br>                    main_state &lt;= main_idle;<br>                <span class="hljs-keyword">end</span><br>                <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (!cache_hit) <span class="hljs-keyword">begin</span><br>                    <span class="hljs-comment">// 未命中</span><br>                    <span class="hljs-comment">// 如果是非缓存写 或者 被替换脏且有效，</span><br>                    <span class="hljs-comment">// 那么要直接写穿（write through）</span><br>                    <span class="hljs-keyword">if</span> (uncache_wr || ((replace_d &amp;&amp; replace_v) &amp;&amp; (!request_uncache_en || cacop_op_mode2_hit_wr) &amp;&amp; !cacop_op_mode0))<br>                        main_state &lt;= main_miss;<br>                    <span class="hljs-keyword">else</span><br>                        <span class="hljs-keyword">begin</span><br>                            <span class="hljs-comment">// 否则 直接替换就行</span><br>                            main_state &lt;= main_replace;<br>                        <span class="hljs-keyword">end</span><br><br>                    request_buffer_tag        &lt;= tag;<br>                    request_buffer_uncache_en &lt;= request_uncache_en;<br>                    uncache_wr_buffer         &lt;= uncache_wr;<br>                    miss_buffer_replace_way   &lt;= replace_way;<br>                    cacop_op_mode2_hit_wr_buffer &lt;= cacop_op_mode2_hit_wr;<br>                <span class="hljs-keyword">end</span><br>                <span class="hljs-keyword">else</span> <span class="hljs-keyword">begin</span><br>                    main_state &lt;= main_idle;<br>                <span class="hljs-keyword">end</span><br>            <span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
+
+<p>这个状态是在进行 cache 命中测试，根据命中有请求、命中无请求、未命中等情况有三个下一级状态：</p>
+<ul>
+<li>main_lookup：命中且有新请求且无冲突，就继续处理请求；</li>
+<li>main_idle：请求取消、命中有新请求，重新回到空闲状态；</li>
+<li>main_miss：如果有非缓存写或者被替换的 cache line 脏位有效，那么直接写穿（write through）；</li>
+<li>main_replace：进入替换 cache line 的状态。</li>
+</ul>
+<h5 id="lookup2lookup"><a href="#lookup2lookup" class="headerlink" title="lookup2lookup"></a>lookup2lookup</h5><p>lookup2lookup 逻辑为：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">assign</span> main_lookup2lookup = !(write_state_is_full &amp;&amp; ((write_buffer_offset[<span class="hljs-number">3</span>:<span class="hljs-number">2</span>] == offset[<span class="hljs-number">3</span>:<span class="hljs-number">2</span>]) || dcacop_op_en)) &amp;&amp;<br>           !(request_buffer_op  &amp;&amp; !op &amp;&amp; ((request_buffer_offset[<span class="hljs-number">3</span>:<span class="hljs-number">2</span>] == offset[<span class="hljs-number">3</span>:<span class="hljs-number">2</span>]) || dcacop_op_en)) &amp;&amp;<br>           cache_hit;<br><br></code></pre></td></tr></table></figure>
+
+<p>这个逻辑有点复杂，如果当前有写事务，并且写事务和当前的请求冲突或者这个写请求是由于 cacop 引起，并且当前正在处理的请求是写，新请求是读且有冲突。如果前面的情况是否定的，那么此时命中了，就说明可以继续处理请求了。</p>
+<p>如果当前的请求被取消了，那么相当于没有新的请求，回到 idle。</p>
+<p>看看命中信号的 cache_hit 是怎么生成的。</p>
+<h5 id="cache-hit"><a href="#cache-hit" class="headerlink" title="cache_hit"></a>cache_hit</h5><figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-comment">//tag compare</span><br>    <span class="hljs-keyword">generate</span><br>        <span class="hljs-keyword">for</span>(i=<span class="hljs-number">0</span>;i&lt;<span class="hljs-number">2</span>;i=i+<span class="hljs-number">1</span>) <span class="hljs-keyword">begin</span>:gen_way_hit<br>            <span class="hljs-keyword">assign</span> way_hit[i] = way_tagv_douta[i][<span class="hljs-number">0</span>] &amp;&amp; (tag == way_tagv_douta[i][<span class="hljs-number">20</span>:<span class="hljs-number">1</span>]); <span class="hljs-comment">//this signal will not maintain</span><br>        <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">endgenerate</span><br><br>    <span class="hljs-keyword">assign</span> cache_hit = |way_hit &amp;&amp; !(uncache_en || cacop_op_mode0 || cacop_op_mode1 || cacop_op_mode2);  <span class="hljs-comment">//uncache road reuse</span><br></code></pre></td></tr></table></figure>
+
+<p>对于 <code>way_tagv_douta</code> 信号：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">assign</span> addr_ok = (main_state_is_idle &amp;&amp; main_idle2lookup) || (main_state_is_lookup &amp;&amp; main_lookup2lookup);<br><span class="hljs-keyword">generate</span><br>    <span class="hljs-keyword">for</span>(i=<span class="hljs-number">0</span>;i&lt;<span class="hljs-number">2</span>;i=i+<span class="hljs-number">1</span>) <span class="hljs-keyword">begin</span>:gen_tagv_way<br>        <span class="hljs-comment">// addra 是 index，</span><br>        <span class="hljs-keyword">assign</span> way_tagv_addra[i] = &#123;<span class="hljs-number">8</span>&#123;addr_ok &#125;&#125; &amp; index|<br>               &#123;<span class="hljs-number">8</span>&#123;!addr_ok&#125;&#125; &amp; request_buffer_index ;<br>        <span class="hljs-keyword">assign</span> way_tagv_ena[i] = (!request_buffer_uncache_en) || main_state_is_idle || main_state_is_lookup;<br><br>        <span class="hljs-keyword">assign</span> way_tagv_wea[i] = miss_buffer_replace_way[i] &amp;&amp; main_state_is_refill &amp;&amp;<br>               ((ret_valid &amp;&amp; ret_last) || cacop_op_mode0 || cacop_op_mode1 || cacop_op_mode2_hit_wr_buffer); <span class="hljs-comment">//write at least 4B</span><br><br>        <span class="hljs-keyword">assign</span> way_tagv_dina[i] = (cacop_op_mode0 || cacop_op_mode1 || cacop_op_mode2_hit_wr_buffer) ? <span class="hljs-number">21&#x27;b0</span> : &#123;request_buffer_tag, <span class="hljs-number">1&#x27;b1</span>&#125;;<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">endgenerate</span><br></code></pre></td></tr></table></figure>
+
+<p>首先，addr_ok 这个信号是通知上游 cache 已经接收到了 addr。addr_ok 有两个路径：</p>
+<ul>
+<li>当前状态空闲且当前请求无冲突；</li>
+<li>当前状态为 lookup 且可以接受新请求。</li>
+</ul>
+<p>对于 tagv 表，发射的地址为 index，2 路都会接受到这个地址。如果 addr_ok，那么说明最新的 index 有效，直接处理最新请求；否则处理缓存起来的 index。<br>下一个周期就能拿到返回的 way_tagv_douta，同时与 tag 进行比较。这意味着 tag 需要保持多个周期。</p>
+<p>另外，对于非缓存访存，不能命中。</p>
+<p>当没有命中的时候，有两种情况：</p>
+<ul>
+<li>就是当前请求是非缓存请求且是写请求；</li>
+<li>被替换的 cache line 的脏位是有效的。</li>
+</ul>
+<p>这两种情况都应该直接当做 miss 处理。否则，就进入 replace 状态，因为没有命中就应该替换掉 cache line。</p>
+<h4 id="main-miss"><a href="#main-miss" class="headerlink" title="main_miss"></a>main_miss</h4><figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs Verilog">main_miss: <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (wr_rdy) <span class="hljs-keyword">begin</span><br>        <span class="hljs-comment">// 如果写准备好</span><br>        main_state &lt;= main_replace;<br>        <span class="hljs-comment">// 发起写请求</span><br>        wr_req &lt;= <span class="hljs-number">1&#x27;b1</span>;<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
+
+<p>main_miss 状态要将 cache line 写会到 axi 中的 16B 的 buffer 中，axi 拿到这个 cache line 的数据口将通过 axi 接口和 sram 进行交互，将 buffer 中的 16B 数据多次写回到 sram 中。cache 写回到 axi buffer 之前要确定 axi buffer 空闲，这样才能发送写请求。</p>
+<p>当 wr_req 有效时，以下信号都应该就绪：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">output</span> [ <span class="hljs-number">2</span>:<span class="hljs-number">0</span>]       wr_type      ,<br><span class="hljs-keyword">output</span> [<span class="hljs-number">31</span>:<span class="hljs-number">0</span>]       wr_addr      ,<br><span class="hljs-keyword">output</span> [ <span class="hljs-number">3</span>:<span class="hljs-number">0</span>]       wr_wstrb     ,<br><span class="hljs-keyword">output</span> [<span class="hljs-number">127</span>:<span class="hljs-number">0</span>]      wr_data      ,<br><br><span class="hljs-comment">// 根据随机数，选取一个 way</span><br>decoder_2_4 dec_rand_way (<span class="hljs-variable">.in</span>(&#123;<span class="hljs-number">1&#x27;b0</span>,random_val[<span class="hljs-number">0</span>]&#125;),<span class="hljs-variable">.out</span>(chosen_way));<br><br><span class="hljs-comment">// 选取一个 invalid 的 way，如果有的话</span><br>one_valid_n <span class="hljs-variable">#(2) sel_one_invalid (.in(~&#123;way_tagv_douta[1][0],way_tagv_douta[0][0]&#125;),.out(invalid_way),.nozero(has_invalid_way))</span>;<br><br><span class="hljs-comment">// 随机替换的 way，如果有无效的 way，就选无效的way，否则，就是随机的 way</span><br><span class="hljs-comment">// 这里感觉有些繁琐了，这会导致组合电路的 level 上升，而就是为了选择 invalid 优先</span><br><span class="hljs-keyword">assign</span> rand_repl_way = has_invalid_way ? invalid_way : chosen_way[<span class="hljs-number">1</span>:<span class="hljs-number">0</span>]; <span class="hljs-comment">//chose invalid way first.</span><br><br><span class="hljs-comment">// 如果是 cacop，这时候需要根据 request_buffer_offset 的最低位选择一个 way</span><br><span class="hljs-comment">// 如果是 0，就是 4&#x27;b0001</span><br><span class="hljs-comment">// 如果是 1，就是 4&#x27;b0010</span><br>decoder_2_4 dec_cacop_way (<span class="hljs-variable">.in</span>(&#123;<span class="hljs-number">1&#x27;b0</span>,request_buffer_offset[<span class="hljs-number">0</span>]&#125;),<span class="hljs-variable">.out</span>(cacop_chose_way));<br><br><span class="hljs-comment">// 选择 way，没有随机方便，但是性能上会更好一点点</span><br><span class="hljs-keyword">assign</span> replace_way = &#123;<span class="hljs-number">2</span>&#123;cacop_op_mode0 || cacop_op_mode1&#125;&#125; &amp; cacop_chose_way[<span class="hljs-number">1</span>:<span class="hljs-number">0</span>] |<br>           &#123;<span class="hljs-number">2</span>&#123;cacop_op_mode2&#125;&#125;                   &amp; way_hit              |<br>           &#123;<span class="hljs-number">2</span>&#123;!request_buffer_dcacop&#125;&#125;           &amp; rand_repl_way;<br><br><span class="hljs-comment">// 脏位，如果当前写事务且发生了冲突，那么 way_d 就会更新，这里类似于数据前递</span><br><span class="hljs-keyword">assign</span> way_d = way_d_reg[request_buffer_index] |<br>           &#123;<span class="hljs-number">2</span>&#123;(write_buffer_index == request_buffer_index) &amp;&amp; write_state_is_full&#125;&#125; &amp; write_buffer_way;<br><br><span class="hljs-comment">// 被替换的 way 是否脏</span><br><span class="hljs-keyword">assign</span> replace_d    = |(replace_way &amp; way_d);<br><br><span class="hljs-comment">// 被替换的 way 是否有效</span><br><span class="hljs-keyword">assign</span> replace_v    = |(replace_way &amp; &#123;way_tagv_douta[<span class="hljs-number">1</span>][<span class="hljs-number">0</span>],way_tagv_douta[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>]&#125;);<br><br><span class="hljs-comment">// 被替换的 way 的 cache line 的 tag</span><br><span class="hljs-keyword">assign</span> replace_tag  = &#123;<span class="hljs-number">20</span>&#123;miss_buffer_replace_way[<span class="hljs-number">0</span>]&#125;&#125; &amp; way_tagv_douta[<span class="hljs-number">0</span>][<span class="hljs-number">20</span>:<span class="hljs-number">1</span>] |<br>           &#123;<span class="hljs-number">20</span>&#123;miss_buffer_replace_way[<span class="hljs-number">1</span>]&#125;&#125; &amp; way_tagv_douta[<span class="hljs-number">1</span>][<span class="hljs-number">20</span>:<span class="hljs-number">1</span>] ;<br><br><span class="hljs-comment">// 被替换的 way 的 cache line 的 data</span><br><span class="hljs-keyword">assign</span> replace_data = &#123;<span class="hljs-number">128</span>&#123;miss_buffer_replace_way[<span class="hljs-number">0</span>]&#125;&#125; &amp; way_data[<span class="hljs-number">0</span>] |<br>           &#123;<span class="hljs-number">128</span>&#123;miss_buffer_replace_way[<span class="hljs-number">1</span>]&#125;&#125; &amp; way_data[<span class="hljs-number">1</span>] ;<br><br><span class="hljs-comment">// 这里就是 io 的一些信号了</span><br><span class="hljs-comment">// 如果是非缓存写，就得调整成写穿的数据请求（write through）</span><br><span class="hljs-keyword">assign</span> wr_type  = uncache_wr_buffer ? uncache_wr_type : <span class="hljs-number">3&#x27;b100</span>;     <span class="hljs-comment">//replace cache line</span><br><br><span class="hljs-comment">// 这个 offset[3:2]为 0，表示地址为 16 字节对齐的地址的最低地址的 4 个字节</span><br><span class="hljs-keyword">assign</span> wr_addr  = uncache_wr_buffer ? &#123;request_buffer_tag, request_buffer_index, request_buffer_offset&#125; :<br>           &#123;replace_tag, request_buffer_index, <span class="hljs-number">4&#x27;b0</span>&#125;;<br><span class="hljs-keyword">assign</span> wr_data  = uncache_wr_buffer ? &#123;<span class="hljs-number">96&#x27;b0</span>, request_buffer_wdata&#125; : replace_data;<br><span class="hljs-keyword">assign</span> wr_wstrb = uncache_wr_buffer ? request_buffer_wstrb : <span class="hljs-number">4&#x27;hf</span>;<br></code></pre></td></tr></table></figure>
+
+<h4 id="main-replace"><a href="#main-replace" class="headerlink" title="main_replace"></a>main_replace</h4><figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs Verilog">main_replace: <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (rd_rdy) <span class="hljs-keyword">begin</span><br>        main_state &lt;= main_refill;<br>        miss_buffer_ret_num &lt;= <span class="hljs-number">2&#x27;b0</span>;   <span class="hljs-comment">//when get ret data, it will be sent to cpu directly.</span><br>    <span class="hljs-keyword">end</span><br>    wr_req &lt;= <span class="hljs-number">1&#x27;b0</span>;<br><span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
+
+<p>replace 要从 axi 中读取 data，将 data 送到 buffer 中，然后一次性 refill 到 cache line 中。</p>
+<p>因此，只需要在 replace 中确定 rd_rdy 后，发起 rd_req。由于要读取 4 个字，因此需要计数。当读够 4 个字后就完成了 repalce。</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-comment">// 发起请求</span><br><span class="hljs-keyword">assign</span> rd_req  = main_state_is_replace &amp;&amp; !(uncache_wr_buffer || cacop_op_mode0 || cacop_op_mode1 || cacop_op_mode2);<br><span class="hljs-comment">// size 就是 uncache req 的参数</span><br><span class="hljs-comment">// 可能是 1 字、2 字、4 字</span><br><span class="hljs-keyword">assign</span> rd_type = request_buffer_uncache_en ? request_buffer_size : <span class="hljs-number">3&#x27;b100</span>;<br><span class="hljs-comment">// 访问地址</span><br><span class="hljs-keyword">assign</span> rd_addr = request_buffer_uncache_en ? &#123;request_buffer_tag, request_buffer_index, request_buffer_offset&#125; : &#123;request_buffer_tag, request_buffer_index, <span class="hljs-number">4&#x27;b0</span>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>当 main_state 为 replace 的时候，就可以给 axi 发起读请求了。同时，根据是否是非缓存访问来确定具体的请求参数。</p>
+<h4 id="main-refill"><a href="#main-refill" class="headerlink" title="main_refill"></a>main_refill</h4><figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs Verilog">main_refill: <span class="hljs-keyword">begin</span><br>    <span class="hljs-comment">// 一共读 4 次</span><br>    <span class="hljs-keyword">if</span> ((ret_valid &amp;&amp; ret_last) || !rd_req_buffer) <span class="hljs-keyword">begin</span>   <span class="hljs-comment">//when rd_req is not set, go to next state directly</span><br>        <span class="hljs-comment">// 如果读取最后一次</span><br>        main_state &lt;= main_idle;<br>        <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">begin</span><br>        <span class="hljs-comment">// 否则继续读取</span><br>        <span class="hljs-keyword">if</span> (ret_valid) <span class="hljs-keyword">begin</span><br>            miss_buffer_ret_num &lt;= ret_num_add_one;<br>        <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
+
+<p>这就就是充填 cache 的状态了。如果 axi 传来了 ret_last 为真，说明已经传送完成，否则继续累加。</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-comment">// data_ok 的条件：cache 命中 或者</span><br><span class="hljs-comment">// 充填且是读请求，这里数据可以提前返回到 CPU</span><br><span class="hljs-keyword">assign</span> data_ok = ((main_state_is_lookup &amp;&amp; (cache_hit || request_buffer_op || cancel_req)) ||<br>                  (main_state_is_refill &amp;&amp; (!request_buffer_op &amp;&amp; (ret_valid &amp;&amp; ((miss_buffer_ret_num == request_buffer_offset[<span class="hljs-number">3</span>:<span class="hljs-number">2</span>]) || request_buffer_uncache_en))))) &amp;&amp;<br>       !(request_buffer_preld || request_buffer_dcacop);  <span class="hljs-comment">//when rd_req is not set, set data_ok directly.</span><br><span class="hljs-comment">//rdate connect with ret_data dirctly. maintain one clock only</span><br><br><span class="hljs-comment">// 重填的数据需要经过设计</span><br><span class="hljs-comment">// 按理说，应该把从 axi 返回的数据 ret_data 当成 refill_data</span><br><span class="hljs-comment">// 但是，此时如果有写的请求，且与返回的数据碰撞，那么就应该刷新 refill_data</span><br><span class="hljs-keyword">assign</span> write_in = &#123;(request_buffer_wstrb[<span class="hljs-number">3</span>] ? request_buffer_wdata[<span class="hljs-number">31</span>:<span class="hljs-number">24</span>] : ret_data[<span class="hljs-number">31</span>:<span class="hljs-number">24</span>]),<br>                   (request_buffer_wstrb[<span class="hljs-number">2</span>] ? request_buffer_wdata[<span class="hljs-number">23</span>:<span class="hljs-number">16</span>] : ret_data[<span class="hljs-number">23</span>:<span class="hljs-number">16</span>]),<br>                   (request_buffer_wstrb[<span class="hljs-number">1</span>] ? request_buffer_wdata[<span class="hljs-number">15</span>: <span class="hljs-number">8</span>] : ret_data[<span class="hljs-number">15</span>: <span class="hljs-number">8</span>]),<br>                   (request_buffer_wstrb[<span class="hljs-number">0</span>] ? request_buffer_wdata[ <span class="hljs-number">7</span>: <span class="hljs-number">0</span>] : ret_data[ <span class="hljs-number">7</span>: <span class="hljs-number">0</span>])&#125;;<br><br><br><span class="hljs-comment">// 如果有碰撞，那么就应该刷新 refill，但是此时数据应该已经脏了</span><br><span class="hljs-keyword">assign</span> refill_data = (request_buffer_op &amp;&amp; (request_buffer_offset[<span class="hljs-number">3</span>:<span class="hljs-number">2</span>] == miss_buffer_ret_num)) ? write_in : ret_data;<br><br><span class="hljs-keyword">assign</span> way_wr_en = miss_buffer_replace_way &amp; &#123;<span class="hljs-number">2</span>&#123;ret_valid&#125;&#125;;  <span class="hljs-comment">//when rd_req is not set, ret_valid and ret_last will not be set. block will not be wr also.</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="tagv-的更新"><a href="#tagv-的更新" class="headerlink" title="tagv 的更新"></a>tagv 的更新</h4><figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><br><span class="hljs-keyword">generate</span><br>    <span class="hljs-keyword">for</span>(i=<span class="hljs-number">0</span>;i&lt;<span class="hljs-number">2</span>;i=i+<span class="hljs-number">1</span>) <span class="hljs-keyword">begin</span>:gen_tagv_way<br>        <span class="hljs-comment">/*===============================tagv addra logic=================================*/</span><br><br>        <span class="hljs-keyword">assign</span> way_tagv_addra[i] = &#123;<span class="hljs-number">8</span>&#123;addr_ok &#125;&#125; &amp; index|<br>               &#123;<span class="hljs-number">8</span>&#123;!addr_ok&#125;&#125; &amp; request_buffer_index ;<br><br>        <span class="hljs-comment">/*===============================tagv ena logic=================================*/</span><br><br>        <span class="hljs-keyword">assign</span> way_tagv_ena[i] = (!request_buffer_uncache_en) || main_state_is_idle || main_state_is_lookup;<br><br>        <span class="hljs-comment">/*===============================tagv wea logic=================================*/</span><br><br>        <span class="hljs-keyword">assign</span> way_tagv_wea[i] = miss_buffer_replace_way[i] &amp;&amp; main_state_is_refill &amp;&amp;<br>               ((ret_valid &amp;&amp; ret_last) || cacop_op_mode0 || cacop_op_mode1 || cacop_op_mode2_hit_wr_buffer); <span class="hljs-comment">//write at least 4B</span><br><br>        <span class="hljs-comment">/*===============================tagv dina logic=================================*/</span><br><br>        <span class="hljs-keyword">assign</span> way_tagv_dina[i] = (cacop_op_mode0 || cacop_op_mode1 || cacop_op_mode2_hit_wr_buffer) ? <span class="hljs-number">21&#x27;b0</span> : &#123;request_buffer_tag, <span class="hljs-number">1&#x27;b1</span>&#125;;<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">endgenerate</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="dirty-flag-的更新"><a href="#dirty-flag-的更新" class="headerlink" title="dirty flag 的更新"></a>dirty flag 的更新</h4><figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk) <span class="hljs-keyword">begin</span><br>    <span class="hljs-comment">// 更新脏位</span><br>    <span class="hljs-comment">// 如果 现在是 refill 状态 且</span><br>    <span class="hljs-comment">// 读完所有数据，或者 没有读取请求 且</span><br>    <span class="hljs-comment">// 没有非缓存请求或者 cacop 操作</span><br><br>    <span class="hljs-comment">// 更新脏位有两种情况</span><br>    <span class="hljs-comment">// 1. 被替换</span><br>    <span class="hljs-comment">// 2. Write hit 了</span><br>    <span class="hljs-keyword">if</span> (main_state_is_refill &amp;&amp;<br>            ((ret_valid &amp;&amp; ret_last) || !rd_req_buffer) &amp;&amp;<br>            (!(request_buffer_uncache_en || cacop_op_mode0))) <span class="hljs-keyword">begin</span><br>        way_d_reg[request_buffer_index][<span class="hljs-number">0</span>] &lt;= miss_buffer_replace_way[<span class="hljs-number">0</span>] ? request_buffer_op : way_d_reg[request_buffer_index][<span class="hljs-number">0</span>];<br>        way_d_reg[request_buffer_index][<span class="hljs-number">1</span>] &lt;= miss_buffer_replace_way[<span class="hljs-number">1</span>] ? request_buffer_op : way_d_reg[request_buffer_index][<span class="hljs-number">1</span>];<br>    <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (write_state_is_full) <span class="hljs-keyword">begin</span><br>        way_d_reg[write_buffer_index] &lt;= way_d_reg[write_buffer_index] | write_buffer_way;<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="data-back-的更新"><a href="#data-back-的更新" class="headerlink" title="data_back 的更新"></a>data_back 的更新</h4><p>每一个 data_back 有 4B*256，每 way 有 4 个 data_back。</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">generate</span><br>    <span class="hljs-keyword">for</span>(i=<span class="hljs-number">0</span>;i&lt;<span class="hljs-number">2</span>;i=i+<span class="hljs-number">1</span>) <span class="hljs-keyword">begin</span>:gen_data_way<br>        <span class="hljs-keyword">for</span>(j=<span class="hljs-number">0</span>;j&lt;<span class="hljs-number">4</span>;j=j+<span class="hljs-number">1</span>) <span class="hljs-keyword">begin</span>:gen_data_bank<br>            <span class="hljs-comment">/*===============================bank addra logic==============================*/</span><br><br>            <span class="hljs-keyword">assign</span> wr_match_way_bank[i][j] = write_state_is_full &amp;&amp; (write_buffer_way[i] &amp;&amp; (write_buffer_offset[<span class="hljs-number">3</span>:<span class="hljs-number">2</span>] == j[<span class="hljs-number">1</span>:<span class="hljs-number">0</span>]));<br><br>            <span class="hljs-keyword">assign</span> way_bank_addra[i][j] = wr_match_way_bank[i][j] ? write_buffer_index : (&#123;<span class="hljs-number">8</span>&#123;addr_ok&#125;&#125;  &amp; index |<br>                    &#123;<span class="hljs-number">8</span>&#123;!addr_ok&#125;&#125; &amp; request_buffer_index);<br><br>            <span class="hljs-comment">/*===============================bank we logic=================================*/</span><br><br>            <span class="hljs-keyword">assign</span> way_bank_wea[i][j] = &#123;<span class="hljs-number">4</span>&#123;wr_match_way_bank[i][j]&#125;&#125; &amp; write_buffer_wstrb |<br>                   &#123;<span class="hljs-number">4</span>&#123;main_state_is_refill &amp;&amp; (way_wr_en[i] &amp;&amp; (miss_buffer_ret_num == j[<span class="hljs-number">1</span>:<span class="hljs-number">0</span>]))&#125;&#125; &amp; <span class="hljs-number">4&#x27;hf</span>;<br><br>            <span class="hljs-comment">/*===============================bank dina logic=================================*/</span><br><br>            <span class="hljs-keyword">assign</span> way_bank_dina[i][j] = &#123;<span class="hljs-number">32</span>&#123;write_state_is_full&#125;&#125;  &amp; write_buffer_wdata |<br>                   &#123;<span class="hljs-number">32</span>&#123;main_state_is_refill&#125;&#125; &amp; refill_data        ;<br><br>            <span class="hljs-comment">/*===============================bank ena logic=================================*/</span><br><br>            <span class="hljs-keyword">assign</span> way_bank_ena[i][j] = (!(request_buffer_uncache_en || cacop_op_mode0)) || main_state_is_idle || main_state_is_lookup;<br>        <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">endgenerate</span><br></code></pre></td></tr></table></figure>
+
+<p>以上就是 OpenLA500的 dcache 分析情况了。以 main 状态机为核心，cache 的 io 依赖这些状态进行请求相应。</p>
+<p>至于 icache，其实 dcache 是 icache 功能的一个超集，可以直接实例化成 icache。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/" class="category-chain-item">体系结构</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/CPU/" class="print-no-link">#CPU</a>
+      
+        <a href="/tags/cache/" class="print-no-link">#cache</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>LA 挑战赛：OpenLA500 的 cache 研究</div>
+      <div>http://blog.luliang.online/2025/06/13/LA挑战赛7/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年6月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/07/01/LA%E6%8C%91%E6%88%98%E8%B5%9B8/" title="LA 挑战赛：一次调试 bug 的记录">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">LA 挑战赛：一次调试 bug 的记录</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/06/01/%E6%B2%89%E9%BB%98%E4%B9%8B%E5%A1%9416/" title="《沉默之塔》全文">
+                        <span class="hidden-mobile">《沉默之塔》全文</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

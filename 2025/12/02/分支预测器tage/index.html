@@ -1,0 +1,932 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="TAGE is the most advanced branch predictor in BOOM. It uses multiple prediction tables indexed by different history lengths to achieve high accuracy. Key Concepts:  Multiple tables with geometrically">
+<meta property="og:type" content="article">
+<meta property="og:title" content="riscv-boom&#39;s tage">
+<meta property="og:url" content="http://blog.luliang.online/2025/12/02/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E5%99%A8tage/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="TAGE is the most advanced branch predictor in BOOM. It uses multiple prediction tables indexed by different history lengths to achieve high accuracy. Key Concepts:  Multiple tables with geometrically">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-12-02T07:03:15.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.451Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="分支预测">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>riscv-boom&#39;s tage - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="riscv-boom&#39;s tage"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-12-02 15:03" pubdate>
+          2025年12月2日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          32 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">riscv-boom&#39;s tage</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>TAGE is the most advanced branch predictor in BOOM. It uses multiple prediction tables indexed by different history lengths to achieve high accuracy.</p>
+<p>Key Concepts:</p>
+<ul>
+<li>Multiple tables with geometrically increasing history lengths<br>(e.g., 2, 4, 8, 16, 32, 64 bits of history)</li>
+<li>Each table has: tag, 3-bit counter (ctr), 2-bit usefulness (u)</li>
+<li>Provider selection: longest matching history table wins</li>
+<li>Alternate prediction: second-longest matching table</li>
+<li>When provider counter is weak (3 or 4), use alternate prediction</li>
+</ul>
+<p>Update Policy:</p>
+<ul>
+<li>On correct prediction: increment counter, maybe increment u</li>
+<li>On misprediction: decrement counter, try to allocate new entry</li>
+<li>Periodically decay u-bits to allow entry replacement</li>
+</ul>
+<h2 id="TAGE-Tagged-Geometric-History-Length"><a href="#TAGE-Tagged-Geometric-History-Length" class="headerlink" title="TAGE (Tagged Geometric History Length)"></a>TAGE (Tagged Geometric History Length)</h2><h2 id="功能定位"><a href="#功能定位" class="headerlink" title="功能定位"></a>功能定位</h2><ul>
+<li><strong>最准确的方向预测器</strong></li>
+<li>使用全局历史</li>
+<li>多个表，不同历史长度</li>
+<li>BOOM的核心预测器</li>
+</ul>
+<h2 id="核心思想"><a href="#核心思想" class="headerlink" title="核心思想"></a>核心思想</h2><p><strong>问题</strong>：不同分支需要不同长度的历史</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs jboss-cli">例子1：<span class="hljs-keyword">if</span> <span class="hljs-params">(i % <span class="hljs-attr">4</span> == 0)</span> <span class="hljs-string">...</span><br>       需要2-bit历史<br><br>例子2：<span class="hljs-keyword">if</span> <span class="hljs-params">(pattern_in_100_iterations)</span> <span class="hljs-string">...</span><br>       需要100-bit历史<br></code></pre></td></tr></table></figure>
+
+<p><strong>TAGE的解决方案</strong>：维护多个表，每个表使用不同长度的历史</p>
+<h2 id="表结构"><a href="#表结构" class="headerlink" title="表结构"></a>表结构</h2><p><strong>默认6个表</strong>（tage.scala:198-203）：</p>
+<table>
+<thead>
+<tr>
+<th>表#</th>
+<th>行数</th>
+<th>历史长度</th>
+<th>标签位数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T0</td>
+<td>128</td>
+<td>2 bits</td>
+<td>7 bits</td>
+</tr>
+<tr>
+<td>T1</td>
+<td>128</td>
+<td>4 bits</td>
+<td>7 bits</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>256</td>
+<td>8 bits</td>
+<td>8 bits</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>256</td>
+<td>16 bits</td>
+<td>8 bits</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>128</td>
+<td>32 bits</td>
+<td>9 bits</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>128</td>
+<td>64 bits</td>
+<td>9 bits</td>
+</tr>
+</tbody></table>
+<p><strong>每个表项</strong>（tage.scala:78-82）：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TageEntry</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Bundle</span> </span>&#123;<br>  <span class="hljs-keyword">val</span> valid = <span class="hljs-type">Bool</span>()           <span class="hljs-comment">// 有效位</span><br>  <span class="hljs-keyword">val</span> tag   = <span class="hljs-type">UInt</span>(tagSz.<span class="hljs-type">W</span>)   <span class="hljs-comment">// 标签</span><br>  <span class="hljs-keyword">val</span> ctr   = <span class="hljs-type">UInt</span>(<span class="hljs-number">3.</span><span class="hljs-type">W</span>)       <span class="hljs-comment">// 3-bit预测计数器（0-7）</span><br>  <span class="hljs-keyword">val</span> u     = <span class="hljs-type">UInt</span>(<span class="hljs-number">2.</span><span class="hljs-type">W</span>)       <span class="hljs-comment">// 2-bit useful计数器</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="索引和标签计算"><a href="#索引和标签计算" class="headerlink" title="索引和标签计算"></a>索引和标签计算</h2><p><strong>Folded History</strong>（tage.scala:50-56）：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-comment">// 将长历史折叠到短宽度</span><br><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">compute_folded_hist</span></span>(hist: <span class="hljs-type">UInt</span>, l: <span class="hljs-type">Int</span>) = &#123;<br>  <span class="hljs-keyword">val</span> nChunks = (histLength + l - <span class="hljs-number">1</span>) / l<br>  <span class="hljs-keyword">val</span> chunks = (<span class="hljs-number">0</span> until nChunks).map &#123; i =&gt;<br>    hist(min((i+<span class="hljs-number">1</span>)*l, histLength)<span class="hljs-number">-1</span>, i*l)<br>  &#125;<br>  chunks.reduce(_^_)  <span class="hljs-comment">// XOR所有块</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><strong>例子</strong>：</p>
+<figure class="highlight prolog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs prolog">历史 = <span class="hljs-number">64</span> bits: [<span class="hljs-symbol">H63</span>..<span class="hljs-symbol">H0</span>]<br>目标长度 = <span class="hljs-number">8</span> bits<br><br><span class="hljs-symbol">Chunk</span> <span class="hljs-number">0</span>: <span class="hljs-symbol">H</span>[<span class="hljs-number">7</span>:<span class="hljs-number">0</span>]<br><span class="hljs-symbol">Chunk</span> <span class="hljs-number">1</span>: <span class="hljs-symbol">H</span>[<span class="hljs-number">15</span>:<span class="hljs-number">8</span>]<br><span class="hljs-symbol">Chunk</span> <span class="hljs-number">2</span>: <span class="hljs-symbol">H</span>[<span class="hljs-number">23</span>:<span class="hljs-number">16</span>]<br>...<br><span class="hljs-symbol">Chunk</span> <span class="hljs-number">7</span>: <span class="hljs-symbol">H</span>[<span class="hljs-number">63</span>:<span class="hljs-number">56</span>]<br><br><span class="hljs-symbol">Folded</span> = <span class="hljs-symbol">H</span>[<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] ^ <span class="hljs-symbol">H</span>[<span class="hljs-number">15</span>:<span class="hljs-number">8</span>] ^ ... ^ <span class="hljs-symbol">H</span>[<span class="hljs-number">63</span>:<span class="hljs-number">56</span>]<br></code></pre></td></tr></table></figure>
+
+<p><strong>索引计算</strong>（tage.scala:58-63）：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-keyword">val</span> idx_history = compute_folded_hist(hist, log2Ceil(nRows))<br><span class="hljs-keyword">val</span> idx = (<span class="hljs-type">PC</span> ^ idx_history)(log2Ceil(nRows)<span class="hljs-number">-1</span>, <span class="hljs-number">0</span>)<br><br><span class="hljs-keyword">val</span> tag_history = compute_folded_hist(hist, tagSz)<br><span class="hljs-keyword">val</span> tag = ((<span class="hljs-type">PC</span> &gt;&gt; log2Ceil(nRows)) ^ tag_history)(tagSz<span class="hljs-number">-1</span>, <span class="hljs-number">0</span>)<br></code></pre></td></tr></table></figure>
+
+<h2 id="预测过程"><a href="#预测过程" class="headerlink" title="预测过程"></a>预测过程</h2><p><strong>Step 1: 查询所有表</strong>（tage.scala:245）</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-keyword">val</span> f2_resps = <span class="hljs-type">VecInit</span>(tables.map(_.io.f2_resp))<br></code></pre></td></tr></table></figure>
+
+<p><strong>Step 2: 找到Provider和Alternate</strong>（tage.scala:266-282）</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-keyword">var</span> s2_provided = <span class="hljs-literal">false</span>.<span class="hljs-type">B</span>      <span class="hljs-comment">// 是否有表命中</span><br><span class="hljs-keyword">var</span> s2_provider = <span class="hljs-number">0.</span><span class="hljs-type">U</span>          <span class="hljs-comment">// 命中的表（最长历史）</span><br><span class="hljs-keyword">var</span> s2_alt_provided = <span class="hljs-literal">false</span>.<span class="hljs-type">B</span>  <span class="hljs-comment">// 是否有次长表命中</span><br><span class="hljs-keyword">var</span> s2_alt_provider = <span class="hljs-number">0.</span><span class="hljs-type">U</span>      <span class="hljs-comment">// 次长表索引</span><br><br><span class="hljs-keyword">for</span> (i &lt;- <span class="hljs-number">0</span> until nTables) &#123;<br>  <span class="hljs-keyword">val</span> hit = f2_resps(i)(w).valid<br><br>  <span class="hljs-comment">// 如果有表命中且当前已有provider，那当前provider变成alternate</span><br>  s2_alt_provided = s2_alt_provided || (s2_provided &amp;&amp; hit)<br>  s2_alt_provider = <span class="hljs-type">Mux</span>(hit, s2_provider, s2_alt_provider)<br><br>  <span class="hljs-comment">// 更新provider（总是选最长历史的命中表）</span><br>  s2_provided = s2_provided || hit<br>  s2_provider = <span class="hljs-type">Mux</span>(hit, i.<span class="hljs-type">U</span>, s2_provider)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><strong>Step 3: 生成预测</strong>（tage.scala:287-292）</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs scala">io.resp.f3(w).taken := <span class="hljs-type">Mux</span>(s3_provided,<br>  <span class="hljs-comment">// 有provider</span><br>  <span class="hljs-type">Mux</span>(prov.ctr === <span class="hljs-number">3.</span><span class="hljs-type">U</span> || prov.ctr === <span class="hljs-number">4.</span><span class="hljs-type">U</span>,  <span class="hljs-comment">// 弱预测？</span><br>    <span class="hljs-comment">// 弱预测：使用alternate或base predictor</span><br>    <span class="hljs-type">Mux</span>(s3_alt_provided, alt.ctr(<span class="hljs-number">2</span>), base_pred),<br>    <span class="hljs-comment">// 强预测：使用provider的ctr[2]</span><br>    prov.ctr(<span class="hljs-number">2</span>)<br>  ),<br>  <span class="hljs-comment">// 无provider：使用base predictor</span><br>  base_pred<br>)<br></code></pre></td></tr></table></figure>
+
+<p><strong>预测逻辑图解</strong>：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs routeros">      是否有Provider命中？<br>        /          \<br>      <span class="hljs-literal">Yes</span>          <span class="hljs-literal">No</span><br>       |            |<br>    <span class="hljs-attribute">ctr</span>=3或4?   使用Base预测<br>    (弱预测)<br>     /    \<br>   <span class="hljs-literal">Yes</span>    <span class="hljs-literal">No</span><br>    |      |<br> 有Alt?  使用ctr[2]<br>  /  \<br><span class="hljs-literal">Yes</span>  <span class="hljs-literal">No</span><br> |    |<br>Alt  Base<br></code></pre></td></tr></table></figure>
+
+<h2 id="更新和分配"><a href="#更新和分配" class="headerlink" title="更新和分配"></a>更新和分配</h2><p><strong>正常更新</strong>（tage.scala:319-335）：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs scala">when (分支指令 &amp;&amp; commit更新) &#123;<br>  when (provider存在) &#123;<br>    <span class="hljs-comment">// 1. 更新预测计数器</span><br>    update_ctr := inc_ctr(old_ctr, actual_taken)<br><br>    <span class="hljs-comment">// 2. 更新useful位</span><br>    <span class="hljs-keyword">val</span> new_u = inc_u(old_u, alt_differs, mispredicted)<br>    update_u := new_u<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><strong>Useful位的更新规则</strong>（tage.scala:227-230）：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">inc_u</span></span>(u: <span class="hljs-type">UInt</span>, alt_differs: <span class="hljs-type">Bool</span>, mispredict: <span class="hljs-type">Bool</span>): <span class="hljs-type">UInt</span> = &#123;<br>  <span class="hljs-type">Mux</span>(!alt_differs, u,  <span class="hljs-comment">// alt和provider预测相同，保持u</span><br>    <span class="hljs-type">Mux</span>(mispredict,     <span class="hljs-comment">// 预测错误</span><br>      <span class="hljs-type">Mux</span>(u === <span class="hljs-number">0.</span><span class="hljs-type">U</span>, <span class="hljs-number">0.</span><span class="hljs-type">U</span>, u - <span class="hljs-number">1.</span><span class="hljs-type">U</span>),  <span class="hljs-comment">// u--（最小0）</span><br>      <span class="hljs-type">Mux</span>(u === <span class="hljs-number">3.</span><span class="hljs-type">U</span>, <span class="hljs-number">3.</span><span class="hljs-type">U</span>, u + <span class="hljs-number">1.</span><span class="hljs-type">U</span>)   <span class="hljs-comment">// u++（最大3）</span><br>    )<br>  )<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>U-bit 不直接衡量一个专家“预测得有多准”。它衡量的是：“当这位专家的预测，与它的备用专家意见不合时，他的预测到底有多可靠？”</p>
+<p><strong>分配策略</strong>（预测错误时）（tage.scala:301-314）：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-comment">// 1. 找到可分配的表</span><br><span class="hljs-keyword">val</span> allocatable = <span class="hljs-type">VecInit</span>(f3_resps.map &#123; r =&gt;<br>  !r.valid &amp;&amp;          <span class="hljs-comment">// 未命中</span><br>  r.u === <span class="hljs-number">0.</span><span class="hljs-type">U</span> &amp;&amp;       <span class="hljs-comment">// useful为0</span><br>  (i &gt; provider)       <span class="hljs-comment">// 历史长度比provider长</span><br>&#125;)<br><br><span class="hljs-comment">// 2. 随机化选择（避免总是选同一个）</span><br><span class="hljs-keyword">val</span> lfsr = random.<span class="hljs-type">LFSR</span>(nTables)<br><span class="hljs-keyword">val</span> masked_entry = <span class="hljs-type">PriorityEncoder</span>(allocatable &amp; lfsr)<br><span class="hljs-keyword">val</span> first_entry = <span class="hljs-type">PriorityEncoder</span>(allocatable)<br><br><span class="hljs-keyword">val</span> alloc_entry = <span class="hljs-type">Mux</span>(allocatable(masked_entry),<br>  masked_entry,  <span class="hljs-comment">// 优先随机选择</span><br>  first_entry    <span class="hljs-comment">// 否则选第一个</span><br>)<br></code></pre></td></tr></table></figure>
+
+<p><strong>分配时的操作</strong>（tage.scala:340-347）：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs scala">when (allocate.valid) &#123;<br>  <span class="hljs-comment">// 1. 写入新entry</span><br>  update_mask(allocate)(idx) := <span class="hljs-literal">true</span>.<span class="hljs-type">B</span><br>  update_alloc(allocate)(idx) := <span class="hljs-literal">true</span>.<span class="hljs-type">B</span><br><br>  <span class="hljs-comment">// 2. 设置初始ctr</span><br>  update_ctr := <span class="hljs-type">Mux</span>(taken, <span class="hljs-number">4.</span><span class="hljs-type">U</span>, <span class="hljs-number">3.</span><span class="hljs-type">U</span>)  <span class="hljs-comment">// 弱taken或弱not-taken</span><br><br>  <span class="hljs-comment">// 3. useful设为0</span><br>  update_u := <span class="hljs-number">0.</span><span class="hljs-type">U</span><br>&#125; .otherwise &#123;<br>  <span class="hljs-comment">// 分配失败：降低其他表的useful</span><br>  <span class="hljs-keyword">for</span> (i &lt;- 未命中的表) &#123;<br>    update_u(i) := <span class="hljs-number">0.</span><span class="hljs-type">U</span><br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="Useful位的周期性清零"><a href="#Useful位的周期性清零" class="headerlink" title="Useful位的周期性清零"></a>Useful位的周期性清零</h2><p><strong>问题</strong>：useful位会逐渐饱和，阻止新分配</p>
+<p><strong>解决</strong>：周期性清零（tage.scala:109-116）</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-keyword">val</span> clear_u_ctr = <span class="hljs-type">RegInit</span>(<span class="hljs-number">0.</span><span class="hljs-type">U</span>)<br>clear_u_ctr := clear_u_ctr + <span class="hljs-number">1.</span><span class="hljs-type">U</span><br><br><span class="hljs-keyword">val</span> doing_clear_u = clear_u_ctr(log2Ceil(uBitPeriod)<span class="hljs-number">-1</span>, <span class="hljs-number">0</span>) === <span class="hljs-number">0.</span><span class="hljs-type">U</span><br><span class="hljs-keyword">val</span> clear_u_idx = clear_u_ctr &gt;&gt; log2Ceil(uBitPeriod)<br><br><span class="hljs-comment">// 每2048次更新，清零一个set的useful位</span><br>when (doing_clear_u) &#123;<br>  <span class="hljs-keyword">for</span> (w &lt;- <span class="hljs-number">0</span> until bankWidth) &#123;<br>    u_mem.write(clear_u_idx, <span class="hljs-number">0.</span><span class="hljs-type">U</span>)<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<ol>
+<li>对预测的影响</li>
+</ol>
+<p>预测决策: 最终的预测采纳的是 provider (专家A) 的结果。<br>备用专家的角色: 只有当 provider 的 ctr 值不够强 (&lt;4) 时，备用专家的意见才会被考虑。</p>
+<p>当意见相同时:</p>
+<p>即使 provider 的 ctr 不够强，备用专家的 ctr 也不够强，或者它们的值一样，采纳任何一个结果都是一样的。alt_differs 将始终为 false。</p>
+<p>结论: 在这种情况下，专家B 对于最终的预测结果，完全没有贡献。它就像一个只会附和的“应声虫”。<br>2. 对 U-bit 的影响</p>
+<p>inc_u 函数的逻辑是： Mux(!alt_differs, u, …)由于 alt_differs 始终为 false，两位专家的 U-bit 将永远不会被更新。</p>
+<p>结论: 两个专家的 U-bit 会停滞在它们最初的值。它们既不会因为预测正确而被奖励，也不会因为“独特贡献”而提升可信度。</p>
+<ol start="3">
+<li>对替换的影响</li>
+</ol>
+<p>全局老化: 由于 U-bit 不会被 +1，在全局老化的大潮下，它们的 U-bit 最终都会被周期性地“清零”。<br>动态替换: 一旦任何一个专家的 U-bit 变为 0，它就立刻进入了 “可被随意解雇” 的候选人名单。<br>结论: 系统会自然而然地、优先地将这些“没有增量价值”的专家替换掉，把宝贵的存储空间留给那些可能在其他分支上表现更好的新条目。</p>
+<h2 id="3-bit计数器更新"><a href="#3-bit计数器更新" class="headerlink" title="3-bit计数器更新"></a>3-bit计数器更新</h2><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">inc_ctr</span></span>(ctr: <span class="hljs-type">UInt</span>, taken: <span class="hljs-type">Bool</span>): <span class="hljs-type">UInt</span> = &#123;<br>  <span class="hljs-type">Mux</span>(!taken,<br>    <span class="hljs-type">Mux</span>(ctr === <span class="hljs-number">0.</span><span class="hljs-type">U</span>, <span class="hljs-number">0.</span><span class="hljs-type">U</span>, ctr - <span class="hljs-number">1.</span><span class="hljs-type">U</span>),  <span class="hljs-comment">// Not taken: --</span><br>    <span class="hljs-type">Mux</span>(ctr === <span class="hljs-number">7.</span><span class="hljs-type">U</span>, <span class="hljs-number">7.</span><span class="hljs-type">U</span>, ctr + <span class="hljs-number">1.</span><span class="hljs-type">U</span>)   <span class="hljs-comment">// Taken: ++</span><br>  )<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="TAGE-Tagged-Geometric-History-Length-分支预测器工作流程详解"><a href="#TAGE-Tagged-Geometric-History-Length-分支预测器工作流程详解" class="headerlink" title="TAGE (Tagged Geometric History Length) 分支预测器工作流程详解"></a>TAGE (Tagged Geometric History Length) 分支预测器工作流程详解</h2><h2 id="1-整体架构概览"><a href="#1-整体架构概览" class="headerlink" title="1. 整体架构概览"></a>1. 整体架构概览</h2><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌──────────────────────────────────────────────────────────────────────────────────────────┐<br>│                              TAGE Branch Predictor                                        │<br>│                                                                                           │<br>│  ┌─────────────────────────────────────────────────────────────────────────────────────┐ │<br>│  │                         多表结构 (6 个 TAGE 表)                                      │ │<br>│  │                                                                                      │ │<br>│  │   Table 0          Table 1          Table 2          Table 3          Table 4/5     │ │<br>│  │  ┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐   │ │<br>│  │  │ 128 rows │     │ 128 rows │     │ 256 rows │     │ 256 rows │     │ 128 rows │   │ │<br>│  │  │ hist=2   │     │ hist=4   │     │ hist=8   │     │ hist=16  │     │ hist=32/64│  │ │<br>│  │  │ tag=7bit │     │ tag=7bit │     │ tag=8bit │     │ tag=8bit │     │ tag=9bit │   │ │<br>│  │  └──────────┘     └──────────┘     └──────────┘     └──────────┘     └──────────┘   │ │<br>│  │       │                │                │                │                │         │ │<br>│  │       └────────────────┴────────────────┴────────────────┴────────────────┘         │ │<br>│  │                                         │                                            │ │<br>│  │                                         ▼                                            │ │<br>│  │                              ┌─────────────────────┐                                 │ │<br>│  │                              │   Provider 选择逻辑  │                                 │ │<br>│  │                              │  (最长历史命中优先)   │                                 │ │<br>│  │                              └─────────────────────┘                                 │ │<br>│  │                                         │                                            │ │<br>│  │                                         ▼                                            │ │<br>│  │                              ┌─────────────────────┐                                 │ │<br>│  │                              │   最终预测输出       │                                 │ │<br>│  │                              │   io.resp.f3.taken  │                                 │ │<br>│  │                              └─────────────────────┘                                 │ │<br>│  └─────────────────────────────────────────────────────────────────────────────────────┘ │<br>│                                                                                           │<br>│  基础预测器 (Base Predictor): 由 io.resp_in(0) 提供 (通常是 BIM)                           │<br>└──────────────────────────────────────────────────────────────────────────────────────────┘<br><br></code></pre></td></tr></table></figure>
+<h3 id="2-TAGE-表条目结构"><a href="#2-TAGE-表条目结构" class="headerlink" title="2. TAGE 表条目结构"></a>2. TAGE 表条目结构</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                           TageEntry (主表条目)                                   │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                    tageEntrySz = 1 + tagSz + 3 bits                             │<br>├───────────────┬─────────────────────────────────┬───────────────────────────────┤<br>│  valid (1b)   │         tag (7-9 bits)          │        ctr (3 bits)           │<br>│  条目有效位    │         地址标签                 │       3-bit 饱和计数器         │<br>└───────────────┴─────────────────────────────────┴───────────────────────────────┘<br><br>TageResp (响应结构):<br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                         TageResp Bundle                                          │<br>├─────────────────────────────────┬───────────────────────────────────────────────┤<br>│         ctr (3 bits)            │              u (2 bits)                        │<br>│       预测计数器值               │            有用性计数器                         │<br>└─────────────────────────────────┴───────────────────────────────────────────────┘<br><br>                          3-bit 计数器状态<br>    ┌─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┐<br>    │  0  │  1  │  2  │  3  │  4  │  5  │  6  │  7  │<br>    │ SNT │ NT  │ NT  │ WNT │ WT  │  T  │  T  │ ST  │<br>    └─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┘<br>          ◄─── Not Taken ───►◄──── Taken ────►<br><br>    预测: ctr[2] (最高位) = 1 表示 Taken<br><br>    特殊情况: ctr = 3 或 4 时为弱预测，可能使用备选预测<br><br></code></pre></td></tr></table></figure>
+<h3 id="3-有用性计数器-Usefulness-Counter-结构"><a href="#3-有用性计数器-Usefulness-Counter-结构" class="headerlink" title="3. 有用性计数器 (Usefulness Counter) 结构"></a>3. 有用性计数器 (Usefulness Counter) 结构</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                    Usefulness (u) 计数器存储                                     │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>存储结构:<br>    us = SyncReadMem(nRows, Vec(bankWidth*2, Bool()))<br><br>    每行存储 bankWidth*2 个 bit (每个 bank 位置 2 bits)<br><br>    ┌─────────────────────────────────────────────────────────────────────────┐<br>    │  Row 0: │u_lo[0]│u_hi[0]│u_lo[1]│u_hi[1]│ ... │u_lo[N-1]│u_hi[N-1]│    │<br>    ├─────────────────────────────────────────────────────────────────────────┤<br>    │  Row 1: │u_lo[0]│u_hi[0]│u_lo[1]│u_hi[1]│ ... │u_lo[N-1]│u_hi[N-1]│    │<br>    ├─────────────────────────────────────────────────────────────────────────┤<br>    │  ...                                                                    │<br>    └─────────────────────────────────────────────────────────────────────────┘<br><br>    u = Cat(u_hi, u_lo) = 2-bit usefulness<br><br>u 计数器含义:<br>    ┌───────┬──────────────────────────────────────────────────────────────┐<br>    │ u = 0 │ 无用条目，可被替换分配                                        │<br>    │ u = 1 │ 低有用性                                                     │<br>    │ u = 2 │ 中有用性                                                     │<br>    │ u = 3 │ 高有用性，很难被替换                                          │<br>    └───────┴──────────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+<h3 id="4-索引和标签的折叠历史计算"><a href="#4-索引和标签的折叠历史计算" class="headerlink" title="4. 索引和标签的折叠历史计算"></a>4. 索引和标签的折叠历史计算</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                        折叠历史 (Folded History) 计算                            │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>目的: 将长全局历史压缩为较短的索引/标签<br><br>compute_folded_hist(hist, l):<br><br>    示例: histLength = 16, l = 7 (目标长度)<br><br>    hist (16 bits):<br>    ┌───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┐<br>    │h15│h14│h13│h12│h11│h10│h9 │h8 │h7 │h6 │h5 │h4 │h3 │h2 │h1 │h0 │<br>    └───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┘<br><br>    分成 chunks (每个 7 bits):<br>    ┌─────────────────────────┐  ┌─────────────────────────┐  ┌─────────┐<br>    │ Chunk 0: h[6:0]         │  │ Chunk 1: h[13:7]        │  │Chunk 2: │<br>    │ h6 h5 h4 h3 h2 h1 h0    │  │ h13 h12 h11 h10 h9 h8 h7│  │ h15 h14 │<br>    └─────────────────────────┘  └─────────────────────────┘  └─────────┘<br>              │                            │                       │<br>              └────────────────┬───────────┴───────────────────────┘<br>                               │<br>                               ▼<br>                          XOR reduce<br>                               │<br>                               ▼<br>                    ┌─────────────────────┐<br>                    │  folded_hist (7b)   │<br>                    │  用于索引或标签      │<br>                    └─────────────────────┘<br><br>compute_tag_and_hash(unhashed_idx, hist):<br><br>    ┌─────────────────────────────────────────────────────────────────────┐<br>    │                                                                      │<br>    │  idx_history = compute_folded_hist(hist, log2(nRows))               │<br>    │  idx = (unhashed_idx ^ idx_history)[log2(nRows)-1:0]                │<br>    │                                                                      │<br>    │  tag_history = compute_folded_hist(hist, tagSz)                     │<br>    │  tag = ((unhashed_idx &gt;&gt; log2(nRows)) ^ tag_history)[tagSz-1:0]     │<br>    │                                                                      │<br>    └─────────────────────────────────────────────────────────────────────┘<br><br>    索引: PC 低位 XOR 折叠历史<br>    标签: PC 高位 XOR 折叠历史 (不同折叠方式)<br></code></pre></td></tr></table></figure>
+<h3 id="5-几何历史长度分布"><a href="#5-几何历史长度分布" class="headerlink" title="5. 几何历史长度分布"></a>5. 几何历史长度分布</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                        几何历史长度 (Geometric History)                          │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>默认配置 (tableInfo):<br><br>    Table    nSets    histLen    tagSz    特点<br>    ─────────────────────────────────────────────────────────<br>      0       128        2         7      最短历史，快速响应<br>      1       128        4         7<br>      2       256        8         8<br>      3       256       16         8<br>      4       128       32         9<br>      5       128       64         9      最长历史，高精度<br>    ─────────────────────────────────────────────────────────<br><br>历史长度分布 (几何级数):<br><br>    histLen<br>      │<br>   64 ┤                                              ┌───┐<br>      │                                              │ T5│<br>   32 ┤                                    ┌───┐     └───┘<br>      │                                    │ T4│<br>   16 ┤                          ┌───┐     └───┘<br>      │                          │ T3│<br>    8 ┤                ┌───┐     └───┘<br>      │                │ T2│<br>    4 ┤      ┌───┐     └───┘<br>      │      │ T1│<br>    2 ┤ ┌───┐└───┘<br>      │ │ T0│<br>    0 ┼─┴───┴─────────────────────────────────────────────►<br>          0    1    2    3    4    5               Table<br><br>设计理念:<br>  - 短历史表: 捕捉局部分支行为，训练快<br>  - 长历史表: 捕捉全局相关性，精度高<br>  - 几何分布: 覆盖不同时间尺度的模式<br></code></pre></td></tr></table></figure>
+<h3 id="6-预测流水线时序"><a href="#6-预测流水线时序" class="headerlink" title="6. 预测流水线时序"></a>6. 预测流水线时序</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                            预测流水线时序                                        │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>  周期     F0 (请求)        F1 (访问)         F2 (响应)         F3 (输出)<br>   │          │                │                 │                  │<br>   ▼          ▼                ▼                 ▼                  ▼<br> ─────────────────────────────────────────────────────────────────────────────────<br>   │                           │                 │                  │<br>   │  ┌──────────────────┐     │                 │                  │<br>   │  │ io.f0_valid      │     │                 │                  │<br>   │  │ io.f0_pc         │─────│                 │                  │<br>   │  └──────────────────┘     │                 │                  │<br>   │                           │                 │                  │<br>   │                    ┌──────▼──────┐          │                  │<br>   │                    │ f1_req_valid│          │                  │<br>   │                    │ f1_req_pc   │          │                  │<br>   │                    │ f1_req_ghist│          │                  │<br>   │                    │             │          │                  │<br>   │                    │ 计算 idx,tag│          │                  │<br>   │                    │ SRAM read   │──────────│                  │<br>   │                    └─────────────┘ SyncRead │                  │<br>   │                                             │                  │<br>   │                                     ┌───────▼───────┐          │<br>   │                                     │ f2_resps      │          │<br>   │                                     │ (所有表响应)   │          │<br>   │                                     │               │          │<br>   │                                     │ 标签比较       │          │<br>   │                                     │ s2_req_rhits  │          │<br>   │                                     │               │          │<br>   │                                     │ Provider 选择 │──────────│<br>   │                                     │ s2_provider   │  RegNext │<br>   │                                     └───────────────┘          │<br>   │                                                                │<br>   │                                                        ┌───────▼───────┐<br>   │                                                        │ f3_resps      │<br>   │                                                        │ s3_provider   │<br>   │                                                        │               │<br>   │                                                        │ 最终预测      │<br>   │                                                        │ io.resp.f3    │<br>   │                                                        │               │<br>   │                                                        │ io.f3_meta    │<br>   │                                                        └───────────────┘<br> ─────────────────────────────────────────────────────────────────────────────────<br></code></pre></td></tr></table></figure>
+<p>关键点:</p>
+<ul>
+<li>所有表并行访问 (F1 发起读请求)</li>
+<li>F2 阶段完成标签匹配和 Provider 选择</li>
+<li>F3 阶段输出最终预测结果</li>
+</ul>
+<h3 id="7-Provider-选择逻辑"><a href="#7-Provider-选择逻辑" class="headerlink" title="7. Provider 选择逻辑"></a>7. Provider 选择逻辑</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br><br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                        Provider 选择算法                                         │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>核心原则: 最长历史命中优先 (Longest Matching History)<br><br>对于每个 bank 位置 w:<br><br>    ┌─────────────────────────────────────────────────────────────────────────┐<br>    │                     遍历所有表 (从短历史到长历史)                         │<br>    │                                                                          │<br>    │   for i in 0..tageNTables:                                              │<br>    │       hit = f2_resps(i)(w).valid                                        │<br>    │                                                                          │<br>    │       // 更新备选 Provider (之前的 Provider)                             │<br>    │       if (already_provided &amp;&amp; hit):                                     │<br>    │           alt_provided = true                                           │<br>    │           alt_provider = previous_provider                              │<br>    │                                                                          │<br>    │       // 更新主 Provider                                                 │<br>    │       if (hit):                                                         │<br>    │           provided = true                                               │<br>    │           provider = i                                                  │<br>    └─────────────────────────────────────────────────────────────────────────┘<br><br>示例:<br><br>    Table 0 (hist=2):  ✗ Miss<br>    Table 1 (hist=4):  ✓ Hit    ← 成为 alt_provider<br>    Table 2 (hist=8):  ✗ Miss<br>    Table 3 (hist=16): ✓ Hit    ← 成为 provider (最终选择)<br>    Table 4 (hist=32): ✗ Miss<br>    Table 5 (hist=64): ✗ Miss<br><br>    结果:<br>      provider = 3 (Table 3, hist=16)<br>      alt_provider = 1 (Table 1, hist=4)<br><br>选择过程可视化:<br><br>    Table 0    Table 1    Table 2    Table 3    Table 4    Table 5<br>       │          │          │          │          │          │<br>       ▼          ▼          ▼          ▼          ▼          ▼<br>    ┌─────┐    ┌─────┐    ┌─────┐    ┌─────┐    ┌─────┐    ┌─────┐<br>    │Miss │    │ Hit │    │Miss │    │ Hit │    │Miss │    │Miss │<br>    └─────┘    └──┬──┘    └─────┘    └──┬──┘    └─────┘    └─────┘<br>                  │                     │<br>                  │    ┌────────────────┘<br>                  │    │<br>                  ▼    ▼<br>              ┌───────────────┐<br>              │ alt = Table 1 │<br>              │ prov = Table 3│<br>              └───────────────┘<br></code></pre></td></tr></table></figure>
+<h3 id="8-最终预测决策逻辑"><a href="#8-最终预测决策逻辑" class="headerlink" title="8. 最终预测决策逻辑"></a>8. 最终预测决策逻辑</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                         最终预测决策                                             │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>决策树:<br><br>                         ┌──────────────────────────┐<br>                         │   s3_provided?           │<br>                         │   (是否有表命中)          │<br>                         └────────────┬─────────────┘<br>                                      │<br>                    ┌─────────────────┴─────────────────┐<br>                    │                                   │<br>                    ▼                                   ▼<br>              provided = true                    provided = false<br>                    │                                   │<br>                    ▼                                   ▼<br>    ┌───────────────────────────────┐      ┌───────────────────────────┐<br>    │ prov.ctr == 3 或 4 ?          │      │ 使用基础预测器             │<br>    │ (弱预测，置信度低)             │      │ io.resp_in(0).f3(w).taken │<br>    └───────────────┬───────────────┘      └───────────────────────────┘<br>                    │<br>       ┌────────────┴────────────┐<br>       │                         │<br>       ▼                         ▼<br>    ctr = 3/4                ctr ≠ 3/4<br>    (弱预测)                  (强预测)<br>       │                         │<br>       ▼                         ▼<br>    ┌─────────────────┐    ┌─────────────────┐<br>    │ alt_provided?   │    │ 使用 provider   │<br>    └────────┬────────┘    │ prov.ctr[2]     │<br>             │              └─────────────────┘<br>    ┌────────┴────────┐<br>    │                 │<br>    ▼                 ▼<br>  有备选            无备选<br>    │                 │<br>    ▼                 ▼<br>┌──────────┐    ┌──────────────────┐<br>│alt.ctr[2]│    │io.resp_in(0).f3  │<br>│使用备选   │    │使用基础预测器     │<br>└──────────┘    └──────────────────┘<br><br><br>代码对应 (tage.scala:287-292):<br><br>    io.resp.f3(w).taken := Mux(s3_provided,<br>      Mux(prov.ctr === 3.U || prov.ctr === 4.U,           // 弱预测?<br>        Mux(s3_alt_provided, alt.ctr(2),                   // 用备选<br>            io.resp_in(0).f3(w).taken),                    // 用基础<br>        prov.ctr(2)),                                      // 用 provider<br>      io.resp_in(0).f3(w).taken                            // 无命中，用基础<br>    )<br></code></pre></td></tr></table></figure>
+<h3 id="9-元数据-Meta-结构"><a href="#9-元数据-Meta-结构" class="headerlink" title="9. 元数据 (Meta) 结构"></a>9. 元数据 (Meta) 结构</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                          TageMeta 结构                                           │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>class TageMeta:<br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                                                                                  │<br>│  provider[bankWidth]     : Valid[log2(tageNTables)]                             │<br>│      记录每个 bank 位置的 Provider 表编号                                         │<br>│                                                                                  │<br>│  alt_differs[bankWidth]  : Bool                                                 │<br>│      备选预测是否与最终预测不同                                                   │<br>│                                                                                  │<br>│  provider_u[bankWidth]   : UInt(2.W)                                            │<br>│      Provider 的 usefulness 值                                                  │<br>│                                                                                  │<br>│  provider_ctr[bankWidth] : UInt(3.W)                                            │<br>│      Provider 的计数器值                                                         │<br>│                                                                                  │<br>│  allocate[bankWidth]     : Valid[log2(tageNTables)]                             │<br>│      误预测时可分配的表编号                                                       │<br>│                                                                                  │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>alt_differs 计算:<br><br>    alt_differs = s3_alt_provided &amp;&amp; (alt.ctr[2] ≠ final_taken)<br><br>    含义: 备选预测与最终预测不同<br>    用途: 更新 usefulness 时判断 provider 是否真正有用<br><br></code></pre></td></tr></table></figure>
+<h3 id="10-分配槽位选择-Allocatable-Slots"><a href="#10-分配槽位选择-Allocatable-Slots" class="headerlink" title="10. 分配槽位选择 (Allocatable Slots)"></a>10. 分配槽位选择 (Allocatable Slots)</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                        分配槽位选择算法                                          │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>目标: 误预测时找到一个可分配的表条目<br><br>条件:<br>  1. 该表未命中 (!r(w).valid)<br>  2. 该条目 usefulness = 0 (可替换)<br>  3. 使用更长历史的表 (比 provider 历史更长)<br><br>    allocatable_slots = (<br>        VecInit(f3_resps.map(r =&gt; !r(w).valid &amp;&amp; r(w).bits.u === 0.U)).asUInt &amp;<br>        ~(MaskLower(UIntToOH(provider.bits)) &amp; Fill(tageNTables, provider.valid))<br>    )<br><br>可视化:<br><br>    假设 provider = Table 2<br><br>    Table:     0      1      2      3      4      5<br>               │      │      │      │      │      │<br>    Miss?      ✓      ✓      ─      ✓      ✗      ✓<br>    u==0?      ✓      ✗      ─      ✓      ─      ✓<br>               │      │      │      │      │      │<br>               ▼      ▼      ▼      ▼      ▼      ▼<br>    可分配?    ✗      ✗      ✗      ✓      ✗      ✓<br>              (比provider短) (prov) (可选)  (命中) (可选)<br><br>    allocatable_slots = 0b101000 (Table 3 和 Table 5)<br><br>选择策略 (带随机性):<br><br>    first_entry  = PriorityEncoder(allocatable_slots)  // 第一个可分配<br>    masked_entry = PriorityEncoder(allocatable_slots &amp; LFSR)  // 随机掩码后第一个<br><br>    alloc_entry = Mux(allocatable_slots(masked_entry),<br>                      masked_entry,    // 随机选择有效<br>                      first_entry)     // 否则选第一个<br><br>    这种策略在保证分配的同时引入随机性，避免某些表被过度使用<br></code></pre></td></tr></table></figure>
+<h3 id="11-更新逻辑"><a href="#11-更新逻辑" class="headerlink" title="11. 更新逻辑"></a>11. 更新逻辑</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                              更新流程                                            │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>                         s1_update (来自后端提交)<br>                                   │<br>                                   ▼<br>        ┌──────────────────────────────────────────────────────────────────────┐<br>        │                     计算误预测掩码                                    │<br>        │  s1_update_mispredict_mask = UIntToOH(cfi_idx) &amp; cfi_mispredicted   │<br>        └──────────────────────────────────────────────────────────────────────┘<br>                                   │<br>                ┌──────────────────┴──────────────────┐<br>                │                                     │<br>                ▼                                     ▼<br>    ┌─────────────────────────────┐      ┌─────────────────────────────┐<br>    │  正常更新 (每个分支位置)      │      │  误预测时的额外处理          │<br>    │                             │      │  (仅对 cfi_idx 位置)        │<br>    │  if (br_mask[w] &amp;&amp; commit): │      │                             │<br>    │    if (provider.valid):     │      │  if (mispredicted):         │<br>    │      更新 provider 的 ctr   │      │    if (allocate.valid):     │<br>    │      更新 provider 的 u     │      │      分配新条目             │<br>    │                             │      │    else:                    │<br>    │                             │      │      降低更长表的 u         │<br>    └─────────────────────────────┘      └─────────────────────────────┘<br><br><br>Provider 更新详情:<br><br>    ┌─────────────────────────────────────────────────────────────────────────┐<br>    │  new_u = inc_u(provider_u, alt_differs, mispredict)                    │<br>    │                                                                         │<br>    │  inc_u 逻辑:                                                            │<br>    │    if (!alt_differs):                                                  │<br>    │        u 不变 (备选预测相同，无法判断 provider 是否有用)                  │<br>    │    elif (mispredict):                                                  │<br>    │        u-- (provider 预测错误，降低有用性)                               │<br>    │    else:                                                               │<br>    │        u++ (provider 预测正确且与备选不同，证明有用)                      │<br>    │                                                                         │<br>    │  ctr = inc_ctr(old_ctr, was_taken)                                     │<br>    │    正常的 3-bit 饱和计数器更新                                           │<br>    └─────────────────────────────────────────────────────────────────────────┘<br><br><br>误预测时的分配:<br><br>    ┌─────────────────────────────────────────────────────────────────────────┐<br>    │  if (allocate.valid):                                                  │<br>    │      // 有可分配的槽位                                                  │<br>    │      s1_update_mask[allocate.bits][idx] = true                         │<br>    │      s1_update_alloc[allocate.bits][idx] = true                        │<br>    │      s1_update_taken = cfi_taken                                       │<br>    │      s1_update_u = 0  (新条目 usefulness 从 0 开始)                     │<br>    │                                                                         │<br>    │  else:                                                                 │<br>    │      // 无可分配槽位，降低更长历史表的 u                                  │<br>    │      decr_mask = ~MaskLower(UIntToOH(provider.bits))                   │<br>    │      对所有 decr_mask 中的表: u = 0                                     │<br>    │                                                                         │<br>    │      这样下次就有更多 u=0 的条目可供分配                                  │<br>    └─────────────────────────────────────────────────────────────────────────┘<br><br></code></pre></td></tr></table></figure>
+<h3 id="12-Usefulness-周期性清除"><a href="#12-Usefulness-周期性清除" class="headerlink" title="12. Usefulness 周期性清除"></a>12. Usefulness 周期性清除</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                     Usefulness 周期性清除机制                                    │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>目的: 防止 u 计数器饱和后永远无法分配新条目<br><br>参数: uBitPeriod = 2048 (默认)<br><br>机制:<br><br>    clear_u_ctr: 全局计数器 (log2(uBitPeriod) + log2(nRows) + 1 bits)<br><br>    ┌─────────────────────────────────────────────────────────────────────────┐<br>    │                                                                          │<br>    │  doing_clear_u = (clear_u_ctr 低 log2(uBitPeriod) 位 == 0)              │<br>    │                                                                          │<br>    │  每 uBitPeriod (2048) 个周期清除一行                                     │<br>    │                                                                          │<br>    │  clear_u_idx = clear_u_ctr &gt;&gt; log2(uBitPeriod)                          │<br>    │                                                                          │<br>    │  交替清除高/低位:                                                         │<br>    │    clear_u_hi = clear_u_ctr 最高位 == 1                                  │<br>    │    clear_u_lo = clear_u_ctr 最高位 == 0                                  │<br>    │                                                                          │<br>    │  clear_u_mask: 偶数位置清 lo，奇数位置清 hi                               │<br>    │                                                                          │<br>    └─────────────────────────────────────────────────────────────────────────┘<br><br>时序图:<br><br>    周期:      0      2048     4096     6144     8192    ...<br>              │        │        │        │        │<br>              ▼        ▼        ▼        ▼        ▼<br>    Row 0:  [清lo]           [清hi]              [清lo]<br>    Row 1:           [清lo]           [清hi]<br>    Row 2:                   [清lo]           [清hi]<br>    ...<br><br>    一个完整周期: 2048 * nRows * 2 个时钟周期<br><br>    效果: u[1:0] 中的每一位都会被周期性清零<br>          使得长期未命中的条目逐渐变为可分配状态<br><br></code></pre></td></tr></table></figure>
+<h3 id="13-写旁路机制"><a href="#13-写旁路机制" class="headerlink" title="13. 写旁路机制"></a>13. 写旁路机制</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                         写旁路 (Write Bypass)                                    │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>每个 TageTable 有独立的写旁路缓冲:<br><br>    nWrBypassEntries = 2<br><br>    ┌──────────────────────────────────────────────────────────────────────────┐<br>    │  wrbypass_tags[0..1]  : 标签                                             │<br>    │  wrbypass_idxs[0..1]  : 索引                                             │<br>    │  wrbypass[0..1]       : Vec(bankWidth, ctr)  计数器值                    │<br>    │  wrbypass_enq_idx     : 循环入队指针                                     │<br>    └──────────────────────────────────────────────────────────────────────────┘<br><br>工作流程:<br><br>    更新请求<br>        │<br>        ▼<br>    ┌────────────────────────────────────────┐<br>    │ 检查 update_tag, update_idx 是否命中   │<br>    │ wrbypass_hits = (tag match &amp;&amp; idx match)│<br>    └────────────────────┬───────────────────┘<br>                         │<br>            ┌────────────┴────────────┐<br>            │                         │<br>            ▼                         ▼<br>         命中                       未命中<br>            │                         │<br>            ▼                         ▼<br>    ┌───────────────────┐    ┌───────────────────┐<br>    │ 使用 wrbypass[hit]│    │ 使用 io.update_   │<br>    │ 的 ctr 作为旧值   │    │ old_ctr 作为旧值  │<br>    └───────────────────┘    └───────────────────┘<br>            │                         │<br>            └────────────┬────────────┘<br>                         │<br>                         ▼<br>               ┌───────────────────────────┐<br>               │  计算 new_ctr             │<br>               │  inc_ctr(old_ctr, taken)  │<br>               └────────────┬──────────────┘<br>                            │<br>               ┌────────────┴────────────┐<br>               │                         │<br>               ▼                         ▼<br>            命中                       未命中<br>               │                         │<br>               ▼                         ▼<br>    ┌───────────────────┐    ┌───────────────────────┐<br>    │ 更新 wrbypass[hit]│    │ 分配 wrbypass[enq]    │<br>    │ 的 ctr            │    │ 更新 tag, idx, ctr    │<br>    └───────────────────┘    │ enq_idx++             │<br>                             └───────────────────────┘<br><br></code></pre></td></tr></table></figure>
+<h3 id="14-完整数据流图"><a href="#14-完整数据流图" class="headerlink" title="14. 完整数据流图"></a>14. 完整数据流图</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌──────────────────────────────────────────────────────────────────────────────────────────┐<br>│                              TAGE 完整数据流                                              │<br>└──────────────────────────────────────────────────────────────────────────────────────────┘<br><br>                              ┌─────────────────┐<br>                              │  F0: 取指请求    │<br>                              │  io.f0_pc       │<br>                              │  io.f0_valid    │<br>                              └────────┬────────┘<br>                                       │ RegNext<br>                                       ▼<br>    ┌─────────────────────────────────────────────────────────────────────────────────────┐<br>    │                              F1: 并行表访问                                          │<br>    │                                                                                      │<br>    │   ┌─────────────────────────────────────────────────────────────────────────────┐   │<br>    │   │                     对每个 Table (0..5):                                     │   │<br>    │   │     (s1_hashed_idx, s1_tag) = compute_tag_and_hash(pc, ghist)               │   │<br>    │   │     table.read(s1_hashed_idx)                                               │   │<br>    │   │     us.read(s1_hashed_idx)                                                  │   │<br>    │   └─────────────────────────────────────────────────────────────────────────────┘   │<br>    │                                                                                      │<br>    └───────────────────────────────────────────────┬──────────────────────────────────────┘<br>                                                    │ SyncReadMem<br>                                                    ▼<br>    ┌─────────────────────────────────────────────────────────────────────────────────────┐<br>    │                              F2: 标签比较 &amp; Provider 选择                            │<br>    │                                                                                      │<br>    │   ┌────────────────────────────────────────────────────────────────────────────┐    │<br>    │   │  对每个 Table:                                                              │    │<br>    │   │    s2_req_rhits = (entry.valid &amp;&amp; entry.tag == s2_tag &amp;&amp; !doing_reset)     │    │<br>    │   │    f2_resp.valid = s2_req_rhits                                            │    │<br>    │   │    f2_resp.bits.ctr = entry.ctr                                            │    │<br>    │   │    f2_resp.bits.u = Cat(u_hi, u_lo)                                        │    │<br>    │   └────────────────────────────────────────────────────────────────────────────┘    │<br>    │                                                                                      │<br>    │   ┌────────────────────────────────────────────────────────────────────────────┐    │<br>    │   │  Provider 选择 (对每个 bank w):                                             │    │<br>    │   │    遍历所有表，选择最长历史命中的表作为 provider                              │    │<br>    │   │    记录前一个命中作为 alt_provider                                          │    │<br>    │   └────────────────────────────────────────────────────────────────────────────┘    │<br>    │                                                                                      │<br>    └───────────────────────────────────────────────┬──────────────────────────────────────┘<br>                                                    │ RegNext<br>                                                    ▼<br>    ┌─────────────────────────────────────────────────────────────────────────────────────┐<br>    │                              F3: 最终预测输出                                        │<br>    │                                                                                      │<br>    │   ┌────────────────────────────────────────────────────────────────────────────┐    │<br>    │   │  io.resp.f3(w).taken =                                                      │    │<br>    │   │    Mux(s3_provided,                                                         │    │<br>    │   │      Mux(weak_prediction,                                                   │    │<br>    │   │        Mux(s3_alt_provided, alt.ctr[2], base_pred),                        │    │<br>    │   │        prov.ctr[2]),                                                        │    │<br>    │   │      base_pred)                                                             │    │<br>    │   └────────────────────────────────────────────────────────────────────────────┘    │<br>    │                                                                                      │<br>    │   ┌────────────────────────────────────────────────────────────────────────────┐    │<br>    │   │  io.f3_meta =                                                               │    │<br>    │   │    provider, alt_differs, provider_u, provider_ctr, allocate               │    │<br>    │   └────────────────────────────────────────────────────────────────────────────┘    │<br>    │                                                                                      │<br>    └──────────────────────────────────────────────────────────────────────────────────────┘<br><br>                              ┌─────────────────┐<br>                              │  更新路径        │<br>                              │  s1_update      │<br>                              └────────┬────────┘<br>                                       │<br>                                       ▼<br>    ┌─────────────────────────────────────────────────────────────────────────────────────┐<br>    │                              S1: 更新处理                                            │<br>    │                                                                                      │<br>    │   ┌────────────────────────────────────────────────────────────────────────────┐    │<br>    │   │  正常更新:                                                                  │    │<br>    │   │    更新 provider 的 ctr 和 u                                               │    │<br>    │   │                                                                             │    │<br>    │   │  误预测处理:                                                                │    │<br>    │   │    if (allocate.valid): 分配新条目                                         │    │<br>    │   │    else: 降低更长历史表的 u                                                │    │<br>    │   └────────────────────────────────────────────────────────────────────────────┘    │<br>    │                                                                                      │<br>    └───────────────────────────────────────────────┬──────────────────────────────────────┘<br>                                                    │ RegNext<br>                                                    ▼<br>    ┌─────────────────────────────────────────────────────────────────────────────────────┐<br>    │                              S2: 写入 SRAM                                           │<br>    │                                                                                      │<br>    │   tables(i).io.update_* := RegNext(s1_update_*)                                     │<br>    │   table.write(update_idx, update_wdata, update_mask)                                │<br>    │   us.write(update_idx, update_u, update_u_mask)                                     │<br>    │                                                                                      │<br>    └──────────────────────────────────────────────────────────────────────────────────────┘<br><br></code></pre></td></tr></table></figure>
+<h3 id="15-TAGE-与其他预测器的协作"><a href="#15-TAGE-与其他预测器的协作" class="headerlink" title="15. TAGE 与其他预测器的协作"></a>15. TAGE 与其他预测器的协作</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                       TAGE + BIM 协作关系                                        │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>                              ┌─────────────────┐<br>                              │    取指 PC       │<br>                              └────────┬────────┘<br>                                       │<br>                    ┌──────────────────┴──────────────────┐<br>                    │                                     │<br>                    ▼                                     ▼<br>            ┌───────────────┐                     ┌───────────────┐<br>            │     TAGE      │                     │     BIM       │<br>            │  (复杂预测器)  │                     │  (基础预测器)  │<br>            │               │                     │               │<br>            │ 6个历史表      │                     │ 2-bit 计数器   │<br>            │ 标签匹配       │                     │ 简单快速       │<br>            └───────┬───────┘                     └───────┬───────┘<br>                    │                                     │<br>                    │                                     │<br>                    ▼                                     │<br>            ┌───────────────────────────────────────────┐ │<br>            │           TAGE 命中?                      │ │<br>            └─────────────────┬─────────────────────────┘ │<br>                              │                           │<br>                 ┌────────────┴────────────┐              │<br>                 │                         │              │<br>                 ▼                         ▼              │<br>              命中                       未命中           │<br>                 │                         │              │<br>                 ▼                         │              │<br>    ┌──────────────────────┐               │              │<br>    │ 弱预测 (ctr=3/4)?    │               │              │<br>    └──────────┬───────────┘               │              │<br>               │                           │              │<br>      ┌────────┴────────┐                  │              │<br>      │                 │                  │              │<br>      ▼                 ▼                  │              │<br>    是                 否                  │              │<br>      │                 │                  │              │<br>      ▼                 ▼                  │              │<br>  ┌─────────┐    ┌─────────┐              │              │<br>  │ 有备选? │    │使用TAGE │              │              │<br>  └────┬────┘    │provider │              │              │<br>       │         └─────────┘              │              │<br>  ┌────┴────┐                             │              │<br>  │         │                             │              │<br>  ▼         ▼                             ▼              │<br>有备选    无备选                          │              │<br>  │         │                             │              │<br>  ▼         │                             │              │<br>┌─────┐     │                             │              │<br>│ alt │     └──────────────┬──────────────┘              │<br>└─────┘                    │                             │<br>                           │◄────────────────────────────┘<br>                           │<br>                           ▼<br>                   ┌───────────────┐<br>                   │  BIM 预测     │<br>                   │ (基础预测器)   │<br>                   └───────────────┘<br><br></code></pre></td></tr></table></figure>
+<p>层次关系:</p>
+<ul>
+<li>TAGE 是主预测器，提供高精度预测</li>
+<li>BIM 是后备预测器，在 TAGE 未命中或弱预测无备选时使用</li>
+<li>BTB 提供目标地址 (与 taken&#x2F;not-taken 预测分离)</li>
+</ul>
+<h3 id="16-关键参数总结"><a href="#16-关键参数总结" class="headerlink" title="16. 关键参数总结"></a>16. 关键参数总结</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>默认值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>tableInfo</td>
+<td>6个表</td>
+<td>(nSets, histLen, tagSz) 配置</td>
+</tr>
+<tr>
+<td>tageNTables</td>
+<td>6</td>
+<td>TAGE 表数量</td>
+</tr>
+<tr>
+<td>uBitPeriod</td>
+<td>2048</td>
+<td>usefulness 清除周期</td>
+</tr>
+<tr>
+<td>singlePorted</td>
+<td>false</td>
+<td>是否单端口 SRAM</td>
+</tr>
+<tr>
+<td>nWrBypassEntries</td>
+<td>2</td>
+<td>每表写旁路条目数</td>
+</tr>
+<tr>
+<td>tageEntrySz</td>
+<td>1+tagSz+3</td>
+<td>表条目位宽</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>表编号</th>
+<th>nRows</th>
+<th>histLen</th>
+<th>tagSz</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>128</td>
+<td>2</td>
+<td>7</td>
+<td>极短历史模式</td>
+</tr>
+<tr>
+<td>1</td>
+<td>128</td>
+<td>4</td>
+<td>7</td>
+<td>短历史模式</td>
+</tr>
+<tr>
+<td>2</td>
+<td>256</td>
+<td>8</td>
+<td>8</td>
+<td>中短历史模式</td>
+</tr>
+<tr>
+<td>3</td>
+<td>256</td>
+<td>16</td>
+<td>8</td>
+<td>中等历史模式</td>
+</tr>
+<tr>
+<td>4</td>
+<td>128</td>
+<td>32</td>
+<td>9</td>
+<td>长历史模式</td>
+</tr>
+<tr>
+<td>5</td>
+<td>128</td>
+<td>64</td>
+<td>9</td>
+<td>极长历史模式</td>
+</tr>
+</tbody></table>
+<p>TAGE 是一种高精度分支预测器，通过多个使用不同历史长度的表来捕捉不同时间尺度的分支相关性，是现代高性能处理器中最常用的分支预测算法之一。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/" class="category-chain-item">计算机体系结构</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B/" class="print-no-link">#分支预测</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>riscv-boom&#39;s tage</div>
+      <div>http://blog.luliang.online/2025/12/02/分支预测器tage/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年12月2日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/12/02/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E5%99%A8loop/" title="riscv-boom&#39;s loop">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">riscv-boom&#39;s loop</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/12/02/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E5%99%A8btb/" title="riscv-boom&#39;s btb">
+                        <span class="hidden-mobile">riscv-boom&#39;s btb</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

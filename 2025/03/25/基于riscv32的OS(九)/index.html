@@ -1,0 +1,741 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言关于任务如何切换，可以分为三种：  抢占式：任务自己不能决定是否让出，由外部原因引起； 协作式：任务自己放弃 CPU； 兼容协作式：抢占式任务的同时，自己还可以自愿放弃。  关于协作式，前面已经提到了。task0 通过 yield 来放弃当前 CPU。 与定时器配合抢占式可以基于时钟中断来实现，通过不断地产生时钟中断来做到任务切换。 思路大致为，当时钟中断到达的时候，进入到 trap_vect">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于 riscv32 的 OS 设计：抢占式多任务">
+<meta property="og:url" content="http://blog.luliang.online/2025/03/25/%E5%9F%BA%E4%BA%8Eriscv32%E7%9A%84OS(%E4%B9%9D)/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="前言关于任务如何切换，可以分为三种：  抢占式：任务自己不能决定是否让出，由外部原因引起； 协作式：任务自己放弃 CPU； 兼容协作式：抢占式任务的同时，自己还可以自愿放弃。  关于协作式，前面已经提到了。task0 通过 yield 来放弃当前 CPU。 与定时器配合抢占式可以基于时钟中断来实现，通过不断地产生时钟中断来做到任务切换。 思路大致为，当时钟中断到达的时候，进入到 trap_vect">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-03-25T05:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.452Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="OS">
+<meta property="article:tag" content="riscv">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>基于 riscv32 的 OS 设计：抢占式多任务 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="基于 riscv32 的 OS 设计：抢占式多任务"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-03-25 13:03" pubdate>
+          2025年3月25日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.6k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          14 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">基于 riscv32 的 OS 设计：抢占式多任务</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>关于任务如何切换，可以分为三种：</p>
+<ul>
+<li>抢占式：任务自己不能决定是否让出，由外部原因引起；</li>
+<li>协作式：任务自己放弃 CPU；</li>
+<li>兼容协作式：抢占式任务的同时，自己还可以自愿放弃。</li>
+</ul>
+<p>关于协作式，前面已经提到了。task0 通过 yield 来放弃当前 CPU。</p>
+<h2 id="与定时器配合"><a href="#与定时器配合" class="headerlink" title="与定时器配合"></a>与定时器配合</h2><p>抢占式可以基于时钟中断来实现，通过不断地产生时钟中断来做到任务切换。</p>
+<p>思路大致为，当时钟中断到达的时候，进入到 trap_vector，接着调用 trap_handler。 trap_handler 对时钟中断进行处理，处理的过程中直接调用 switch_to，这样就可以了吗？</p>
+<p>没有这么简单。</p>
+<p>之前的 switch_to 很简单，它由 yield 中的 schedule 函数引发。</p>
+<p>switch_to 函数保存上下文后，切换到新的上下文，然后通过 jalr 指令返回到新的上下文（借助寄存器 ra）。这显然不怎么“合法”。合法的切换上下文最后应该由 mret 返回。但是 mret 返回的话，依赖的是 mepc 这个寄存器，因此在 mret 之前，得把 context 中的 mepc 恢复到 mepc。这就意味着，保存上下文的时候，得保存当前的 PC 的下一条指令地址（也就是硬件自动保存的 mepc ）到上下文中！</p>
+<p>这个和之前的简单上下文切换的关键不同点是什么？</p>
+<p>很明显，之前的上下文根本不需要记住 mepc，因为是主动放弃的，下次回来的时候只需要在 context 中持有一个 ra 就行了：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">int</span> <span class="hljs-title function_">task_create</span><span class="hljs-params">(<span class="hljs-type">void</span> (*start_routin)(<span class="hljs-type">void</span>))</span> &#123;<br>    <span class="hljs-keyword">if</span> (_top &lt; MAX_TASKS) &#123;<br>        ctx_tasks[_top].sp = (<span class="hljs-type">reg_t</span>)&amp;task_stack[_top][STACK_SIZE];<br>        ctx_tasks[_top].ra = (<span class="hljs-type">reg_t</span>)start_routin;<br>        _top++;<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>但是如果是抢占式的，任务自己根本不知道下次回来的地址是什么，只能依靠 trap_vector 把 mepc 保存到上下文中以便恢复。因此得修改上下文结构体：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-comment">/* task management */</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">context</span> &#123;</span><br>	<span class="hljs-comment">/* ignore x0 */</span><br>	<span class="hljs-type">reg_t</span> ra;<br>	<span class="hljs-type">reg_t</span> sp;<br>	<span class="hljs-type">reg_t</span> gp;<br>	<span class="hljs-type">reg_t</span> tp;<br>	<span class="hljs-type">reg_t</span> t0;<br>	<span class="hljs-type">reg_t</span> t1;<br>	<span class="hljs-type">reg_t</span> t2;<br>	<span class="hljs-type">reg_t</span> s0;<br>	<span class="hljs-type">reg_t</span> s1;<br>	<span class="hljs-type">reg_t</span> a0;<br>	<span class="hljs-type">reg_t</span> a1;<br>	<span class="hljs-type">reg_t</span> a2;<br>	<span class="hljs-type">reg_t</span> a3;<br>	<span class="hljs-type">reg_t</span> a4;<br>	<span class="hljs-type">reg_t</span> a5;<br>	<span class="hljs-type">reg_t</span> a6;<br>	<span class="hljs-type">reg_t</span> a7;<br>	<span class="hljs-type">reg_t</span> s2;<br>	<span class="hljs-type">reg_t</span> s3;<br>	<span class="hljs-type">reg_t</span> s4;<br>	<span class="hljs-type">reg_t</span> s5;<br>	<span class="hljs-type">reg_t</span> s6;<br>	<span class="hljs-type">reg_t</span> s7;<br>	<span class="hljs-type">reg_t</span> s8;<br>	<span class="hljs-type">reg_t</span> s9;<br>	<span class="hljs-type">reg_t</span> s10;<br>	<span class="hljs-type">reg_t</span> s11;<br>	<span class="hljs-type">reg_t</span> t3;<br>	<span class="hljs-type">reg_t</span> t4;<br>	<span class="hljs-type">reg_t</span> t5;<br>	<span class="hljs-type">reg_t</span> t6;<br>	<span class="hljs-comment">// upon is trap frame</span><br><br>	<span class="hljs-comment">// save the pc to run in next schedule cycle</span><br>	<span class="hljs-type">reg_t</span> pc; <span class="hljs-comment">// offset: 31 * sizeof(reg_t)</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>了解了这些，就可以改造 trap_vector 了。</p>
+<h2 id="修改-trap-vector"><a href="#修改-trap-vector" class="headerlink" title="修改 trap_vector"></a>修改 trap_vector</h2><p>首先保存上下文：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs asm">csrrw	t6, mscratch, t6<br>reg_save t6<br>mv	t5, t6<br>csrr	t6, mscratch<br>STORE	t6, 30*SIZE_REG(t5)<br></code></pre></td></tr></table></figure>
+
+<p>这时候，还有一个新的上下文，那就是 mepc：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs asm">csrr	a0, mepc<br>STORE	a0, 31*SIZE_REG(t5)<br># 恢复 mscratch<br>csrw	mscratch, t5<br></code></pre></td></tr></table></figure>
+
+<p>调用 trap_handler：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs asm">csrr	a0, mepc<br>csrr	a1, mcause<br>call	trap_handler<br></code></pre></td></tr></table></figure>
+
+<p>我们可能希望 trap_handler 执行完后，从这里返回。但是，事实上由于这里发生的是时钟中断，并且进行了新的任务调度：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">reg_t</span> <span class="hljs-title function_">trap_handler</span><span class="hljs-params">(<span class="hljs-type">reg_t</span> epc, <span class="hljs-type">reg_t</span> cause)</span> &#123;<br>    <span class="hljs-type">reg_t</span> return_pc = epc;<br>    <span class="hljs-type">reg_t</span> cause_code = cause &amp; MCAUSE_MASK_ECODE;<br><br>    <span class="hljs-keyword">if</span> (cause &amp; MCAUSE_MASK_INTERRUPT) &#123;<br>        <span class="hljs-comment">/* Asynchronous trap - interrupt */</span><br>        <span class="hljs-keyword">switch</span> (cause_code) &#123;<br>            <span class="hljs-keyword">case</span> <span class="hljs-number">3</span>:<br>                uart_puts(<span class="hljs-string">&quot;software interruption!\n&quot;</span>);<br>                <span class="hljs-comment">/*</span><br><span class="hljs-comment">                 * acknowledge the software interrupt by clearing</span><br><span class="hljs-comment">                 * the MSIP bit in mip.</span><br><span class="hljs-comment">                 */</span><br>                <span class="hljs-type">int</span> id = r_mhartid();<br>                *(<span class="hljs-type">uint32_t</span>*)CLINT_MSIP(id) = <span class="hljs-number">0</span>;<br><br>                schedule();<br><br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">case</span> <span class="hljs-number">7</span>:<br>                uart_puts(<span class="hljs-string">&quot;timer interruption!\n&quot;</span>);<br>                timer_handler();<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">case</span> <span class="hljs-number">11</span>:<br>                uart_puts(<span class="hljs-string">&quot;external interruption!\n&quot;</span>);<br>                external_interrupt_handler();<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">default</span>:<br>                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Unknown async exception! Code = %ld\n&quot;</span>, cause_code);<br>                <span class="hljs-keyword">break</span>;<br>        &#125;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-comment">/* Synchronous trap - exception */</span><br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Sync exceptions! Code = %ld\n&quot;</span>, cause_code);<br>        panic(<span class="hljs-string">&quot;OOPS! What can I do!&quot;</span>);<br>        <span class="hljs-comment">// return_pc += 4;</span><br>    &#125;<br><br>    <span class="hljs-keyword">return</span> return_pc;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>至于怎么处理，就看 time_handler()：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">timer_handler</span><span class="hljs-params">()</span> &#123;<br>    _tick++;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;tick: %d\n&quot;</span>, _tick);<br><br>    timer_load(TIMER_INTERVAL);<br><br>    schedule();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，这里调用了 schedule，而 schedule 调用了 switch_to。我们希望 switch_to 通过 mret 返回而不是 ret (jalr)。继续改造 switch_to。</p>
+<p>当 schedule 结束后，它会返回一个新的上下文，这个上下文保存到 a0 中，因此我们需要设置新的 mscratch 寄存器，接着加载上下文：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs asm">csrw	mscratch, a0<br><br># 导出 mepc，mret 依赖于其返回<br>LOAD	a1, 31*SIZE_REG(a0)<br>csrw	mepc, a1<br><br>mv	t6, a0<br>reg_restore t6<br><br># Do actual context switching.<br># Notice this will enable global interrupt<br>mret<br></code></pre></td></tr></table></figure>
+
+<p>这样，mret 就能利用 mepc 完美跳到另一个上下文中。当然，这也不会影响其它异常处理过程，trap_vector:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs asm"># trap_handler will return the return address via a0.<br>srw	mepc, a0<br><br># restore context(registers).<br>csrr	t6, mscratch<br>reg_restore t6<br><br># return to whatever we were doing before trap.<br>mret<br></code></pre></td></tr></table></figure>
+
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><p>同样设置两个函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">user_task0</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    uart_puts(<span class="hljs-string">&quot;Task 0: Created!\n&quot;</span>);<br><br>    <span class="hljs-comment">// task_yield();</span><br>    <span class="hljs-comment">// uart_puts(&quot;Task 0: I&#x27;m back!\n&quot;);</span><br>    <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) &#123;<br>        uart_puts(<span class="hljs-string">&quot;Task 0: Running...\n&quot;</span>);<br>        task_delay(DELAY);<br>    &#125;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">user_task1</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    uart_puts(<span class="hljs-string">&quot;Task 1: Created!\n&quot;</span>);<br>    <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) &#123;<br>        uart_puts(<span class="hljs-string">&quot;Task 1: Running...\n&quot;</span>);<br>        task_delay(DELAY);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这两个任务并没有调用 yield。</p>
+<p>设置好时钟中断后，就可以看效果了：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs bash">Press Ctrl-A and <span class="hljs-keyword">then</span> X to <span class="hljs-built_in">exit</span> QEMU<br>------------------------------------<br>Hello, RVOS!<br>HEAP_START = 0x80007118(aligned to 0x80008000), HEAP_SIZE = 0x07ff8ee8,<br>num of reserved pages = 8, num of pages to be allocated <span class="hljs-keyword">for</span> heap = 32752<br>TEXT:   0x80000000 -&gt; 0x8000388c<br>RODATA: 0x8000388c -&gt; 0x80003bd2<br>DATA:   0x80004000 -&gt; 0x80004004<br>BSS:    0x80004010 -&gt; 0x80007118<br>HEAP:   0x80010000 -&gt; 0x88000000<br>Task 0: Created!<br>Task 0: Running...<br>timer interruption!<br>tick: 1<br>Task 1: Created!<br>Task 1: Running...<br>QEMU: Terminated<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，一切都符合预期。</p>
+<h2 id="兼容协作式"><a href="#兼容协作式" class="headerlink" title="兼容协作式"></a>兼容协作式</h2><p>如果 task0 主动要放弃 CPU 应该怎么做？继续调用 yield 吗？？？</p>
+<p>之前 task0 放弃 CPU 调用 swicth_to 就可以，但是现在的 switch_to 已经被重新定义了，要不要写一个 switch_to_1，task0 调用 switch_to_1 后，实现切换？</p>
+<p>当 trap 的时候，hart 会自动将 xIE 设置为 0。这意味着中断将会关闭。这时候上下文处于安全状态。</p>
+<p>但是当 task0 不是通过 trap 而是直接进入 switch_to 的时候，中断是开着的，这时候如果来一个 trap，上下文没有保存完，接着跳转到 trap 中，再保存一次。从 trap 返回到 switch_to 后，接着保存上下文，switch_to 表现得就像是 task* 的一部分一样，虽然上下文切换的过程被打断了，但这确实没有什么问题：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs bash">$ make run<br>Task 0: Created!<br>software interruption!<br>Task 1: Created!<br>timer interruption!<br>tick: 1<br>Task 0: Running...<br>Task 0: Running...<br>timer interruption!<br>tick: 2<br>Task 1: Running...<br>Task 1: Running...<br>timer interruption!<br>tick: 3<br>Task 0: Running...<br>Task 0: Running...<br>timer interruption!<br>tick: 4<br>Task 1: Running...<br>Task 1: Running...<br>QEMU: Terminated<br></code></pre></td></tr></table></figure>
+
+<p>但是我们希望，对于切换上下文的过程，永远从 trap 进去，毕竟保存上下文这么重要的操作，在期间，中断应该关闭。那么 task 应该怎么操作一下，就能引发一个中断呢？</p>
+<p>好消息是，CLINT 提供了软中断。</p>
+<h2 id="CLINT-提供的软件中断"><a href="#CLINT-提供的软件中断" class="headerlink" title="CLINT 提供的软件中断"></a>CLINT 提供的软件中断</h2><p>每个 hart 拥有一个 MSIP 寄存器。RISCV 规范规定，Machine 模式下的 mip.MSIP 对应到一个 memory-mapped 的控制寄存器。为此 QEMU-virt 提供 MSIP，该 MSIP 寄存器为 32-bit，高 31 位不可用，最低位映射到 mip.MSIP。具体寄存器编址采用 base + offset 的格式，且 base 由各个特定 platform 自己定义。针对 QEMU-virt，其 CLINT 的设计参考了 SFIVE，base 为 0x2000000。</p>
+<p>对 MSIP 写入 1 时触发 software interrupt，写入 0 表示对该中断进行应答。</p>
+<p>也就是说，我们可以操作 CLINT 中的寄存器来实现操作 CPU 中的 MSIP 位，且它们是同步的。</p>
+<p>那么这样，我们就可以从 trap 进入到 switch_to 了：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">sched_init</span><span class="hljs-params">()</span> &#123;<br>    w_mscratch(<span class="hljs-number">0</span>);<br><br>    <span class="hljs-comment">/* enable machine-mode software interrupts. */</span><br>    w_mie(r_mie() | MIE_MSIE);<br>&#125;<br><br><span class="hljs-comment">// 引发中断</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">task_yield</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-comment">/* trigger a machine-level software interrupt */</span><br>    <span class="hljs-type">int</span> id = r_mhartid();<br>    *(<span class="hljs-type">uint32_t</span>*)CLINT_MSIP(id) = <span class="hljs-number">1</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>还要在 trap_handler 中，手动将这个中断清零：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">reg_t</span> <span class="hljs-title function_">trap_handler</span><span class="hljs-params">(<span class="hljs-type">reg_t</span> epc, <span class="hljs-type">reg_t</span> cause)</span> &#123;<br>    <span class="hljs-type">reg_t</span> return_pc = epc;<br>    <span class="hljs-type">reg_t</span> cause_code = cause &amp; MCAUSE_MASK_ECODE;<br><br>    <span class="hljs-keyword">if</span> (cause &amp; MCAUSE_MASK_INTERRUPT) &#123;<br>        <span class="hljs-comment">/* Asynchronous trap - interrupt */</span><br>        <span class="hljs-keyword">switch</span> (cause_code) &#123;<br>            <span class="hljs-keyword">case</span> <span class="hljs-number">3</span>:<br>                uart_puts(<span class="hljs-string">&quot;software interruption!\n&quot;</span>);<br>                <span class="hljs-comment">// 清空软终端</span><br>                <span class="hljs-type">int</span> id = r_mhartid();<br>                *(<span class="hljs-type">uint32_t</span>*)CLINT_MSIP(id) = <span class="hljs-number">0</span>;<br>                schedule();<br>                ...<br></code></pre></td></tr></table></figure>
+
+<p>运行效果：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs bash">Task 0: Created!<br>software interruption!<br>Task 1: Created!<br>Task 1: Running...<br>timer interruption!<br>tick: 1<br>Task 0: I<span class="hljs-string">&#x27;m back!</span><br><span class="hljs-string">Task 0: Running...</span><br><span class="hljs-string">timer interruption!</span><br><span class="hljs-string">tick: 2</span><br><span class="hljs-string">Task 1: Running...</span><br><span class="hljs-string">QEMU: Terminated</span><br></code></pre></td></tr></table></figure>
+
+<p>可以看到，符合预期。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/OS/" class="category-chain-item">OS</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/OS/" class="print-no-link">#OS</a>
+      
+        <a href="/tags/riscv/" class="print-no-link">#riscv</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>基于 riscv32 的 OS 设计：抢占式多任务</div>
+      <div>http://blog.luliang.online/2025/03/25/基于riscv32的OS(九)/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年3月25日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/03/26/%E5%9F%BA%E4%BA%8Eriscv32%E7%9A%84OS(%E5%8D%81)/" title="基于 riscv32 的 OS 设计：任务同步和锁">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">基于 riscv32 的 OS 设计：任务同步和锁</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/03/24/%E5%9F%BA%E4%BA%8Eriscv32%E7%9A%84OS(%E5%85%AB)/" title="基于 riscv32 的 OS 设计：硬件定时器">
+                        <span class="hidden-mobile">基于 riscv32 的 OS 设计：硬件定时器</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

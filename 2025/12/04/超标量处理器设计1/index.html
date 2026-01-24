@@ -1,0 +1,812 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="第一章 超标量处理器概述为什么需要超标量为了提高 IPC。 普通处理器流水线流水线概述流水线就是为了降低指令周期的时间，提高频率的手段。 流水线的划分一般根据场景，进行划分流水段，并且每一个阶段的延迟尽量相近。 指令间的相关性RAW：无法避免；WAR：可以避免，写到其它寄存器。WAW：同 WAR，也可以避免，写到其它寄存器。 控制相关：只能靠预测器预取，一旦预测错误，会带来严重的性能问题。 超标量">
+<meta property="og:type" content="article">
+<meta property="og:title" content="超标量处理器设计：">
+<meta property="og:url" content="http://blog.luliang.online/2025/12/04/%E8%B6%85%E6%A0%87%E9%87%8F%E5%A4%84%E7%90%86%E5%99%A8%E8%AE%BE%E8%AE%A11/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="第一章 超标量处理器概述为什么需要超标量为了提高 IPC。 普通处理器流水线流水线概述流水线就是为了降低指令周期的时间，提高频率的手段。 流水线的划分一般根据场景，进行划分流水段，并且每一个阶段的延迟尽量相近。 指令间的相关性RAW：无法避免；WAR：可以避免，写到其它寄存器。WAW：同 WAR，也可以避免，写到其它寄存器。 控制相关：只能靠预测器预取，一旦预测错误，会带来严重的性能问题。 超标量">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-12-04T07:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.456Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="超标量处理器设计">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>超标量处理器设计： - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="超标量处理器设计："></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-12-04 15:03" pubdate>
+          2025年12月4日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          26 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">超标量处理器设计：</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="第一章-超标量处理器概述"><a href="#第一章-超标量处理器概述" class="headerlink" title="第一章 超标量处理器概述"></a>第一章 超标量处理器概述</h2><h3 id="为什么需要超标量"><a href="#为什么需要超标量" class="headerlink" title="为什么需要超标量"></a>为什么需要超标量</h3><p>为了提高 IPC。</p>
+<h3 id="普通处理器流水线"><a href="#普通处理器流水线" class="headerlink" title="普通处理器流水线"></a>普通处理器流水线</h3><h4 id="流水线概述"><a href="#流水线概述" class="headerlink" title="流水线概述"></a>流水线概述</h4><p>流水线就是为了降低指令周期的时间，提高频率的手段。</p>
+<h4 id="流水线的划分"><a href="#流水线的划分" class="headerlink" title="流水线的划分"></a>流水线的划分</h4><p>一般根据场景，进行划分流水段，并且每一个阶段的延迟尽量相近。</p>
+<h4 id="指令间的相关性"><a href="#指令间的相关性" class="headerlink" title="指令间的相关性"></a>指令间的相关性</h4><p>RAW：无法避免；<br>WAR：可以避免，写到其它寄存器。<br>WAW：同 WAR，也可以避免，写到其它寄存器。</p>
+<p>控制相关：只能靠预测器预取，一旦预测错误，会带来严重的性能问题。</p>
+<h3 id="超标量处理器流水线"><a href="#超标量处理器流水线" class="headerlink" title="超标量处理器流水线"></a>超标量处理器流水线</h3><p>每周期取出多条指令并执行，就是超标量了。</p>
+<h4 id="顺序执行"><a href="#顺序执行" class="headerlink" title="顺序执行"></a>顺序执行</h4><p>执行执行遵守指定的顺序，前者没有发射，后者就会卡住。</p>
+<h4 id="乱序执行"><a href="#乱序执行" class="headerlink" title="乱序执行"></a>乱序执行</h4><p>只要没有数据相关，就可以发射执行。不过最后要让 ROB 配合完成重排序，目标是对架构寄存器按指令顺序进行提交。提交之前，会检查异常并处理。提交之后就是退休了，无法再撤回更改。</p>
+<h2 id="第二章-Cache"><a href="#第二章-Cache" class="headerlink" title="第二章 Cache"></a>第二章 Cache</h2><h3 id="Cache-的一般设计"><a href="#Cache-的一般设计" class="headerlink" title="Cache 的一般设计"></a>Cache 的一般设计</h3><p>哈佛结构，L1 Cache 会分为 Dcache、Icache。Dcache 更复杂一些，因为超标量中可能多有条访存指令，这意味着 Dcache 要有多个端口。如果 Dcache 很大，这将占用更多的硅片面积。</p>
+<p>L2Cache 将会考虑更高的命中率设计，一旦 miss 将会访问物理内存，这将花费很多的时钟周期来搬运数据。</p>
+<p>Cache 确实的三个条件，简称为 3C 定理：</p>
+<ul>
+<li>Compulsory：首次访问必 Miss；</li>
+<li>Capcity：容量影响成本和性能，因此得 tradeoff；</li>
+<li>Conflict：冲突，组相联的相联度不高，比如 2way 的话，第三个过来比然会替换掉一个，从而造成 miss。</li>
+</ul>
+<p>在超标量设计中，可以采用 prefetching，Victim Cache 两种方法降低 miss 的概率。</p>
+<h4 id="Cache-的组成方式"><a href="#Cache-的组成方式" class="headerlink" title="Cache 的组成方式"></a>Cache 的组成方式</h4><ul>
+<li>直接映射：冲突率高（index）。</li>
+<li>全相联：延迟高，因为要进行比较(tag)。</li>
+<li>组相联：组内全相联（tag），组外直接映射（index）。</li>
+</ul>
+<h4 id="Cache-的写入"><a href="#Cache-的写入" class="headerlink" title="Cache 的写入"></a>Cache 的写入</h4><ul>
+<li>写回：替换时发现 dirty 写回</li>
+<li>写通：访问 uncache 类型的数据时，需要写回到 ram 并同时写到 cache_line</li>
+</ul>
+<h4 id="Cache-的替换策略"><a href="#Cache-的替换策略" class="headerlink" title="Cache 的替换策略"></a>Cache 的替换策略</h4><ul>
+<li>近期最少使用法；</li>
+<li>随机替换：使用计数器替换掉某一个 set 的某一个 way。8 way 就是 3 bit 的计数器。</li>
+</ul>
+<h3 id="提高-Cache-的性能"><a href="#提高-Cache-的性能" class="headerlink" title="提高 Cache 的性能"></a>提高 Cache 的性能</h3><p>写缓存，流水线 cache，多级结构，Victim Cache，预取等。</p>
+<p>对于超标量乱序的处理器，非阻塞cache、关键字优先、提前开始等方法也可以。</p>
+<h4 id="写缓存"><a href="#写缓存" class="headerlink" title="写缓存"></a>写缓存</h4><p>对于 L1Dcache 而言，这很重要。它是 L1Dcache 和 下级存储器之间的一个缓冲，当要将某一个 cache_line 替换的时候，暂时写到写缓存中，在空闲的时候，择机再写回到下级存储器。</p>
+<h4 id="流水线"><a href="#流水线" class="headerlink" title="流水线"></a>流水线</h4><p>由于 SRAM 带有延迟，如果读并命中，那么下一周期就能出结果。如果是写，首先要确认 tag 命中，然后开始写，这就多了几拍，因此就考虑流水线化了。</p>
+<h4 id="多级结构"><a href="#多级结构" class="headerlink" title="多级结构"></a>多级结构</h4><p>L1、L2、L3 等多级 cache。</p>
+<h4 id="Victim-Cache"><a href="#Victim-Cache" class="headerlink" title="Victim Cache"></a>Victim Cache</h4><p>保存被踢掉的 cache line，比如 2way 的某一个 set 中，有一个 way 被频繁踢掉，这时候就可以将它踢到 Victim Cache 中。访问的时候， 如果 cache 未命中但是 Victim cache 命中，那么就会从 Victim cache 中返回数据，同时交换 victim cache 和 某一个 cache，相当于它们交换了数据。</p>
+<p>与此相似的是 filter cache。首次访问，未命中，然后从下一级存储器搬运数据到 filter cache。再次被使用的时候，才会写到 cache。解决了偶然访问的代码导致的 cache 浪费，比如启动代码等。</p>
+<h4 id="预取"><a href="#预取" class="headerlink" title="预取"></a>预取</h4><p>本质上是一种预测技术，缓解 3C 定理中的 compulsory。</p>
+<h5 id="硬件预取"><a href="#硬件预取" class="headerlink" title="硬件预取"></a>硬件预取</h5><p>预取的话，可以回预测错误，导致 cache 被污染或者浪费。为了避免，将预取的指令放到单独的缓存中。</p>
+<p>比如访问第0个块儿，那么第 1 个块儿也放到 stream buffer 的地方。如果访问数据发现 cache miss，但是 stream buffer 命中，那么就会把 stream buffer 放到 cache 中，接着继续去取第 2 个块儿放到 stream buffer 中。这是双刃剑，错误预取会导致功耗增加，浪费 cache 和 下一级存储器的总线带宽。</p>
+<p>数据预取更难找到规律，因此要有一个预测单元专门找规律，这大大增加了设计的复杂度。</p>
+<h5 id="软件预取"><a href="#软件预取" class="headerlink" title="软件预取"></a>软件预取</h5><p>预取时机很重要，编译器严重依赖于 CPU cache 的具体架构。在实现了虚拟存储的系统中，预取指令有可能引起一些异常。</p>
+<h3 id="多端口-Cache"><a href="#多端口-Cache" class="headerlink" title="多端口 Cache"></a>多端口 Cache</h3><h2 id="暂时忽略。"><a href="#暂时忽略。" class="headerlink" title="暂时忽略。"></a>暂时忽略。</h2><hr>
+<hr>
+<hr>
+<h2 id="寄存器重命名"><a href="#寄存器重命名" class="headerlink" title="寄存器重命名"></a>寄存器重命名</h2><h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><ul>
+<li>数据相关性：到了解码阶段，找相关性。</li>
+<li>存储器数据相关性。</li>
+<li>控制相关；</li>
+<li>结构相关：与内部结构有关。</li>
+</ul>
+<p>RAW 是真相关，WAW，WAR 是假相关，可以用重命名解决。</p>
+<p>假相关之所以存在就是因为：</p>
+<ul>
+<li>有限个架构寄存器，通过更多的 PRF 来解决指令集上的不足；</li>
+<li>循环的存在。如果循环展开，对架构寄存器消耗过多，而且代码体积膨胀，icache miss 概率增加。</li>
+<li>代码重用：和循环展开遇到的问题一致，如果不断 inline，体积膨胀，icache miss 概率增加。</li>
+</ul>
+<h3 id="考虑一个例子循环展开的例子"><a href="#考虑一个例子循环展开的例子" class="headerlink" title="考虑一个例子循环展开的例子"></a>考虑一个例子循环展开的例子</h3><p>如果有一个循环，编译出来的代码只有短短几行，这短短几行中对r5寄存器大量 WAW 或者 WAR，造成了严重的数据相关。此时一个人想到了一个方法，对原来的短短几行代码进行循环展开，这样就解决了这个问题，但是编译出来的代码有几十行。而且面临着代码体积严重膨胀、icache miss 的风险：</p>
+<p>编译参数：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs Makefile">GCC=riscv64-unknown-elf-gcc<br><span class="hljs-section">roll:</span><br>	<span class="hljs-variable">$(GCC)</span> -O2 -S loop_example.c -o loop_O2.s<br><span class="hljs-section">unroll:</span><br>	<span class="hljs-variable">$(GCC)</span> -O2 -funroll-loops -S loop_example.c -o loop_unroll.s<br><span class="hljs-section">unroll_default:</span><br>	<span class="hljs-variable">$(GCC)</span> -O3 -S loop_example.c -o loop_O3.s<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">process_array</span><span class="hljs-params">(<span class="hljs-type">int</span> *arr, <span class="hljs-type">int</span> n)</span> &#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; n; i++) &#123;<br>        <span class="hljs-type">int</span> temp = arr[i] + <span class="hljs-number">5</span>;<br>        <span class="hljs-type">int</span> shifted = arr[i] &lt;&lt; <span class="hljs-number">1</span>;<br>        arr[i] = shifted + temp + <span class="hljs-number">1</span>;<br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// 固定大小循环 - 更容易被展开</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">process_fixed</span><span class="hljs-params">(<span class="hljs-type">int</span> arr[<span class="hljs-number">10</span>])</span> &#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10</span>; i++) &#123;<br>        <span class="hljs-type">int</span> temp = arr[i] + <span class="hljs-number">5</span>;<br>        <span class="hljs-type">int</span> shifted = arr[i] &lt;&lt; <span class="hljs-number">1</span>;<br>        arr[i] = shifted + temp + <span class="hljs-number">1</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>如果开启 O3 优化或者强制 unroll 展开，编译出的代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><code class="hljs asm">	.file	&quot;loop_example.c&quot;<br>	.option nopic<br>	.attribute arch, &quot;rv64i2p1_m2p0_a2p1_f2p2_d2p2_c2p0_zicsr2p0_zifencei2p0_zmmul1p0_zaamo1p0_zalrsc1p0_zca1p0_zcd1p0&quot;<br>	.attribute unaligned_access, 0<br>	.attribute stack_align, 16<br>	.text<br>	.align	1<br>	.globl	process_array<br>	.type	process_array, @function<br>process_array:<br>	ble	a1,zero,.L1<br>	slli	a1,a1,2<br>	add	a1,a0,a1<br>.L3:<br>	lw	a5,0(a0)<br>	addi	a0,a0,4<br>	slliw	a4,a5,1<br>	addw	a5,a5,a4<br>	addiw	a5,a5,6<br>	sw	a5,-4(a0)<br>	bne	a1,a0,.L3<br>.L1:<br>	ret<br>	.size	process_array, .-process_array<br>	.align	1<br>	.globl	process_fixed<br>	.type	process_fixed, @function<br>process_fixed:<br>	lw	t4,0(a0)<br>	lw	t3,4(a0)<br>	lw	t1,8(a0)<br>	lw	a7,12(a0)<br>	lw	a6,16(a0)<br>	lw	a1,20(a0)<br>	lw	a2,24(a0)<br>	lw	a3,28(a0)<br>	lw	a4,32(a0)<br>	lw	a5,36(a0)<br>	slliw	t5,t4,1<br>	slliw	t0,t3,1<br>	slliw	t6,t1,1<br>	addw	t4,t4,t5<br>	slliw	t5,a7,1<br>	addw	t3,t3,t0<br>	addw	t1,t1,t6<br>	slliw	t0,a6,1<br>	slliw	t6,a1,1<br>	addw	a7,a7,t5<br>	slliw	t5,a2,1<br>	addw	a6,a6,t0<br>	addw	a1,a1,t6<br>	addw	a2,a2,t5<br>	slliw	t0,a3,1<br>	slliw	t6,a4,1<br>	slliw	t5,a5,1<br>	addw	a3,a3,t0<br>	addw	a4,a4,t6<br>	addw	a5,a5,t5<br>	addiw	t4,t4,6<br>	addiw	t3,t3,6<br>	addiw	t1,t1,6<br>	addiw	a7,a7,6<br>	addiw	a6,a6,6<br>	addiw	a1,a1,6<br>	addiw	a2,a2,6<br>	addiw	a3,a3,6<br>	addiw	a4,a4,6<br>	addiw	a5,a5,6<br>	sw	t4,0(a0)<br>	sw	t3,4(a0)<br>	sw	t1,8(a0)<br>	sw	a7,12(a0)<br>	sw	a6,16(a0)<br>	sw	a1,20(a0)<br>	sw	a2,24(a0)<br>	sw	a3,28(a0)<br>	sw	a4,32(a0)<br>	sw	a5,36(a0)<br>	ret<br>	.size	process_fixed, .-process_fixed<br>	.ident	&quot;GCC: (g1b306039ac4) 15.1.0&quot;<br>	.section	.note.GNU-stack,&quot;&quot;,@progbits<br></code></pre></td></tr></table></figure>
+
+<p>O3 优化会默认展开短循环。我把循环放大到 100：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs asm">	.file	&quot;loop_example.c&quot;<br>	.option nopic<br>	.attribute arch, &quot;rv64i2p1_m2p0_a2p1_f2p2_d2p2_c2p0_zicsr2p0_zifencei2p0_zmmul1p0_zaamo1p0_zalrsc1p0_zca1p0_zcd1p0&quot;<br>	.attribute unaligned_access, 0<br>	.attribute stack_align, 16<br>	.text<br>	.align	1<br>	.globl	process_array<br>	.type	process_array, @function<br>process_array:<br>	ble	a1,zero,.L1<br>	slli	a1,a1,2<br>	add	a1,a0,a1<br>.L3:<br>	lw	a5,0(a0)<br>	addi	a0,a0,4<br>	slliw	a4,a5,1<br>	addw	a5,a5,a4<br>	addiw	a5,a5,6<br>	sw	a5,-4(a0)<br>	bne	a1,a0,.L3<br>.L1:<br>	ret<br>	.size	process_array, .-process_array<br>	.align	1<br>	.globl	process_fixed<br>	.type	process_fixed, @function<br>process_fixed:<br>	addi	a3,a0,400<br>.L7:<br>	lw	a5,0(a0)<br>	addi	a0,a0,4<br>	slliw	a4,a5,1<br>	addw	a5,a5,a4<br>	addiw	a5,a5,6<br>	sw	a5,-4(a0)<br>	bne	a3,a0,.L7<br>	ret<br>	.size	process_fixed, .-process_fixed<br>	.ident	&quot;GCC: (g1b306039ac4) 15.1.0&quot;<br>	.section	.note.GNU-stack,&quot;&quot;,@progbits<br><br></code></pre></td></tr></table></figure>
+
+<p>编译器不傻，这次没有展开，因为它知道架构寄存器不够用了！我再强制 unroll，发现它还是会展开，不过展开了多次而已。</p>
+<p>从这个例子可以看到，如果循环展开，随着循环的次数的变大，就算强制展开，也只能每次展开不到 10 （看具体编译器）个循环，而且代码体积会极度膨胀，导致 icache miss 概率增加。</p>
+<p>所以重命名就能解决由于架构寄存器数量不足导致的假相关。</p>
+<h3 id="寄存器重命名的方式"><a href="#寄存器重命名的方式" class="headerlink" title="寄存器重命名的方式"></a>寄存器重命名的方式</h3><ul>
+<li>扩展 ARF；</li>
+<li>使用统一的 PRF；</li>
+<li>使用 ROB 来实现寄存器重命名。</li>
+</ul>
+<p>要实现寄存器重名，需要考虑：</p>
+<ul>
+<li>什么时候分配一个物理寄存器；</li>
+<li>什么时候释放一个物理寄存器；</li>
+<li>发生分支预测失败，如何恢复状态；</li>
+<li>发生异常后，如何恢复状态；</li>
+</ul>
+<h4 id="使用-ROB-进行寄存器重命名"><a href="#使用-ROB-进行寄存器重命名" class="headerlink" title="使用 ROB 进行寄存器重命名"></a>使用 ROB 进行寄存器重命名</h4><h4 id="使用-ARF-扩展进行寄存器重命名"><a href="#使用-ARF-扩展进行寄存器重命名" class="headerlink" title="使用 ARF 扩展进行寄存器重命名"></a>使用 ARF 扩展进行寄存器重命名</h4><h4 id="使用统一的-PRF-进行寄存器重命名"><a href="#使用统一的-PRF-进行寄存器重命名" class="headerlink" title="使用统一的 PRF 进行寄存器重命名"></a>使用统一的 PRF 进行寄存器重命名</h4><h3 id="重命名映射表"><a href="#重命名映射表" class="headerlink" title="重命名映射表"></a>重命名映射表</h3><ul>
+<li>sram RAT：32*6bit</li>
+<li>cam RAT：64*5bit</li>
+</ul>
+<p>随着 PRF 的增大，sRAT 的存储空间更小，更快。</p>
+<p>旧新的必要保存：</p>
+<ul>
+<li>ARF 在进行退休之前，需要将它之前对应的 PRF 变为空闲状态，因此每次覆盖 RAT 的时候，都要将旧的映射信息保存下来，以后退休的时候可以将之前的 PRF 释放掉。</li>
+<li>遇到分支预测错误、异常的时候，需要将未提交的指令缓存全部冲刷。对于 RAT 而言，就是要撤销掉流水线缓存的刚保存的映射信息。</li>
+</ul>
+<p>以上都需要保存旧的 RAT 项以在&#x2F;覆盖 RAT、恢复 RAT 的时候使用。</p>
+<p>对于 sRAT 而言，每次需要保存 sRAT；对于 cRAT ，每次只需要保存一个 Valid 位就行。</p>
+<p>因此当需要很多的 checkpoint 的时候，sRAT 的体积将会很大；而 cRAT 体积对于每一个 checkpoint 都只有 nPRF*1bit。</p>
+<p>高性能处理器的流水线深度都非常深，每次遇到分支预测错误都得保存 checkpoint。因此 cRAT 应用得更多。</p>
+<h4 id="基于-SRAM-的重命名映射表"><a href="#基于-SRAM-的重命名映射表" class="headerlink" title="基于 SRAM 的重命名映射表"></a>基于 SRAM 的重命名映射表</h4><p>高性能处理器流水线深度深，这会产生更多的 checkpoint，如何处理sRAT 的矛盾？</p>
+<p>对于正确率高的分支指令没必要使用 checkpoint，一旦错误，就使用较慢的方法对 RAT 进行恢复，这种情况发生率低，对性能不会有太大影响。</p>
+<h4 id="基于-CAM-的重命名映射表"><a href="#基于-CAM-的重命名映射表" class="headerlink" title="基于 CAM 的重命名映射表"></a>基于 CAM 的重命名映射表</h4><p>利用 ARF 编号，对 cRAT 进行全相联的查找，一旦确认一个 Valid 的项，就是 PRF 编号。</p>
+<p>cRAT 一共有 nPRF 个，是否映射，就取决于 Valid。</p>
+<p>Valid 是 0：</p>
+<ul>
+<li>空闲</li>
+<li>刚被覆盖（不是空闲）</li>
+</ul>
+<p>对于空闲状态管理并不需要 cRAT 参与，只需要：</p>
+<ul>
+<li>ROB</li>
+<li>空闲列表（free list）</li>
+</ul>
+<h3 id="超标量处理器的寄存器重命名"><a href="#超标量处理器的寄存器重命名" class="headerlink" title="超标量处理器的寄存器重命名"></a>超标量处理器的寄存器重命名</h3><p>RAT 需要三个端口（第一次读 SRC1，SRC2，之后写的时候还需要一个 dest 作为地址）+ 一个端口（一个来自 free list 值送到 RAT）。</p>
+<p>WAW 相关性，重命名的时候直接利用 WAW 而不是 RAT 的信息了。</p>
+<p>首要任务就是 RAW、WAW。至于 WAR，这种相关性对于重命名也没有影响。</p>
+<h4 id="解决-RAW-相关性"><a href="#解决-RAW-相关性" class="headerlink" title="解决 RAW 相关性"></a>解决 RAW 相关性</h4><p>同时对 4 条指令进行重命名，然后进行组内相关性检查。如果 in-order 的某一条指令 src 等于前面某条指令的 dest，那么就是 RAW，这个 src 应该来自当前周期从空闲列表输出的对应值。如果有多个项，就是用最新的那条指令的 dest 对应的 PRF。</p>
+<h4 id="解决-WAW-相关性"><a href="#解决-WAW-相关性" class="headerlink" title="解决 WAW 相关性"></a>解决 WAW 相关性</h4><ul>
+<li>对 RAT 的写入控制：只写最新的映射关系</li>
+<li>对 ROB 的写入控制：将旧的 PRF 保存，为了释放 PRF</li>
+</ul>
+<h5 id="什么场景会遇到读地址和写地址一样？"><a href="#什么场景会遇到读地址和写地址一样？" class="headerlink" title="什么场景会遇到读地址和写地址一样？"></a>什么场景会遇到读地址和写地址一样？</h5><p>RAW &amp; ROB。</p>
+<hr>
+<p>要同时对 RAT 进行读取映射关系（src1–&gt;PRF1，src2–&gt;PRF2），然后修改映射关系（dest–&gt;PRF3）。</p>
+<p>因此必须回答一个问题：读地址和写地址一致的时候，如何处理。</p>
+<p>比如对 ROB 进行检查，这时候 WAW，需要将 某一条指令的 dest 对应的 PRF 读出来，这是为了读出最新的对应状态。对于读取 src，也是希望读取最新的。</p>
+<p>如果读取 RAT 的 src 和 写入 RAT 的 dest 一致，说明此时是 RAW。</p>
+<p>读优先是不行的，因为 RAT 返回的 src 的物理寄存器 PRF 是错误的，应该返回来自 free list 的 PRF。</p>
+<h3 id="寄存器"><a href="#寄存器" class="headerlink" title="寄存器"></a>寄存器</h3>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/" class="category-chain-item">计算机体系结构</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E8%B6%85%E6%A0%87%E9%87%8F%E5%A4%84%E7%90%86%E5%99%A8%E8%AE%BE%E8%AE%A1/" class="print-no-link">#超标量处理器设计</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>超标量处理器设计：</div>
+      <div>http://blog.luliang.online/2025/12/04/超标量处理器设计1/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年12月4日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/12/15/biriscv%20%E7%9A%84%20npc%20%E5%91%A8%E6%9C%9F%E6%89%A9%E5%A2%9E/" title="biriscv 处理器 npc 的周期扩增">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">biriscv 处理器 npc 的周期扩增</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/12/02/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E5%99%A8boom/" title="riscv-boom&#39;s bp">
+                        <span class="hidden-mobile">riscv-boom&#39;s bp</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

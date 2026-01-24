@@ -1,0 +1,817 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="HashMapRust 的 HashMap 是一个基于哈希表的键值对集合，它提供了高效的数据查找、插入和删除操作（平均时间复杂度 O(1)）。它是 Rust 标准库 std::collections 的一部分，使用前需要引入。  核心概念 **键值对 (Key-Value Pair)**： 每个元素由一个唯一的 key 和对应的 value 组成。 **所有权 (Ownership)**： 插入时">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Rust:HashMap">
+<meta property="og:url" content="http://blog.luliang.online/2025/09/26/Rust%EF%BC%88%E4%BA%8C%EF%BC%89/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="HashMapRust 的 HashMap 是一个基于哈希表的键值对集合，它提供了高效的数据查找、插入和删除操作（平均时间复杂度 O(1)）。它是 Rust 标准库 std::collections 的一部分，使用前需要引入。  核心概念 **键值对 (Key-Value Pair)**： 每个元素由一个唯一的 key 和对应的 value 组成。 **所有权 (Ownership)**： 插入时">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-09-26T05:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.428Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="Rust 基础">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>Rust:HashMap - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Rust:HashMap"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-09-26 13:03" pubdate>
+          2025年9月26日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.6k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          14 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Rust:HashMap</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="HashMap"><a href="#HashMap" class="headerlink" title="HashMap"></a>HashMap</h2><p>Rust 的 <code>HashMap</code> 是一个基于哈希表的键值对集合，它提供了高效的数据查找、插入和删除操作（平均时间复杂度 O(1)）。它是 Rust 标准库 <code>std::collections</code> 的一部分，使用前需要引入。</p>
+<hr>
+<h3 id="核心概念"><a href="#核心概念" class="headerlink" title="核心概念"></a>核心概念</h3><ol>
+<li>**键值对 (Key-Value Pair)**： 每个元素由一个唯一的 <code>key</code> 和对应的 <code>value</code> 组成。</li>
+<li>**所有权 (Ownership)**：<ul>
+<li>插入时：<code>HashMap</code> 会取得键值对的所有权（对于实现了 <code>Copy</code> trait 的类型如 <code>i32</code> 会复制）。</li>
+<li>查询时：通常返回对值的引用（<code>Option&lt;&amp;V&gt;</code>），避免所有权转移。</li>
+</ul>
+</li>
+<li><strong>哈希与相等性</strong>：<ul>
+<li>键的类型 <code>K</code> 必须实现 <code>Eq</code>（判断相等）和 <code>Hash</code>（计算哈希值）两个 trait。</li>
+<li>基础类型（如 <code>String</code>、<code>i32</code> 等）已自动实现，自定义类型可通过 <code>#[derive(PartialEq, Eq, Hash)]</code> 实现。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="基础用法与实例"><a href="#基础用法与实例" class="headerlink" title="基础用法与实例"></a>基础用法与实例</h3><h4 id="1-创建-HashMap"><a href="#1-创建-HashMap" class="headerlink" title="1. 创建 HashMap"></a>1. 创建 HashMap</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">use</span> std::collections::HashMap;<br><br><span class="hljs-comment">// 创建一个空 HashMap (需指定类型)</span><br><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">scores</span>: HashMap&lt;<span class="hljs-type">String</span>, <span class="hljs-type">i32</span>&gt; = HashMap::<span class="hljs-title function_ invoke__">new</span>();<br><br><span class="hljs-comment">// 使用迭代器和 collect 创建</span><br><span class="hljs-keyword">let</span> <span class="hljs-variable">teams</span> = <span class="hljs-built_in">vec!</span>[<span class="hljs-string">&quot;Blue&quot;</span>, <span class="hljs-string">&quot;Red&quot;</span>];<br><span class="hljs-keyword">let</span> <span class="hljs-variable">initial_scores</span> = <span class="hljs-built_in">vec!</span>[<span class="hljs-number">10</span>, <span class="hljs-number">50</span>];<br><span class="hljs-keyword">let</span> <span class="hljs-variable">scores</span>: HashMap&lt;_, _&gt; = teams.<span class="hljs-title function_ invoke__">iter</span>().<span class="hljs-title function_ invoke__">zip</span>(initial_scores.<span class="hljs-title function_ invoke__">iter</span>()).<span class="hljs-title function_ invoke__">collect</span>();<br></code></pre></td></tr></table></figure>
+
+<h4 id="2-插入-更新数据"><a href="#2-插入-更新数据" class="headerlink" title="2. 插入&#x2F;更新数据"></a>2. 插入&#x2F;更新数据</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">map</span> = HashMap::<span class="hljs-title function_ invoke__">new</span>();<br><br><span class="hljs-comment">// 插入数据</span><br>map.<span class="hljs-title function_ invoke__">insert</span>(<span class="hljs-type">String</span>::<span class="hljs-title function_ invoke__">from</span>(<span class="hljs-string">&quot;Blue&quot;</span>), <span class="hljs-number">10</span>); <span class="hljs-comment">// key: &quot;Blue&quot;, value: 10</span><br>map.<span class="hljs-title function_ invoke__">insert</span>(<span class="hljs-type">String</span>::<span class="hljs-title function_ invoke__">from</span>(<span class="hljs-string">&quot;Red&quot;</span>), <span class="hljs-number">50</span>);<br><br><span class="hljs-comment">// 更新数据（如果存在则覆盖）</span><br>map.<span class="hljs-title function_ invoke__">insert</span>(<span class="hljs-type">String</span>::<span class="hljs-title function_ invoke__">from</span>(<span class="hljs-string">&quot;Blue&quot;</span>), <span class="hljs-number">25</span>); <span class="hljs-comment">// 现在 &quot;Blue&quot; 的值是 25</span><br><br><span class="hljs-comment">// 只在键不存在时插入并且返回Value，如果存在返回 Value</span><br>map.<span class="hljs-title function_ invoke__">entry</span>(<span class="hljs-type">String</span>::<span class="hljs-title function_ invoke__">from</span>(<span class="hljs-string">&quot;Yellow&quot;</span>)).<span class="hljs-title function_ invoke__">or_insert</span>(<span class="hljs-number">50</span>); <span class="hljs-comment">// 插入</span><br>map.<span class="hljs-title function_ invoke__">entry</span>(<span class="hljs-type">String</span>::<span class="hljs-title function_ invoke__">from</span>(<span class="hljs-string">&quot;Blue&quot;</span>)).<span class="hljs-title function_ invoke__">or_insert</span>(<span class="hljs-number">50</span>);    <span class="hljs-comment">// 不会更新（因为已存在）</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="3-查询数据"><a href="#3-查询数据" class="headerlink" title="3. 查询数据"></a>3. 查询数据</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">let</span> <span class="hljs-variable">team_name</span> = <span class="hljs-type">String</span>::<span class="hljs-title function_ invoke__">from</span>(<span class="hljs-string">&quot;Blue&quot;</span>);<br><br><span class="hljs-comment">// get() 返回 Option&lt;&amp;V&gt;</span><br><span class="hljs-keyword">match</span> map.<span class="hljs-title function_ invoke__">get</span>(&amp;team_name) &#123;<br>    <span class="hljs-title function_ invoke__">Some</span>(score) =&gt; <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;&#123;&#125;: &#123;&#125;&quot;</span>, team_name, score),<br>    <span class="hljs-literal">None</span> =&gt; <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;Team not found&quot;</span>),<br>&#125;<br><br><span class="hljs-comment">// 遍历所有键值对</span><br><span class="hljs-keyword">for</span> (key, value) <span class="hljs-keyword">in</span> &amp;map &#123;<br>    <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;&#123;&#125;: &#123;&#125;&quot;</span>, key, value);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="4-更新值（基于旧值）"><a href="#4-更新值（基于旧值）" class="headerlink" title="4. 更新值（基于旧值）"></a>4. 更新值（基于旧值）</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">let</span> <span class="hljs-variable">text</span> = <span class="hljs-string">&quot;hello world wonderful world&quot;</span>;<br><br><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">word_count</span> = HashMap::<span class="hljs-title function_ invoke__">new</span>();<br><br><span class="hljs-keyword">for</span> <span class="hljs-variable">word</span> <span class="hljs-keyword">in</span> text.<span class="hljs-title function_ invoke__">split_whitespace</span>() &#123;<br>    <span class="hljs-comment">// or_insert() 返回键值的可变引用 &amp;mut V</span><br>    <span class="hljs-comment">// 这同样是为了避免转移所有权</span><br>    <span class="hljs-keyword">let</span> <span class="hljs-variable">count</span> = word_count.<span class="hljs-title function_ invoke__">entry</span>(word).<span class="hljs-title function_ invoke__">or_insert</span>(<span class="hljs-number">0</span>);<br>    *count += <span class="hljs-number">1</span>; <span class="hljs-comment">// 通过解引用修改值</span><br>&#125;<br><br><span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;&#123;:?&#125;&quot;</span>, word_count);<br><span class="hljs-comment">// 输出: &#123;&quot;world&quot;: 2, &quot;hello&quot;: 1, &quot;wonderful&quot;: 1&#125;</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="5-删除数据"><a href="#5-删除数据" class="headerlink" title="5. 删除数据"></a>5. 删除数据</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-comment">// 移除键值对</span><br>map.<span class="hljs-title function_ invoke__">remove</span>(&amp;<span class="hljs-type">String</span>::<span class="hljs-title function_ invoke__">from</span>(<span class="hljs-string">&quot;Red&quot;</span>));<br><br><span class="hljs-comment">// 清空 HashMap</span><br>map.<span class="hljs-title function_ invoke__">clear</span>();<br></code></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="常见场景与技巧"><a href="#常见场景与技巧" class="headerlink" title="常见场景与技巧"></a>常见场景与技巧</h3><h4 id="1-处理可能不存在的键"><a href="#1-处理可能不存在的键" class="headerlink" title="1. 处理可能不存在的键"></a>1. 处理可能不存在的键</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">let</span> <span class="hljs-variable">score</span> = map.<span class="hljs-title function_ invoke__">get</span>(<span class="hljs-string">&quot;Green&quot;</span>).<span class="hljs-title function_ invoke__">copied</span>().<span class="hljs-title function_ invoke__">unwrap_or</span>(<span class="hljs-number">0</span>); <span class="hljs-comment">// 返回 0 如果不存在，这个和.entry 的区别是，.get 不会插入键值对</span><br></code></pre></td></tr></table></figure>
+
+<p>这个例子中，get() 返回一个 <code>Option&lt;&amp;T&gt;</code>，copied() 将 <code>Option&lt;&amp;T&gt;</code> 转变成 <code>Option&lt;T&gt;</code>，unwrap(）直接将 <code>Option&lt;T&gt;</code> 中的 T 取出来。</p>
+<h4 id="2-合并两个-HashMap"><a href="#2-合并两个-HashMap" class="headerlink" title="2. 合并两个 HashMap"></a>2. 合并两个 HashMap</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">map1</span> = HashMap::<span class="hljs-title function_ invoke__">from</span>([(<span class="hljs-string">&quot;a&quot;</span>, <span class="hljs-number">1</span>), (<span class="hljs-string">&quot;b&quot;</span>, <span class="hljs-number">2</span>)]);<br><span class="hljs-keyword">let</span> <span class="hljs-variable">map2</span> = HashMap::<span class="hljs-title function_ invoke__">from</span>([(<span class="hljs-string">&quot;b&quot;</span>, <span class="hljs-number">3</span>), (<span class="hljs-string">&quot;c&quot;</span>, <span class="hljs-number">4</span>)]);<br><br>map1.<span class="hljs-title function_ invoke__">extend</span>(map2); <span class="hljs-comment">// map2 的所有权被转移</span><br><span class="hljs-comment">// 结果: &#123;&quot;a&quot;: 1, &quot;b&quot;: 3, &quot;c&quot;: 4&#125; (map2 的值覆盖相同键)</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="3-自定义键类型"><a href="#3-自定义键类型" class="headerlink" title="3. 自定义键类型"></a>3. 自定义键类型</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-meta">#[derive(Debug, Hash, Eq, PartialEq)]</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Student</span> &#123;<br>    id: <span class="hljs-type">u32</span>,<br>    name: <span class="hljs-type">String</span>,<br>&#125;<br><br><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">students</span> = HashMap::<span class="hljs-title function_ invoke__">new</span>();<br>students.<span class="hljs-title function_ invoke__">insert</span>(<br>    Student &#123; id: <span class="hljs-number">1</span>, name: <span class="hljs-string">&quot;Alice&quot;</span>.<span class="hljs-title function_ invoke__">to_string</span>() &#125;,<br>    <span class="hljs-string">&quot;Grade A&quot;</span><br>);<br><br><span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;&#123;:?&#125;&quot;</span>, students.<span class="hljs-title function_ invoke__">get</span>(&amp;Student &#123; id: <span class="hljs-number">1</span>, name: <span class="hljs-string">&quot;Alice&quot;</span>.<span class="hljs-title function_ invoke__">to_string</span>() &#125;));<br></code></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h3><ol>
+<li><strong>性能影响</strong>：哈希冲突可能降低性能（Rust 默认使用抗碰撞的 SipHash 算法）。</li>
+<li><strong>内存开销</strong>：HashMap 会预分配内存以提升效率。</li>
+<li><strong>线程安全</strong>：默认非线程安全，多线程需用 <code>Mutex&lt;HashMap&gt;</code> 或 <code>RwLock&lt;HashMap&gt;</code>。</li>
+</ol>
+<hr>
+<h3 id="完整示例：单词计数器"><a href="#完整示例：单词计数器" class="headerlink" title="完整示例：单词计数器"></a>完整示例：单词计数器</h3><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">use</span> std::collections::HashMap;<br><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() &#123;<br>    <span class="hljs-keyword">let</span> <span class="hljs-variable">text</span> = <span class="hljs-string">&quot;apple banana orange apple banana&quot;</span>;<br>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">counter</span> = HashMap::<span class="hljs-title function_ invoke__">new</span>();<br><br>    <span class="hljs-keyword">for</span> <span class="hljs-variable">word</span> <span class="hljs-keyword">in</span> text.<span class="hljs-title function_ invoke__">split_whitespace</span>() &#123;<br>        *counter.<span class="hljs-title function_ invoke__">entry</span>(word).<span class="hljs-title function_ invoke__">or_insert</span>(<span class="hljs-number">0</span>) += <span class="hljs-number">1</span>;<br>    &#125;<br><br>    <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;Word counts:&quot;</span>);<br>    <span class="hljs-keyword">for</span> (word, count) <span class="hljs-keyword">in</span> &amp;counter &#123;<br>        <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;&#123;&#125;: &#123;&#125;&quot;</span>, word, count);<br>    &#125;<br>&#125;<br><span class="hljs-comment">// 输出:</span><br><span class="hljs-comment">// apple: 2</span><br><span class="hljs-comment">// banana: 2</span><br><span class="hljs-comment">// orange: 1</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="问题1：这个-unwrap-取出来的-T-是拷贝还是引用？"><a href="#问题1：这个-unwrap-取出来的-T-是拷贝还是引用？" class="headerlink" title="问题1：这个 unwrap() 取出来的 T 是拷贝还是引用？"></a>问题1：这个 unwrap() 取出来的 T 是拷贝还是引用？</h3><p><code>unwrap()</code> 返回的是 <strong>值的所有权（owned value）</strong>，而不是引用。</p>
+<h3 id="unwrap-的本质"><a href="#unwrap-的本质" class="headerlink" title="unwrap() 的本质"></a><code>unwrap()</code> 的本质</h3><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-comment">// Option 的 unwrap 实现（简化版）</span><br><span class="hljs-keyword">impl</span>&lt;T&gt; <span class="hljs-type">Option</span>&lt;T&gt; &#123;<br>    <span class="hljs-keyword">pub</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">unwrap</span>(<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> T &#123;<br>        <span class="hljs-keyword">match</span> <span class="hljs-keyword">self</span> &#123;<br>            <span class="hljs-title function_ invoke__">Some</span>(val) =&gt; val,  <span class="hljs-comment">// 直接返回 T 本身</span><br>            <span class="hljs-literal">None</span> =&gt; <span class="hljs-built_in">panic!</span>(<span class="hljs-string">&quot;called `Option::unwrap()` on a `None` value&quot;</span>),<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="所有权转移的三种情况"><a href="#所有权转移的三种情况" class="headerlink" title="所有权转移的三种情况"></a>所有权转移的三种情况</h3><h4 id="1-基础类型（实现-Copy-trait）"><a href="#1-基础类型（实现-Copy-trait）" class="headerlink" title="1. 基础类型（实现 Copy trait）"></a>1. 基础类型（实现 <code>Copy</code> trait）</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">let</span> <span class="hljs-variable">num</span>: <span class="hljs-type">Option</span>&lt;<span class="hljs-type">i32</span>&gt; = <span class="hljs-title function_ invoke__">Some</span>(<span class="hljs-number">42</span>);<br><span class="hljs-keyword">let</span> <span class="hljs-variable">unwrapped_num</span> = num.<span class="hljs-title function_ invoke__">unwrap</span>();  <span class="hljs-comment">// 发生拷贝（因为 i32 实现了 Copy）</span><br><br><span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;&#123;&#125;&quot;</span>, unwrapped_num); <span class="hljs-comment">// 42</span><br><span class="hljs-comment">// 可以继续使用 num，因为 Option&lt;i32&gt; 也实现了 Copy</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="2-堆分配类型（未实现-Copy）"><a href="#2-堆分配类型（未实现-Copy）" class="headerlink" title="2. 堆分配类型（未实现 Copy）"></a>2. 堆分配类型（未实现 <code>Copy</code>）</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">let</span> <span class="hljs-variable">name</span>: <span class="hljs-type">Option</span>&lt;<span class="hljs-type">String</span>&gt; = <span class="hljs-title function_ invoke__">Some</span>(<span class="hljs-string">&quot;Alice&quot;</span>.<span class="hljs-title function_ invoke__">to_string</span>());<br><span class="hljs-keyword">let</span> <span class="hljs-variable">unwrapped_name</span> = name.<span class="hljs-title function_ invoke__">unwrap</span>();  <span class="hljs-comment">// 所有权转移！</span><br><br><span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;&#123;&#125;&quot;</span>, unwrapped_name); <span class="hljs-comment">// &quot;Alice&quot;</span><br><span class="hljs-comment">// 不能再使用 name！因为所有权已被转移</span><br><span class="hljs-comment">// println!(&quot;&#123;:?&#125;&quot;, name); // 编译错误：value borrowed after move</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="3-引用类型（特殊处理）"><a href="#3-引用类型（特殊处理）" class="headerlink" title="3. 引用类型（特殊处理）"></a>3. 引用类型（特殊处理）</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">let</span> <span class="hljs-variable">data</span> = <span class="hljs-string">&quot;Hello&quot;</span>.<span class="hljs-title function_ invoke__">to_string</span>();<br><span class="hljs-keyword">let</span> <span class="hljs-variable">data_ref</span>: <span class="hljs-type">Option</span>&lt;&amp;<span class="hljs-type">String</span>&gt; = <span class="hljs-title function_ invoke__">Some</span>(&amp;data);<br><br><span class="hljs-keyword">let</span> <span class="hljs-variable">unwrapped_ref</span> = data_ref.<span class="hljs-title function_ invoke__">unwrap</span>(); <span class="hljs-comment">// 返回 &amp;String（引用）</span><br><br><span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;&#123;&#125;&quot;</span>, unwrapped_ref); <span class="hljs-comment">// &quot;Hello&quot;</span><br><span class="hljs-comment">// 仍可继续使用 data，因为只借用了引用</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="关键行为总结"><a href="#关键行为总结" class="headerlink" title="关键行为总结"></a>关键行为总结</h3><table>
+<thead>
+<tr>
+<th>情况</th>
+<th><code>unwrap()</code> 返回类型</th>
+<th>所有权变化</th>
+<th>后续使用限制</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Option&lt;T&gt;</code> (T: Copy)</td>
+<td><code>T</code> (值拷贝)</td>
+<td>原变量仍可用</td>
+<td>无限制</td>
+</tr>
+<tr>
+<td><code>Option&lt;T&gt;</code> (T: !Copy)</td>
+<td><code>T</code> (所有权转移)</td>
+<td>原变量失效</td>
+<td>不能再用原 Option</td>
+</tr>
+<tr>
+<td><code>Option&lt;&amp;T&gt;</code></td>
+<td><code>&amp;T</code> (借用)</td>
+<td>仅借用</td>
+<td>需遵守借用规则</td>
+</tr>
+<tr>
+<td><code>Result&lt;T, E&gt;</code></td>
+<td>同上规则</td>
+<td>同上规则</td>
+<td>同上规则</td>
+</tr>
+</tbody></table>
+<h3 id="对比其他方法的返回值"><a href="#对比其他方法的返回值" class="headerlink" title="对比其他方法的返回值"></a>对比其他方法的返回值</h3><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>返回类型</th>
+<th>所有权状态</th>
+<th>是否可能 panic</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>unwrap()</code></td>
+<td><code>T</code></td>
+<td>所有权转移</td>
+<td>是</td>
+</tr>
+<tr>
+<td><code>unwrap_ref()</code></td>
+<td><code>&amp;T</code></td>
+<td>借用</td>
+<td>是</td>
+</tr>
+<tr>
+<td><code>as_ref()</code></td>
+<td><code>Option&lt;&amp;T&gt;</code></td>
+<td>借用</td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>copied()</code></td>
+<td><code>Option&lt;T&gt;</code></td>
+<td>拷贝（需 T: Copy）</td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>cloned()</code></td>
+<td><code>Option&lt;T&gt;</code></td>
+<td>克隆（需 T: Clone）</td>
+<td>否</td>
+</tr>
+</tbody></table>
+<h3 id="实际内存演示"><a href="#实际内存演示" class="headerlink" title="实际内存演示"></a>实际内存演示</h3><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">let</span> <span class="hljs-variable">value</span> = <span class="hljs-type">String</span>::<span class="hljs-title function_ invoke__">from</span>(<span class="hljs-string">&quot;Heap Data&quot;</span>); <span class="hljs-comment">// 在堆上分配内存</span><br><br><span class="hljs-comment">// 场景 1：直接 unwrap</span><br><span class="hljs-keyword">let</span> <span class="hljs-variable">opt</span> = <span class="hljs-title function_ invoke__">Some</span>(value);<br><span class="hljs-keyword">let</span> <span class="hljs-variable">unwrapped</span> = opt.<span class="hljs-title function_ invoke__">unwrap</span>(); <span class="hljs-comment">// 所有权从 opt 转移到 unwrapped</span><br><br><span class="hljs-comment">// 此时内存关系：</span><br><span class="hljs-comment">// unwrapped -&gt; &quot;Heap Data&quot; (所有者)</span><br><span class="hljs-comment">// opt 已失效</span><br><br><span class="hljs-comment">// 场景 2：使用 as_ref 避免转移</span><br><span class="hljs-keyword">let</span> <span class="hljs-variable">opt2</span> = <span class="hljs-title function_ invoke__">Some</span>(<span class="hljs-type">String</span>::<span class="hljs-title function_ invoke__">from</span>(<span class="hljs-string">&quot;Another&quot;</span>));<br><span class="hljs-keyword">let</span> <span class="hljs-variable">ref_view</span> = opt2.<span class="hljs-title function_ invoke__">as_ref</span>().<span class="hljs-title function_ invoke__">unwrap</span>(); <span class="hljs-comment">// 返回 &amp;String</span><br><br><span class="hljs-comment">// 此时：</span><br><span class="hljs-comment">// opt2 仍是所有者</span><br><span class="hljs-comment">// ref_view 只是借用者</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="最佳实践建议"><a href="#最佳实践建议" class="headerlink" title="最佳实践建议"></a>最佳实践建议</h3><ol>
+<li><p><strong>需要所有权时</strong><br>直接使用 <code>unwrap()</code> 获取值</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">let</span> <span class="hljs-variable">config</span>: <span class="hljs-type">Option</span>&lt;<span class="hljs-type">String</span>&gt; = <span class="hljs-comment">/* ... */</span>;<br><span class="hljs-keyword">let</span> <span class="hljs-variable">config_value</span> = config.<span class="hljs-title function_ invoke__">unwrap</span>(); <span class="hljs-comment">// 获得完全控制权</span><br></code></pre></td></tr></table></figure>
+</li>
+<li><p><strong>只需读取值时</strong><br>使用 <code>as_ref().unwrap()</code> 避免转移</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">let</span> <span class="hljs-variable">name</span>: <span class="hljs-type">Option</span>&lt;<span class="hljs-type">String</span>&gt; = <span class="hljs-title function_ invoke__">Some</span>(<span class="hljs-string">&quot;Alice&quot;</span>.<span class="hljs-title function_ invoke__">into</span>());<br><span class="hljs-title function_ invoke__">print_name</span>(name.<span class="hljs-title function_ invoke__">as_ref</span>().<span class="hljs-title function_ invoke__">unwrap</span>()); <span class="hljs-comment">// 仅借用</span><br><span class="hljs-comment">// name 仍可用！</span><br></code></pre></td></tr></table></figure>
+</li>
+<li><p><strong>需要修改值但保留 Option 时</strong><br>使用 <code>as_mut().unwrap()</code></p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">counter</span>: <span class="hljs-type">Option</span>&lt;<span class="hljs-type">u32</span>&gt; = <span class="hljs-title function_ invoke__">Some</span>(<span class="hljs-number">0</span>);<br>*counter.<span class="hljs-title function_ invoke__">as_mut</span>().<span class="hljs-title function_ invoke__">unwrap</span>() += <span class="hljs-number">1</span>; <span class="hljs-comment">// 修改内部值</span><br></code></pre></td></tr></table></figure>
+</li>
+<li><p><strong>处理引用容器时</strong><br>使用 <code>copied()</code>&#x2F;<code>cloned()</code> 明确所有权</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">let</span> <span class="hljs-variable">numbers</span> = [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>];<br><span class="hljs-keyword">let</span> <span class="hljs-variable">opt_ref</span>: <span class="hljs-type">Option</span>&lt;&amp;<span class="hljs-type">i32</span>&gt; = numbers.<span class="hljs-title function_ invoke__">get</span>(<span class="hljs-number">1</span>);<br><span class="hljs-keyword">let</span> <span class="hljs-variable">value</span>: <span class="hljs-type">i32</span> = opt_ref.<span class="hljs-title function_ invoke__">copied</span>().<span class="hljs-title function_ invoke__">unwrap</span>(); <span class="hljs-comment">// 安全拷贝</span><br></code></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="总结图"><a href="#总结图" class="headerlink" title="总结图"></a>总结图</h3><figure class="highlight gherkin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs gherkin">调用 unwrap() 时：<br>    如果 T 是值类型 → 返回 T (拷贝)<br>    如果 T 是堆类型 → 返回 T (所有权转移)<br>    如果 T 是引用 → 返回 &amp;T (借用)<br><br>+---------------------+<br>|<span class="hljs-string">    Option&lt;T&gt;        </span>|<br>|<span class="hljs-string">  +---------------+  </span>|<br>|<span class="hljs-string">  </span>|<span class="hljs-string"> Some(value)   </span>|<span class="hljs-string">--[unwrap()]--&gt; value (所有权转移)</span><br><span class="hljs-string"></span>|<span class="hljs-string">  +---------------+  </span>|<br>|<span class="hljs-string">  </span>|<span class="hljs-string"> None          </span>|<span class="hljs-string">--[unwrap()]--&gt; PANIC!</span><br><span class="hljs-string"></span>|<span class="hljs-string">  +---------------+  </span>|<br>+---------------------+<br></code></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/" class="category-chain-item">编程语言</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Rust-%E5%9F%BA%E7%A1%80/" class="print-no-link">#Rust 基础</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Rust:HashMap</div>
+      <div>http://blog.luliang.online/2025/09/26/Rust（二）/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年9月26日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/09/26/Rust%EF%BC%88%E4%B8%89%EF%BC%89/" title="Rust:Vector">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Rust:Vector</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/09/24/Rust%EF%BC%88%E4%B8%80%EF%BC%89/" title="Rust:struct、enum、string、module">
+                        <span class="hidden-mobile">Rust:struct、enum、string、module</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

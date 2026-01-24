@@ -1,0 +1,724 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="ContextOS 中实际上并没有什么线程、进程，不过是一个个不同的上下文而已。 上下文非常重要，任务 A 和任务 B 的切换，核心就是保存 A 的上下文、恢复 B 的上下文。 在之前的 MIPS yieldOS 中，已经实现过上下文以及上下文的切换了，本质都是差不多的。 1234567891011121314151617181920212223242526272829303132333435&#x2F;*">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于 riscv32 的 OS 设计：切换上下文">
+<meta property="og:url" content="http://blog.luliang.online/2025/03/19/%E5%9F%BA%E4%BA%8Eriscv32%E7%9A%84OS(%E5%9B%9B)/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="ContextOS 中实际上并没有什么线程、进程，不过是一个个不同的上下文而已。 上下文非常重要，任务 A 和任务 B 的切换，核心就是保存 A 的上下文、恢复 B 的上下文。 在之前的 MIPS yieldOS 中，已经实现过上下文以及上下文的切换了，本质都是差不多的。 1234567891011121314151617181920212223242526272829303132333435&#x2F;*">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-03-19T05:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.452Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="OS">
+<meta property="article:tag" content="riscv">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>基于 riscv32 的 OS 设计：切换上下文 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="基于 riscv32 的 OS 设计：切换上下文"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-03-19 13:03" pubdate>
+          2025年3月19日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          13 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">基于 riscv32 的 OS 设计：切换上下文</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="Context"><a href="#Context" class="headerlink" title="Context"></a>Context</h2><p>OS 中实际上并没有什么线程、进程，不过是一个个不同的上下文而已。</p>
+<p>上下文非常重要，任务 A 和任务 B 的切换，核心就是保存 A 的上下文、恢复 B 的上下文。</p>
+<p>在之前的 MIPS yieldOS 中，已经实现过上下文以及上下文的切换了，本质都是差不多的。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-comment">/* task management */</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">context</span> &#123;</span><br>	<span class="hljs-comment">/* ignore x0 */</span><br>	<span class="hljs-type">reg_t</span> ra;<br>	<span class="hljs-type">reg_t</span> sp;<br>	<span class="hljs-type">reg_t</span> gp;<br>	<span class="hljs-type">reg_t</span> tp;<br>	<span class="hljs-type">reg_t</span> t0;<br>	<span class="hljs-type">reg_t</span> t1;<br>	<span class="hljs-type">reg_t</span> t2;<br>	<span class="hljs-type">reg_t</span> s0;<br>	<span class="hljs-type">reg_t</span> s1;<br>	<span class="hljs-type">reg_t</span> a0;<br>	<span class="hljs-type">reg_t</span> a1;<br>	<span class="hljs-type">reg_t</span> a2;<br>	<span class="hljs-type">reg_t</span> a3;<br>	<span class="hljs-type">reg_t</span> a4;<br>	<span class="hljs-type">reg_t</span> a5;<br>	<span class="hljs-type">reg_t</span> a6;<br>	<span class="hljs-type">reg_t</span> a7;<br>	<span class="hljs-type">reg_t</span> s2;<br>	<span class="hljs-type">reg_t</span> s3;<br>	<span class="hljs-type">reg_t</span> s4;<br>	<span class="hljs-type">reg_t</span> s5;<br>	<span class="hljs-type">reg_t</span> s6;<br>	<span class="hljs-type">reg_t</span> s7;<br>	<span class="hljs-type">reg_t</span> s8;<br>	<span class="hljs-type">reg_t</span> s9;<br>	<span class="hljs-type">reg_t</span> s10;<br>	<span class="hljs-type">reg_t</span> s11;<br>	<span class="hljs-type">reg_t</span> t3;<br>	<span class="hljs-type">reg_t</span> t4;<br>	<span class="hljs-type">reg_t</span> t5;<br>	<span class="hljs-type">reg_t</span> t6;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="保存上下文"><a href="#保存上下文" class="headerlink" title="保存上下文"></a>保存上下文</h2><p>上下文本质上是当前hart的环境，也就是寄存器的值。但是不是所有的寄存器都是上下文的组成部分。</p>
+<p>在 riscv 中，某些寄存器在上下文切换过程中值保持不变，因此就没有必要保存这些寄存器。这样的寄存器有 X0、gp、tp。</p>
+<p>X0 是 0 寄存器，它是不变的。gp 是全局寄存器，通常指向全局数据区域，在大多数情况下，它在整个程序执行期间保持不变。至于 tp，它保存着 hartid，这是一个全局值，只要不涉及处理器核心的切换，在上下文切换期间通常不会改变。因此，没有必要在每次上下文切换时保存和恢复 tp。</p>
+<p>另外，我们必须了解的是关于保存和恢复和回复上下文的事情：</p>
+<ul>
+<li>我们用 mscratch 来指向当前 task 的上下文；</li>
+<li>接着用 t6 寄存器 保存 mscratch 后，让它作为交换的 base；</li>
+<li>mscratch 是 csr 寄存器，它不能被当做 base，因为 load、store 指令没办法操作它。</li>
+</ul>
+<p>因此，首先我们得把 mscratch 的值交换到 t6 中，接着以 t6 为 base，保存寄存器 <code>reg_save t6</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs asm">.macro reg_save base<br>	STORE ra,   0*SIZE_REG(\base)<br>	STORE sp,   1*SIZE_REG(\base)<br>	STORE t0,   4*SIZE_REG(\base)<br>	STORE t1,   5*SIZE_REG(\base)<br>	STORE t2,   6*SIZE_REG(\base)<br>	STORE s0,   7*SIZE_REG(\base)<br>	STORE s1,   8*SIZE_REG(\base)<br>	STORE a0,   9*SIZE_REG(\base)<br>	STORE a1,  10*SIZE_REG(\base)<br>	STORE a2,  11*SIZE_REG(\base)<br>	STORE a3,  12*SIZE_REG(\base)<br>	STORE a4,  13*SIZE_REG(\base)<br>	STORE a5,  14*SIZE_REG(\base)<br>	STORE a6,  15*SIZE_REG(\base)<br>	STORE a7,  16*SIZE_REG(\base)<br>	STORE s2,  17*SIZE_REG(\base)<br>	STORE s3,  18*SIZE_REG(\base)<br>	STORE s4,  19*SIZE_REG(\base)<br>	STORE s5,  20*SIZE_REG(\base)<br>	STORE s6,  21*SIZE_REG(\base)<br>	STORE s7,  22*SIZE_REG(\base)<br>	STORE s8,  23*SIZE_REG(\base)<br>	STORE s9,  24*SIZE_REG(\base)<br>	STORE s10, 25*SIZE_REG(\base)<br>	STORE s11, 26*SIZE_REG(\base)<br>	STORE t3,  27*SIZE_REG(\base)<br>	STORE t4,  28*SIZE_REG(\base)<br>	STORE t5,  29*SIZE_REG(\base)<br>	# we don&#x27;t save t6 here, due to we have used<br>	# it as base, we have to save t6 in an extra step<br>	# outside of reg_save<br>.endm<br></code></pre></td></tr></table></figure>
+
+<p>保存好了以后，就可以在切换时使用这些寄存器了，因为还没有保存 t6，而且 t6 原来的值还在 mscratch 中。</p>
+<p>因此，需要将 t6 保存到 t5 中；然后将 mscratch 保存到 t6 中。 这样就恢复了 t6，接着将 t6 保存到上下文中。而 t5 就是刚才的 base。</p>
+<p>这样就完美得保存了所有的上下文：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs asm">   mv	t5, t6		# t5 points to the context of current task<br>csrr	t6, mscratch		# read t6 back from mscratch<br>STORE	t6, 30*SIZE_REG(t5)	# save t6 with t5 as base<br></code></pre></td></tr></table></figure>
+
+<h2 id="恢复上下文"><a href="#恢复上下文" class="headerlink" title="恢复上下文"></a>恢复上下文</h2><p>在 riscv 中，a0 保存的是函数的返回值或者返回的参数。因此，当调度器调度的时候：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">schedule</span><span class="hljs-params">()</span>&#123;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">context</span> *<span class="hljs-title">next</span> =</span> &amp;ctx_task;<br>	switch_to(next);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>因此新的上下文的地址就保存在 a0 中。</p>
+<p>因此，需要继续进一步将 a0 的值加载到 mscratch 中。然后将 a0 保存到 t6 中，并以 t6 为 base，恢复上下文：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs asm">csrw	mscratch, a0<br>mv	t6, a0<br>reg_restore t6<br></code></pre></td></tr></table></figure>
+
+<p>恢复的时候，会将所有的寄存器中的值更新，包括 t6：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs asm">.macro reg_restore base<br>	LOAD ra,   0*SIZE_REG(\base)<br>	LOAD sp,   1*SIZE_REG(\base)<br>	LOAD t0,   4*SIZE_REG(\base)<br>	LOAD t1,   5*SIZE_REG(\base)<br>	LOAD t2,   6*SIZE_REG(\base)<br>	LOAD s0,   7*SIZE_REG(\base)<br>	LOAD s1,   8*SIZE_REG(\base)<br>	LOAD a0,   9*SIZE_REG(\base)<br>	LOAD a1,  10*SIZE_REG(\base)<br>	LOAD a2,  11*SIZE_REG(\base)<br>	LOAD a3,  12*SIZE_REG(\base)<br>	LOAD a4,  13*SIZE_REG(\base)<br>	LOAD a5,  14*SIZE_REG(\base)<br>	LOAD a6,  15*SIZE_REG(\base)<br>	LOAD a7,  16*SIZE_REG(\base)<br>	LOAD s2,  17*SIZE_REG(\base)<br>	LOAD s3,  18*SIZE_REG(\base)<br>	LOAD s4,  19*SIZE_REG(\base)<br>	LOAD s5,  20*SIZE_REG(\base)<br>	LOAD s6,  21*SIZE_REG(\base)<br>	LOAD s7,  22*SIZE_REG(\base)<br>	LOAD s8,  23*SIZE_REG(\base)<br>	LOAD s9,  24*SIZE_REG(\base)<br>	LOAD s10, 25*SIZE_REG(\base)<br>	LOAD s11, 26*SIZE_REG(\base)<br>	LOAD t3,  27*SIZE_REG(\base)<br>	LOAD t4,  28*SIZE_REG(\base)<br>	LOAD t5,  29*SIZE_REG(\base)<br>	LOAD t6,  30*SIZE_REG(\base)<br>.endm<br></code></pre></td></tr></table></figure>
+
+<p>接着调用 ret 指令返回到新的 PC。</p>
+<p>整个过程的代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br></pre></td><td class="code"><pre><code class="hljs asm">#define LOAD		lw<br>#define STORE		sw<br>#define SIZE_REG	4<br><br>.macro reg_save base<br>	STORE ra,   0*SIZE_REG(\base)<br>	STORE sp,   1*SIZE_REG(\base)<br>	STORE t0,   4*SIZE_REG(\base)<br>	STORE t1,   5*SIZE_REG(\base)<br>	STORE t2,   6*SIZE_REG(\base)<br>	STORE s0,   7*SIZE_REG(\base)<br>	STORE s1,   8*SIZE_REG(\base)<br>	STORE a0,   9*SIZE_REG(\base)<br>	STORE a1,  10*SIZE_REG(\base)<br>	STORE a2,  11*SIZE_REG(\base)<br>	STORE a3,  12*SIZE_REG(\base)<br>	STORE a4,  13*SIZE_REG(\base)<br>	STORE a5,  14*SIZE_REG(\base)<br>	STORE a6,  15*SIZE_REG(\base)<br>	STORE a7,  16*SIZE_REG(\base)<br>	STORE s2,  17*SIZE_REG(\base)<br>	STORE s3,  18*SIZE_REG(\base)<br>	STORE s4,  19*SIZE_REG(\base)<br>	STORE s5,  20*SIZE_REG(\base)<br>	STORE s6,  21*SIZE_REG(\base)<br>	STORE s7,  22*SIZE_REG(\base)<br>	STORE s8,  23*SIZE_REG(\base)<br>	STORE s9,  24*SIZE_REG(\base)<br>	STORE s10, 25*SIZE_REG(\base)<br>	STORE s11, 26*SIZE_REG(\base)<br>	STORE t3,  27*SIZE_REG(\base)<br>	STORE t4,  28*SIZE_REG(\base)<br>	STORE t5,  29*SIZE_REG(\base)<br>.endm<br><br><br>.macro reg_restore base<br>	LOAD ra,   0*SIZE_REG(\base)<br>	LOAD sp,   1*SIZE_REG(\base)<br>	LOAD t0,   4*SIZE_REG(\base)<br>	LOAD t1,   5*SIZE_REG(\base)<br>	LOAD t2,   6*SIZE_REG(\base)<br>	LOAD s0,   7*SIZE_REG(\base)<br>	LOAD s1,   8*SIZE_REG(\base)<br>	LOAD a0,   9*SIZE_REG(\base)<br>	LOAD a1,  10*SIZE_REG(\base)<br>	LOAD a2,  11*SIZE_REG(\base)<br>	LOAD a3,  12*SIZE_REG(\base)<br>	LOAD a4,  13*SIZE_REG(\base)<br>	LOAD a5,  14*SIZE_REG(\base)<br>	LOAD a6,  15*SIZE_REG(\base)<br>	LOAD a7,  16*SIZE_REG(\base)<br>	LOAD s2,  17*SIZE_REG(\base)<br>	LOAD s3,  18*SIZE_REG(\base)<br>	LOAD s4,  19*SIZE_REG(\base)<br>	LOAD s5,  20*SIZE_REG(\base)<br>	LOAD s6,  21*SIZE_REG(\base)<br>	LOAD s7,  22*SIZE_REG(\base)<br>	LOAD s8,  23*SIZE_REG(\base)<br>	LOAD s9,  24*SIZE_REG(\base)<br>	LOAD s10, 25*SIZE_REG(\base)<br>	LOAD s11, 26*SIZE_REG(\base)<br>	LOAD t3,  27*SIZE_REG(\base)<br>	LOAD t4,  28*SIZE_REG(\base)<br>	LOAD t5,  29*SIZE_REG(\base)<br>	LOAD t6,  30*SIZE_REG(\base)<br>.endm<br><br><br>.text<br><br>.globl switch_to<br>.balign 4<br>switch_to:<br>	csrrw	t6, mscratch, t6<br>	beqz	t6, 1f<br>	reg_save t6<br><br><br>	mv	t5, t6<br>	csrr	t6, mscratch<br>	STORE	t6, 30*SIZE_REG(t5)<br><br>1:<br>	csrw	mscratch, a0<br><br>	mv	t6, a0<br>	reg_restore t6<br>	ret<br>.end<br></code></pre></td></tr></table></figure>
+
+<p>上面的 ret 指令其实是 <code>jalr x0, x1, 0</code>，也就是说，它会返回到 x1 也就是 ra。如果设计过 riscv CPU，就会知道其实它的硬件逻辑大概是：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs C">INSTPAT(<br>    <span class="hljs-string">&quot;??????? ????? ????? 000 ????? 11001 11&quot;</span>, jalr, I,<br>    s-&gt;dnpc = (src1 + imm) &amp; ~(<span class="hljs-type">word_t</span>)<span class="hljs-number">1</span>;<br></code></pre></td></tr></table></figure>
+<p>而且这里也没有很复杂的 csr 寄存器访问，也就是一个 mscratch。</p>
+<h2 id="新的上下文初始化以及切换"><a href="#新的上下文初始化以及切换" class="headerlink" title="新的上下文初始化以及切换"></a>新的上下文初始化以及切换</h2><p>首先需要初始化一个task，这个 task 有必要的栈区、以及返回地址（ret 指令必须从这返回）。</p>
+<p>还得有一个上下文，这是一个全局变量，保存在 OS 的栈区：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">uint8_t</span> __attribute__((aligned(<span class="hljs-number">16</span>))) task_stack[STACK_SIZE];<br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">context</span> <span class="hljs-title">ctx_task</span>;</span><br><br><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">w_mscratch</span><span class="hljs-params">(<span class="hljs-type">reg_t</span> x)</span> &#123;<br>    <span class="hljs-keyword">asm</span> <span class="hljs-title function_">volatile</span><span class="hljs-params">(<span class="hljs-string">&quot;csrw mscratch, %0&quot;</span> : : <span class="hljs-string">&quot;r&quot;</span>(x))</span>;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">user_task0</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;<br><span class="hljs-type">void</span> <span class="hljs-title function_">sched_init</span><span class="hljs-params">()</span> &#123;<br>    w_mscratch(<span class="hljs-number">0</span>);<br><br>    ctx_task.sp = (<span class="hljs-type">reg_t</span>)&amp;task_stack[STACK_SIZE];<br>    ctx_task.ra = (<span class="hljs-type">reg_t</span>)user_task0;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>接着就可以调用 schedule 了：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">schedule</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">context</span>* <span class="hljs-title">next</span> =</span> &amp;ctx_task;<br>    switch_to(next);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>至于 kernel：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;os.h&quot;</span></span><br><span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">uart_init</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;<br><span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">page_init</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;<br><span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">sched_init</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;<br><span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">schedule</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">start_kernel</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>	uart_init();<br>	uart_puts(<span class="hljs-string">&quot;Hello, RVOS!\n&quot;</span>);<br><br>	page_init();<br><br>	sched_init();<br><br>	schedule();<br><br>	uart_puts(<span class="hljs-string">&quot;Would not go here!\n&quot;</span>);<br>	<span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) &#123;&#125;; <span class="hljs-comment">// stop here!</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>就可以运行了。可以预见的是，它会不断打印 <code>Task 0: Running...</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs bash">Hello, RVOS!<br>HEAP_START = 0x8000487c(aligned to 0x80005000), HEAP_SIZE = 0x07ffb784,<br>num of reserved pages = 8, num of pages to be allocated <span class="hljs-keyword">for</span> heap = 32755<br>TEXT:   0x80000000 -&gt; 0x80002f70<br>RODATA: 0x80002f70 -&gt; 0x8000316c<br>DATA:   0x80004000 -&gt; 0x80004000<br>BSS:    0x80004000 -&gt; 0x8000487c<br>HEAP:   0x8000d000 -&gt; 0x88000000<br>Task 0: Created!<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br></code></pre></td></tr></table></figure>
+
+<p>这就是一个在启动后切到特定 task 的最简单的 OS 了。实现了切换上下文，那么跑多任务就水到渠成了。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/OS/" class="category-chain-item">OS</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/OS/" class="print-no-link">#OS</a>
+      
+        <a href="/tags/riscv/" class="print-no-link">#riscv</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>基于 riscv32 的 OS 设计：切换上下文</div>
+      <div>http://blog.luliang.online/2025/03/19/基于riscv32的OS(四)/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年3月19日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/03/20/%E5%9F%BA%E4%BA%8Eriscv32%E7%9A%84OS(%E4%BA%94)/" title="基于 riscv32 的 OS 设计：多任务">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">基于 riscv32 的 OS 设计：多任务</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/03/18/%E5%9F%BA%E4%BA%8Eriscv32%E7%9A%84OS(%E4%B8%89)/" title="基于 riscv32 的 OS 设计：内存分页">
+                        <span class="hidden-mobile">基于 riscv32 的 OS 设计：内存分页</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

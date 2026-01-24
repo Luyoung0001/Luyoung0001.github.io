@@ -1,0 +1,745 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="内存的组织kernel 跑起来之后，要在 kernel 中运行一些程序，这些程序有的会使用堆区、有的仅仅使用栈区。因此，组织这些内存很重要。 初始的组织，要使用链接脚本。链接脚本告诉编译器 OS 的代码段、数据段、bss 等位置在哪里。另外，编译器还提供了可以在 ld 脚本中使用的一些命令，比如一个简单的脚本如下： 12345678910111213141516171819202122232425">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于 riscv32 的 OS 设计：内存分页">
+<meta property="og:url" content="http://blog.luliang.online/2025/03/18/%E5%9F%BA%E4%BA%8Eriscv32%E7%9A%84OS(%E4%B8%89)/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="内存的组织kernel 跑起来之后，要在 kernel 中运行一些程序，这些程序有的会使用堆区、有的仅仅使用栈区。因此，组织这些内存很重要。 初始的组织，要使用链接脚本。链接脚本告诉编译器 OS 的代码段、数据段、bss 等位置在哪里。另外，编译器还提供了可以在 ld 脚本中使用的一些命令，比如一个简单的脚本如下： 12345678910111213141516171819202122232425">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-03-18T05:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.452Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="OS">
+<meta property="article:tag" content="riscv">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>基于 riscv32 的 OS 设计：内存分页 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="基于 riscv32 的 OS 设计：内存分页"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-03-18 13:03" pubdate>
+          2025年3月18日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.6k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          14 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">基于 riscv32 的 OS 设计：内存分页</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="内存的组织"><a href="#内存的组织" class="headerlink" title="内存的组织"></a>内存的组织</h2><p>kernel 跑起来之后，要在 kernel 中运行一些程序，这些程序有的会使用堆区、有的仅仅使用栈区。因此，组织这些内存很重要。</p>
+<p>初始的组织，要使用链接脚本。链接脚本告诉编译器 OS 的代码段、数据段、bss 等位置在哪里。另外，编译器还提供了可以在 ld 脚本中使用的一些命令，比如一个简单的脚本如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><code class="hljs asm">#include &quot;platform.h&quot;<br>OUTPUT_ARCH( &quot;riscv&quot; )<br>ENTRY( _start )<br><br>MEMORY<br>&#123;<br>	ram   (wxa!ri) : ORIGIN = 0x80000000, LENGTH = LENGTH_RAM<br>&#125;<br><br>SECTIONS<br>&#123;<br><br>	.text : &#123;<br>		PROVIDE(_text_start = .);<br>		*(.text .text.*)<br>		PROVIDE(_text_end = .);<br>	&#125; &gt;ram<br><br>	.rodata : &#123;<br>		PROVIDE(_rodata_start = .);<br>		*(.rodata .rodata.*)<br>		PROVIDE(_rodata_end = .);<br>	&#125; &gt;ram<br><br>	.data : &#123;<br>		. = ALIGN(4096);<br>		PROVIDE(_data_start = .);<br>		*(.sdata .sdata.*)<br>		*(.data .data.*)<br>		PROVIDE(_data_end = .);<br>	&#125; &gt;ram<br><br>	.bss :&#123;<br>		PROVIDE(_bss_start = .);<br>		*(.sbss .sbss.*)<br>		*(.bss .bss.*)<br>		*(COMMON)<br>		PROVIDE(_bss_end = .);<br>	&#125; &gt;ram<br><br>	PROVIDE(_memory_start = ORIGIN(ram));<br>	PROVIDE(_memory_end = ORIGIN(ram) + LENGTH(ram));<br><br>	PROVIDE(_heap_start = _bss_end);<br>	PROVIDE(_heap_size = _memory_end - _heap_start);<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<p>这段脚本定义了以下几个关键方面：</p>
+<ol>
+<li><p><strong>目标架构 (OUTPUT_ARCH):</strong></p>
+<ul>
+<li><code>OUTPUT_ARCH( &quot;riscv&quot; )</code>：指定目标架构为RISC-V。这意味着链接器将生成适用于RISC-V处理器的可执行文件。</li>
+</ul>
+</li>
+<li><p><strong>入口点 (ENTRY):</strong></p>
+<ul>
+<li><code>ENTRY( _start )</code>：定义程序的入口点为<code>_start</code>符号。这是程序执行的第一个指令的地址。</li>
+</ul>
+</li>
+<li><p><strong>内存布局 (MEMORY):</strong></p>
+<ul>
+<li><code>MEMORY &#123; ram (wxa!ri) : ORIGIN = 0x80000000, LENGTH = LENGTH_RAM &#125;</code>：定义了一个名为<code>ram</code>的内存区域，其起始地址为<code>0x80000000</code>，长度由<code>LENGTH_RAM</code>宏定义。<code>wxa!ri</code>指定了内存区域的属性，包括可写（w）、可执行（x）、地址可访问（a）、只读（!r）和初始化的（i）。</li>
+</ul>
+</li>
+<li><p><strong>段 (SECTIONS):</strong></p>
+<ul>
+<li><code>.text : &#123; ... &#125; &gt;ram</code>：将<code>.text</code>段（包含程序的可执行指令）放置在<code>ram</code>内存区域。<code>PROVIDE</code>指令定义了<code>_text_start</code>和<code>_text_end</code>符号，它们分别表示<code>.text</code>段的起始和结束地址。</li>
+<li><code>.rodata : &#123; ... &#125; &gt;ram</code>：将<code>.rodata</code>段（包含只读数据）放置在<code>ram</code>内存区域。<code>PROVIDE</code>指令定义了<code>_rodata_start</code>和<code>_rodata_end</code>符号，表示<code>.rodata</code>段的起始和结束地址。</li>
+<li><code>.data : &#123; ... &#125; &gt;ram</code>：将<code>.data</code>段（包含已初始化的可写数据）放置在<code>ram</code>内存区域。<code>. = ALIGN(4096)</code>确保<code>.data</code>段的起始地址是4096字节对齐的。<code>PROVIDE</code>指令定义了<code>_data_start</code>和<code>_data_end</code>符号，表示<code>.data</code>段的起始和结束地址。</li>
+<li><code>.bss :&#123; ... &#125; &gt;ram</code>：将<code>.bss</code>段（包含未初始化的可写数据）放置在<code>ram</code>内存区域。<code>PROVIDE</code>指令定义了<code>_bss_start</code>和<code>_bss_end</code>符号，表示<code>.bss</code>段的起始和结束地址。<code>COMMON</code>段也被放置在<code>.bss</code>段中。</li>
+<li><code>PROVIDE(_memory_start = ORIGIN(ram));</code></li>
+<li><code>PROVIDE(_memory_end = ORIGIN(ram) + LENGTH(ram));</code><ul>
+<li>定义了<code>_memory_start</code>和<code>_memory_end</code>符号，它们分别表示<code>ram</code>内存区域的起始和结束地址。</li>
+</ul>
+</li>
+<li><code>PROVIDE(_heap_start = _bss_end);</code></li>
+<li><code>PROVIDE(_heap_size = _memory_end - _heap_start);</code><ul>
+<li>定义了<code>_heap_start</code>符号，它表示堆的起始地址，堆紧跟在<code>.bss</code>段之后。</li>
+<li>定义了<code>_heap_size</code>符号，它表示堆的大小，即<code>ram</code>内存区域的结束地址减去堆的起始地址。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<p>这个链接器脚本定义了RISC-V程序的内存布局，包括代码、只读数据、已初始化数据、未初始化数据和堆的放置位置，以及相关的符号，这些符号可以在程序中使用。</p>
+<p>上面定义了一些符号，比如 <code>_heap_start</code>，尽管这些符号可以直接在 C文件中直接使用，但是仍然存在一些问题。比如，链接器脚本主要用于控制链接过程，它定义的符号本质上是内存地址和大小的标识，而不是 C 语言中的变量。</p>
+<p>因此，我们必须把这些符号重新定义一遍，存放在 .rodata 中：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs asm">#define SIZE_PTR .word<br><br>.section .rodata<br>.global HEAP_START<br>HEAP_START: SIZE_PTR _heap_start<br><br>.global HEAP_SIZE<br>HEAP_SIZE: SIZE_PTR _heap_size<br><br>.global TEXT_START<br>TEXT_START: SIZE_PTR _text_start<br>...<br></code></pre></td></tr></table></figure>
+
+<p>这样，我们就可以在 C语言中使用这些全局符号了：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-keyword">extern</span> <span class="hljs-type">ptr_t</span> TEXT_START;<br><span class="hljs-keyword">extern</span> <span class="hljs-type">ptr_t</span> TEXT_END;<br>...<br><br><span class="hljs-type">ptr_t</span> _heap_start_aligned = _align_page(HEAP_START);<br>...<br></code></pre></td></tr></table></figure>
+
+<h2 id="简单的页面分配"><a href="#简单的页面分配" class="headerlink" title="简单的页面分配"></a>简单的页面分配</h2><p>有了简单的内存布局之后，我们就可以在 heap 上划分 page 了。</p>
+<p>每一个 page 要由另一个区域指明是否处于已分配，这个区域位于 heap_start，之后才是真正的 paga 区。</p>
+<p>因此目前需要考虑的事情有：</p>
+<ul>
+<li>page 多大；</li>
+<li>怎么设计数据结构来指明 page 是否空闲；</li>
+<li>page 分配的方法；</li>
+<li>page 释放的方法；</li>
+</ul>
+<p>经过考虑，page 如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">static</span> <span class="hljs-type">ptr_t</span> _alloc_start = <span class="hljs-number">0</span>;<br><span class="hljs-type">static</span> <span class="hljs-type">ptr_t</span> _alloc_end = <span class="hljs-number">0</span>;<br><span class="hljs-type">static</span> <span class="hljs-type">uint32_t</span> _num_pages = <span class="hljs-number">0</span>;<br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PAGE_SIZE 4096</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PAGE_ORDER 12</span><br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PAGE_TAKEN (uint8_t)(1 &lt;&lt; 0)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PAGE_LAST  (uint8_t)(1 &lt;&lt; 1)</span><br><br><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * Page Descriptor</span><br><span class="hljs-comment"> * flags:</span><br><span class="hljs-comment"> * - bit 0: flag if this page is taken(allocated)</span><br><span class="hljs-comment"> * - bit 1: flag if this page is the last page of the memory block allocated</span><br><span class="hljs-comment"> */</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Page</span> &#123;</span><br>	<span class="hljs-type">uint8_t</span> flags;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>因此，首先，page 初始化：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">page_init</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-comment">// 像高地址对齐到 4KB</span><br>	<span class="hljs-type">ptr_t</span> _heap_start_aligned = _align_page(HEAP_START);<br>    <span class="hljs-comment">// 存放 page 的信息的页面个数</span><br>	<span class="hljs-type">uint32_t</span> num_reserved_pages = LENGTH_RAM / (PAGE_SIZE * PAGE_SIZE);<br><br>    <span class="hljs-comment">// 真正的可分配的 page 的个数</span><br>	_num_pages = (HEAP_SIZE - (_heap_start_aligned - HEAP_START))/ PAGE_SIZE - num_reserved_pages;<br><br>    <span class="hljs-comment">// 打印关键信息</span><br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;HEAP_START = %p(aligned to %p), HEAP_SIZE = 0x%lx,\n&quot;</span><br>	       <span class="hljs-string">&quot;num of reserved pages = %d, num of pages to be allocated for heap = %d\n&quot;</span>,<br>	       HEAP_START, _heap_start_aligned, HEAP_SIZE,<br>	       num_reserved_pages, _num_pages);<br><br>    <span class="hljs-comment">// 这里直接在 HEAP_START 开始清除标记，因为这里操作的是 pages 之前的区域</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Page</span> *<span class="hljs-title">page</span> =</span> (<span class="hljs-keyword">struct</span> Page *)HEAP_START;<br>	<span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; _num_pages; i++) &#123;<br>		_clear(page);<br>		page++;<br>	&#125;<br><br>	_alloc_start = _heap_start_aligned + num_reserved_pages * PAGE_SIZE;<br>	_alloc_end = _alloc_start + (PAGE_SIZE * _num_pages);<br><br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;TEXT:   %p -&gt; %p\n&quot;</span>, TEXT_START, TEXT_END);<br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;RODATA: %p -&gt; %p\n&quot;</span>, RODATA_START, RODATA_END);<br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;DATA:   %p -&gt; %p\n&quot;</span>, DATA_START, DATA_END);<br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;BSS:    %p -&gt; %p\n&quot;</span>, BSS_START, BSS_END);<br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;HEAP:   %p -&gt; %p\n&quot;</span>, _alloc_start, _alloc_end);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>接着就是分配算法了，当遇到分配个数为 n 的时候，我们必须找出连续的 n 个 page：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> *<span class="hljs-title function_">page_alloc</span><span class="hljs-params">(<span class="hljs-type">int</span> npages)</span>&#123;<br>	<span class="hljs-type">int</span> found = <span class="hljs-number">0</span>;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Page</span> *<span class="hljs-title">page_i</span> =</span> (<span class="hljs-keyword">struct</span> Page *)HEAP_START;<br>    <span class="hljs-comment">// 从第一个开始扫描</span><br>	<span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt;= (_num_pages - npages); i++) &#123;<br>        <span class="hljs-comment">// 如果找到了，那么就继续向后探索 n 个连续的区域</span><br>		<span class="hljs-keyword">if</span> (_is_free(page_i)) &#123;<br>			found = <span class="hljs-number">1</span>;<br><br>			<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Page</span> *<span class="hljs-title">page_j</span> =</span> page_i + <span class="hljs-number">1</span>;<br>			<span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> j = i + <span class="hljs-number">1</span>; j &lt; (i + npages); j++) &#123;<br>				<span class="hljs-keyword">if</span> (!_is_free(page_j)) &#123;<br>                    <span class="hljs-comment">// 如果连续失败，直接退出，继续扫描</span><br>					found = <span class="hljs-number">0</span>;<br>					<span class="hljs-keyword">break</span>;<br>				&#125;<br>				page_j++;<br>			&#125;<br>			<span class="hljs-comment">/*</span><br><span class="hljs-comment">			 * get a memory block which is good enough for us,</span><br><span class="hljs-comment">			 * take housekeeping, then return the actual start</span><br><span class="hljs-comment">			 * address of the first page of this memory block</span><br><span class="hljs-comment">			 */</span><br>			<span class="hljs-keyword">if</span> (found) &#123;<br>            <span class="hljs-comment">// 如果找到了，那么就打标记</span><br>				<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Page</span> *<span class="hljs-title">page_k</span> =</span> page_i;<br>				<span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> k = i; k &lt; (i + npages); k++) &#123;<br>					_set_flag(page_k, PAGE_TAKEN);<br>					page_k++;<br>				&#125;<br>				page_k--;<br>				_set_flag(page_k, PAGE_LAST);<br>                <span class="hljs-comment">// 返回 pages 中的找到的首地址</span><br>				<span class="hljs-keyword">return</span> (<span class="hljs-type">void</span> *)(_alloc_start + i * PAGE_SIZE);<br>			&#125;<br>		&#125;<br>		page_i++;<br>	&#125;<br>	<span class="hljs-keyword">return</span> <span class="hljs-literal">NULL</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>释放 page 也很简单，传入一个内存地址后，比如 p。计算出 p 的标记 page，然后开始撤销标记，一直到标记 page 的 last_tag 位：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">page_free</span><span class="hljs-params">(<span class="hljs-type">void</span> *p)</span>&#123;<br>	<span class="hljs-keyword">if</span> (!p || (<span class="hljs-type">ptr_t</span>)p &gt;= _alloc_end) &#123;<br>		<span class="hljs-keyword">return</span>;<br>	&#125;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Page</span> *<span class="hljs-title">page</span> =</span> (<span class="hljs-keyword">struct</span> Page *)HEAP_START;<br>	page += ((<span class="hljs-type">ptr_t</span>)p - _alloc_start)/ PAGE_SIZE;<br>	<span class="hljs-keyword">while</span> (!_is_free(page)) &#123;<br>		<span class="hljs-keyword">if</span> (_is_last(page)) &#123;<br>			_clear(page);<br>			<span class="hljs-keyword">break</span>;<br>		&#125; <span class="hljs-keyword">else</span> &#123;<br>			_clear(page);<br>			page++;;<br>		&#125;<br>	&#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<p>测试一下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs C"><br><span class="hljs-type">void</span> <span class="hljs-title function_">page_test</span><span class="hljs-params">()</span>&#123;<br>	<span class="hljs-type">void</span> *p = page_alloc(<span class="hljs-number">2</span>);<br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;p = %p\n&quot;</span>, p);<br>	page_free(p);<br><br>	<span class="hljs-type">void</span> *p2 = page_alloc(<span class="hljs-number">3</span>);<br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;p2 = %p\n&quot;</span>, p2);<br>	<span class="hljs-comment">// page_free(p2);</span><br><br>	<span class="hljs-type">void</span> *p3 = page_alloc(<span class="hljs-number">4</span>);<br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;p3 = %p\n&quot;</span>, p3);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs bash">Hello, RVOS!<br>HEAP_START = 0x800033f4(aligned to 0x80004000), HEAP_SIZE = 0x07ffcc0c,<br>num of reserved pages = 8, num of pages to be allocated <span class="hljs-keyword">for</span> heap = 32756<br>TEXT:   0x80000000 -&gt; 0x80002d28<br>RODATA: 0x80002d28 -&gt; 0x80002ee5<br>DATA:   0x80003000 -&gt; 0x80003000<br>BSS:    0x80003000 -&gt; 0x800033f4<br>HEAP:   0x8000c000 -&gt; 0x88000000<br>p = 0x8000c000<br>p2 = 0x8000c000<br>p3 = 0x8000f000<br><br></code></pre></td></tr></table></figure>
+<p>可以看到，是符合预期的。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/OS/" class="category-chain-item">OS</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/OS/" class="print-no-link">#OS</a>
+      
+        <a href="/tags/riscv/" class="print-no-link">#riscv</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>基于 riscv32 的 OS 设计：内存分页</div>
+      <div>http://blog.luliang.online/2025/03/18/基于riscv32的OS(三)/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年3月18日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/03/19/%E5%9F%BA%E4%BA%8Eriscv32%E7%9A%84OS(%E5%9B%9B)/" title="基于 riscv32 的 OS 设计：切换上下文">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">基于 riscv32 的 OS 设计：切换上下文</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/03/16/%E5%9F%BA%E4%BA%8Eriscv32%E7%9A%84OS(%E4%BA%8C)/" title="基于 riscv32 的 OS 设计：启动最简单的 OS">
+                        <span class="hidden-mobile">基于 riscv32 的 OS 设计：启动最简单的 OS</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

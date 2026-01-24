@@ -1,0 +1,849 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Branch PredictionBOOM uses two levels of branch prediction:  a fast Next-Line Predictor (NLP) a slower but more complex Backing Predictor (BPD)  In this case, the NLP is a Branch Target Buffer and the">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Branch Prediction for riscv-boom">
+<meta property="og:url" content="http://blog.luliang.online/2025/11/27/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E5%99%A84/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="Branch PredictionBOOM uses two levels of branch prediction:  a fast Next-Line Predictor (NLP) a slower but more complex Backing Predictor (BPD)  In this case, the NLP is a Branch Target Buffer and the">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-11-27T07:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.450Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="分支预测">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>Branch Prediction for riscv-boom - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Branch Prediction for riscv-boom"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-11-27 15:03" pubdate>
+          2025年11月27日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          648 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          6 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Branch Prediction for riscv-boom</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="Branch-Prediction"><a href="#Branch-Prediction" class="headerlink" title="Branch Prediction"></a>Branch Prediction</h2><p>BOOM uses two levels of branch prediction:</p>
+<ul>
+<li>a fast Next-Line Predictor (NLP)</li>
+<li>a slower but more complex Backing Predictor (BPD)</li>
+</ul>
+<p>In this case, the NLP is a Branch Target Buffer and the BPD is a more complicated structure like a GShare predictor.</p>
+<p>Branch Prediction:</p>
+<ul>
+<li>The Next-Line Predictor (NLP)</li>
+<li><ul>
+<li>NLP Predictions</li>
+</ul>
+</li>
+<li><ul>
+<li>NLP Updates</li>
+</ul>
+</li>
+<li>The Backing Predictor (BPD)</li>
+<li><ul>
+<li>Making Predictions</li>
+</ul>
+</li>
+<li><ul>
+<li>Jump and Jump-Register Instructions</li>
+</ul>
+</li>
+<li><ul>
+<li>Updating the Backing Predictor</li>
+</ul>
+</li>
+<li><ul>
+<li>Managing the Global History Register (GHR)</li>
+</ul>
+</li>
+<li><ul>
+<li>The Fetch Target Queue (FTQ) for Predictions</li>
+</ul>
+</li>
+<li><ul>
+<li>Rename Snapshot State</li>
+</ul>
+</li>
+<li><ul>
+<li>The Abstract Branch Predictor Class</li>
+</ul>
+</li>
+<li><ul>
+<li>The Two-bit Counter Tables</li>
+</ul>
+</li>
+<li><ul>
+<li>The GShare Predictor</li>
+</ul>
+</li>
+<li><ul>
+<li>The TAGE Predictor</li>
+</ul>
+</li>
+<li><ul>
+<li>Other Predictors</li>
+</ul>
+</li>
+</ul>
+<p>It seams that BPD is much more complicated than NLP.</p>
+<h2 id="The-Next-Line-Predictor-NLP"><a href="#The-Next-Line-Predictor-NLP" class="headerlink" title="The Next-Line Predictor (NLP)"></a>The Next-Line Predictor (NLP)</h2><p>BOOM core’s Front-end fetches instructions and predicts every cycle where to fetch the next instructions. If a misprediction is detected in</p>
+<ul>
+<li>BOOM’s Back-end</li>
+<li>BOOM’s own Backing Predictor (BPD) wants to redirect the pipeline in a different direction</li>
+</ul>
+<p>, a request is sent to the Front-end and it begins fetching along a new instruction path.</p>
+<p>The Next-Line Predictor (NLP) takes in the current PC being used to fetch instructions (the <strong>Fetch PC</strong>) and predicts combinationally where the next instructions should be fetched for the next cycle. If predicted correctly, there are no pipeline bubbles.</p>
+<p>The NLP is an amalgamation of a fully-associative:</p>
+<ul>
+<li>Branch Target Buffer (BTB)</li>
+<li>Bi-Modal Table (BIM)</li>
+<li>Return Address Stack (RAS)</li>
+</ul>
+<p>which work together to make a fast, but reasonably accurate prediction.</p>
+<h2 id="NLP-Predictions"><a href="#NLP-Predictions" class="headerlink" title="NLP Predictions"></a>NLP Predictions</h2><p>The <strong>Fetch PC</strong> first performs a tag match to find a uniquely matching BTB entry. If a hit occurs, the BTB entry will make a prediction in concert with the RAS as to whether there is a branch, jump, or return found in the <strong>Fetch Packet</strong> and which instruction in the <strong>Fetch Packet</strong> is to blame. The BIM is used to determine if that prediction made was a branch taken or not taken. The BTB entry also contains a predicted PC target, which is used as the <strong>Fetch PC</strong> on the next cycle.</p>
+<p>Fetch Packet</p>
+<ul>
+<li>A bundle returned by the Front-end which contains some set of consecutive instructions with a mask denoting which instructions are valid, amongst other meta-data related to instruction fetch and branch prediction. The <strong>Fetch PC</strong> will point to the first valid instruction in the <strong>Fetch Packet</strong>, as it is the PC used by the Front End to fetch the <strong>Fetch Packet</strong>.</li>
+</ul>
+<p>Fetch PC</p>
+<ul>
+<li>The PC corresponding to the head of a <strong>Fetch Packet</strong> instruction group.</li>
+</ul>
+<p>The Fetch PC scans the BTB’s “PC tags” for a match. If a match is found (and the entry is valid), the Bi-Modal Table (BIM) and RAS are consulted for the final verdict. If the entry is a “ret” (return instruction), then the target comes from the RAS. If the entry is a unconditional “jmp” (jump instruction), then the BIM is not consulted. The “bidx”, or branch index, marks which instruction in a superscalar Fetch Packet is the cause of the control flow prediction. This is necessary to mask off the other instructions in the Fetch Packet that come over the taken branch.</p>
+<p>The hysteresis bits in the BIM are only used on a</p>
+<ul>
+<li>BTB entry hit</li>
+<li>the predicting instruction is a branch.</li>
+</ul>
+<p>If the BTB entry contains <strong>a return instruction</strong>, the RAS stack is used to provide the predicted return PC as the next Fetch PC. The actual RAS management (of when to or the stack) is governed externally.</p>
+<p>For area-efficiency, the high-order bits of the PC tags and PC targets are stored in a compressed file.</p>
+<h2 id="NLP-Updates"><a href="#NLP-Updates" class="headerlink" title="NLP Updates"></a>NLP Updates</h2><p>Each branch passed down the pipeline remembers not only its own PC, but also its Fetch PC (the PC of the head instruction of its Fetch Packet ).</p>
+<h3 id="BTB-Updates"><a href="#BTB-Updates" class="headerlink" title="BTB Updates"></a>BTB Updates</h3><p>The BTB is updated only when the Front-end is redirected to take a branch or jump by either the Branch Unit (in the Execute stage) or the BPD (later in the Fetch stages).</p>
+<p>If there is no BTB entry corresponding to the taken branch or jump, an new entry is allocated for it.</p>
+<h3 id="RAS-Updates"><a href="#RAS-Updates" class="headerlink" title="RAS Updates"></a>RAS Updates</h3><p>The RAS is updated during the Fetch stages once the instructions in the Fetch Packet have been decoded. If the taken instruction is a call, the return address is pushed onto the RAS. If the taken instruction is a return, then the RAS is popped.</p>
+<h3 id="Superscalar-Predictions"><a href="#Superscalar-Predictions" class="headerlink" title="Superscalar Predictions"></a>Superscalar Predictions</h3><p>When the NLP makes a prediction, it is actually using the BTB to tag match against the predicted branch’s Fetch PC, and not the PC of the branch itself. The NLP must predict across the entire Fetch Packet which of the many possible branches will be the dominating branch that redirects the PC. For this reason, we use a given branch’s Fetch PC rather than its own PC in the BTB tag match.</p>
+<p>Each BTB entry corresponds to a single Fetch PC, but it is helping to predict across an entire Fetch Packet. However, the BTB entry can only store meta-data and target-data on a single control-flow instruction. While there are certainly pathological cases that can harm performance with this design, the assumption is that there is a correlation between which branch in a Fetch Packet is the dominating branch relative to the Fetch PC, and - at least for narrow fetch designs - evaluations of this design has shown it is very complexity-friendly with no noticeable loss in performance. Some other designs instead choose to provide a whole bank of BTBs for each possible instruction in the Fetch Packet.</p>
+<h2 id="The-Backing-Predictor-BPD"><a href="#The-Backing-Predictor-BPD" class="headerlink" title="The Backing Predictor (BPD)"></a>The Backing Predictor (BPD)</h2><p>When the Next-Line Predictor (NLP) is predicting well, the processor’s Back-end is provided an unbroken stream of instructions to execute. The NLP is able to provide fast, single-cycle predictions by being expensive (in terms of both area and power), very small (only a few dozen branches can be remembered), and very simple (the Bi-Modal Table (BIM) hysteresis bits are not able to learn very complicated or long history patterns).</p>
+<p>To capture more branches and more complicated branching behaviors, BOOM provides support for a Backing Predictor (BPD).</p>
+<p>The BPD ‘s goal is to provide very high accuracy in a (hopefully) dense area. The BPD only makes taken&#x2F;not-taken predictions; it therefore relies on some other agent to provide information on what instructions are branches and what their targets are. The BPD can either use the BTB for this information or it can wait and decode the instructions themselves once they have been fetched from the i-cache. This saves on needing to store the PC tags and branch targets within the BPD.</p>
+<p>The BPD is accessed throughout the Fetch stages and in parallel with the instruction cache access and BTB. This allows the BPD to be stored in sequential memory (i.e., SRAM instead of flip-flops). With some clever architecting, the BPD can be stored in single-ported SRAM to achieve the density desired.</p>
+<h2 id="Making-Predictions"><a href="#Making-Predictions" class="headerlink" title="Making Predictions"></a>Making Predictions</h2><p>When making a prediction, the BPD must provide the following:</p>
+<ul>
+<li>is a prediction being made?</li>
+<li>a bit-vector of taken&#x2F;not-taken predictions</li>
+</ul>
+<p>As per the first bullet-point, the BPD may decide to not make a prediction. This may be because the predictor uses tags to inform whether its prediction is valid or there may be a structural hazard that prevented a prediction from being made.</p>
+<p>The BPD provides a bit-vector of taken&#x2F;not-taken predictions, the size of the bit-vector matching the Fetch Width of the pipeline (one bit for each instruction in the Fetch Packet ). A later Fetch stage will will decode the instructions in the Fetch Packet , compute the branch targets, and decide in conjunction with the BPD ‘s prediction bit-vector if a Front-end redirect should be made.</p>
+<h2 id="Jump-and-Jump-Register-Instructions"><a href="#Jump-and-Jump-Register-Instructions" class="headerlink" title="Jump and Jump-Register Instructions"></a>Jump and Jump-Register Instructions</h2><p>The BPD makes predictions only on the direction (taken versus not-taken) of <strong>conditional branches</strong>. Non-conditional “jumps” (JAL) and “jump-register” (JALR) instructions are handled separately from the BPD.</p>
+<p>The NLP learns any “taken” instruction’s PC and target PC - thus, the NLP is able to predict jumps and jump-register instructions.</p>
+<p>If the NLP does not make a prediction on a JAL instruction, the pipeline will redirect the Front-end in F4.</p>
+<p>Jump-register instructions that were not predicted by the NLP will <strong>be sent down the pipeline with no prediction made</strong>. As JALR instructions require reading the register file to deduce the jump target, there’s nothing that can be done if the NLP does not make a prediction.</p>
+<h2 id="Updating-the-Backing-Predictor"><a href="#Updating-the-Backing-Predictor" class="headerlink" title="Updating the Backing Predictor"></a>Updating the Backing Predictor</h2><p>Generally speaking, the BPD is updated during the Commit stage. This prevents the BPD from being polluted by wrong-path information. However, as the BPD makes use of global history, this history must be reset whenever the Front-end is redirected. Thus, the BPD must also be (partially) updated during Execute when a misprediction occurs to reset any speculative updates that had occurred during the Fetch stages.</p>
+<p>When making a prediction, the BPD passes to the pipeline a “response info packet”. This “info packet” is stored in the Fetch Target Queue (FTQ) until commit time. [11] Once all of the instructions corresponding to the “info packet” is committed, the “info packet” is set to the BPD (along with the eventual outcome of the branches) and the BPD is updated. The Fetch Target Queue (FTQ) for Predictions covers the FTQ , which handles the snapshot information needed for update the predictor during Commit. Rename Snapshot State covers the Branch Rename Snapshots , which handles the snapshot information needed to update the predictor during a misspeculation in the Execute stage.</p>
+<h2 id="Managing-the-Global-History-Register-GHR"><a href="#Managing-the-Global-History-Register-GHR" class="headerlink" title="Managing the Global History Register (GHR)"></a>Managing the Global History Register (GHR)</h2><p>The Global History Register (GHR) is an important piece of a branch predictor. It contains the outcomes of the previous N branches (where N is the size of the GHR ).</p>
+<p>When fetching branch i, it is important that the direction of the previous i-N branches is available so an accurate prediction can be made. Waiting until the Commit stage to update the GHR would be too late (dozens of branches would be inflight and not reflected!). Therefore, the GHR must be updated speculatively, once the branch is fetched and predicted.</p>
+<p>If a misprediction occurs, the GHR must be reset and updated to reflect the actual history. This means that each branch (more accurately, each Fetch Packet ) must snapshot the GHR in case of a misprediction.</p>
+<p>There is one final wrinkle - exceptional pipeline behavior. While each branch contains a snapshot of the GHR , any instruction can potential throw an exception that will cause a Front-end redirect. Such an event will cause the GHR to become corrupted. For exceptions, this may seem acceptable - exceptions should be rare and the trap handlers will cause a pollution of the GHR anyways (from the point of view of the user code). However, some exceptional events include “pipeline replays” - events where an instruction causes a pipeline flush and the instruction is refetched and re-executed. For this reason, a commit copy of the GHR is also maintained by the BPD and reset on any sort of pipeline flush event.</p>
+<h2 id="The-Fetch-Target-Queue-FTQ-for-Predictions"><a href="#The-Fetch-Target-Queue-FTQ-for-Predictions" class="headerlink" title="The Fetch Target Queue (FTQ) for Predictions"></a>The Fetch Target Queue (FTQ) for Predictions</h2><p>The Reorder Buffer (see The Reorder Buffer (ROB) and the Dispatch Stage ) maintains a record of all inflight instructions. Likewise, the FTQ maintains a record of all inflight branch predictions and PC information. These two structures are decoupled as FTQ entries are incredibly expensive and not all ROB entries will contain a branch instruction. As only roughly one in every six instructions is a branch, the FTQ can be made to have fewer entries than the ROB to leverage additional savings.</p>
+<p>Each FTQ entry corresponds to one Fetch cycle. For each prediction made, the branch predictor packs up data that it will need later to perform an update. For example, a branch predictor will want to remember what index a prediction came from so it can update the counters at that index later. This data is stored in the FTQ .</p>
+<p>When the last instruction in a Fetch Packet is committed, the FTQ entry is deallocated and returned to the branch predictor. Using the data stored in the FTQ entry, the branch predictor can perform any desired updates to its prediction state.</p>
+<p>There are a number of reasons to update the branch predictor after Commit. It is crucial that the predictor only learns correct information. In a data cache, memory fetched from a wrong path execution may eventually become useful when later executions go to a different path. But for a branch predictor, wrong path updates encode information that is pure pollution – it takes up useful entries by storing information that is not useful and will never be useful. Even if later iterations do take a different path, the history that got it there will be different. And finally, while caches are fully tagged, branch predictors use partial tags (if any) and thus suffer from deconstructive aliasing.</p>
+<p>Of course, the latency between Fetch and Commit is inconvenient and can cause extra branch mispredictions to occur if multiple loop iterations are inflight. However, the FTQ could be used to bypass branch predictions to mitigate this issue. Currently, this bypass behavior is not supported in BOOM.</p>
+<h2 id="Rename-Snapshot-State"><a href="#Rename-Snapshot-State" class="headerlink" title="Rename Snapshot State"></a>Rename Snapshot State</h2><p>The FTQ holds branch predictor data that will be needed to update the branch predictor during Commit (for both correct and incorrect predictions). However, there is additional state needed for when the branch predictor makes an incorrect prediction and must be updated immediately. For example, if a misprediction occurs, the speculatively-updated GHR must be reset to the correct value before the processor can begin fetching (and predicting) again.</p>
+<p>This state can be very expensive but it can be deallocated once the branch is resolved in the Execute stage. Therefore, the state is stored in parallel with the Branch Rename Snapshot s. During Decode and Rename, a Branch Tag is allocated to each branch and a snapshot of the rename tables are made to facilitate single-cycle rollback if a misprediction occurs. Like the branch tag and Rename Map Table snapshots, the corresponding Branch Rename Snapshot can be deallocated once the branch is resolved by the Branch Unit in Execute.</p>
+<p>The Branch Predictor Pipeline. Although a simple diagram, this helps show the I&#x2F;O within the Branch Prediction Pipeline. The Front-end sends the “next PC” (shown as req) to the pipeline in the F0 stage. Within the “Abstract Predictor”, hashing is managed by the “Abstract Predictor” wrapper. The “Abstract Predictor” then returns a Backing Predictor (BPD) response or in other words a prediction for each instruction in the Fetch Packet .</p>
+<h2 id="The-Abstract-Branch-Predictor-Class"><a href="#The-Abstract-Branch-Predictor-Class" class="headerlink" title="The Abstract Branch Predictor Class"></a>The Abstract Branch Predictor Class</h2><p>To facilitate exploring different global history-based BPD designs, an abstract “BrPredictor” class is provided. It provides a standard interface into the BPD and the control logic for managing the global history register. This abstract class can be found in Fig. 9 labeled “Abstract Predictor”. For a more detailed view of the predictor with an example look at Fig. 12.</p>
+<h3 id="Global-History"><a href="#Global-History" class="headerlink" title="Global History"></a>Global History</h3><p>As discussed in Managing the Global History Register, global history is a vital piece of any branch predictor. As such, it is handled by the abstract BranchPredictor class. Any branch predictor extending the abstract BranchPredictor class gets access to global history without having to handle snapshotting, updating, and bypassing.</p>
+<h3 id="Operating-System-aware-Global-Histories"><a href="#Operating-System-aware-Global-Histories" class="headerlink" title="Operating System-aware Global Histories"></a>Operating System-aware Global Histories</h3><p>Although the data on its benefits are preliminary, BOOM does support OS-aware global histories. The normal global history tracks all instructions from all privilege levels. A second user-only global history tracks only user-level instructions.</p>
+<h2 id="The-Two-bit-Counter-Tables"><a href="#The-Two-bit-Counter-Tables" class="headerlink" title="The Two-bit Counter Tables"></a>The Two-bit Counter Tables</h2><p>The basic building block of most branch predictors is the “Two-bit Counter Table” (2BC). As a particular branch is repeatedly taken, the counter saturates upwards to the max value 3 (0b11) or strongly taken. Likewise, repeatedly not-taken branches saturate towards zero (0b00). The high-order bit specifies the prediction and the low-order bit specifies the hysteresis (how “strong” the prediction is).</p>
+<p>These two-bit counters are aggregated into a table. Ideally, a good branch predictor knows which counter to index to make the best prediction. However, to fit these two-bit counters into dense SRAM, a change is made to the 2BC finite state machine – mispredictions made in the weakly not-taken state move the 2BC into the strongly taken state (and vice versa for weakly taken being mispredicted). The FSM behavior is shown in Fig. 11.</p>
+<p>Although it’s no longer strictly a “counter”, this change allows us to separate out the read and write requirements on the prediction and hystersis bits and place them in separate sequential memory tables. In hardware, the 2BC table can be implemented as follows:</p>
+<p>The P-bit:</p>
+<ul>
+<li>Read - every cycle to make a prediction</li>
+<li>Write - only when a misprediction occurred (the value of the h-bit).</li>
+</ul>
+<p>The H-bit:</p>
+<ul>
+<li>Read - only when a misprediction occurred.</li>
+<li>Write - when a branch is resolved (write the direction the branch took).</li>
+</ul>
+<p>By breaking the high-order p-bit and the low-order h-bit apart, we can place each in 1 read&#x2F;1 write SRAM. A few more assumptions can help us do even better. Mispredictions are rare and branch resolutions are not necessarily occurring on every cycle. Also, writes can be delayed or even dropped altogether. Therefore, the h-table can be implemented using a single 1rw-ported SRAM by queueing writes up and draining them when a read is not being performed. Likewise, the p-table can be implemented in 1rw-ported SRAM by banking it – buffer writes and drain when there is not a read conflict.</p>
+<p>A final note: SRAMs are not happy with a “tall and skinny” aspect ratio that the 2BC tables require. However, the solution is simple – tall and skinny can be trivially transformed into a rectangular memory structure. The high-order bits of the index can correspond to the SRAM row and the low-order bits can be used to mux out the specific bits from within the row.</p>
+<h2 id="The-GShare-Predictor"><a href="#The-GShare-Predictor" class="headerlink" title="The GShare Predictor"></a>The GShare Predictor</h2><p>GShare is a simple but very effective branch predictor. Predictions are made by hashing the instruction address and the GHR (typically a simple XOR) and then indexing into a table of two-bit counters. Fig. 10 shows the logical architecture and Fig. 12 shows the physical implementation and structure of the GShare predictor. Note that the prediction begins in the F0 stage when the requesting address is sent to the predictor but that the prediction is made later in the F3 stage once the instructions have returned from the instruction cache and the prediction state has been read out of the GShare’s p-table.</p>
+<h2 id="The-TAGE-Predictor"><a href="#The-TAGE-Predictor" class="headerlink" title="The TAGE Predictor"></a>The TAGE Predictor</h2><p>BOOM also implements the TAGE conditional branch predictor. TAGE is a highly-parameterizable, state-of-the-art global history predictor. The design is able to maintain a high degree of accuracy while scaling from very small predictor sizes to very large predictor sizes. It is fast to learn short histories while also able to learn very, very long histories (over a thousand branches of history).</p>
+<p>TAGE (TAgged GEometric) is implemented as a collection of predictor tables. Each table entry contains a prediction counter, a usefulness counter, and a tag. The prediction counter provides the prediction (and maintains some hysteresis as to how strongly biased the prediction is towards taken or not-taken). The usefulness counter tracks how useful the particular entry has been in the past for providing correct predictions. The tag allows the table to only make a prediction if there is a tag match for the particular requesting instruction address and global history.</p>
+<p>Each table has a different (and geometrically increasing) amount of history associated with it. Each table’s history is used to hash with the requesting instruction address to produce an index hash and a tag hash. Each table will make its own prediction (or no prediction, if there is no tag match). The table with the longest history making a prediction wins.</p>
+<p>On a misprediction, TAGE attempts to allocate a new entry. It will only overwrite an entry that is “not useful” (ubits &#x3D;&#x3D; 0).</p>
+<h3 id="TAGE-Global-History-and-the-Circular-Shift-Registers-CSRs"><a href="#TAGE-Global-History-and-the-Circular-Shift-Registers-CSRs" class="headerlink" title="TAGE Global History and the Circular Shift Registers (CSRs)"></a>TAGE Global History and the Circular Shift Registers (CSRs)</h3><p>Each TAGE table has associated with it its own global history (and each table has geometrically more history than the last table). The histories contain many more bits of history that can be used to index a TAGE table; therefore, the history must be “folded” to fit. A table with 1024 entries uses 10 bits to index the table. Therefore, if the table uses 20 bits of global history, the top 10 bits of history are XOR’ed against the bottom 10 bits of history.</p>
+<p>Instead of attempting to dynamically fold a very long history register every cycle, the history can be stored in a circular shift register (CSR). The history is stored already folded and only the new history bit and the oldest history bit need to be provided to perform an update. Listing 2 shows an example of how a CSR works.</p>
+<p>Listing 2 The circular shift register. When a new branch outcome is added, the register is shifted (and wrapped around). The new outcome is added and the oldest bit in the history is “evicted”.</p>
+<p>Each table must maintain three CSRs. The first CSR is used for computing the index hash and has a size n&#x3D;log(num_table_entries). As a CSR contains the folded history, any periodic history pattern matching the length of the CSR will XOR to all zeroes (potentially quite common). For this reason, there are two CSRs for computing the tag hash, one of width n and the other of width n-1.</p>
+<p>For every prediction, all three CSRs (for every table) must be snapshotted and reset if a branch misprediction occurs. Another three commit copies of these CSRs must be maintained to handle pipeline flushes.</p>
+<h3 id="Usefulness-counters-u-bits"><a href="#Usefulness-counters-u-bits" class="headerlink" title="Usefulness counters (u-bits)"></a>Usefulness counters (u-bits)</h3><p>The “usefulness” of an entry is stored in the u-bit counters. Roughly speaking, if an entry provides a correct prediction, the u-bit counter is incremented. If an entry provides an incorrect prediction, the u-bit counter is decremented. When a misprediction occurs, TAGE attempts to allocate a new entry. To prevent overwriting a useful entry, it will only allocate an entry if the existing entry has a usefulness of zero. However, if an entry allocation fails because all of the potential entries are useful, then all of the potential entries are decremented to potentially make room for an allocation in the future.</p>
+<p>To prevent TAGE from filling up with only useful but rarely-used entries, TAGE must provide a scheme for “degrading” the u-bits over time. A number of schemes are available. One option is a timer that periodically degrades the u-bit counters. Another option is to track the number of failed allocations (incrementing on a failed allocation and decremented on a successful allocation). Once the counter has saturated, all u-bits are degraded.</p>
+<h3 id="TAGE-Snapshot-State"><a href="#TAGE-Snapshot-State" class="headerlink" title="TAGE Snapshot State"></a>TAGE Snapshot State</h3><p>For every prediction, all three CSRs (for every table) must be snapshotted and reset if a branch misprediction occurs. TAGE must also remember the index of each table that was checked for a prediction (so the correct entry for each table can be updated later). Finally, TAGE must remember the tag computed for each table – the tags will be needed later if a new entry is to be allocated. [16]</p>
+<h2 id="Other-Predictors"><a href="#Other-Predictors" class="headerlink" title="Other Predictors"></a>Other Predictors</h2><p>BOOM provides a number of other predictors that may provide useful.</p>
+<h3 id="The-Base-Only-Predictor"><a href="#The-Base-Only-Predictor" class="headerlink" title="The Base Only Predictor"></a>The Base Only Predictor</h3><p>The Base Only Predictor uses the BTBs BIM to make a prediction on whether the branch was taken or not.</p>
+<h3 id="The-Null-Predictor"><a href="#The-Null-Predictor" class="headerlink" title="The Null Predictor"></a>The Null Predictor</h3><p>The Null Predictor is used when no BPD predictor is desired. It will always predict “not taken”.</p>
+<h3 id="The-Random-Predictor"><a href="#The-Random-Predictor" class="headerlink" title="The Random Predictor"></a>The Random Predictor</h3><p>The Random Predictor uses an LFSR to randomize both “was a prediction made?” and “which direction each branch in the Fetch Packet should take?”. This is very useful for both torturing-testing BOOM and for providing a worse-case performance baseline for comparing branch predictors.</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/" class="category-chain-item">计算机体系结构</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B/" class="print-no-link">#分支预测</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Branch Prediction for riscv-boom</div>
+      <div>http://blog.luliang.online/2025/11/27/分支预测器4/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年11月27日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/12/02/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E5%99%A8ubtb/" title="riscv-boom&#39;s ubtb">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">riscv-boom&#39;s ubtb</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/11/26/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E5%99%A83/" title="预测器关键参数">
+                        <span class="hidden-mobile">预测器关键参数</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

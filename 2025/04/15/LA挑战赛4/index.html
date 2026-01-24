@@ -1,0 +1,750 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="阻塞技术解决相关引发的冲突概述阻塞技术，以 5 级流水线为例，就是将这个 5 个模块设计成单独的模块。比如对于 IDU，IFU 就是它的上游，EXU 就是它的下游。IDU 的数据来自上游，同时它要给下游 EXU 提供数据。 阻塞技术会使得每一个模块都会相互解耦，成了一个单独的模块。 模块之间如何握手呢？ 设想一下，对于 IDU 而言，假设它遇到了点事情，需要阻塞，那么就会通知 IFU 不要发数据了">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LA 挑战赛：5级流水线的实现">
+<meta property="og:url" content="http://blog.luliang.online/2025/04/15/LA%E6%8C%91%E6%88%98%E8%B5%9B4/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="阻塞技术解决相关引发的冲突概述阻塞技术，以 5 级流水线为例，就是将这个 5 个模块设计成单独的模块。比如对于 IDU，IFU 就是它的上游，EXU 就是它的下游。IDU 的数据来自上游，同时它要给下游 EXU 提供数据。 阻塞技术会使得每一个模块都会相互解耦，成了一个单独的模块。 模块之间如何握手呢？ 设想一下，对于 IDU 而言，假设它遇到了点事情，需要阻塞，那么就会通知 IFU 不要发数据了">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/pipeline.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/pipeline2.png">
+<meta property="article:published_time" content="2025-04-15T05:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.425Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="LoongArch">
+<meta property="article:tag" content="CPU">
+<meta property="article:tag" content="FPGA">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/pipeline.png">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>LA 挑战赛：5级流水线的实现 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="LA 挑战赛：5级流水线的实现"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-04-15 13:03" pubdate>
+          2025年4月15日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          22 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">LA 挑战赛：5级流水线的实现</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="阻塞技术解决相关引发的冲突"><a href="#阻塞技术解决相关引发的冲突" class="headerlink" title="阻塞技术解决相关引发的冲突"></a>阻塞技术解决相关引发的冲突</h2><h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>阻塞技术，以 5 级流水线为例，就是将这个 5 个模块设计成单独的模块。比如对于 IDU，IFU 就是它的上游，EXU 就是它的下游。IDU 的数据来自上游，同时它要给下游 EXU 提供数据。</p>
+<p>阻塞技术会使得每一个模块都会相互解耦，成了一个单独的模块。</p>
+<p>模块之间如何握手呢？</p>
+<p>设想一下，对于 IDU 而言，假设它遇到了点事情，需要阻塞，那么就会通知 IFU 不要发数据了，同时通知 EXU IDU 还没有准备好。因此，这是一个状态机。各个模块中控制握手的所有的触发器组成了整个 CPU 的状态。</p>
+<p>事实上，参考 loongson 的开源库中的一个实现，在 <a target="_blank" rel="noopener" href="https://gitee.com/loongson-edu/open-la500/blob/9f42fa69b7210693ba3aa663fce33a78de3824b8/doc/%E8%AE%BE%E8%AE%A1%E6%A6%82%E8%BF%B0.md">设计文档</a> 的最后有这样一段话：</p>
+<p>流水级之间的交互逻辑中，需要维护以下关键信号：</p>
+<ul>
+<li><code>stage_valid</code>：由触发器维护，表示当前流水级是否在处理指令。</li>
+<li><code>stage_ready_go</code>：表示流水级是否需要被阻塞。</li>
+<li><code>stage_allowin</code>：表示当前流水级是否允许上一级流水进入，该信号传递至上一级，与上一级流水交互，两种情况下该信号置起，当前流水无正在处理的指令；或者当前流水级中的指令已处理完毕且下一级流水允许进入。该信号会由最后一级流水向前传递，只要某一流水级阻塞，其<code>stage_allowin</code> 拉低，同一时刻，前面所有流水级的 <code>stage_allowin</code> 都会拉低（假设所有流水级中都有指令在处理）。</li>
+<li><code>stage_to_nextstage_valid</code>：表示当前流水级中是否有处理完毕的指令，该信号传递至下一级，与下一级流水交互。下一级流水在收到高电平信号时，且其下一级流水的 <code>stage_allowin</code> 为高电平，则会在下一拍置起下一级流水的 <code>stage_valid</code>，实现流水级间指令的流动。<code>stage_to_nextstage_bus</code> 总线信号中传递缓存信号，会随着<code>stage_to_nextstage_valid</code> 流动。</li>
+</ul>
+<h3 id="握手信号"><a href="#握手信号" class="headerlink" title="握手信号"></a>握手信号</h3><p>举个例子，对于指令：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs asm">1c010000 &lt;locate&gt;:<br>locate():<br>1c010000:	157f5fe4 	lu12i.w	$r4,-263425(0xbfaff)<br>1c010004:	02810084 	addi.w	$r4,$r4,64(0x40)<br>1c010008:	157f5fe5 	lu12i.w	$r5,-263425(0xbfaff)<br>1c01000c:	0280c0a5 	addi.w	$r5,$r5,48(0x30)<br></code></pre></td></tr></table></figure>
+
+<p>当 IDU 译码 <code>addi.w	$r4,$r4,64(0x40)</code> 的时候，发现此时遇到了数据相关（r4），那么它就会给上游发信号，让 IFU 暂停。此时 IFU 的 PC 为 <code>1c010008</code>，它会一直保持 PC 为 <code>1c010008</code>。</p>
+<p>但是 IDU 的 PC 呢？它现在遇到了冲突，因此，它会阻塞，此时它的处理的数据为 PC 为 <code>1c010004</code> 的数据，它可能会阻塞好几个周期，直到阻塞信号消失。</p>
+<p>当它阻塞的时候，会发生什么呢？IDU 可以看做是一个状态机，寄存器保存着当前的 inst，只要它不 load 上游的新的 inst，那么它就能一直保持。换句话说，IDU 不管怎么操作多少次，状态都不会变，每一个模块都具有幂等性。因此，阻塞的 IDU 会一直保持状态，指导冲突信号解除。</p>
+<p>对于 IDU，当检测到阻塞的时候，给上游发射 IDU 阻塞（不允许再发送数据）的信号，也就是置 IDU 的 allowin 为 0。此时，fs_allowin 也会被置为 0（这是组合电路信号）。</p>
+<p>这意味着什么呢？？？</p>
+<p>这意味着，上游也会跟着阻塞。没错，这种阻塞信号会沿着当前模块向上游传递，阻塞上游所有的模块（几乎，不考虑 reset 刚结束）。</p>
+<p>此时 IFU 的 PC 为 <code>1c010008</code>且保持，一直到 IDU 解除阻塞。</p>
+<p>IDU 的核心控制代码：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">reg</span>   ds_valid;    <span class="hljs-comment">// 表示当前流水级是否在处理指令</span><br><span class="hljs-keyword">wire</span>  ds_ready_go; <span class="hljs-comment">// 是否需要阻塞</span><br><br><span class="hljs-keyword">assign</span> ds_ready_go    =  ds_valid  &amp; !conflict;<br><span class="hljs-keyword">assign</span> ds_allowin     = !ds_valid || ds_ready_go &amp;&amp; es_allowin; <span class="hljs-comment">// 表示当前阶段是否允许上游进入，通知上游模块</span><br><span class="hljs-keyword">assign</span> ds_to_es_valid = ds_valid &amp;&amp; ds_ready_go;<br><br><span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk ) <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (rst) <span class="hljs-keyword">begin</span><br>        ds_valid &lt;= <span class="hljs-number">1&#x27;b0</span>;<br>    <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (ds_allowin) <span class="hljs-keyword">begin</span><br>        ds_valid &lt;= fs_to_ds_valid;<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">end</span><br><br><span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk) <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (fs_to_ds_valid &amp;&amp; ds_allowin) <span class="hljs-keyword">begin</span><br>        <span class="hljs-comment">// 卸货，暂时不使用 bus</span><br>        pc_reg &lt;= in_pc;<br>        <span class="hljs-comment">// 如果当前是跳转，那么下一条指令置空</span><br>        inst_sram_rdata_reg &lt;= br_taken ? <span class="hljs-number">32&#x27;d0</span> :inst_sram_rdata;<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
+
+<p>IFU 核心代码：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-comment">// pre-IF stage</span><br><span class="hljs-keyword">assign</span> to_fs_valid  = ~rst; <span class="hljs-comment">// 复位时，IFU 阶段无效 这里表示上游指令已经处理完毕</span><br><span class="hljs-keyword">assign</span> seq_pc       = pc + <span class="hljs-number">32&#x27;h4</span>;<br><span class="hljs-keyword">assign</span> nextpc       = br_taken ? br_target : seq_pc;<br><br><span class="hljs-comment">// IF stage</span><br><span class="hljs-keyword">assign</span> fs_ready_go    = <span class="hljs-number">1&#x27;b1</span>; <span class="hljs-comment">// 不需要阻塞</span><br><span class="hljs-keyword">assign</span> fs_allowin     = !fs_valid || (fs_ready_go &amp;&amp; ds_allowin); <span class="hljs-comment">// 表示当前阶段是否允许上游进入</span><br><span class="hljs-keyword">assign</span> fs_to_ds_valid = fs_valid &amp;&amp; fs_ready_go; <span class="hljs-comment">// 如果不阻塞且当前在处理指令（事实上，</span><br>                                                <span class="hljs-comment">// 当fs_valid有效，数据已经处理完成，可以提前发射fs_to_ds_valid）完成</span><br><br><br><span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk) <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span>(rst) <span class="hljs-keyword">begin</span><br>        fs_valid &lt;= <span class="hljs-number">1&#x27;b0</span>; <span class="hljs-comment">// 复位时，IFU 阶段无效</span><br>    <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(fs_allowin) <span class="hljs-keyword">begin</span><br>        fs_valid &lt;= to_fs_valid; <span class="hljs-comment">// 上游指令处理完毕且当前阶段允许上游进入，那么当前阶段开始处理数据</span><br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">end</span><br><br><span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk <span class="hljs-keyword">or</span> <span class="hljs-keyword">posedge</span> rst) <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (rst) <span class="hljs-keyword">begin</span><br>        pc &lt;= <span class="hljs-number">32&#x27;h1bfffffc</span>;<br>    <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(to_fs_valid &amp;&amp; fs_allowin) <span class="hljs-keyword">begin</span><br>        pc &lt;= nextpc;<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">end</span><br><span class="hljs-comment">// 数据的处理和 fs_valid 均在下一个相同的周期完成</span><br></code></pre></td></tr></table></figure>
+
+<p>这是波形图的示例：</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/pipeline.png"></p>
+<p>对于 IDU，那么如何检测阻塞呢？</p>
+<h3 id="如何检测数据相关"><a href="#如何检测数据相关" class="headerlink" title="如何检测数据相关"></a>如何检测数据相关</h3><p>IDU 需要读取寄存器，但是有一种可能就是 IDU 下游的模块并没有将数据回写，因此 IDU 读取到的数据是不正确的数据。</p>
+<p>一个可行的办法就是，在 EXU 中发射三个信号：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">assign</span> exu_regWr = gr_we;<br><span class="hljs-keyword">assign</span> exu_data = alu_result;<br><span class="hljs-keyword">assign</span> exu_regAddr = wire_in_dest;<br></code></pre></td></tr></table></figure>
+
+<p>含义是寄存器写使能、写的数据、写的地址。后面的模块也是同理，将这三组信号通过组合电路延伸到 IDU 中，进行判断：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">wire</span> conflict; <span class="hljs-comment">// 冲突信号</span><br><span class="hljs-keyword">assign</span> conflict = conflict_regaData_tag || conflict_regbData_tag;<br><br><span class="hljs-comment">// 当检测到冲突以后，就得阻塞</span><br><br><span class="hljs-keyword">always</span> @(*) <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (exu_regWr &amp;&amp; (rf_raddr1 == exu_regAddr)) <span class="hljs-keyword">begin</span><br>        conflict_regaData_tag = <span class="hljs-number">1&#x27;b1</span>;<br>    <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (mem_regWr &amp;&amp; (rf_raddr1 == mem_regAddr)) <span class="hljs-keyword">begin</span><br>        conflict_regaData_tag = <span class="hljs-number">1&#x27;b1</span>;<br>    <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (wbu_regWr &amp;&amp; (rf_raddr1 == wbu_regAddr)) <span class="hljs-keyword">begin</span><br>        conflict_regaData_tag = <span class="hljs-number">1&#x27;b1</span>;<br>    <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">begin</span><br>        conflict_regaData_tag = <span class="hljs-number">1&#x27;b0</span>;<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">end</span><br><br><span class="hljs-keyword">always</span> @(*) <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (exu_regWr &amp;&amp; (rf_raddr2 == exu_regAddr)) <span class="hljs-keyword">begin</span><br>        conflict_regbData_tag = <span class="hljs-number">1&#x27;b1</span>;<br>    <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (mem_regWr &amp;&amp; (rf_raddr2 == mem_regAddr)) <span class="hljs-keyword">begin</span><br>        conflict_regbData_tag = <span class="hljs-number">1&#x27;b1</span>;<br>    <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (wbu_regWr &amp;&amp; (rf_raddr2 == wbu_regAddr)) <span class="hljs-keyword">begin</span><br>        conflict_regbData_tag = <span class="hljs-number">1&#x27;b1</span>;<br>    <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">begin</span><br>        conflict_regbData_tag = <span class="hljs-number">1&#x27;b0</span>;<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
+
+<p>这样就拿到了冲突信号。</p>
+<h3 id="如何消除冲突信号"><a href="#如何消除冲突信号" class="headerlink" title="如何消除冲突信号"></a>如何消除冲突信号</h3><p>实现阻塞控制的核心就是如何检测阻塞信号，以及如何取消阻塞。以 IDU 为例，当 IDU 阻塞的时候，给下游会发送信号，那就是 <code>ds_to_es_valid</code>，这个信号会被置 0，告诉下游模块上游没有产生数据。因此，下游模块并不会接收到新的数据，状态机信号保持。EXU 的 <code>es_valid</code> 会在下一个周期被置为 0，同时，<code>es_to_ms_valid</code> 也会被置为 0，但至少在这一个周期，数据完成了交接。</p>
+<p>但是，这里有一个问题。</p>
+<p>如果 EXU 给 IDU 发送的数据相关一直保持，那么就会一直有 conflict 信号，也就是说，IDU 将会一直阻塞。</p>
+<p>我们并不希望一直阻塞，我们希望的是，EXU 拿到数据之后，要控制写信号的保持时间。</p>
+<p>控制寄存器的写保持时间很关键，因为我们不希望一个寄存器的写信号一直存在，虽然在 EXU、MEM 阶段无关痛痒，但是在 WBU 阶段，写信号的保持将会带来功耗和性能问题。</p>
+<p>因此统一处理方式是，在 gr_we 的输出上 和 es_valid 信号绑定。这时候，数据相关的信号消失，刚好，可以和 es_valid 配合：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">assign</span> mem_we = wire_in_mem_we;<br><span class="hljs-keyword">assign</span> rkd_value = wire_in_rkd_value;<br><span class="hljs-keyword">assign</span> res_from_mem = wire_in_res_from_mem;<br><span class="hljs-keyword">assign</span> gr_we = wire_in_gr_we &amp; es_valid;<br><span class="hljs-keyword">assign</span> dest = wire_in_dest;<br><span class="hljs-keyword">assign</span> pc = in_pc_reg;<br><br><span class="hljs-comment">// 解决数据相关</span><br><span class="hljs-keyword">assign</span> exu_regWr = gr_we;<br><span class="hljs-keyword">assign</span> exu_data = alu_result;<br><span class="hljs-keyword">assign</span> exu_regAddr = wire_in_dest;<br></code></pre></td></tr></table></figure>
+<p>这样，当 exu_regWr 信号在 IDU 中为 0 的时候，就可以认为 EXU 已经不存在和 IDU 相关了。这种相关已经顺着数据流转移到了 EXU 的下一个模块 MEM 中。</p>
+<p>当冲突消除的那一刻，可以认为，数据已经写到寄存器中了，IDU 可以从寄存器中拿到正确的数据了。</p>
+<p>波形图可以很清楚的看到这一点：</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/pipeline2.png"></p>
+<p>测试也能通过：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs bash">--&gt;CPU 1 1c010150 04 00000000<br>--&gt;REF 1 1c010150 04 00000000<br>i:133841<br>--&gt;CPU 1 1c010154 01 1c010158<br>--&gt;REF 1 1c010154 01 1c010158<br>i:133842<br>i:133843<br>i:133844<br>i:133845<br>--&gt;CPU 1 1c000100 0c bfaff091<br>--&gt;REF 1 1c000100 0c bfaff091<br></code></pre></td></tr></table></figure>
+
+
+<h2 id="前递技术减少部分阻塞"><a href="#前递技术减少部分阻塞" class="headerlink" title="前递技术减少部分阻塞"></a>前递技术减少部分阻塞</h2><p>前递技术，也称为旁路、或者数据直通，换句话说，我们没有必要非得等到数据被写到寄存器中才推进。换句话说，我们阻塞的时间太长了！</p>
+<p>那怎么能减少阻塞的时间呢？可以直接将数据从后面的模块 EXU、MEM、WBU 中窃取出来，直接送给 IDU 中寄存器访问的结果 readData。</p>
+<h3 id="寄存器"><a href="#寄存器" class="headerlink" title="寄存器"></a>寄存器</h3><p>我们可以这样设置：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">always</span> @(*) <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (exu_regWr &amp;&amp; (rf_raddr1 == exu_regAddr)) <span class="hljs-keyword">begin</span><br>        conflict_regaData = exu_data;<br>        conflict_regaData_tag = <span class="hljs-number">1&#x27;b1</span>;<br>    <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (mem_regWr &amp;&amp; (rf_raddr1 == mem_regAddr)) <span class="hljs-keyword">begin</span><br>        conflict_regaData = mem_data;<br>        conflict_regaData_tag = <span class="hljs-number">1&#x27;b1</span>;<br>    <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (wbu_regWr &amp;&amp; (rf_raddr1 == wbu_regAddr)) <span class="hljs-keyword">begin</span><br>        conflict_regaData = wbu_data;<br>        conflict_regaData_tag = <span class="hljs-number">1&#x27;b1</span>;<br>    <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">begin</span><br>        conflict_regaData = rf_rdata1;  <span class="hljs-comment">// 默认值</span><br>        conflict_regaData_tag = <span class="hljs-number">1&#x27;b0</span>;<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">end</span><br><br><span class="hljs-keyword">always</span> @(*) <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (exu_regWr &amp;&amp; (rf_raddr2 == exu_regAddr)) <span class="hljs-keyword">begin</span><br>        conflict_regbData = exu_data;<br>        conflict_regbData_tag = <span class="hljs-number">1&#x27;b1</span>;<br>    <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (mem_regWr &amp;&amp; (rf_raddr2 == mem_regAddr)) <span class="hljs-keyword">begin</span><br>        conflict_regbData = mem_data;<br>        conflict_regbData_tag = <span class="hljs-number">1&#x27;b1</span>;<br>    <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (wbu_regWr &amp;&amp; (rf_raddr2 == wbu_regAddr)) <span class="hljs-keyword">begin</span><br>        conflict_regbData = wbu_data;<br>        conflict_regbData_tag = <span class="hljs-number">1&#x27;b1</span>;<br>    <span class="hljs-keyword">end</span><br><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">begin</span><br>        conflict_regbData = rf_rdata2;  <span class="hljs-comment">// 默认值</span><br>        conflict_regbData_tag = <span class="hljs-number">1&#x27;b0</span>;<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">end</span><br><br></code></pre></td></tr></table></figure>
+
+<p>这样还没有结束，还要减少冲突的持续周期。在此之前，需要解决一种相关：load-use 相关。</p>
+<h3 id="load-use-相关"><a href="#load-use-相关" class="headerlink" title="load-use 相关"></a>load-use 相关</h3><p>以下是一个代码段：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs asm">1c010168:	2880018e 	ld.w	$r14,$r12,0<br>1c01016c:	0015b5ce 	xor	$r14,$r14,$r13<br></code></pre></td></tr></table></figure>
+
+<p>如果仅仅使用前递技术，当 IDU 解析 <code>xor	$r14,$r14,$r13</code> 指令时，<code>ld.w	$r14,$r12,0</code> 指令处于 EXU 单元中，对于 load 指令，EXU 正在计算 load 指令的要访问的内存地址，此时根本拿不到任何数据，因此 IDU 就会取到错误的数据。</p>
+<p>事实上，目前阶段，解决掉 load-use 相关就万事大吉了。</p>
+<p>我的思路是，利用一个 reg 来标记上一条指令是否是 load 指令，如果是，再检测是否和 EXU 相关。如果满足这些条件，只需要将 IDU 阻塞一个周期。</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-comment">// 检测上一条指令是否是 load 指令</span><br><span class="hljs-keyword">reg</span> is_load;<br><span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk) <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (rst) <span class="hljs-keyword">begin</span><br>        is_load &lt;= <span class="hljs-number">1&#x27;b0</span>;<br>    <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (fs_to_ds_valid &amp;&amp; ds_allowin) <span class="hljs-keyword">begin</span><br>        is_load &lt;= inst_ld_w;<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">end</span><br><br><span class="hljs-keyword">wire</span> load_use_conflict;<br><span class="hljs-keyword">assign</span> load_use_conflict = is_load &amp;&amp; exu_regWr &amp;&amp; (rf_raddr1 == exu_regAddr);<br><br><span class="hljs-keyword">assign</span> ds_ready_go    =  ds_valid  &amp; !load_use_conflict;<br><br><span class="hljs-keyword">assign</span> rj_value  = conflict_regaData;<br><span class="hljs-keyword">assign</span> rkd_value = conflict_regbData;<br></code></pre></td></tr></table></figure>
+
+<p>这样，在阻塞技术的基础上，实现了前递技术，仅仅通过解决 load-use 相关大大减少了阻塞周期，至于其他的数据相关，直接前递技术就能解决一切问题。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs bash">--&gt;CPU 1 1c010150 04 00000000<br>--&gt;REF 1 1c010150 04 00000000<br>i:60241<br>--&gt;CPU 1 1c010154 01 1c010158<br>--&gt;REF 1 1c010154 01 1c010158<br>i:60242<br>i:60243<br>--&gt;CPU 1 1c000100 0c bfaff091<br>--&gt;REF 1 1c000100 0c bfaff091<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，跑同样的测试，上一个方案跑了 133845 周期，这个方案仅仅跑了 60243 走起，减少了一半！效果惊人。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/CPU/" class="category-chain-item">CPU</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/LoongArch/" class="print-no-link">#LoongArch</a>
+      
+        <a href="/tags/CPU/" class="print-no-link">#CPU</a>
+      
+        <a href="/tags/FPGA/" class="print-no-link">#FPGA</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>LA 挑战赛：5级流水线的实现</div>
+      <div>http://blog.luliang.online/2025/04/15/LA挑战赛4/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年4月15日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/04/16/LA%E6%8C%91%E6%88%98%E8%B5%9B5/" title="LA 挑战赛：BRAM 的引入">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">LA 挑战赛：BRAM 的引入</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/04/07/Rust_%E7%A7%BB%E5%8A%A8%E8%AF%AD%E6%84%8F/" title="浅谈 Rust 中的移动语义与所有权机制">
+                        <span class="hidden-mobile">浅谈 Rust 中的移动语义与所有权机制</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

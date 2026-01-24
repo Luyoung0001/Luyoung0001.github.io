@@ -1,0 +1,785 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言在前面，我们已经实现了抢占式任务，但是依然有很多的问题。 如果，两个任务不相关，也就是说没有数据上面的交互，那么是没有问题的。但是一旦涉及到访问共享资源，比如终端，就会出现问题： 1234567891011121314151617Task 0: Running...Task 0timer interruption!tick: 288Task 1: Running...Task 1: Runni">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于 riscv32 的 OS 设计：任务同步和锁">
+<meta property="og:url" content="http://blog.luliang.online/2025/03/26/%E5%9F%BA%E4%BA%8Eriscv32%E7%9A%84OS(%E5%8D%81)/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="前言在前面，我们已经实现了抢占式任务，但是依然有很多的问题。 如果，两个任务不相关，也就是说没有数据上面的交互，那么是没有问题的。但是一旦涉及到访问共享资源，比如终端，就会出现问题： 1234567891011121314151617Task 0: Running...Task 0timer interruption!tick: 288Task 1: Running...Task 1: Runni">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-03-26T05:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.452Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="OS">
+<meta property="article:tag" content="riscv">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>基于 riscv32 的 OS 设计：任务同步和锁 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="基于 riscv32 的 OS 设计：任务同步和锁"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-03-26 13:03" pubdate>
+          2025年3月26日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.6k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          22 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">基于 riscv32 的 OS 设计：任务同步和锁</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在前面，我们已经实现了抢占式任务，但是依然有很多的问题。</p>
+<p>如果，两个任务不相关，也就是说没有数据上面的交互，那么是没有问题的。但是一旦涉及到访问共享资源，比如终端，就会出现问题：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs bash">Task 0: Running...<br>Task 0timer interruption!<br>tick: 288<br>Task 1: Running...<br>Task 1: Running...<br>Task 1: Running...<br>Task 1: Running...<br>Task 1: Running...<br>Task 1: Running...<br>Task 1: Running...<br>Task 1: Running...<br>Task 1: Running...<br>timer interruption!<br>tick: 289<br>: Running...<br>Task 0: Running...<br>Task 0: Running...<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，task0 执行的时候，突然被打断，接着 task1 执行，执行完后，task0 接着执行。这样导致终端显示混乱。</p>
+<p>我们希望有一种机制，当 task0 打印的时候，如果没有打印完成，就算切换到 task1 后，那么它也什么都干不了，原地等待后，再次切换到 task0。</p>
+<p>锁可以实现这种想法。</p>
+<p>再比如，task0 和 task1 都对同一个变量实现 +1：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">int</span> global_var = <span class="hljs-number">0</span>;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">user_task0</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    uart_puts(<span class="hljs-string">&quot;Task 0: Created!\n&quot;</span>);<br>    <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) &#123;<br>        global_var++;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;task0: %d\n&quot;</span>, global_var);<br>        task_delay(DELAY);<br>    &#125;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">user_task1</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    uart_puts(<span class="hljs-string">&quot;Task 1: Created!\n&quot;</span>);<br>    <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) &#123;<br>        global_var++;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;task1: %d\n&quot;</span>, global_var);<br>        task_delay(DELAY);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>先不说 printf 占用终端引起的混乱问题：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs bash">task0: 3288<br>task0: 3289<br>task0: 3290<br>task0: 3291<br>task0: 3292<br>task0: 3293 &lt;--- 被打断<br>timer interruption!<br>task1: 3295<br>task1: 3296<br>task1: 3297<br>task1: 3298<br>task1: 3299<br>task1: 3300<br>task1: 3301<br>task1: 3302<br>task1: 3303<br></code></pre></td></tr></table></figure>
+
+<p>task0 执行到一半，被打断，但是这时候并不知道是在什么时候打断的。可能是 task0 已经完成了 +1 操作后被打断，也有可能在执行 +1 的过程中被打断。根本原因是，+1 并不是一个原子操作，它分为好几条指令（原子操作）。</p>
+<h2 id="自旋锁"><a href="#自旋锁" class="headerlink" title="自旋锁"></a>自旋锁</h2><p>如果我们不上锁，可以预料的是，task0 的连续打印将会被打断：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs C"><br><span class="hljs-type">void</span> <span class="hljs-title function_">user_task0</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    uart_puts(<span class="hljs-string">&quot;Task 0: Created!\n&quot;</span>);<br>    <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) &#123;<br>        uart_puts(<span class="hljs-string">&quot;Task 0: Begin ... \n&quot;</span>);<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">5</span>; i++) &#123;<br>            uart_puts(<span class="hljs-string">&quot;Task 0: Running... \n&quot;</span>);<br>            task_delay(DELAY);<br>        &#125;<br>        uart_puts(<span class="hljs-string">&quot;Task 0: End ... \n&quot;</span>);<br>    &#125;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">user_task1</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    uart_puts(<span class="hljs-string">&quot;Task 1: Created!\n&quot;</span>);<br>    <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) &#123;<br>        uart_puts(<span class="hljs-string">&quot;Task 1: Begin ... \n&quot;</span>);<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">5</span>; i++) &#123;<br>            uart_puts(<span class="hljs-string">&quot;Task 1: Running... \n&quot;</span>);<br>            task_delay(DELAY);<br>        &#125;<br>        uart_puts(<span class="hljs-string">&quot;Task 1: End ... \n&quot;</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>运行结果：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs bash">Task 0: Created!<br>Task 0: Begin ...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>timer interruption!<br>tick: 1<br>Task 1: Created!<br>Task 1: Begin ...<br>Task 1: Running...<br>Task 1: Running...<br>Task 1: Running...<br>timer interruption!<br>tick: 2<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: End ...<br>Task 0: Begin ...<br>Task 0: Running...<br>timer interruption!<br>tick: 3<br>Task 1: Running...<br>Task 1: Running...<br>Task 1: End ...<br>Task 1: Begin ...<br>Task 1: Running...<br>timer interruption!<br>tick: 4<br>Task 0: Running...<br>QEMU: Terminated<br><br></code></pre></td></tr></table></figure>
+<p>可以看到，它们的任务可以随时被打断，我们想要的效果是，两个 task 在执行连续的打印任务时候，都一次性执行完。</p>
+<p>自旋锁的实现比较简单，我们可以设置一个变量，上锁就是置 1，释放锁就是置 0。</p>
+<p>os.h:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-keyword">extern</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">spinlock</span> <span class="hljs-title">lk</span>;</span><br><span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">init_lock_c</span><span class="hljs-params">()</span>;<br><span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">spin_lock_c</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> spinlock* lock)</span>;<br><span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">spin_unlock_c</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> spinlock* lock)</span>;<br></code></pre></td></tr></table></figure>
+<p>lock.c:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">spinlock</span> <span class="hljs-title">lk</span>;</span><br><br><span class="hljs-type">void</span> <span class="hljs-title function_">init_lock_c</span><span class="hljs-params">()</span> &#123;<br>    lk.locked = <span class="hljs-number">0</span>;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">spin_lock_c</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> spinlock* lock)</span> &#123;<br>    <span class="hljs-keyword">for</span>(;;) &#123;<br>        <span class="hljs-keyword">if</span> (lock-&gt;locked == <span class="hljs-number">0</span>) &#123;<br>            lock-&gt;locked = <span class="hljs-number">1</span>;<br>            <span class="hljs-keyword">break</span>;<br>        &#125;<br>    &#125;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">spin_unlock_c</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> spinlock* lock)</span> &#123;<br>    lock-&gt;locked = <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这样，我们就可以对任务上锁了：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">define</span> USE_LOCK_C</span><br><br><span class="hljs-type">void</span> <span class="hljs-title function_">user_task0</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    uart_puts(<span class="hljs-string">&quot;Task 0: Created!\n&quot;</span>);<br>    <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) &#123;<br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> USE_LOCK_C</span><br>        spin_lock_c(&amp;lk);<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br>        uart_puts(<span class="hljs-string">&quot;Task 0: Begin ... \n&quot;</span>);<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">5</span>; i++) &#123;<br>            uart_puts(<span class="hljs-string">&quot;Task 0: Running... \n&quot;</span>);<br>            task_delay(DELAY);<br>        &#125;<br>        uart_puts(<span class="hljs-string">&quot;Task 0: End ... \n&quot;</span>);<br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> USE_LOCK_C</span><br>		spin_unlock_c(&amp;lk);<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>试着跑一下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs bash">Task 0: Created!<br>Task 0: Begin ...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 1: Created!<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: End ...<br>Task 0: Begin ...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>QEMU: Terminated<br></code></pre></td></tr></table></figure>
+
+<p>可以发现，这根本实现不了锁。原因很简单，当 task0 获取到锁后，如果被时钟中断打断，task1 执行后，发现锁已经被拿到了，就空转。返回到 task0 后，继续执行。这时候 task0 释放掉锁后，时钟中断没有发生，task0 继续执行。这就导致，task0 可能连续执行很多次。</p>
+<p>如果我们把时钟中断的时间间隔调整到足够小（20），以至于 task0 没完成一次打印都能切换到 task1 以让 task1 获取锁，尤其是 task0 释放掉锁后：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs bash">Task 0: Created!<br>Task 0: Begin ...<br>Task 0: Running...<br>Task 1: Created!<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: End ...<br>Task 1: Begin ...<br>Task 1: Running...<br>Task 1: Running...<br>Task 1: Running...<br>Task 1: Running...<br>Task 1: Running...<br>Task 1: End ...<br>Task 1: Begin ...<br>Task 1: Running...<br>Task 1: Running...<br></code></pre></td></tr></table></figure>
+
+<p>这下勉强可以了。但是中断的时间片越小，系统的效率越低。</p>
+<p>还有一种可能，如果时间片足够小，那么就会导致一种现象：锁坏了。怎么发生的呢？</p>
+<p>比如当 task0 进入到锁之后，刚要上锁，这时候被打断；task1 进入锁之后，发现锁是开的，那么它就会进入临界区，执行任务。如果 task1 接着被打断进入 task0，那么 task0 就会重复上锁。锁就不起作用：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs bash">TTask 0: Created!<br>ask 1: Created!<br>Task 1: Begin ...<br>Task 1: Running...<br>Task 0: Begin ...<br>Task 0: Running...<br>Task 0: Running...<br>Task 1: Running...<br>Task 0: Running...<br>Task 1: Running...<br>Task 0: Running...<br>Task 1: Running...<br>Task 0: Running...<br>Task 1: Running...<br>Task 0: End ...<br>Task 0: Begin ...<br>Task 0: Running...<br>Task 1: End ...<br>Task 1: Begin ...<br>Task 1: Running...<br>QEMU: Terminated<br></code></pre></td></tr></table></figure>
+
+<p>根本原因是什么？</p>
+<p>那就是查看锁以及上锁这两个动作可以被打断，这就是问题所在。</p>
+<p>很遗憾，不管我们利用普通的指令实现的锁多么巧妙，都没用，都可以被打断。好消息是 ISA 考虑到了这种情况，它提供了硬件原子指令以让 OS 实现原子操作。</p>
+<p>如果让我设计，那么就直接<strong>上锁并保存状态</strong>，反正<strong>上锁并保存状态</strong>是等幂操作，不管执行多少次都一样。检查锁的上锁前的状态，如果是 0，那么就接着执行；如果是 1，那么就继续<strong>上锁并保存状态</strong>。</p>
+<p>本质上，就是原子性地获取锁这个资源，不管有没有获取成功，先获取了再说。</p>
+<h2 id="test-and-set"><a href="#test-and-set" class="headerlink" title="test_and_set"></a>test_and_set</h2><p><code>__sync_lock_test_and_set</code> 和 <code>__sync_lock_release</code> 是 GCC（GNU Compiler Collection）提供的内置函数，用于实现原子操作，尤其在多线程编程中用于实现自旋锁等同步机制。</p>
+<h3 id="1-sync-lock-test-and-set-ptr-value"><a href="#1-sync-lock-test-and-set-ptr-value" class="headerlink" title="1. __sync_lock_test_and_set(ptr, value)"></a><strong>1. <code>__sync_lock_test_and_set(ptr, value)</code></strong></h3><ul>
+<li><strong>功能：</strong><ul>
+<li>这是一个原子操作，用于将 <code>value</code> 存储到 <code>ptr</code> 指向的内存位置，并返回该内存位置的原始值。</li>
+<li>“原子”意味着这个操作在执行期间不会被其他线程中断，确保了操作的完整性。</li>
+</ul>
+</li>
+<li><strong>参数：</strong><ul>
+<li><code>ptr</code>：一个指向要操作的内存位置的指针。</li>
+<li><code>value</code>：要存储到内存位置的值。</li>
+</ul>
+</li>
+<li><strong>返回值：</strong><ul>
+<li>返回 <code>ptr</code> 指向的内存位置的原始值（即，在存储 <code>value</code> 之前的值）。</li>
+</ul>
+</li>
+<li><strong>在 <code>spin_lock_a</code> 中的应用：</strong><ul>
+<li>在 <code>spin_lock_a</code> 函数中，<code>__sync_lock_test_and_set(&amp;lock-&gt;locked, 1)</code> 用于尝试获取自旋锁。</li>
+<li>如果 <code>lock-&gt;locked</code> 的原始值为 0，表示锁未被占用，函数会将 <code>lock-&gt;locked</code> 设置为 1（表示锁已被占用），并返回 0，从而成功获取锁。</li>
+<li>如果 <code>lock-&gt;locked</code> 的原始值为 1，表示锁已被占用，函数会将 <code>lock-&gt;locked</code> 设置为 1，并返回 1，然后循环重试，直到成功获取锁。</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-sync-lock-release-ptr"><a href="#2-sync-lock-release-ptr" class="headerlink" title="2. __sync_lock_release(ptr)"></a><strong>2. <code>__sync_lock_release(ptr)</code></strong></h3><ul>
+<li><strong>功能：</strong><ul>
+<li>这是一个原子操作，用于将 0 存储到 <code>ptr</code> 指向的内存位置，从而释放锁。</li>
+</ul>
+</li>
+<li><strong>参数：</strong><ul>
+<li><code>ptr</code>：一个指向要操作的内存位置的指针。</li>
+</ul>
+</li>
+<li><strong>返回值：</strong><ul>
+<li>无返回值。</li>
+</ul>
+</li>
+<li><strong>在 <code>spin_unlock_a</code> 中的应用：</strong><ul>
+<li>在 <code>spin_unlock_a</code> 函数中，<code>__sync_lock_release(&amp;lock-&gt;locked)</code> 用于释放自旋锁。</li>
+<li>它将 <code>lock-&gt;locked</code> 设置为 0，允许其他线程获取锁。</li>
+</ul>
+</li>
+</ul>
+<p>因此，可以这样实现：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">spin_lock_a</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> spinlock* lock)</span> &#123;<br>    <span class="hljs-keyword">while</span> (__sync_lock_test_and_set(&amp;lock-&gt;locked, <span class="hljs-number">1</span>) != <span class="hljs-number">0</span>)<br>        ;<br>&#125;<br><span class="hljs-type">void</span> <span class="hljs-title function_">spin_unlock_a</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> spinlock* lock)</span> &#123;<br>    __sync_lock_release(&amp;lock-&gt;locked);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这样，就彻底解决了之前的问题。也可以看看反汇编文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs asm">800039ec &lt;spin_lock_a&gt;:<br>800039ec:	fe010113          	addi	sp,sp,-32<br>800039f0:	00812e23          	sw	s0,28(sp)<br>800039f4:	02010413          	addi	s0,sp,32<br>800039f8:	fea42623          	sw	a0,-20(s0)<br>800039fc:	00000013          	nop<br>80003a00:	fec42703          	lw	a4,-20(s0) &lt;---<br>80003a04:	00100793          	li	a5,1<br>80003a08:	0cf727af          	amoswap.w.aq	a5,a5,(a4)<br>80003a0c:	fe079ae3          	bnez	a5, 80003a00 &lt;spin_lock_a+0x14&gt;<br>80003a10:	00000013          	nop<br>80003a14:	00000013          	nop<br>80003a18:	01c12403          	lw	s0,28(sp)<br>80003a1c:	02010113          	addi	sp,sp,32<br>80003a20:	00008067          	ret<br><br>80003a24 &lt;spin_unlock_a&gt;:<br>80003a24:	fe010113          	addi	sp,sp,-32<br>80003a28:	00812e23          	sw	s0,28(sp)<br>80003a2c:	02010413          	addi	s0,sp,32<br>80003a30:	fea42623          	sw	a0,-20(s0)<br>80003a34:	fec42783          	lw	a5,-20(s0)<br>80003a38:	0f50000f          	fence	iorw,ow<br>80003a3c:	0807a02f          	amoswap.w	zero,zero,(a5)<br>80003a40:	00000013          	nop<br>80003a44:	01c12403          	lw	s0,28(sp)<br>80003a48:	02010113          	addi	sp,sp,32<br>80003a4c:	00008067          	ret<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，<code>__sync_lock_test_and_set</code> 被编译成 4 条指令，发生四个动作：</p>
+<ul>
+<li>将 <code>lk.lock</code> 的值的地址放到 a4；</li>
+<li>将 1 放入到 a5;</li>
+<li>交换这两个值；</li>
+<li>如果 lock 的原始值为 0，就继续，否则循环这 4 个步骤。</li>
+</ul>
+<p>这个有问题吗？如果 task0 执行到 <code>amoswap.w.aq	a5,a5,(a4)</code> 被打断，此时 a5 的值为 0，存放 <code>lk.lock</code> 的值为 1；task1 的 a4 的地址的值就是 <code>lk.lock</code> 的值，也就是 1。交换之后，都是 1，也就进入 spin 了。task1 再次被打断，恢复上下文后进入 task0，接着执行 <code>bnez	a5,80003a00</code>，a5 寄存器为 0，继续执行任务，是没有任何问题的。</p>
+<p>之前讨论过，锁成功的关键是查看锁的状态和上锁这两个动作不可被打断。 <code>amoswap.w.aq</code> 直接读取且上锁，且没有<strong>寄存器-内存一致性</strong>的问题。</p>
+<h2 id="继续讨论抢占式调度的锁"><a href="#继续讨论抢占式调度的锁" class="headerlink" title="继续讨论抢占式调度的锁"></a>继续讨论抢占式调度的锁</h2><p>思考一个问题，如果系统的时间片很小很小（小到每执行一条指令，都会被时钟中断打断一次），那么 task0 执行完并释放锁后，task1 一定能成功获取锁。但是这么小的时间片肯定是行不通的，因为每执行一条任务中的指令，都要执行数百条和中断有关的指令，CPU 的利用率（执行有效代码的比例）将会低到不可接受。</p>
+<p>但是如果将时间片延长到一个合理的区间，就会遇到一个严峻的问题：task0 结束释放锁后，这时候没有时间中断，task0 继续执行。如果运气不好 task1 可能很久都无法获取到锁。</p>
+<p>这导致了一个严重的问题。考虑一个情景，如果AB两个任务协同工作，B 必须在 A 完成任务并释放锁时及时执行，A 也必须在 B 完成任务并释放锁时及时执行。按照上面的做法，B 并不会达到这个目的。</p>
+<p>以 Linux 为例，如果时间片太大，A 执行完后释放锁，这时候时钟中断并没有发生，A 空转一段时间后，时间中断发生，B 获取锁后，继续空转。这样会浪费大量的时间。因此，时间片大小的设置，应该考虑任务的类型。</p>
+<h2 id="锁的另一种实现方式"><a href="#锁的另一种实现方式" class="headerlink" title="锁的另一种实现方式"></a>锁的另一种实现方式</h2><p>task0 获取锁之后，如果关闭中断，那么 task0 就可以顺利执行到结束，之后打开中断。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">int</span> <span class="hljs-title function_">spin_lock</span><span class="hljs-params">()</span> &#123;<br>    w_mstatus(r_mstatus() &amp; ~MSTATUS_MIE);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br><br><span class="hljs-type">int</span> <span class="hljs-title function_">spin_unlock</span><span class="hljs-params">()</span> &#123;<br>    w_mstatus(r_mstatus() | MSTATUS_MIE);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>运行结果：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs bash">Task 0: Created!<br>Task 0: Begin ...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: End ...<br>Task 1: Created!<br>Task 1: Begin ...<br>Task 1: Running...<br>Task 1: Running...<br>Task 1: Running...<br>Task 1: Running...<br>Task 1: Running...<br>Task 1: End ...<br>Task 0: Begin ...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: End ...<br>Task 1: Begin ...<br>Task 1: Running...<br>Task 1: Running...<br>Task 1: Running...<br>Task 1: Running...<br>Task 1: Running...<br>Task 1: End ...<br></code></pre></td></tr></table></figure>
+
+<p>这样也是一种方法，但是这已经偏离了锁本身含义的范畴，这只能保证任务执行过程中不被打断。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/OS/" class="category-chain-item">OS</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/OS/" class="print-no-link">#OS</a>
+      
+        <a href="/tags/riscv/" class="print-no-link">#riscv</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>基于 riscv32 的 OS 设计：任务同步和锁</div>
+      <div>http://blog.luliang.online/2025/03/26/基于riscv32的OS(十)/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年3月26日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/03/28/%E5%9F%BA%E4%BA%8Eriscv32%E7%9A%84OS(%E5%8D%81%E4%B8%80)/" title="基于 riscv32 的 OS 设计：软件定时器">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">基于 riscv32 的 OS 设计：软件定时器</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/03/25/%E5%9F%BA%E4%BA%8Eriscv32%E7%9A%84OS(%E4%B9%9D)/" title="基于 riscv32 的 OS 设计：抢占式多任务">
+                        <span class="hidden-mobile">基于 riscv32 的 OS 设计：抢占式多任务</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -1,0 +1,767 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言之前的 xOS 运行很简单，就是简单的 shell，用户通过输入命令，回车后，离开 shell，去执行具备某个功能的函数，执行完再返回。 这样的设计有问题，因为一旦离开 shell，就意味着不能再接受输入了。而且一旦遇到意外，比如执行了某些代码，可能就再也回不到 shell 了。 因此我打算对 xOS 进行升级，基于时钟中断和原来的异常入口。 从中断到调度任务的单位是线程 Thread，要对某">
+<meta property="og:type" content="article">
+<meta property="og:title" content="毕设(10)：基于时间片的协作式多任务系统">
+<meta property="og:url" content="http://blog.luliang.online/2026/01/24/%E6%AF%95%E8%AE%BE10%EF%BC%9A%E5%9F%BA%E4%BA%8E%E6%97%B6%E9%97%B4%E7%89%87%E7%9A%84%E5%8D%8F%E4%BD%9C%E5%BC%8F%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="前言之前的 xOS 运行很简单，就是简单的 shell，用户通过输入命令，回车后，离开 shell，去执行具备某个功能的函数，执行完再返回。 这样的设计有问题，因为一旦离开 shell，就意味着不能再接受输入了。而且一旦遇到意外，比如执行了某些代码，可能就再也回不到 shell 了。 因此我打算对 xOS 进行升级，基于时钟中断和原来的异常入口。 从中断到调度任务的单位是线程 Thread，要对某">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-01-24T03:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.454Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="毕设">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>毕设(10)：基于时间片的协作式多任务系统 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="毕设(10)：基于时间片的协作式多任务系统"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-01-24 11:03" pubdate>
+          2026年1月24日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          30 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">毕设(10)：基于时间片的协作式多任务系统</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>之前的 xOS 运行很简单，就是简单的 shell，用户通过输入命令，回车后，离开 shell，去执行具备某个功能的函数，执行完再返回。</p>
+<p>这样的设计有问题，因为一旦离开 shell，就意味着不能再接受输入了。而且一旦遇到意外，比如执行了某些代码，可能就再也回不到 shell 了。</p>
+<p>因此我打算对 xOS 进行升级，基于时钟中断和原来的异常入口。</p>
+<h2 id="从中断到调度"><a href="#从中断到调度" class="headerlink" title="从中断到调度"></a>从中断到调度</h2><p>任务的单位是线程 Thread，要对某一个线程定义，就得用一个数据结构来描述，线程控制块。</p>
+<p>由于处理器是一个状态机，我们只要保存某一个线程 A 的状态，再把它赋值给处理器的状态，那么就可以认为此时处理器正在运行线程 A。</p>
+<p>当然这里所说的状态不是指所有的状态。对于用户线程而言，它的状态可以由 32 个通用寄存器、处理器的 PC、当前的 CRMD、线程的运行状态、线程的 id、线程的名字、线程的输出buffer、 线程的栈空间。</p>
+<p>其中 CRMD 比较特殊，因为发生中断后，处理器已经把 CRMD 保存到 PRMD 中了：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-comment">//prmd</span><br><span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk) <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (rst) <span class="hljs-keyword">begin</span><br>        csr_prmd[<span class="hljs-number">31</span>:<span class="hljs-number">3</span>] &lt;= <span class="hljs-number">29&#x27;b0</span>;<br>    <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (excp_flush) <span class="hljs-keyword">begin</span><br>        csr_prmd[`PPLV] &lt;= csr_crmd[`PLV];<br>        csr_prmd[ `PIE] &lt;= csr_crmd[`IE ];<br>    <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (prmd_wen) <span class="hljs-keyword">begin</span><br>        csr_prmd[`PPLV] &lt;= csr_wdata[`PPLV];<br>        csr_prmd[ `PIE] &lt;= csr_wdata[ `PIE];<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
+<p>之后才会通过 csr_eerntry 进入到 trap_entry，trap_entry 会保存被中断的线程的状态到 sp，然后将sp 复制到 a0 传递给 trap_dispatch：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs asm">move    $a0, $sp<br>bl      trap_dispatch<br></code></pre></td></tr></table></figure>
+
+<p>依靠强大的 C 语言类型转换，可以将 trap_entry 保存的上下文转成 trap_frame_t：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">trap_dispatch</span><span class="hljs-params">(<span class="hljs-type">trap_frame_t</span> *tf)</span> &#123;<br>    <span class="hljs-type">uint32_t</span> ecode = (tf-&gt;estat &gt;&gt; ESTAT_ECODE_SHIFT) &amp; ESTAT_ECODE_MASK;<br>    <span class="hljs-keyword">if</span> (ecode == ECODE_INT) &#123;<br>        <span class="hljs-comment">/* Hardware/software interrupt */</span><br>        interrupt_handler(tf);<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-comment">/* Exception */</span><br>        exception_handler(tf);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>需要注意的是，为了转成后的结构体一致，需要保证 trap_frame_t 的结构和 trap_entry 中保存的内存排布完全一致：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> &#123;</span><br>    <span class="hljs-type">uint32_t</span> ra;        <span class="hljs-comment">/* $r1  - Return Address */</span><br>    <span class="hljs-type">uint32_t</span> tp;        <span class="hljs-comment">/* $r2  - Thread Pointer */</span><br>    <span class="hljs-type">uint32_t</span> sp;        <span class="hljs-comment">/* $r3  - Stack Pointer */</span><br>    <span class="hljs-type">uint32_t</span> a0;        <span class="hljs-comment">/* $r4  - Argument 0 */</span><br>    <span class="hljs-type">uint32_t</span> a1;        <span class="hljs-comment">/* $r5  - Argument 1 */</span><br>    <span class="hljs-type">uint32_t</span> a2;        <span class="hljs-comment">/* $r6  - Argument 2 */</span><br>    <span class="hljs-type">uint32_t</span> a3;        <span class="hljs-comment">/* $r7  - Argument 3 */</span><br>    <span class="hljs-type">uint32_t</span> a4;        <span class="hljs-comment">/* $r8  - Argument 4 */</span><br>    <span class="hljs-type">uint32_t</span> a5;        <span class="hljs-comment">/* $r9  - Argument 5 */</span><br>    <span class="hljs-type">uint32_t</span> a6;        <span class="hljs-comment">/* $r10 - Argument 6 */</span><br>    <span class="hljs-type">uint32_t</span> a7;        <span class="hljs-comment">/* $r11 - Argument 7 */</span><br>    <span class="hljs-type">uint32_t</span> t0;        <span class="hljs-comment">/* $r12 - Temporary 0 */</span><br>    <span class="hljs-type">uint32_t</span> t1;        <span class="hljs-comment">/* $r13 - Temporary 1 */</span><br>    <span class="hljs-type">uint32_t</span> t2;        <span class="hljs-comment">/* $r14 - Temporary 2 */</span><br>    <span class="hljs-type">uint32_t</span> t3;        <span class="hljs-comment">/* $r15 - Temporary 3 */</span><br>    <span class="hljs-type">uint32_t</span> t4;        <span class="hljs-comment">/* $r16 - Temporary 4 */</span><br>    <span class="hljs-type">uint32_t</span> t5;        <span class="hljs-comment">/* $r17 - Temporary 5 */</span><br>    <span class="hljs-type">uint32_t</span> t6;        <span class="hljs-comment">/* $r18 - Temporary 6 */</span><br>    <span class="hljs-type">uint32_t</span> t7;        <span class="hljs-comment">/* $r19 - Temporary 7 */</span><br>    <span class="hljs-type">uint32_t</span> t8;        <span class="hljs-comment">/* $r20 - Temporary 8 */</span><br>    <span class="hljs-type">uint32_t</span> r21;       <span class="hljs-comment">/* $r21 - Reserved */</span><br>    <span class="hljs-type">uint32_t</span> fp;        <span class="hljs-comment">/* $r22 - Frame Pointer */</span><br>    <span class="hljs-type">uint32_t</span> s0;        <span class="hljs-comment">/* $r23 - Saved 0 */</span><br>    <span class="hljs-type">uint32_t</span> s1;        <span class="hljs-comment">/* $r24 - Saved 1 */</span><br>    <span class="hljs-type">uint32_t</span> s2;        <span class="hljs-comment">/* $r25 - Saved 2 */</span><br>    <span class="hljs-type">uint32_t</span> s3;        <span class="hljs-comment">/* $r26 - Saved 3 */</span><br>    <span class="hljs-type">uint32_t</span> s4;        <span class="hljs-comment">/* $r27 - Saved 4 */</span><br>    <span class="hljs-type">uint32_t</span> s5;        <span class="hljs-comment">/* $r28 - Saved 5 */</span><br>    <span class="hljs-type">uint32_t</span> s6;        <span class="hljs-comment">/* $r29 - Saved 6 */</span><br>    <span class="hljs-type">uint32_t</span> s7;        <span class="hljs-comment">/* $r30 - Saved 7 */</span><br>    <span class="hljs-type">uint32_t</span> s8;        <span class="hljs-comment">/* $r31 - Saved 8 */</span><br>    <span class="hljs-comment">/* CSR values */</span><br>    <span class="hljs-type">uint32_t</span> era;       <span class="hljs-comment">/* Exception Return Address */</span><br>    <span class="hljs-type">uint32_t</span> prmd;      <span class="hljs-comment">/* Pre-exception Mode */</span><br>    <span class="hljs-type">uint32_t</span> estat;     <span class="hljs-comment">/* Exception Status */</span><br>&#125; <span class="hljs-type">trap_frame_t</span>;<br></code></pre></td></tr></table></figure>
+
+<p>接着拿着这个线程的上下文去 interrupt_handler，这里以时间中断为例：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> __attribute__((noinline)) timer_irq_handler(<span class="hljs-type">trap_frame_t</span> *tf) &#123;<br>    timer_tick_count++;<br><br>    <span class="hljs-comment">/* Clear timer interrupt */</span><br>    csr_write(CSR_TICLR, <span class="hljs-number">0x1</span>);<br>    schedule(tf);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>清理时钟中断是必要的，因为清理掉意味着已经处理或者马上处理完了这个中断。之后就进入调度环节：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">schedule</span><span class="hljs-params">(<span class="hljs-type">trap_frame_t</span> *tf)</span> &#123;<br>    <span class="hljs-comment">/* Save current task context (if not first schedule) */</span><br>    <span class="hljs-keyword">if</span> (current_task &gt;= <span class="hljs-number">0</span> &amp;&amp; tf != <span class="hljs-literal">NULL</span>) &#123;<br>        <span class="hljs-type">task_t</span> *curr = &amp;tasks[current_task];<br><br>        <span class="hljs-comment">/* Copy trap frame to TCB */</span><br>        curr-&gt;regs[<span class="hljs-number">1</span>] = tf-&gt;ra;<br>        curr-&gt;regs[<span class="hljs-number">2</span>] = tf-&gt;tp;<br>        curr-&gt;regs[<span class="hljs-number">3</span>] = tf-&gt;sp;<br>        curr-&gt;regs[<span class="hljs-number">4</span>] = tf-&gt;a0;<br>        curr-&gt;regs[<span class="hljs-number">5</span>] = tf-&gt;a1;<br>        curr-&gt;regs[<span class="hljs-number">6</span>] = tf-&gt;a2;<br>        curr-&gt;regs[<span class="hljs-number">7</span>] = tf-&gt;a3;<br>        curr-&gt;regs[<span class="hljs-number">8</span>] = tf-&gt;a4;<br>        curr-&gt;regs[<span class="hljs-number">9</span>] = tf-&gt;a5;<br>        curr-&gt;regs[<span class="hljs-number">10</span>] = tf-&gt;a6;<br>        curr-&gt;regs[<span class="hljs-number">11</span>] = tf-&gt;a7;<br>        curr-&gt;regs[<span class="hljs-number">12</span>] = tf-&gt;t0;<br>        curr-&gt;regs[<span class="hljs-number">13</span>] = tf-&gt;t1;<br>        curr-&gt;regs[<span class="hljs-number">14</span>] = tf-&gt;t2;<br>        curr-&gt;regs[<span class="hljs-number">15</span>] = tf-&gt;t3;<br>        curr-&gt;regs[<span class="hljs-number">16</span>] = tf-&gt;t4;<br>        curr-&gt;regs[<span class="hljs-number">17</span>] = tf-&gt;t5;<br>        curr-&gt;regs[<span class="hljs-number">18</span>] = tf-&gt;t6;<br>        curr-&gt;regs[<span class="hljs-number">19</span>] = tf-&gt;t7;<br>        curr-&gt;regs[<span class="hljs-number">20</span>] = tf-&gt;t8;<br>        curr-&gt;regs[<span class="hljs-number">21</span>] = tf-&gt;r21;<br>        curr-&gt;regs[<span class="hljs-number">22</span>] = tf-&gt;fp;<br>        curr-&gt;regs[<span class="hljs-number">23</span>] = tf-&gt;s0;<br>        curr-&gt;regs[<span class="hljs-number">24</span>] = tf-&gt;s1;<br>        curr-&gt;regs[<span class="hljs-number">25</span>] = tf-&gt;s2;<br>        curr-&gt;regs[<span class="hljs-number">26</span>] = tf-&gt;s3;<br>        curr-&gt;regs[<span class="hljs-number">27</span>] = tf-&gt;s4;<br>        curr-&gt;regs[<span class="hljs-number">28</span>] = tf-&gt;s5;<br>        curr-&gt;regs[<span class="hljs-number">29</span>] = tf-&gt;s6;<br>        curr-&gt;regs[<span class="hljs-number">30</span>] = tf-&gt;s7;<br>        curr-&gt;regs[<span class="hljs-number">31</span>] = tf-&gt;s8;<br>        curr-&gt;era = tf-&gt;era;<br>        curr-&gt;prmd = tf-&gt;prmd;<br><br>        curr-&gt;state = TASK_READY;<br>    &#125;<br>    <span class="hljs-type">int</span> next = current_task;<br>    <span class="hljs-type">int</span> attempts = <span class="hljs-number">0</span>;<br><br>    <span class="hljs-keyword">do</span> &#123;<br>        <span class="hljs-comment">/* Move to next task */</span><br>        <span class="hljs-keyword">if</span> (next &lt; <span class="hljs-number">0</span>) &#123;<br>            next = <span class="hljs-number">0</span>;  <span class="hljs-comment">/* First schedule */</span><br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            next = (next + <span class="hljs-number">1</span>) % MAX_TASKS;<br>        &#125;<br>        <span class="hljs-comment">/* Check if this task is ready */</span><br>        <span class="hljs-keyword">if</span> (tasks[next].state == TASK_READY) &#123;<br>            <span class="hljs-keyword">break</span>;<br>        &#125;<br>        attempts++;<br>    &#125; <span class="hljs-keyword">while</span> (attempts &lt; MAX_TASKS);<br><br>    <span class="hljs-comment">/* No ready task found */</span><br>    <span class="hljs-keyword">if</span> (attempts &gt;= MAX_TASKS) &#123;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;[SCHED] ERROR: No ready task found!\n&quot;</span>);<br>        <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>);<br>    &#125;<br><br>    <span class="hljs-comment">/* Switch to next task */</span><br>    current_task = next;<br>    tasks[next].state = TASK_RUNNING;<br>    switch_to(&amp;tasks[next]);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>current_task 是一个全局变量，表示当前的 task 的 id。如果 id 合法，就把 trap_frame 中保存的上下文保存到 TCB 中。包括 通用寄存器、era、prmd、线程的状态。</p>
+<p>接着就是调度了，这里直接循环遍历，找到一个出在就绪态的任务，并且修改 current_task 为将要运转的线程，再修改它的运行状态，然后 switch_to 到它。</p>
+<p>switch_to() 是一段汇编指令，用于将这个 TCB 的状态 load 到响应的 CPU 寄存器中：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><code class="hljs asm">switch_to:<br>    /* a0 points to task_t, which starts with regs[32] */<br><br>    /* Restore general purpose registers from TCB */<br>    /* Note: We restore most registers, but skip $r0 (always 0) */<br><br>    ld.w    $r1,  $a0, 4       # $ra<br>    ld.w    $r2,  $a0, 8       # $tp<br>    ld.w    $r3,  $a0, 12      # $sp (critical!)<br><br>    /* Save a0 temporarily, we need it to access TCB */<br>    move    $t0, $a0<br><br>    ld.w    $r4,  $t0, 16      # $a0<br>    ld.w    $r5,  $t0, 20      # $a1<br>    ld.w    $r6,  $t0, 24      # $a2<br>    ld.w    $r7,  $t0, 28      # $a3<br>    ld.w    $r8,  $t0, 32      # $a4<br>    ld.w    $r9,  $t0, 36      # $a5<br>    ld.w    $r10, $t0, 40      # $a6<br>    ld.w    $r11, $t0, 44      # $a7<br><br>    /* Restore temporary registers (t2-t8, skip t0 and t1 for now) */<br>    ld.w    $r14, $t0, 56      # $t2<br>    ld.w    $r15, $t0, 60      # $t3<br>    ld.w    $r16, $t0, 64      # $t4<br>    ld.w    $r17, $t0, 68      # $t5<br>    ld.w    $r18, $t0, 72      # $t6<br>    ld.w    $r19, $t0, 76      # $t7<br>    ld.w    $r20, $t0, 80      # $t8<br><br>    /* Restore r21 and saved registers */<br>    ld.w    $r21, $t0, 84      # $r21<br>    ld.w    $r22, $t0, 88      # $fp<br>    ld.w    $r23, $t0, 92      # $s0<br>    ld.w    $r24, $t0, 96      # $s1<br>    ld.w    $r25, $t0, 100     # $s2<br>    ld.w    $r26, $t0, 104     # $s3<br>    ld.w    $r27, $t0, 108     # $s4<br>    ld.w    $r28, $t0, 112     # $s5<br>    ld.w    $r29, $t0, 116     # $s6<br>    ld.w    $r30, $t0, 120     # $s7<br>    ld.w    $r31, $t0, 124     # $s8<br><br>    /* Restore CSR registers (use $t1 as temp before restoring it) */<br>    /* ERA is at offset 128 (32 regs × 4 bytes) */<br>    ld.w    $t1, $t0, 128      # Load ERA<br>    csrwr   $t1, 0x6           # Write to CSR_ERA<br><br>    /* PRMD is at offset 132 */<br>    ld.w    $t1, $t0, 132      # Load PRMD<br>    csrwr   $t1, 0x1           # Write to CSR_PRMD<br><br>    /* Now restore $t1 and $t0 */<br>    ld.w    $r13, $t0, 52      # Restore $t1<br>    ld.w    $r12, $t0, 48      # Restore $t0<br><br>    /* Return to task using ertn */<br>    /* This will:<br>     *   - Jump to address in ERA<br>     *   - Restore privilege level from PRMD<br>     *   - Enable interrupts if PRMD.IE was set<br>     */<br>    ertn<br>.end<br></code></pre></td></tr></table></figure>
+
+<p>这里需要注意的是，我们用 t0、t1 作为恢复其它寄存器的桥梁，因此最后恢复它们就好。当 ertn 的时候：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (ertn_flush) <span class="hljs-keyword">begin</span><br>    csr_crmd[ `PLV] &lt;= csr_prmd[`PPLV]; <span class="hljs-comment">// 恢复特权等级</span><br>    csr_crmd[  `IE] &lt;= csr_prmd[`PIE ]; <span class="hljs-comment">// 恢复中断</span><br>    <span class="hljs-keyword">if</span> (eret_tlbrefill_excp) <span class="hljs-keyword">begin</span><br>        csr_crmd[`DA] &lt;= <span class="hljs-number">1&#x27;b0</span>;<br>        csr_crmd[`PG] &lt;= <span class="hljs-number">1&#x27;b1</span>;<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
+
+<p>这样返回后，就回到被调度的任务了。</p>
+<h2 id="TCB"><a href="#TCB" class="headerlink" title="TCB"></a>TCB</h2><p>从上面的讨论中可以看到，TCB 除了包含基本状态以外，我还加了 <code>task_output_t output</code>，这是因为每一个 task 都有信息输出，因此可以在任务执行的时候，将它的信息输出到 output 内存区。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> &#123;</span><br>    <span class="hljs-type">uint32_t</span> regs[<span class="hljs-number">32</span>];<br>    <span class="hljs-type">uint32_t</span> era;<br>    <span class="hljs-type">uint32_t</span> prmd;<br><br>    <span class="hljs-comment">/* Task metadata */</span><br>    <span class="hljs-type">task_state_t</span> state;     <span class="hljs-comment">/* Task state */</span><br>    <span class="hljs-type">int</span> task_id;            <span class="hljs-comment">/* Task ID */</span><br>    <span class="hljs-type">char</span> name[<span class="hljs-number">32</span>];          <span class="hljs-comment">/* Task name (for debugging) */</span><br>    <span class="hljs-comment">/* Output buffer */</span><br>    <span class="hljs-type">task_output_t</span> output;   <span class="hljs-comment">/* Task output buffer */</span><br>    <span class="hljs-comment">/* Stack */</span><br>    <span class="hljs-type">uint32_t</span> <span class="hljs-built_in">stack</span>[TASK_STACK_SIZE];  <span class="hljs-comment">/* Task&#x27;s stack */</span><br>&#125; <span class="hljs-type">task_t</span>;<br></code></pre></td></tr></table></figure>
+<p><code>task_output_t</code> 作为 TCB，因为它必须也有状态的：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> &#123;</span><br>    <span class="hljs-type">char</span> *buffer;           <span class="hljs-comment">/* Pointer to 1MB buffer */</span><br>    <span class="hljs-type">uint32_t</span> write_pos;     <span class="hljs-comment">/* Write position (circular) */</span><br>    <span class="hljs-type">uint32_t</span> total_bytes;   <span class="hljs-comment">/* Total bytes written (for overflow detection) */</span><br>    <span class="hljs-type">int</span> is_foreground;      <span class="hljs-comment">/* 1 = foreground (print to UART), 0 = background */</span><br>&#125; <span class="hljs-type">task_output_t</span>;<br></code></pre></td></tr></table></figure>
+
+<h2 id="创建一个-task"><a href="#创建一个-task" class="headerlink" title="创建一个 task"></a>创建一个 task</h2><p>有了 <code>TCB</code> 创建一个 线程也就不难了。首先获取一个线程 <code>tid</code>：在 <code>tasks</code> 中遍历，只要找到死掉的任务或者 <code>unused</code> 就行了：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">find_free_slot</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; MAX_TASKS; i++) &#123;<br>        <span class="hljs-keyword">if</span> (tasks[i].state == TASK_UNUSED || tasks[i].state == TASK_DEAD) &#123;<br>            <span class="hljs-keyword">return</span> i;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>然后对这个 <code>tasks[tid]</code> 就可以操作了。将上下文 32 个通用寄存器清零，然后非常关键的将 <code>regs[3]</code> 也就是 <code>sp</code> 赋值为待用的 <code>stack</code> 的指针。接着设置 <code>era</code> 为 函数入口，然后就是设置 <code>prmd</code>、状态、线程名、以及是否在后台运行等。</p>
+<p>这里需要关注的是后台执行的线程。如果是在后台执行的，那么就要给它 <code>malloc</code> 一个内存区域（<code>calloc</code> 更合适，会自动清零），然后初始化输出区。</p>
+<p>代码大致如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">int</span> <span class="hljs-title function_">task_create</span><span class="hljs-params">(<span class="hljs-type">void</span> (*entry)(<span class="hljs-type">void</span>), <span class="hljs-type">const</span> <span class="hljs-type">char</span> *name)</span> &#123;<br>    <span class="hljs-type">int</span> tid = find_free_slot();<br>    <span class="hljs-keyword">if</span> (tid &lt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;[SCHED] ERROR: No free task slot\n&quot;</span>);<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>    &#125;<br>    <span class="hljs-type">task_t</span> *task = &amp;tasks[tid];<br>    <span class="hljs-comment">/* Initialize registers to 0 */</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">32</span>; i++) &#123;<br>        task-&gt;regs[i] = <span class="hljs-number">0</span>;<br>    &#125;<br>    task-&gt;regs[<span class="hljs-number">3</span>] = (<span class="hljs-type">uint32_t</span>)&amp;task-&gt;<span class="hljs-built_in">stack</span>[TASK_STACK_SIZE - <span class="hljs-number">1</span>];<br>    task-&gt;era = (<span class="hljs-type">uint32_t</span>)entry;<br>    task-&gt;prmd = <span class="hljs-number">0x4</span>;  <span class="hljs-comment">/* 0b0100: PLV=0, IE=1 */</span><br><br>    <span class="hljs-comment">/* Set task metadata */</span><br>    task-&gt;state = TASK_READY;<br>    safe_strcpy(task-&gt;name, name, <span class="hljs-keyword">sizeof</span>(task-&gt;name));<br><br>    <span class="hljs-keyword">if</span> (task-&gt;output.buffer == <span class="hljs-literal">NULL</span>) &#123;<br>        task-&gt;output.buffer = (<span class="hljs-type">char</span>*)<span class="hljs-built_in">malloc</span>(TASK_OUTPUT_BUF_SIZE);<br>        <span class="hljs-keyword">if</span> (task-&gt;output.buffer == <span class="hljs-literal">NULL</span>) &#123;<br>            <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;[SCHED] ERROR: Failed to allocate output buffer for task %d\n&quot;</span>, tid);<br>            task-&gt;state = TASK_UNUSED;<br>            <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>        &#125;<br>        task-&gt;output.write_pos = <span class="hljs-number">0</span>;<br>        task-&gt;output.total_bytes = <span class="hljs-number">0</span>;<br>    &#125;<br>    <span class="hljs-keyword">if</span> (tid == <span class="hljs-number">0</span>) &#123;<br>        task-&gt;output.is_foreground = <span class="hljs-number">1</span>;<br>        foreground_task = <span class="hljs-number">0</span>;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        task-&gt;output.is_foreground = <span class="hljs-number">0</span>;<br>    &#125;<br><br>    num_tasks++;<br><br>    <span class="hljs-keyword">return</span> tid;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>我把所有的任务都设置在后台执行，shell 永远在台前执行（shell 不能在后台，它应该时钟保持交互性！）。</p>
+<h2 id="运行-task0"><a href="#运行-task0" class="headerlink" title="运行 task0"></a>运行 task0</h2><p>xOS 在启动的时候，它会直接进入到 shell 呢还是先创建一个 shell 进程等着调度或者手动调度？我认为这是一个哲学问题。</p>
+<p>因为如果直接进入 shell 那么 shell 就不是一个 task 了，就成了 OS 的一部分且不参与调度，这显然不符合设计思想。如果把 shell 设计成一个 task，那么时钟中断调度他的时候，肯定要保存它运行之前的程序的上下文，这个程序都不是一个 task，连 TCB 都没有，因此 <code>schedule</code> 就会<code>犯难</code>。</p>
+<p>我的做法是，进入 shell 之前，创建 shell 的 task，然后手动调度。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    bsp_uart_init(<span class="hljs-number">0</span>, BAUDRATE);<br>    system_init();<br><br>    task_create(shell_task, <span class="hljs-string">&quot;shell&quot;</span>);<br>    schedule(<span class="hljs-literal">NULL</span>);<br><br>    <span class="hljs-comment">/* Should never reach here */</span><br>    <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>);<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>shell_task</code> 是一个特殊的 <code>task</code>，它会开启时钟调度：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">shell_task</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    timer_start();<br>    <span class="hljs-comment">/* Initialize shell */</span><br>    shell_init();<br>    <span class="hljs-comment">/* Run shell (infinite loop) */</span><br>    shell_run();<br><br>    <span class="hljs-comment">/* Should never reach here */</span><br>    task_exit();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里的关键之处就是这是第一个 task，因此它的 tid 一定是 0，所以它会被标记被 <code>foreground_task</code>。</p>
+<p>手动 <code>schedule(NULL)</code> 的关键之处传入了一个空指针，这就会避免保存上下文，只会创建上下文。然后自然而然就跳转到了 shell 中，这样就解决了上面第一个 task 保存上下文的问题。</p>
+<h2 id="运行-task1"><a href="#运行-task1" class="headerlink" title="运行 task1"></a>运行 task1</h2><p><code>task0</code> 是所有 <code>task</code> 的祖宗，因为所有的 <code>task</code> 都将是它创建的。</p>
+<p>在 shell 中输入回车后，就会跳转到</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">shell_input_char</span><span class="hljs-params">(<span class="hljs-type">char</span> c)</span> &#123;<br>    <span class="hljs-keyword">switch</span> (c) &#123;<br>        <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;\n&#x27;</span>:  <span class="hljs-comment">/* Enter */</span><br>            <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\n&quot;</span>);  <span class="hljs-comment">// UART 驱动会自动转换为 \r\n</span><br>            execute_command();<br>            cmd_pos = <span class="hljs-number">0</span>;<br>            shell_print_prompt();<br>            <span class="hljs-keyword">break</span>;<br></code></pre></td></tr></table></figure>
+
+<p><code>execute_command()</code> 执行结束后，就会重置 <code>cmd_pos</code>，然后返回 shell。我们关注 <code>execute_command()</code> 的设计。</p>
+<p>首先要区分内置命令和外置命令。xOS 对于内置的命令的定义是，shell 在执行它的之后，执行完后才会回到 shell；外置命令是创建一个 task 然后返回到 shell。</p>
+<p>由于内置命令都比较短且可靠性极高，不会出现不会返回情形。对于外置命令，是一些执行时间很长的命令，它们会和 shell 一起在宏观上并发，就算出问题了，可以在 shell 中 kill 掉。</p>
+<p>当我们输入不同的外部命令的时候，需要统一的接口：<code>命令名字</code> + <code>命令参数</code>，而且 <code>命令参数</code> 的数量还不一样多。那么应该怎么解决这个办法呢？</p>
+<p>需要明白的是，shell 负责传递 <code>一组字符串</code>，然后进入到 <code>execute_command()</code> 中 parse <code>cmd_buffer</code> 从而得到命令的数据结构。因此我们得创建一个 task 的中间体：<code>task_wrapper</code>。这个中间体会在真正运行 task 之前做一些准备工作。将相应的 <code>task_contexts</code> 完善：主要就是将 <code>arg_buffer</code> 中的信息复制拷贝的 <code>argv_storage</code>。</p>
+<p>然后通过 handler 直接运行：<code>ctx-&gt;handler(ctx-&gt;argc, ctx-&gt;argv_storage)</code>就行了：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-keyword">typedef</span> <span class="hljs-title function_">int</span> <span class="hljs-params">(*<span class="hljs-type">shell_cmd_handler_t</span>)</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">char</span> *argv[])</span>;<br><br><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> &#123;</span><br>    <span class="hljs-type">shell_cmd_handler_t</span> handler;<br>    <span class="hljs-type">int</span> argc;<br>    <span class="hljs-type">char</span> *argv_storage[SHELL_MAX_ARGS];<br>    <span class="hljs-type">char</span> arg_buffer[SHELL_CMD_MAX_LEN];<br>&#125; <span class="hljs-type">task_cmd_context_t</span>;<br><br>...<br>...<br><br><span class="hljs-comment">/* Task wrapper function - executes command and exits */</span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">task_wrapper</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-type">int</span> tid = get_current_task();<br>    <span class="hljs-keyword">if</span> (tid &lt; <span class="hljs-number">0</span> || tid &gt;= MAX_TASKS) &#123;<br>        task_exit();<br>    &#125;<br>    <span class="hljs-type">task_cmd_context_t</span> *ctx = &amp;task_contexts[tid];<br>    <span class="hljs-comment">/* Reconstruct argv pointers from stored buffer */</span><br>    <span class="hljs-type">char</span> *p = ctx-&gt;arg_buffer;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; ctx-&gt;argc; i++) &#123;<br>        ctx-&gt;argv_storage[i] = p;<br>        <span class="hljs-keyword">while</span> (*p++);  <span class="hljs-comment">/* Skip to next null terminator */</span><br>    &#125;<br>    <span class="hljs-comment">/* Execute command handler */</span><br>    ctx-&gt;handler(ctx-&gt;argc, ctx-&gt;argv_storage);<br><br>    <span class="hljs-comment">/* Task complete, exit */</span><br>    task_exit();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>为什么这样可以运行呢？先看之前的 <code>parse_command</code>，它可以把来自 shell 的命令字符串转成了标准的形式：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-comment">/* Parse command line into argc/argv */</span><br><span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">parse_command</span><span class="hljs-params">(<span class="hljs-type">char</span> *cmd, <span class="hljs-type">char</span> *argv[], <span class="hljs-type">int</span> max_args)</span> &#123;<br>    <span class="hljs-type">int</span> argc = <span class="hljs-number">0</span>;<br>    <span class="hljs-type">char</span> *p = cmd;<br><br>    <span class="hljs-keyword">while</span> (*p &amp;&amp; argc &lt; max_args) &#123;<br>        <span class="hljs-comment">/* Skip leading spaces */</span><br>        <span class="hljs-keyword">while</span> (*p == <span class="hljs-string">&#x27; &#x27;</span>) p++;<br>        <span class="hljs-keyword">if</span> (*p == <span class="hljs-string">&#x27;\0&#x27;</span>) <span class="hljs-keyword">break</span>;<br><br>        <span class="hljs-comment">/* Start of argument */</span><br>        argv[argc++] = p;<br><br>        <span class="hljs-comment">/* Find end of argument */</span><br>        <span class="hljs-keyword">while</span> (*p &amp;&amp; *p != <span class="hljs-string">&#x27; &#x27;</span>) p++;<br><br>        <span class="hljs-comment">/* Null terminate */</span><br>        <span class="hljs-keyword">if</span> (*p) &#123;<br>            *p++ = <span class="hljs-string">&#x27;\0&#x27;</span>;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">return</span> argc;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>比如输入 <code>countdown xxx</code>，这里就会解析成 <code>countdown\0xxx\0</code>，<code>argc</code> 也是 2。</p>
+<p>回过头关注 <code>execute_command(void)</code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-comment">/* Countdown command runs in background */</span><br>            <span class="hljs-keyword">if</span> (<span class="hljs-built_in">strcmp</span>(cmd-&gt;name, <span class="hljs-string">&quot;countdown&quot;</span>) == <span class="hljs-number">0</span> || <span class="hljs-number">0</span>) &#123;<br>                run_background = <span class="hljs-number">1</span>;<br>            &#125;<br><br>            <span class="hljs-keyword">if</span> (run_background) &#123;<br>                irq_global_disable();<br>                <span class="hljs-comment">/* Create background task */</span><br>                <span class="hljs-type">int</span> tid = task_create(task_wrapper, cmd-&gt;name);<br>                <span class="hljs-keyword">if</span> (tid &lt; <span class="hljs-number">0</span>) &#123;<br>                    irq_global_enable();<br>                    <span class="hljs-keyword">return</span>;<br>                &#125;<br>                <span class="hljs-comment">/* Store command context for the task */</span><br>                <span class="hljs-type">task_cmd_context_t</span> *ctx = &amp;task_contexts[tid];<br>                ctx-&gt;handler = cmd-&gt;handler;<br>                ctx-&gt;argc = argc;<br><br>                <span class="hljs-comment">/* Copy arguments into task&#x27;s buffer */</span><br>                <span class="hljs-type">char</span> *dst = ctx-&gt;arg_buffer;<br>                <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; argc; i++) &#123;<br>                    <span class="hljs-type">int</span> len = <span class="hljs-built_in">strlen</span>(argv[i]);<br>                    <span class="hljs-built_in">strcpy</span>(dst, argv[i]);<br>                    dst += len + <span class="hljs-number">1</span>;  <span class="hljs-comment">/* Include null terminator */</span><br>                &#125;<br>                <span class="hljs-comment">/* Re-enable interrupts - now it&#x27;s safe to schedule the task */</span><br>                irq_global_enable();<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，它在创建 <code>task_cmd_context_t</code> 的时候，拷贝了 handler、argc、以及使用 <code>strlen()、strcpy()</code> 逐个拷贝了 argv 中的每一个字符串。</p>
+<p>需要注意的是，<code>mylibc</code> 中的 <code>strlen()</code> 不包括字符串的结束符：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * strlen - 计算字符串长度</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * 返回字符串 s 的长度（不包括结尾的 &#x27;\0&#x27;）</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">size_t</span> <span class="hljs-title function_">strlen</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">char</span> *s)</span> &#123;<br>    <span class="hljs-type">const</span> <span class="hljs-type">char</span> *p = s;<br>    <span class="hljs-keyword">while</span> (*p) &#123;<br>        p++;<br>    &#125;<br>    <span class="hljs-keyword">return</span> p - s;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>另外 <code>strcpy(dst, argv[i])</code> 拷贝了 <code>&#39;\0&#39;</code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * strcpy - 复制字符串</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * 将 src 复制到 dst（包括 &#x27;\0&#x27;）</span><br><span class="hljs-comment"> * 返回 dst</span><br><span class="hljs-comment"> * 警告：不检查缓冲区大小，可能溢出，建议使用 strncpy</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">char</span> *<span class="hljs-title function_">strcpy</span><span class="hljs-params">(<span class="hljs-type">char</span> *dst, <span class="hljs-type">const</span> <span class="hljs-type">char</span> *src)</span> &#123;<br>    <span class="hljs-type">char</span> *ret = dst;<br>    <span class="hljs-keyword">while</span> ((*dst++ = *src++)) &#123;<br>        <span class="hljs-comment">/* 遇到 &#x27;\0&#x27; 成功复制，但是赋值表达式的指是 0，然后退出*/</span><br>    &#125;<br>    <span class="hljs-keyword">return</span> ret;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>此时，<code>arg_buffer</code> 就装好了良好的格式化的参数列表。</p>
+<p>当 task 执行的时候，就会把各个参数的字符串指针赋值给 <code>argv_storage</code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">char</span> *p = ctx-&gt;arg_buffer;<br><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; ctx-&gt;argc; i++) &#123;<br>    ctx-&gt;argv_storage[i] = p;<br>    <span class="hljs-keyword">while</span> (*p++);  <span class="hljs-comment">/* Skip to next null terminator */</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这符合函数调用约定，然后调用 handler，就可以执行了。另外，创建 task 之前应该关闭中断，想想为什么。</p>
+<h2 id="退出-task1"><a href="#退出-task1" class="headerlink" title="退出 task1"></a>退出 task1</h2><p>task 执行结束之后，应该回收资源。包括 tid 置为 dead 标识，清空输出 buffer。其它标志位会在创建 task 的时候重置，因此退出 task 的时候就不用重置了。</p>
+<p>接着就是手动触发调度，因为当前的线程不用保存上下文了，简直妙不可言：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">task_exit</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-keyword">if</span> (current_task &lt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>);<br>    &#125;<br>    <span class="hljs-comment">/* Free output buffer */</span><br>    <span class="hljs-keyword">if</span> (tasks[current_task].output.buffer != <span class="hljs-literal">NULL</span>) &#123;<br>        <span class="hljs-built_in">free</span>(tasks[current_task].output.buffer);<br>        tasks[current_task].output.buffer = <span class="hljs-literal">NULL</span>;<br>    &#125;<br><br>    <span class="hljs-comment">/* Mark task as dead */</span><br>    tasks[current_task].state = TASK_DEAD;<br>    num_tasks--;<br><br>    <span class="hljs-comment">/* Trigger immediate reschedule */</span><br>    schedule(<span class="hljs-literal">NULL</span>);<br><br>    <span class="hljs-comment">/* Never returns */</span><br>    <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>至此，一个完整的基于时间调度的 xOS 就设计的有了基础功能了。</p>
+<h2 id="运行效果"><a href="#运行效果" class="headerlink" title="运行效果"></a>运行效果</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs bash"><br>========================================<br>  xOS - Simple Operating System<br>  <span class="hljs-keyword">for</span> LoongArch32R SoC<br>========================================<br><br>Type <span class="hljs-string">&#x27;help&#x27;</span> <span class="hljs-keyword">for</span> available commands.<br><br>xos&gt; <span class="hljs-built_in">help</span><br>Available commands:<br><span class="hljs-built_in">help</span> - Show available commands<br><span class="hljs-built_in">echo</span> - Echo arguments (e.g. <span class="hljs-built_in">echo</span> hello world)<br>clear - Clear screen<br>info - Show system information<br>ps - Show task status<br><span class="hljs-built_in">fg</span> - Move task to foreground (e.g. <span class="hljs-built_in">fg</span> 1)<br><span class="hljs-built_in">bg</span> - Move task to background (e.g. <span class="hljs-built_in">bg</span> 1)<br>logs - Show task output <span class="hljs-built_in">history</span> (e.g. logs 1)<br>heap - Show heap memory statistics<br>countdown - Countdown from N (e.g. countdown 10)<br>xos&gt; countdown 50<br>xos&gt; ps<br>TID STATE  FG NAME        OUTPUT<br>--- ------ -- ----------- ------<br>*0  RUN    FG shell 0KB<br> 1  READY  BG countdown 0KB<br><br>Active tasks: 2/8<br>Current task: 0<br>Foreground task: 0<br>xos&gt; <span class="hljs-built_in">fg</span> 1<br>Task 1 moved to foreground<br>xos&gt; 24...<br>23...<br>22...<br>21...<br>20...<br></code></pre></td></tr></table></figure>
+
+<p>输入 <code>countdown 50</code> 运行在后台，可以通过 ps 查看运行信息，可以通过 fg 移动到前台（谨慎，因为会占用 shell，影响输入），也可以使用 bg 移动到后台。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/SoC/" class="category-chain-item">SoC</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E6%AF%95%E8%AE%BE/" class="print-no-link">#毕设</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>毕设(10)：基于时间片的协作式多任务系统</div>
+      <div>http://blog.luliang.online/2026/01/24/毕设10：基于时间片的协作式多任务系统/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年1月24日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/01/20/%E6%AF%95%E8%AE%BE9%EF%BC%9Aps2%20%E9%94%AE%E7%9B%98/" title="毕设(9)：ps2 键盘">
+                        <span class="hidden-mobile">毕设(9)：ps2 键盘</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

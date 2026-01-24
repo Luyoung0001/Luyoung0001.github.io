@@ -1,0 +1,716 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言为了更深层次了解计算机的工作原理，我要开始学习 Linux 驱动开发了，主要面向嵌入式 Linux。 驱动驱动要保证内核安全，防止崩溃、数据泄露等，防御性编程是安全的基本思维。 驱动作为 Linux 内核的关建代码，要和设备直接沟通：在高权限模式下直接访问寄存器或者内存（地址重定向），因此必须保证安全，使用内核提供的库函数。这样，可以防止用户态程序提供的指针非法或者借用内核来执行一些危险操作。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux 驱动开发学习日记：字符设备驱动">
+<meta property="og:url" content="http://blog.luliang.online/2025/10/20/Linux%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0(1)/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="前言为了更深层次了解计算机的工作原理，我要开始学习 Linux 驱动开发了，主要面向嵌入式 Linux。 驱动驱动要保证内核安全，防止崩溃、数据泄露等，防御性编程是安全的基本思维。 驱动作为 Linux 内核的关建代码，要和设备直接沟通：在高权限模式下直接访问寄存器或者内存（地址重定向），因此必须保证安全，使用内核提供的库函数。这样，可以防止用户态程序提供的指针非法或者借用内核来执行一些危险操作。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-10-20T07:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.426Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="Linux 驱动">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>Linux 驱动开发学习日记：字符设备驱动 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Linux 驱动开发学习日记：字符设备驱动"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-10-20 15:03" pubdate>
+          2025年10月20日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          895 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          8 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Linux 驱动开发学习日记：字符设备驱动</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>为了更深层次了解计算机的工作原理，我要开始学习 Linux 驱动开发了，主要面向嵌入式 Linux。</p>
+<h2 id="驱动"><a href="#驱动" class="headerlink" title="驱动"></a>驱动</h2><p>驱动要保证内核安全，防止崩溃、数据泄露等，防御性编程是安全的基本思维。</p>
+<p>驱动作为 Linux 内核的关建代码，要和设备直接沟通：在高权限模式下直接访问寄存器或者内存（地址重定向），因此必须保证安全，使用内核提供的库函数。这样，可以防止用户态程序提供的指针非法或者借用内核来执行一些危险操作。 </p>
+<h2 id="一个例子"><a href="#一个例子" class="headerlink" title="一个例子"></a>一个例子</h2><p>这是一个很简单的字符设备驱动：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;linux/fs.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;linux/init.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;linux/module.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;linux/uaccess.h&gt;</span></span><br><br><span class="hljs-type">static</span> <span class="hljs-type">int</span> major = <span class="hljs-number">0</span>;<br><span class="hljs-type">static</span> <span class="hljs-type">int</span> ker_val = <span class="hljs-number">123</span>;<br><br><span class="hljs-type">static</span> <span class="hljs-type">ssize_t</span> <span class="hljs-title function_">hello_read</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> file* file,</span><br><span class="hljs-params">                          <span class="hljs-type">char</span> __user* buf,</span><br><span class="hljs-params">                          <span class="hljs-type">size_t</span> size,</span><br><span class="hljs-params">                          <span class="hljs-type">loff_t</span>* offset)</span> &#123;<br>    <span class="hljs-type">int</span> err;<br>    printk(<span class="hljs-string">&quot;%s %s line %d\n&quot;</span>, __FILE__, __FUNCTION__, __LINE__);<br>    copy_to_user(buf, &amp;ker_val, <span class="hljs-number">4</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">4</span>;<br>&#125;<br><br><span class="hljs-type">static</span> <span class="hljs-type">ssize_t</span> <span class="hljs-title function_">hello_write</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> file* file,</span><br><span class="hljs-params">                           <span class="hljs-type">const</span> <span class="hljs-type">char</span> __user* buf,</span><br><span class="hljs-params">                           <span class="hljs-type">size_t</span> size,</span><br><span class="hljs-params">                           <span class="hljs-type">loff_t</span>* offset)</span> &#123;<br>    <span class="hljs-type">int</span> err;<br>    printk(<span class="hljs-string">&quot;%s %s line %d\n&quot;</span>, __FILE__, __FUNCTION__, __LINE__);<br>    copy_from_user(&amp;ker_val, buf, <span class="hljs-number">4</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">4</span>;<br>&#125;<br><br><span class="hljs-type">static</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file_operations</span> <span class="hljs-title">hello_fops</span> =</span> &#123;<br>    .owner = THIS_MODULE,<br>    .read = hello_read,<br>    .write = hello_write,<br>&#125;;<br><br><span class="hljs-type">int</span> __init <span class="hljs-title function_">hello_init</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    printk(<span class="hljs-string">&quot;hello drv init\n&quot;</span>);<br>    major = register_chrdev(<span class="hljs-number">0</span>, <span class="hljs-string">&quot;hello_drv&quot;</span>, &amp;hello_fops);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br><br><span class="hljs-type">void</span> __exit <span class="hljs-title function_">hello_exit</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    printk(<span class="hljs-string">&quot;hello drv exit\n&quot;</span>);<br>    unregister_chrdev(major, <span class="hljs-string">&quot;hello_drv&quot;</span>);<br>&#125;<br><br>MODULE_LICENSE(<span class="hljs-string">&quot;GPL&quot;</span>);<br><br>module_init(hello_init);<br>module_exit(hello_exit);<br><br></code></pre></td></tr></table></figure>
+
+<h3 id="module-init-module-exit-宏"><a href="#module-init-module-exit-宏" class="headerlink" title="module_init module_exit 宏"></a>module_init module_exit 宏</h3><p>这两个宏会给 init_module、cleanup_module 定义一个别名，为hello_init、hello_exit。</p>
+<p>比如：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;linux/module.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">init_module</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>&#123;&#125;<br><span class="hljs-type">void</span> <span class="hljs-title function_">cleanup_module</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>&#123;&#125;<br><br>MODULE_LICENSE(<span class="hljs-string">&quot;GPL&quot;</span>);<br></code></pre></td></tr></table></figure>
+
+<p>这就是一个非常简单的驱动，它摒弃了 module_init，module_exit 宏。至于 <code>MODULE_LICENSE(&quot;GPL&quot;)</code>，Linux 内核采用 GPL (GNU General Public License) 许可证，内核模块被视为内核的衍生作品。使用 MODULE_LICENSE(“GPL”) 声明：</p>
+<ul>
+<li>表明你的模块遵循 GPL 许可证</li>
+<li>允许模块与 GPL 许可的内核代码链接</li>
+<li>避免违反 GPL 许可证的法律风险</li>
+</ul>
+<h3 id="struct-file-operations"><a href="#struct-file-operations" class="headerlink" title="struct file_operations"></a>struct file_operations</h3><p>这是一个关建的结构体，里面定义了设备的一切操作。</p>
+<h3 id="register-chrdev-unregister-chrdev"><a href="#register-chrdev-unregister-chrdev" class="headerlink" title="register_chrdev &amp; unregister_chrdev"></a>register_chrdev &amp; unregister_chrdev</h3><p>一个设备有三个信息：</p>
+<ul>
+<li>操作集合；</li>
+<li>设备号；</li>
+<li>设备名。</li>
+</ul>
+<p>因此可以在 init 函数中通过函数 <code>major = register_chrdev(0, &quot;hello_drv&quot;, &amp;hello_fops)</code> 来将设备导入内核设备数组，而且返回一个主设备号。<code>unregister_chrdev(major, &quot;hello_drv&quot;)</code> 来将设备从内核设备数组中删掉。</p>
+<h3 id="数据传输：copy-from-user、copy-to-user"><a href="#数据传输：copy-from-user、copy-to-user" class="headerlink" title="数据传输：copy_from_user、copy_to_user"></a>数据传输：copy_from_user、copy_to_user</h3><p>在驱动中，可以设置一些 buffer 甚至变量。而如果要将用户空间传来的指指针所指引的数据复制到内核空间，那么就不能直接使用<code>解引用操作</code>，这样相当危险，必须使用可以对指针检验的函数 <code>copy_from_user</code>、<code>copy_to_user</code>。因为切换到内核的时候，CPU 权限很高，可以执行任何访存操作，防御性编程意味着不能信任任何用户态传来的指针。</p>
+<h2 id="模块编译与加载"><a href="#模块编译与加载" class="headerlink" title="模块编译与加载"></a>模块编译与加载</h2><p>使用以下编译脚本：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs Makefile">ARCH = x86<br>CROSS_COMPILE =<br><br>KVERSION = <span class="hljs-variable">$(<span class="hljs-built_in">shell</span> uname -r)</span><br>KERN_DIR =  /lib/modules/<span class="hljs-variable">$(KVERSION)</span>/build<br><br><span class="hljs-section">all:</span><br>	make -C <span class="hljs-variable">$(KERN_DIR)</span> M=`pwd` modules<br><br><span class="hljs-section">clean:</span><br>	make -C <span class="hljs-variable">$(KERN_DIR)</span> M=`pwd` modules clean<br>	rm -rf modules.order<br><br>obj-m	+= hello_drv.o<br></code></pre></td></tr></table></figure>
+
+<p>插入模块后，可以看到日志：<code>[4081587.620624] hello drv init</code>，也可以看到新的设备：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">cat</span> /proc/devices<br>Character devices:<br>  1 mem<br>  4 /dev/vc/0<br>  4 <span class="hljs-built_in">tty</span><br>...<br>226 drm<br>237 hello_drv<br>...<br></code></pre></td></tr></table></figure>
+
+<p>但是此时我们的设备文件在模块初始化的时候并没有创建    <code>device_create(hello_class, NULL, MKDEV(MAJOR(devno), i),NULL, &quot;hello%d&quot;, i)</code>，因此得用 mknod 来创建一个临时的设备节点，缺点是在重启之后就会消失。</p>
+<h2 id="创建临时设备节点"><a href="#创建临时设备节点" class="headerlink" title="创建临时设备节点"></a>创建临时设备节点</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">sudo <span class="hljs-built_in">mknod</span> /dev/xxx c 237 0<br><br></code></pre></td></tr></table></figure>
+
+<p>我们使用 root 下的 echo、cat 也可以读取设备，它们调用的也是 open、read、write。当然也可以使用测试程序对字符设备进行测试：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs bash">$ gcc hello_drv_test.c -o <span class="hljs-built_in">test</span><br><br>$ sudo ./test -w A<br>open file /dev/xxx ok<br>write driver: 4<br><br>$ sudo ./test -r<br>open file /dev/xxx ok<br><span class="hljs-built_in">read</span> driver: 4<br>APP <span class="hljs-built_in">read</span> : A<br></code></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Linux/" class="category-chain-item">Linux</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Linux-%E9%A9%B1%E5%8A%A8/" class="print-no-link">#Linux 驱动</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Linux 驱动开发学习日记：字符设备驱动</div>
+      <div>http://blog.luliang.online/2025/10/20/Linux驱动开发学习日记(1)/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年10月20日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/10/22/Linux%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0(2)/" title="Linux 驱动开发学习日记：分离的思想和总线设备驱动模型">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Linux 驱动开发学习日记：分离的思想和总线设备驱动模型</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/10/10/%E6%88%91%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E9%87%8D%E6%96%B0%E5%AD%A6%E4%B9%A0ysyx/" title="我为什么要重新学习“一生一芯”？">
+                        <span class="hidden-mobile">我为什么要重新学习“一生一芯”？</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

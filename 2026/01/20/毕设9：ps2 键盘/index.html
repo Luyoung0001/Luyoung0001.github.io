@@ -1,0 +1,806 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="ps2 键盘的软件仿真在用户程序层面： 1234567891011121314151617181920212223242526272829int kb_get_scancode(void) &#123;    if (kb_head &#x3D;&#x3D; kb_tail) &#123;        return -1; &#x2F;* Buffer empty *&#x2F;    &#125;    uint8_t code &#x3D;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="毕设(9)：ps2 键盘">
+<meta property="og:url" content="http://blog.luliang.online/2026/01/20/%E6%AF%95%E8%AE%BE9%EF%BC%9Aps2%20%E9%94%AE%E7%9B%98/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="ps2 键盘的软件仿真在用户程序层面： 1234567891011121314151617181920212223242526272829int kb_get_scancode(void) &#123;    if (kb_head &#x3D;&#x3D; kb_tail) &#123;        return -1; &#x2F;* Buffer empty *&#x2F;    &#125;    uint8_t code &#x3D;">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-01-20T03:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.454Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="毕设">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>毕设(9)：ps2 键盘 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="毕设(9)：ps2 键盘"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-01-20 11:03" pubdate>
+          2026年1月20日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          25 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">毕设(9)：ps2 键盘</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="ps2-键盘的软件仿真"><a href="#ps2-键盘的软件仿真" class="headerlink" title="ps2 键盘的软件仿真"></a>ps2 键盘的软件仿真</h2><p>在用户程序层面：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">int</span> <span class="hljs-title function_">kb_get_scancode</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-keyword">if</span> (kb_head == kb_tail) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>; <span class="hljs-comment">/* Buffer empty */</span><br>    &#125;<br>    <span class="hljs-type">uint8_t</span> code = kb_buffer[kb_tail];<br>    kb_tail = (kb_tail + <span class="hljs-number">1</span>) % KB_BUF_SIZE;<br>    <span class="hljs-keyword">return</span> code;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">shell_run</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\n&quot;</span>);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;========================================\n&quot;</span>);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;  xOS - Simple Operating System\n&quot;</span>);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;  for LoongArch32R SoC\n&quot;</span>);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;========================================\n&quot;</span>);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\n&quot;</span>);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Type &#x27;help&#x27; for available commands.\n&quot;</span>);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\n&quot;</span>);<br><br>    shell_print_prompt();<br><br>    <span class="hljs-comment">/* Main loop - keyboard input comes from interrupt buffer */</span><br>    <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) &#123;<br>        <span class="hljs-type">int</span> scancode = kb_get_scancode();<br>        <span class="hljs-keyword">if</span> (scancode &gt;= <span class="hljs-number">0</span>) &#123;<br>            process_scancode((<span class="hljs-type">uint8_t</span>)scancode);<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>当程序进入 <code>while(1)</code>中的时候，程序会不断地尝试从 <code>kb_buffer</code> 中获取数据，如果没有拿到就就继续循环。如果这时候用户从键盘输入了字符，那么进入中断后，中断处理程序就会给 <code>kb_buffer</code> 中填充数据，填充完后就会返回，那么再次拿数据就会拿到。ps2 键盘的中断处理程序如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> __attribute__((noinline)) ps2_irq_handler(<span class="hljs-type">void</span>) &#123;<br>    <span class="hljs-keyword">while</span> (bsp_ps2_data_available()) &#123;<br>        <span class="hljs-type">uint8_t</span> scancode = (<span class="hljs-type">uint8_t</span>)bsp_ps2_read();<br>        <span class="hljs-type">int</span> next = (kb_head + <span class="hljs-number">1</span>) % KB_BUF_SIZE;<br>        <span class="hljs-keyword">if</span> (next != kb_tail) &#123;<br>            kb_buffer[kb_head] = scancode;<br>            kb_head = next;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p><code>bsp_ps2_read()</code> 一旦读取，ps2 中断信号就会消失，不然会一直中断：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs Verilog">        <span class="hljs-keyword">if</span> (rd_ack) <span class="hljs-keyword">begin</span><br>            rx_valid_reg &lt;= <span class="hljs-number">1&#x27;b0</span>;<br>        <span class="hljs-keyword">end</span><br><span class="hljs-comment">//=============================================================================</span><br><span class="hljs-comment">// 中断输出</span><br><span class="hljs-comment">// 当有新数据且中断使能时，产生中断信号</span><br><span class="hljs-comment">// CPU 读取 PS2_DATA 后 (rd_ack)，rx_valid 清除，中断也随之清除</span><br><span class="hljs-comment">//=============================================================================</span><br><span class="hljs-keyword">assign</span> interrupt = rx_valid_reg &amp; int_enable;<br></code></pre></td></tr></table></figure>
+
+<h2 id="仿真系统如何输入"><a href="#仿真系统如何输入" class="headerlink" title="仿真系统如何输入"></a>仿真系统如何输入</h2><h3 id="简单粗暴的模拟输入"><a href="#简单粗暴的模拟输入" class="headerlink" title="简单粗暴的模拟输入"></a>简单粗暴的模拟输入</h3><h4 id="模拟器注入字符"><a href="#模拟器注入字符" class="headerlink" title="模拟器注入字符"></a>模拟器注入字符</h4><p>在每一个周期，模拟器都会去检查键盘的输入情况：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">void</span> <span class="hljs-title function_">exec_once</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-comment">// Process PS2 keyboard input from host</span><br>    ps2_process_input();<br>    ps2_update();<br>    <span class="hljs-comment">// Set PS2 simulation signals to top module</span><br>    top-&gt;sim_ps2_scancode = ps2_get_scancode();<br>    top-&gt;sim_ps2_scancode_valid = ps2_scancode_valid() ? <span class="hljs-number">1</span> : <span class="hljs-number">0</span>;<br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>如果确实读取到了字符，就把字符转化为扫描码，然后将通码、断码入队：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">ps2_process_input</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-comment">// Read from stdin (non-blocking, already set up by uart)</span><br>    <span class="hljs-type">char</span> ch;<br>    <span class="hljs-keyword">if</span> (read(STDIN_FILENO, &amp;ch, <span class="hljs-number">1</span>) == <span class="hljs-number">1</span>) &#123;<br>        <span class="hljs-comment">// Convert ASCII to scancode</span><br>        <span class="hljs-type">uint8_t</span> scancode = ascii_to_ps2_scancode(ch);<br>        <span class="hljs-keyword">if</span> (scancode != <span class="hljs-number">0</span>) &#123;<br>            <span class="hljs-comment">// Queue make code (key press)</span><br>            ps2_scancode_queue.push(scancode);<br><br>            <span class="hljs-comment">// Queue break code (key release): 0xF0 followed by scancode</span><br>            ps2_scancode_queue.push(PS2_BREAK_PREFIX);<br>            ps2_scancode_queue.push(scancode);<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>接着仿真环境继续处理，根据上一步，判断是否接收到了扫描码，如果接收到了，就拉高 valid 信号，并且在队列中取出一个扫描码。</p>
+<p>一般而言，如果 CPU 的频率是 20MHz，ps2 时钟一般在 10～16.7KHz，这里面就要过采样。这样简单算一下，采样时钟和 ps2 的时钟比例差不多是 2000 左右。这意味着，我们在仿真环境如果发射一个比特，那么至少让 CPU 应该保持 2000 个周期。</p>
+<p>一个扫描码 11 位，那么就需要 CPU 时钟经过大约 22000 个周期，因此每次处理一个扫描码都得至少冷静 22000 个周期。</p>
+<p>冷静期没结束，直接返回。如果冷静期结束，看信号是否有效，如果依然有效，再看是否依然需要保持，如果需要就继续保持，否则清除仿真系统生成的信号，并且设置冷静期。</p>
+<p>如果冷静期结束且队列不空，那么就去 queue 中取，取到之后，重新设置信号保持时间：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">ps2_update</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-comment">// Cooldown period between scancodes</span><br>    <span class="hljs-keyword">if</span> (ps2_cooldown &gt; <span class="hljs-number">0</span>) &#123;<br>        ps2_cooldown--;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    <span class="hljs-comment">// If currently injecting a scancode, keep valid signal high for a short time</span><br>    <span class="hljs-keyword">if</span> (ps2_valid_signal) &#123;<br>        <span class="hljs-keyword">if</span> (ps2_inject_delay &gt; <span class="hljs-number">0</span>) &#123;<br>            ps2_inject_delay--;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-comment">// Clear valid signal after injection pulse complete</span><br>            ps2_clear_scancode();<br>            <span class="hljs-comment">// Start cooldown to give CPU time to process</span><br>            ps2_cooldown = PS2_COOLDOWN_CYCLES;<br>        &#125;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    <span class="hljs-comment">// If queue has scancodes and we&#x27;re not currently injecting</span><br>    <span class="hljs-keyword">if</span> (!ps2_scancode_queue.empty()) &#123;<br>        <span class="hljs-comment">// Get next scancode from queue</span><br>        ps2_current_scancode = ps2_scancode_queue.front();<br>        ps2_scancode_queue.pop();<br><br>        <span class="hljs-comment">// Set valid signal for a short pulse</span><br>        ps2_valid_signal = <span class="hljs-number">1</span>;<br>        ps2_inject_delay = PS2_VALID_CYCLES;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>假设用户第一次按下键盘，队列中保存了 3 个扫描码。首先会在队列中取一个扫描码，然后设置有效保持的时间。</p>
+<p>然后我们从仿真往 ps2 控制器中注入信号：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs C">top-&gt;sim_ps2_scancode = ps2_get_scancode();<br>top-&gt;sim_ps2_scancode_valid = ps2_scancode_valid() ? <span class="hljs-number">1</span> : <span class="hljs-number">0</span>;<br></code></pre></td></tr></table></figure>
+
+<p>此时 soc_top 会把信号传递到 confreg，confreg 把信号传送到 ps2_ctrl：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><code class="hljs Verilog">    <span class="hljs-comment">// PS2 simulation bypass interface (for Verilator simulation)</span><br>    <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>]                sim_ps2_scancode,      <span class="hljs-comment">// Simulation scancode input</span><br>    <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span>                      sim_ps2_scancode_valid <span class="hljs-comment">// Simulation scancode valid</span><br><br>    ...<br><br><span class="hljs-keyword">module</span> ps2_ctrl (<br>    <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span>        clk,           <span class="hljs-comment">// 系统时钟 (50 MHz)</span><br>    <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span>        resetn,        <span class="hljs-comment">// 复位 (低有效)</span><br><br>    <span class="hljs-comment">// PS2 接口 (from GPIO)</span><br>    <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span>        ps2_clk_in,    <span class="hljs-comment">// PS2 时钟输入</span><br>    <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span>        ps2_data_in,   <span class="hljs-comment">// PS2 数据输入</span><br><br>    <span class="hljs-comment">// 寄存器接口</span><br>    <span class="hljs-keyword">output</span> <span class="hljs-keyword">reg</span>  [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>]  rx_data,       <span class="hljs-comment">// 接收数据</span><br>    <span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span>        rx_valid,      <span class="hljs-comment">// 数据有效</span><br>    <span class="hljs-keyword">output</span> <span class="hljs-keyword">reg</span>         parity_err,    <span class="hljs-comment">// 奇校验错误</span><br>    <span class="hljs-keyword">output</span> <span class="hljs-keyword">reg</span>         frame_err,     <span class="hljs-comment">// 帧错误</span><br>    <span class="hljs-keyword">output</span> <span class="hljs-keyword">reg</span>         overflow,      <span class="hljs-comment">// 缓冲区溢出</span><br><br>    <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span>        rd_ack,        <span class="hljs-comment">// CPU 读取确认 (清除 rx_valid)</span><br>    <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span>        clear_err,     <span class="hljs-comment">// 清除错误标志</span><br>    <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span>        enable,        <span class="hljs-comment">// 接收使能</span><br>    <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span>        int_enable,    <span class="hljs-comment">// 中断使能</span><br><br>    <span class="hljs-comment">// 中断输出</span><br>    <span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span>        interrupt,     <span class="hljs-comment">// 中断信号 (active high)</span><br><br>    <span class="hljs-comment">// Simulation bypass interface (直接注入扫描码，绕过PS2协议)</span><br>    <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>]  sim_scancode,      <span class="hljs-comment">// 仿真扫描码输入</span><br>    <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span>        sim_scancode_valid <span class="hljs-comment">// 仿真扫描码有效信号</span><br>);<br>...<br><br><span class="hljs-comment">// Simulation bypass: detect rising edge of sim_scancode_valid</span><br><span class="hljs-keyword">reg</span> sim_scancode_valid_prev;<br><span class="hljs-keyword">wire</span> sim_inject = sim_scancode_valid &amp;&amp; !sim_scancode_valid_prev;<br><br><span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk <span class="hljs-keyword">or</span> <span class="hljs-keyword">negedge</span> resetn) <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (!resetn) <span class="hljs-keyword">begin</span><br>        sim_scancode_valid_prev &lt;= <span class="hljs-number">1&#x27;b0</span>;<br>    <span class="hljs-keyword">end</span> <span class="hljs-keyword">else</span> <span class="hljs-keyword">begin</span><br>        sim_scancode_valid_prev &lt;= sim_scancode_valid;<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">end</span><br><br></code></pre></td></tr></table></figure>
+
+<p>一旦检测到 <code>sim_scancode_valid</code> 的上升沿后，就会拉高 <code>sim_inject</code> 信号。<code>sim_inject</code> 信号很关键，它有效的时候，直接将数据旁路给 <code>rx_data</code>、<code>rx_valid_reg</code>，下一个周期中断信号也会拉起来：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs Verilog">        <span class="hljs-comment">// Simulation bypass: 直接注入扫描码 (优先级最高)</span><br>        <span class="hljs-keyword">if</span> (sim_inject) <span class="hljs-keyword">begin</span><br>            <span class="hljs-keyword">if</span> (rx_valid_reg) <span class="hljs-keyword">begin</span><br>                overflow &lt;= <span class="hljs-number">1&#x27;b1</span>;<br>            <span class="hljs-keyword">end</span><br>            rx_data      &lt;= sim_scancode;<br>            rx_valid_reg &lt;= <span class="hljs-number">1&#x27;b1</span>;<br>            <span class="hljs-comment">// 仿真注入不产生校验/帧错误</span><br>        <span class="hljs-keyword">end</span><br>...<br><span class="hljs-comment">//=============================================================================</span><br><span class="hljs-comment">// 当有新数据且中断使能时，产生中断信号</span><br><span class="hljs-comment">//==================================================</span><br><span class="hljs-keyword">assign</span> interrupt = rx_valid_reg &amp; int_enable;<br>...<br>    <span class="hljs-comment">// 寄存器接口</span><br>    <span class="hljs-keyword">output</span> <span class="hljs-keyword">reg</span>  [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>]  rx_data,       <span class="hljs-comment">// 接收数据</span><br>    <span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span>        rx_valid,      <span class="hljs-comment">// 数据有效</span><br>...<br></code></pre></td></tr></table></figure>
+<p><code>ps2_ctrl</code> 会把<code>rx_data</code> 一直保存起来，直到下一个仿真到来，这样可以随时让 <code>confreg</code> 读取：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-comment">// PS2 status register (read-only, directly from controller)</span><br><span class="hljs-keyword">wire</span> [<span class="hljs-number">31</span>:<span class="hljs-number">0</span>] ps2_status = &#123;<span class="hljs-number">28&#x27;d0</span>, ps2_overflow, ps2_frame_err, ps2_parity_err, ps2_rx_valid&#125;;<br><span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk) <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (~resetn) <span class="hljs-keyword">begin</span><br>        conf_rdata_reg &lt;= <span class="hljs-number">32&#x27;d0</span>;<br>    <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (conf_ren) <span class="hljs-keyword">begin</span><br>        <span class="hljs-keyword">case</span> (conf_raddr[<span class="hljs-number">15</span>:<span class="hljs-number">0</span>])<br>...<br>            `PS2_DATA_ADDR:    conf_rdata_reg &lt;= &#123;<span class="hljs-number">24&#x27;d0</span>, ps2_rx_data&#125;;<br>...<br></code></pre></td></tr></table></figure>
+
+<p>一旦中断处理程序发起读取，ps2_rd_ack_reg 也会在下一个周期拉高：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><br><span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk) <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (!resetn) <span class="hljs-keyword">begin</span><br>        ps2_ctrl_reg   &lt;= <span class="hljs-number">32&#x27;h6</span>;  <span class="hljs-comment">// Default: enable=1, int_enable=1, clear_err=0</span><br>        ps2_rd_ack_reg &lt;= <span class="hljs-number">1&#x27;b0</span>;<br>    <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">begin</span><br>        <span class="hljs-comment">// Read acknowledge: pulse when reading PS2_DATA</span><br>        ps2_rd_ack_reg &lt;= conf_ren &amp; (conf_raddr[<span class="hljs-number">15</span>:<span class="hljs-number">0</span>] == `PS2_DATA_ADDR);<br><br>        <span class="hljs-comment">// Write PS2_CTRL register</span><br>        <span class="hljs-keyword">if</span> (write_ps2_ctrl) <span class="hljs-keyword">begin</span><br>            ps2_ctrl_reg &lt;= conf_wdata[<span class="hljs-number">31</span>:<span class="hljs-number">0</span>];<br>        <span class="hljs-keyword">end</span><br>        <span class="hljs-keyword">else</span> <span class="hljs-keyword">begin</span><br>            <span class="hljs-comment">// Auto-clear bit0 (clear_err) after one cycle</span><br>            ps2_ctrl_reg[<span class="hljs-number">0</span>] &lt;= <span class="hljs-number">1&#x27;b0</span>;<br>        <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
+<p>拉高之后，此时就应该在 <code>ps2_ctrl</code> 中下拉中断信号了（必须在中断处理程序返回之前拉低，不然会重复中断）：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-comment">// 清除 rx_valid 当 CPU 读取</span><br><span class="hljs-keyword">if</span> (rd_ack) <span class="hljs-keyword">begin</span><br>    rx_valid_reg &lt;= <span class="hljs-number">1&#x27;b0</span>;<br><span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
+
+<p>从而 ps2 的 <code>interrupt</code> 信号拉低。</p>
+<p>从以上过程可以看到，这是不完全的模拟，因为无法真正模拟和验证 <code>ps2_clk</code> 的功能，只是 bypass 了两个现成的信号。仿真的最终目的是初次验证，因此为了确保 ps2 控制器正确，数字化仿真是必须的。</p>
+<h3 id="完全数字化的模拟"><a href="#完全数字化的模拟" class="headerlink" title="完全数字化的模拟"></a>完全数字化的模拟</h3><p>完全数字化的模拟，就是让仿真环境中的 soc_top 发射真正的 <code>ps_clk</code>、<code>ps2_data</code> 信号。</p>
+<p>思路也很简单，就是遵守键盘通码的约定，在 <code>ps2_data</code> 中编码信号，每一个bit 保持 2000 个周期，同时产生 <code>ps2_clk</code> 信号。</p>
+<h3 id="ps2-ctrl-的设计"><a href="#ps2-ctrl-的设计" class="headerlink" title="ps2_ctrl 的设计"></a>ps2_ctrl 的设计</h3><p>这个 IP 不像 ddr 控制器、hdmi 控制器、sd 控制器那样复杂。因此完全可以自主控制，因此这里打算使用大量的篇幅来详细讨论 <code>ps2_ctrl</code> 的设计。</p>
+<h4 id="同步器"><a href="#同步器" class="headerlink" title="同步器"></a>同步器</h4><p>由于 <code>ps2</code> 控制器的频率工作在 20MHz，而 <code>ps2_clk</code> 的时钟频率为 10-16.7kHz，因此这里涉及到稳态的问题。</p>
+<p>思路是使用 3 级同步器防止亚稳态：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-comment">// 使用 3 级同步器防止亚稳态</span><br><span class="hljs-keyword">reg</span> [<span class="hljs-number">2</span>:<span class="hljs-number">0</span>] ps2_clk_sync;<br><span class="hljs-keyword">reg</span> [<span class="hljs-number">2</span>:<span class="hljs-number">0</span>] ps2_data_sync;<br><br><span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk <span class="hljs-keyword">or</span> <span class="hljs-keyword">negedge</span> resetn) <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (!resetn) <span class="hljs-keyword">begin</span><br>        ps2_clk_sync  &lt;= <span class="hljs-number">3&#x27;b111</span>;<br>        ps2_data_sync &lt;= <span class="hljs-number">3&#x27;b111</span>;<br>    <span class="hljs-keyword">end</span> <span class="hljs-keyword">else</span> <span class="hljs-keyword">begin</span><br>        ps2_clk_sync  &lt;= &#123;ps2_clk_sync[<span class="hljs-number">1</span>:<span class="hljs-number">0</span>], ps2_clk_in&#125;;<br>        ps2_data_sync &lt;= &#123;ps2_data_sync[<span class="hljs-number">1</span>:<span class="hljs-number">0</span>], ps2_data_in&#125;;<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
+
+<p>工作原理是，当 ps2_clk_in 到来的时候，由于它的时钟很慢，主 clk 过 1000 个周期左右，ps2_clk_in 才会拉高一次。因此，ps2_clk_sync 很轻松就会达到 3’b111 的状态。此时我们挑选最高位作为 ps2_clk_in 的采样信号：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">wire</span> ps2_clk_s  = ps2_clk_sync[<span class="hljs-number">2</span>];   <span class="hljs-comment">// 同步后的时钟</span><br><span class="hljs-keyword">wire</span> ps2_data_s = ps2_data_sync[<span class="hljs-number">2</span>];  <span class="hljs-comment">// 同步后的数据</span><br></code></pre></td></tr></table></figure>
+
+<p>换句话说，就是再赌 <code>ps2_clk</code> 在 <code>clk</code> 三个周期后趋于稳定，但这并不盲目。</p>
+<h4 id="亚稳态的物理特性"><a href="#亚稳态的物理特性" class="headerlink" title="亚稳态的物理特性"></a>亚稳态的物理特性</h4><p>亚稳态持续时间是指数衰减的，当触发器进入亚稳态时，它不会永远保持不稳定状态。根据物理规律，亚稳态持续时间超过 t 的概率:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs math">P(T &gt; t) = e^(-t/τ)<br></code></pre></td></tr></table></figure>
+<p>其中:</p>
+<ul>
+<li><ul>
+<li>τ 是时间常数（通常是几十到几百皮秒）</li>
+</ul>
+</li>
+<li><ul>
+<li>t 是等待时间</li>
+</ul>
+</li>
+</ul>
+<p>对于现代 FPGA&#x2F;ASIC：τ ≈ 100 ps (皮秒)：</p>
+<ul>
+<li><p>等待 1 个时钟周期 (50ns @ 20MHz)：P(亚稳态仍存在) &#x3D; e^(-50000&#x2F;100) &#x3D; e^(-500) ≈ 10^(-217)， 几乎不可能！</p>
+</li>
+<li><p>等待 2 个时钟周期 (100ns)：P(亚稳态仍存在) &#x3D; e^(-1000) ≈ 10^(-434)</p>
+</li>
+<li><p>等待 3 个时钟周期 (150ns)：P(亚稳态仍存在) &#x3D; e^(-1500) ≈ 10^(-651)</p>
+</li>
+</ul>
+<p>因此，三级消除亚稳态的同步器已经相当可靠了，也是工业表准。</p>
+<h4 id="边缘检测"><a href="#边缘检测" class="headerlink" title="边缘检测"></a>边缘检测</h4><p>这个很简单：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">reg</span> ps2_clk_prev;<br><br><span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk <span class="hljs-keyword">or</span> <span class="hljs-keyword">negedge</span> resetn) <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (!resetn)<br>        ps2_clk_prev &lt;= <span class="hljs-number">1&#x27;b1</span>;<br>    <span class="hljs-keyword">else</span><br>        ps2_clk_prev &lt;= ps2_clk_s;<br><span class="hljs-keyword">end</span><br><br><span class="hljs-comment">// 检测下降沿: 之前为高，现在为低</span><br><span class="hljs-keyword">wire</span> ps2_clk_negedge = ps2_clk_prev &amp;&amp; !ps2_clk_s;<br></code></pre></td></tr></table></figure>
+
+<h4 id="脉冲滤波器"><a href="#脉冲滤波器" class="headerlink" title="脉冲滤波器"></a>脉冲滤波器</h4><p>虽然 PS2 信号通常比较干净，但可能存在：</p>
+<ul>
+<li>毛刺（glitch）：短暂的电平跳变</li>
+<li>抖动（jitter）：信号边沿不稳定</li>
+<li>噪声：电磁干扰</li>
+</ul>
+<p>这是一个数字低通滤波器，使用计数器实现：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">reg</span> [<span class="hljs-number">3</span>:<span class="hljs-number">0</span>] clk_filter;        <span class="hljs-comment">// 4位计数器 (0-15)</span><br><span class="hljs-keyword">reg</span>       ps2_clk_filtered;  <span class="hljs-comment">// 滤波后的输出</span><br><br><span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk <span class="hljs-keyword">or</span> <span class="hljs-keyword">negedge</span> resetn) <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (!resetn) <span class="hljs-keyword">begin</span><br>        clk_filter &lt;= <span class="hljs-number">4&#x27;hF</span>;           <span class="hljs-comment">// 初始值15（高电平）</span><br>        ps2_clk_filtered &lt;= <span class="hljs-number">1&#x27;b1</span>;<br>    <span class="hljs-keyword">end</span> <span class="hljs-keyword">else</span> <span class="hljs-keyword">begin</span><br>        <span class="hljs-comment">// 移位滤波：根据输入调整计数器</span><br>        <span class="hljs-keyword">if</span> (ps2_clk_s)<br>            clk_filter &lt;= (clk_filter &lt; <span class="hljs-number">4&#x27;hF</span>) ? clk_filter + <span class="hljs-number">1&#x27;b1</span> :<br><span class="hljs-number">4&#x27;hF</span>;<br>        <span class="hljs-keyword">else</span><br>            clk_filter &lt;= (clk_filter &gt; <span class="hljs-number">4&#x27;h0</span>) ? clk_filter - <span class="hljs-number">1&#x27;b1</span> :<br><span class="hljs-number">4&#x27;h0</span>;<br><br>        <span class="hljs-comment">// 施密特触发效果：只有计数器到达极值才改变输出</span><br>        <span class="hljs-keyword">if</span> (clk_filter == <span class="hljs-number">4&#x27;hF</span>)<br>            ps2_clk_filtered &lt;= <span class="hljs-number">1&#x27;b1</span>;<br>        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (clk_filter == <span class="hljs-number">4&#x27;h0</span>)<br>            ps2_clk_filtered &lt;= <span class="hljs-number">1&#x27;b0</span>;<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
+
+<p>关键特性</p>
+<ol>
+<li>惯性：计数器需要连续多个周期才能从 15 变到 0（或反向）</li>
+<li>施密特触发：</li>
+</ol>
+<ul>
+<li>输出只在计数器 &#x3D; 15 时变为 1</li>
+<li>输出只在计数器 &#x3D; 0 时变为 0</li>
+<li>中间值（1-14）不改变输出</li>
+</ul>
+<ol start="3">
+<li>抗毛刺：短暂的跳变不会影响输出</li>
+</ol>
+<p>施密特触发器有两个阈值，这样可以防止信号在阈值附近反复跳变。</p>
+<ul>
+<li>上阈值（15）：超过这个值才输出 1</li>
+<li>下阈值（0）：低于这个值才输出 0</li>
+<li>滞回区（1-14）：在这个区间内保持原来的输出</li>
+</ul>
+<h4 id="滤波后的始终下降沿检测"><a href="#滤波后的始终下降沿检测" class="headerlink" title="滤波后的始终下降沿检测"></a>滤波后的始终下降沿检测</h4><p>使用滤波后的时钟检测下降沿：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">reg</span> ps2_clk_filtered_prev;<br><span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk <span class="hljs-keyword">or</span> <span class="hljs-keyword">negedge</span> resetn) <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (!resetn)<br>        ps2_clk_filtered_prev &lt;= <span class="hljs-number">1&#x27;b1</span>;<br>    <span class="hljs-keyword">else</span><br>        ps2_clk_filtered_prev &lt;= ps2_clk_filtered;<br><span class="hljs-keyword">end</span><br><br><span class="hljs-keyword">wire</span> clk_falling = ps2_clk_filtered_prev &amp;&amp; !ps2_clk_filtered &amp;&amp; enable;<br></code></pre></td></tr></table></figure>
+
+
+<p>通过以上分析可知，其实更加稳妥的做法是使用脉冲滤波器以及施密特触发效果，是最好的。</p>
+<h3 id="软件层次"><a href="#软件层次" class="headerlink" title="软件层次"></a>软件层次</h3><p>接下来就是仿真系统的修改了，和之前一样，大体的流程不变，我们需要改变的是 <code>update()</code> 函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">ps2_update2</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-keyword">if</span> (ps2_valid_signal) &#123;<br>        ps2_clear_scancode();<br>    &#125;<br>    <span class="hljs-keyword">if</span> (ps2_cooldown &gt; <span class="hljs-number">0</span>) &#123;<br>        ps2_cooldown--;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    <span class="hljs-comment">// If queue has scancodes and we&#x27;re not currently injecting</span><br>    <span class="hljs-keyword">if</span> (!ps2_scancode_queue.empty()) &#123;<br>        <span class="hljs-comment">// Get next scancode from queue</span><br>        <span class="hljs-comment">// printf(&quot;\n[SIM] ps2_current_scancode pop!\n&quot;);</span><br>        ps2_current_scancode = ps2_scancode_queue.front();<br>        ps2_scancode_queue.pop();<br><br>        <span class="hljs-comment">// Set valid signal for a short pulse</span><br>        ps2_valid_signal = <span class="hljs-number">1</span>;<br>        ps2_cooldown = <span class="hljs-number">60000</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这里面取消了 <code>ps2_valid_signal</code> 信号的保持，思考一下为什么。一旦取出一个 scancode，在下一个周期清除信号防止重复编码，并且进入冷静期。</p>
+<p>编码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">ps2_encode_scancode</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-keyword">if</span> (bit_index != <span class="hljs-number">-1</span>) &#123;<br>        <span class="hljs-keyword">return</span>; <span class="hljs-comment">// 正在发送数据，不能重新编码</span><br>    &#125;<br><br>    <span class="hljs-keyword">if</span> (!ps2_valid_signal) &#123;<br>        <span class="hljs-keyword">return</span>; <span class="hljs-comment">// 没有有效的 scancode 需要编码</span><br>    &#125;<br><br>    <span class="hljs-comment">// 构造 11 bit 的数据流</span><br>    <span class="hljs-comment">// 起始位：0</span><br>    <span class="hljs-comment">// 数据位：8 bit，最低位先发</span><br>    <span class="hljs-comment">// 奇偶校验位：奇校验</span><br>    <span class="hljs-comment">// 停止位：1</span><br>    ps2_data_bits[<span class="hljs-number">0</span>] = <span class="hljs-number">0</span>; <span class="hljs-comment">// 起始位</span><br><br>    <span class="hljs-comment">// 数据位</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">8</span>; i++) &#123;<br>        ps2_data_bits[i + <span class="hljs-number">1</span>] = (ps2_current_scancode &gt;&gt; i) &amp; <span class="hljs-number">0x1</span>;<br>    &#125;<br>    <span class="hljs-comment">// 计算奇偶校验位（奇校验）</span><br>    <span class="hljs-type">int</span> one_count = <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= <span class="hljs-number">8</span>; i++) &#123;<br>        <span class="hljs-keyword">if</span> (ps2_data_bits[i] == <span class="hljs-number">1</span>) &#123;<br>            one_count++;<br>        &#125;<br>    &#125;<br>    ps2_data_bits[<span class="hljs-number">9</span>] = (one_count % <span class="hljs-number">2</span> == <span class="hljs-number">0</span>) ? <span class="hljs-number">1</span> : <span class="hljs-number">0</span>; <span class="hljs-comment">// 奇校验</span><br><br>    ps2_data_bits[<span class="hljs-number">10</span>] = <span class="hljs-number">1</span>; <span class="hljs-comment">// 停止位</span><br>    ps2_data_state = ps2_data_bits[<span class="hljs-number">0</span>];<br>    bit_index = <span class="hljs-number">0</span>;           <span class="hljs-comment">// 开始发送</span><br>    ps2_clk_cycle_count = <span class="hljs-number">0</span>; <span class="hljs-comment">// 重置时钟计数器</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>接着就是控制相应的信号，需要注意的是，由于 ps2_ctrl 在时钟下降沿采集信号，因此当上升沿的时候，再进行数据发送，这是 ps2 键盘的协议：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">uint8_t</span> <span class="hljs-title function_">ps2_info</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">if</span> (bit_index != <span class="hljs-number">-1</span>) &#123;<br>        <span class="hljs-comment">// 正在发送数据</span><br>        <span class="hljs-keyword">if</span> (ps2_clk_cycle_count &gt;= <span class="hljs-number">2000</span>) &#123;<br>            <span class="hljs-comment">// 切换时钟状态</span><br>            ps2_clk_state = !ps2_clk_state;<br>            ps2_clk_cycle_count = <span class="hljs-number">0</span>;<br><br>            <span class="hljs-keyword">if</span> (ps2_clk_state == <span class="hljs-number">1</span>) &#123;<br>                <span class="hljs-comment">// 时钟上升沿，准备下一个 bit 的数据</span><br>                <span class="hljs-comment">// 这样在下一个下降沿时，数据已经稳定</span><br>                bit_index++;<br>                <span class="hljs-keyword">if</span> (bit_index &lt; <span class="hljs-number">11</span>) &#123;<br>                    <span class="hljs-comment">// 准备下一个 bit 的数据</span><br>                    ps2_data_state = ps2_data_bits[bit_index];<br>                &#125; <span class="hljs-keyword">else</span> &#123;<br>                    bit_index = <span class="hljs-number">-1</span>;<br>                    ps2_data_state = <span class="hljs-number">1</span>;<br>                &#125;<br>            &#125;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            ps2_clk_cycle_count++;<br>        &#125;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-comment">// 空闲状态，保持高电平</span><br>        ps2_clk_state = <span class="hljs-number">1</span>;<br>        ps2_data_state = <span class="hljs-number">1</span>;<br>        ps2_clk_cycle_count = <span class="hljs-number">0</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> (ps2_clk_state &lt;&lt; <span class="hljs-number">1</span>) | ps2_data_state;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>最终经过 debug，顺利启动：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs bash">xos&gt; <span class="hljs-built_in">help</span><br>Available commands:<br>  %-10s - <span class="hljs-built_in">help</span><br>  %-10s - <span class="hljs-built_in">echo</span><br>  %-10s - clear<br>  %-10s - info<br>xos&gt;<br></code></pre></td></tr></table></figure>
+
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>以上讨论了 ps2 控制器的硬件设计到软件仿真验证功能。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/SoC/" class="category-chain-item">SoC</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E6%AF%95%E8%AE%BE/" class="print-no-link">#毕设</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>毕设(9)：ps2 键盘</div>
+      <div>http://blog.luliang.online/2026/01/20/毕设9：ps2 键盘/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年1月20日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/01/24/%E6%AF%95%E8%AE%BE10%EF%BC%9A%E5%9F%BA%E4%BA%8E%E6%97%B6%E9%97%B4%E7%89%87%E7%9A%84%E5%8D%8F%E4%BD%9C%E5%BC%8F%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F/" title="毕设(10)：基于时间片的协作式多任务系统">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">毕设(10)：基于时间片的协作式多任务系统</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/01/20/%E6%AF%95%E8%AE%BE8%EF%BC%9Aminicom/" title="毕设(8)：minicom">
+                        <span class="hidden-mobile">毕设(8)：minicom</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

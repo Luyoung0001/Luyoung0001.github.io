@@ -1,0 +1,765 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="一、泛型(Generics)基本概念泛型允许我们编写可复用的代码，这些代码可以处理多种类型而不需要为每种类型重写逻辑。通过泛型，我们可以创建类型参数化的函数、结构体、枚举和方法。 核心价值 代码复用：避免为不同类型重复编写相同逻辑 类型安全：编译时类型检查 零运行时开销：编译时生成具体类型代码  基本用法1. 泛型函数1234567891011121314&#x2F;&#x2F; 比较两个值并返回较大的值fn lar">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Rust:Generics、Traitstor">
+<meta property="og:url" content="http://blog.luliang.online/2025/09/27/Rust%EF%BC%88%E5%9B%9B%EF%BC%89/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="一、泛型(Generics)基本概念泛型允许我们编写可复用的代码，这些代码可以处理多种类型而不需要为每种类型重写逻辑。通过泛型，我们可以创建类型参数化的函数、结构体、枚举和方法。 核心价值 代码复用：避免为不同类型重复编写相同逻辑 类型安全：编译时类型检查 零运行时开销：编译时生成具体类型代码  基本用法1. 泛型函数1234567891011121314&#x2F;&#x2F; 比较两个值并返回较大的值fn lar">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-09-27T07:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.428Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="Rust 基础">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>Rust:Generics、Traitstor - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Rust:Generics、Traitstor"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-09-27 15:03" pubdate>
+          2025年9月27日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          17 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Rust:Generics、Traitstor</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="一、泛型-Generics"><a href="#一、泛型-Generics" class="headerlink" title="一、泛型(Generics)"></a>一、泛型(Generics)</h2><h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h3><p>泛型允许我们编写可复用的代码，这些代码可以处理多种类型而不需要为每种类型重写逻辑。通过泛型，我们可以创建<strong>类型参数化</strong>的函数、结构体、枚举和方法。</p>
+<h3 id="核心价值"><a href="#核心价值" class="headerlink" title="核心价值"></a>核心价值</h3><ol>
+<li><strong>代码复用</strong>：避免为不同类型重复编写相同逻辑</li>
+<li><strong>类型安全</strong>：编译时类型检查</li>
+<li><strong>零运行时开销</strong>：编译时生成具体类型代码</li>
+</ol>
+<h3 id="基本用法"><a href="#基本用法" class="headerlink" title="基本用法"></a>基本用法</h3><h4 id="1-泛型函数"><a href="#1-泛型函数" class="headerlink" title="1. 泛型函数"></a>1. 泛型函数</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-comment">// 比较两个值并返回较大的值</span><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">largest</span>&lt;T: <span class="hljs-built_in">PartialOrd</span>&gt;(a: T, b: T) <span class="hljs-punctuation">-&gt;</span> T &#123;<br>    <span class="hljs-keyword">if</span> a &gt; b &#123;<br>        a<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        b<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() &#123;<br>    <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;较大的整数: &#123;&#125;&quot;</span>, <span class="hljs-title function_ invoke__">largest</span>(<span class="hljs-number">5</span>, <span class="hljs-number">10</span>));      <span class="hljs-comment">// 10</span><br>    <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;较大的浮点数: &#123;&#125;&quot;</span>, <span class="hljs-title function_ invoke__">largest</span>(<span class="hljs-number">3.14</span>, <span class="hljs-number">2.71</span>)); <span class="hljs-comment">// 3.14</span><br>    <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;较大的字符: &#123;&#125;&quot;</span>, <span class="hljs-title function_ invoke__">largest</span>(<span class="hljs-string">&#x27;a&#x27;</span>, <span class="hljs-string">&#x27;z&#x27;</span>));    <span class="hljs-comment">// &#x27;z&#x27;</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="2-泛型结构体"><a href="#2-泛型结构体" class="headerlink" title="2. 泛型结构体"></a>2. 泛型结构体</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Point</span>&lt;T&gt; &#123;<br>    x: T,<br>    y: T,<br>&#125;<br><br><span class="hljs-keyword">impl</span>&lt;T&gt; Point&lt;T&gt; &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">new</span>(x: T, y: T) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-keyword">Self</span> &#123;<br>        Point &#123; x, y &#125;<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() &#123;<br>    <span class="hljs-keyword">let</span> <span class="hljs-variable">integer_point</span> = Point::<span class="hljs-title function_ invoke__">new</span>(<span class="hljs-number">5</span>, <span class="hljs-number">10</span>);<br>    <span class="hljs-keyword">let</span> <span class="hljs-variable">float_point</span> = Point::<span class="hljs-title function_ invoke__">new</span>(<span class="hljs-number">1.0</span>, <span class="hljs-number">4.0</span>);<br>    <span class="hljs-keyword">let</span> <span class="hljs-variable">string_point</span> = Point::<span class="hljs-title function_ invoke__">new</span>(<span class="hljs-string">&quot;left&quot;</span>, <span class="hljs-string">&quot;right&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="3-泛型枚举"><a href="#3-泛型枚举" class="headerlink" title="3. 泛型枚举"></a>3. 泛型枚举</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">enum</span> <span class="hljs-title class_">Result</span>&lt;T, E&gt; &#123;<br>    <span class="hljs-title function_ invoke__">Ok</span>(T),<br>    <span class="hljs-title function_ invoke__">Err</span>(E),<br>&#125;<br><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">divide</span>(a: <span class="hljs-type">f64</span>, b: <span class="hljs-type">f64</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Result</span>&lt;<span class="hljs-type">f64</span>, <span class="hljs-type">String</span>&gt; &#123;<br>    <span class="hljs-keyword">if</span> b == <span class="hljs-number">0.0</span> &#123;<br>        <span class="hljs-type">Result</span>::<span class="hljs-title function_ invoke__">Err</span>(<span class="hljs-string">&quot;Division by zero&quot;</span>.<span class="hljs-title function_ invoke__">to_string</span>())<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-type">Result</span>::<span class="hljs-title function_ invoke__">Ok</span>(a / b)<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="泛型约束"><a href="#泛型约束" class="headerlink" title="泛型约束"></a>泛型约束</h3><p>使用特质来限制泛型类型的能力：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">use</span> std::fmt::Display;<br><br><span class="hljs-comment">// 只接受实现了Display特质的类型</span><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">print_twice</span>&lt;T: Display&gt;(value: T) &#123;<br>    <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;第一次: &#123;&#125;&quot;</span>, value);<br>    <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;第二次: &#123;&#125;&quot;</span>, value);<br>&#125;<br><br><span class="hljs-comment">// 使用where子句更清晰</span><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">compare_and_print</span>&lt;T, U&gt;(a: T, b: U)<br><span class="hljs-keyword">where</span><br>    T: Display + <span class="hljs-built_in">PartialOrd</span>,<br>    U: Display + <span class="hljs-built_in">Into</span>&lt;T&gt;,<br>&#123;<br>    <span class="hljs-keyword">let</span> <span class="hljs-variable">b_converted</span>: T = b.<span class="hljs-title function_ invoke__">into</span>();<br>    <span class="hljs-keyword">if</span> a &gt; b_converted &#123;<br>        <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;&#123;&#125; 大于 &#123;&#125;&quot;</span>, a, b);<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;&#123;&#125; 不大于 &#123;&#125;&quot;</span>, a, b);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、特质-Traits"><a href="#二、特质-Traits" class="headerlink" title="二、特质(Traits)"></a>二、特质(Traits)</h2><h3 id="基本概念-1"><a href="#基本概念-1" class="headerlink" title="基本概念"></a>基本概念</h3><p>特质定义了类型可以实现的<strong>共享行为</strong>。它们类似于其他语言中的接口(interface)，但更强大。</p>
+<h3 id="核心价值-1"><a href="#核心价值-1" class="headerlink" title="核心价值"></a>核心价值</h3><ol>
+<li><strong>抽象行为定义</strong>：定义类型必须实现的方法</li>
+<li><strong>多态支持</strong>：通过特质对象实现运行时多态</li>
+<li><strong>代码组织</strong>：将相关功能分组</li>
+</ol>
+<h3 id="基本用法-1"><a href="#基本用法-1" class="headerlink" title="基本用法"></a>基本用法</h3><h4 id="1-定义和实现特质"><a href="#1-定义和实现特质" class="headerlink" title="1. 定义和实现特质"></a>1. 定义和实现特质</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-comment">// 定义特质</span><br><span class="hljs-keyword">trait</span> <span class="hljs-title class_">Summary</span> &#123;<br>    <span class="hljs-comment">// 默认实现</span><br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">summarize</span>(&amp;<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">String</span> &#123;<br>        <span class="hljs-type">String</span>::<span class="hljs-title function_ invoke__">from</span>(<span class="hljs-string">&quot;(阅读更多...)&quot;</span>)<br>    &#125;<br><br>    <span class="hljs-comment">// 必须实现的方法</span><br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">title</span>(&amp;<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> &amp;<span class="hljs-type">str</span>;<br>&#125;<br><br><span class="hljs-comment">// 为结构体实现特质</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">NewsArticle</span> &#123;<br>    title: <span class="hljs-type">String</span>,<br>    content: <span class="hljs-type">String</span>,<br>&#125;<br><br><span class="hljs-keyword">impl</span> <span class="hljs-title class_">Summary</span> <span class="hljs-keyword">for</span> <span class="hljs-title class_">NewsArticle</span> &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">title</span>(&amp;<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> &amp;<span class="hljs-type">str</span> &#123;<br>        &amp;<span class="hljs-keyword">self</span>.title<br>    &#125;<br><br>    <span class="hljs-comment">// 使用默认的summarize实现</span><br>&#125;<br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Tweet</span> &#123;<br>    username: <span class="hljs-type">String</span>,<br>    message: <span class="hljs-type">String</span>,<br>&#125;<br><br><span class="hljs-keyword">impl</span> <span class="hljs-title class_">Summary</span> <span class="hljs-keyword">for</span> <span class="hljs-title class_">Tweet</span> &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">title</span>(&amp;<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> &amp;<span class="hljs-type">str</span> &#123;<br>        &amp;<span class="hljs-keyword">self</span>.username<br>    &#125;<br><br>    <span class="hljs-comment">// 覆盖默认实现</span><br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">summarize</span>(&amp;<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">String</span> &#123;<br>        <span class="hljs-built_in">format!</span>(<span class="hljs-string">&quot;&#123;&#125;: &#123;&#125;&quot;</span>, <span class="hljs-keyword">self</span>.username, <span class="hljs-keyword">self</span>.message)<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="2-特质作为参数"><a href="#2-特质作为参数" class="headerlink" title="2. 特质作为参数"></a>2. 特质作为参数</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-comment">// 使用impl Trait语法</span><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">notify</span>(item: &amp;<span class="hljs-keyword">impl</span> <span class="hljs-title class_">Summary</span>) &#123;<br>    <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;新通知! &#123;&#125;&quot;</span>, item.<span class="hljs-title function_ invoke__">summarize</span>());<br>&#125;<br><br><span class="hljs-comment">// 使用trait bound语法</span><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">notify_multi</span>&lt;T: Summary&gt;(item1: &amp;T, item2: &amp;T) &#123;<br>    <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;通知1: &#123;&#125;&quot;</span>, item1.<span class="hljs-title function_ invoke__">summarize</span>());<br>    <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;通知2: &#123;&#125;&quot;</span>, item2.<span class="hljs-title function_ invoke__">summarize</span>());<br>&#125;<br><br><span class="hljs-comment">// 多个特质约束</span><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">display_and_notify</span>(item: &amp;(<span class="hljs-keyword">impl</span> <span class="hljs-title class_">Summary</span> + Display)) &#123;<br>    <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;显示: &#123;&#125;&quot;</span>, item);<br>    <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;摘要: &#123;&#125;&quot;</span>, item.<span class="hljs-title function_ invoke__">summarize</span>());<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="3-特质作为返回值"><a href="#3-特质作为返回值" class="headerlink" title="3. 特质作为返回值"></a>3. 特质作为返回值</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">fn</span> <span class="hljs-title function_">create_summarizable</span>(is_tweet: <span class="hljs-type">bool</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-keyword">impl</span> <span class="hljs-title class_">Summary</span> &#123;<br>    <span class="hljs-keyword">if</span> is_tweet &#123;<br>        Tweet &#123;<br>            username: <span class="hljs-string">&quot;rustacean&quot;</span>.<span class="hljs-title function_ invoke__">to_string</span>(),<br>            message: <span class="hljs-string">&quot;Learning Rust traits!&quot;</span>.<span class="hljs-title function_ invoke__">to_string</span>(),<br>        &#125;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        NewsArticle &#123;<br>            title: <span class="hljs-string">&quot;Rust in Depth&quot;</span>.<span class="hljs-title function_ invoke__">to_string</span>(),<br>            content: <span class="hljs-string">&quot;Detailed guide to Rust features&quot;</span>.<span class="hljs-title function_ invoke__">to_string</span>(),<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="高级用法"><a href="#高级用法" class="headerlink" title="高级用法"></a>高级用法</h3><h4 id="1-特质继承"><a href="#1-特质继承" class="headerlink" title="1. 特质继承"></a>1. 特质继承</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">trait</span> <span class="hljs-title class_">Printable</span> &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">format</span>(&amp;<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">String</span>;<br>&#125;<br><br><span class="hljs-keyword">trait</span> <span class="hljs-title class_">Loggable</span>: Printable &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">log</span>(&amp;<span class="hljs-keyword">self</span>) &#123;<br>        <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;日志: &#123;&#125;&quot;</span>, <span class="hljs-keyword">self</span>.format());<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Data</span> &#123;<br>    value: <span class="hljs-type">i32</span>,<br>&#125;<br><br><span class="hljs-keyword">impl</span> <span class="hljs-title class_">Printable</span> <span class="hljs-keyword">for</span> <span class="hljs-title class_">Data</span> &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">format</span>(&amp;<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">String</span> &#123;<br>        <span class="hljs-built_in">format!</span>(<span class="hljs-string">&quot;值: &#123;&#125;&quot;</span>, <span class="hljs-keyword">self</span>.value)<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">impl</span> <span class="hljs-title class_">Loggable</span> <span class="hljs-keyword">for</span> <span class="hljs-title class_">Data</span> &#123;&#125; <span class="hljs-comment">// 自动获得log实现</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="2-关联类型"><a href="#2-关联类型" class="headerlink" title="2. 关联类型"></a>2. 关联类型</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">trait</span> <span class="hljs-title class_">Iterator</span> &#123;<br>    <span class="hljs-keyword">type</span> <span class="hljs-title class_">Item</span>; <span class="hljs-comment">// 关联类型</span><br><br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">next</span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Option</span>&lt;<span class="hljs-keyword">Self</span>::Item&gt;;<br>&#125;<br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Counter</span> &#123;<br>    count: <span class="hljs-type">u32</span>,<br>&#125;<br><br><span class="hljs-keyword">impl</span> <span class="hljs-title class_">Iterator</span> <span class="hljs-keyword">for</span> <span class="hljs-title class_">Counter</span> &#123;<br>    <span class="hljs-keyword">type</span> <span class="hljs-title class_">Item</span> = <span class="hljs-type">u32</span>;<br><br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">next</span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Option</span>&lt;<span class="hljs-keyword">Self</span>::Item&gt; &#123;<br>        <span class="hljs-keyword">if</span> <span class="hljs-keyword">self</span>.count &lt; <span class="hljs-number">5</span> &#123;<br>            <span class="hljs-keyword">self</span>.count += <span class="hljs-number">1</span>;<br>            <span class="hljs-title function_ invoke__">Some</span>(<span class="hljs-keyword">self</span>.count)<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-literal">None</span><br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="3-泛型特质"><a href="#3-泛型特质" class="headerlink" title="3. 泛型特质"></a>3. 泛型特质</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">trait</span> <span class="hljs-title class_">Converter</span>&lt;T&gt; &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">convert</span>(&amp;<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> T;<br>&#125;<br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">StringToInt</span>(<span class="hljs-type">String</span>);<br><br><span class="hljs-keyword">impl</span> <span class="hljs-title class_">Converter</span>&lt;<span class="hljs-type">i32</span>&gt; <span class="hljs-keyword">for</span> <span class="hljs-title class_">StringToInt</span> &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">convert</span>(&amp;<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">i32</span> &#123;<br>        <span class="hljs-keyword">self</span>.<span class="hljs-number">0</span>.<span class="hljs-title function_ invoke__">parse</span>().<span class="hljs-title function_ invoke__">unwrap_or</span>(<span class="hljs-number">0</span>)<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">IntToString</span>(<span class="hljs-type">i32</span>);<br><br><span class="hljs-keyword">impl</span> <span class="hljs-title class_">Converter</span>&lt;<span class="hljs-type">String</span>&gt; <span class="hljs-keyword">for</span> <span class="hljs-title class_">IntToString</span> &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">convert</span>(&amp;<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">String</span> &#123;<br>        <span class="hljs-keyword">self</span>.<span class="hljs-number">0</span>.<span class="hljs-title function_ invoke__">to_string</span>()<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、常见用法与模式"><a href="#三、常见用法与模式" class="headerlink" title="三、常见用法与模式"></a>三、常见用法与模式</h2><h3 id="1-运算符重载"><a href="#1-运算符重载" class="headerlink" title="1. 运算符重载"></a>1. 运算符重载</h3><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">use</span> std::ops::Add;<br><br><span class="hljs-meta">#[derive(Debug, Clone, Copy)]</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Point</span> &#123;<br>    x: <span class="hljs-type">i32</span>,<br>    y: <span class="hljs-type">i32</span>,<br>&#125;<br><br><span class="hljs-keyword">impl</span> <span class="hljs-title class_">Add</span> <span class="hljs-keyword">for</span> <span class="hljs-title class_">Point</span> &#123;<br>    <span class="hljs-keyword">type</span> <span class="hljs-title class_">Output</span> = Point;<br><br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">add</span>(<span class="hljs-keyword">self</span>, other: Point) <span class="hljs-punctuation">-&gt;</span> Point &#123;<br>        Point &#123;<br>            x: <span class="hljs-keyword">self</span>.x + other.x,<br>            y: <span class="hljs-keyword">self</span>.y + other.y,<br>        &#125;<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() &#123;<br>    <span class="hljs-keyword">let</span> <span class="hljs-variable">p1</span> = Point &#123; x: <span class="hljs-number">1</span>, y: <span class="hljs-number">2</span> &#125;;<br>    <span class="hljs-keyword">let</span> <span class="hljs-variable">p2</span> = Point &#123; x: <span class="hljs-number">3</span>, y: <span class="hljs-number">4</span> &#125;;<br>    <span class="hljs-keyword">let</span> <span class="hljs-variable">p3</span> = p1 + p2;<br>    <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;&#123;:?&#125;&quot;</span>, p3); <span class="hljs-comment">// Point &#123; x: 4, y: 6 &#125;</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-静态分发-vs-动态分发"><a href="#2-静态分发-vs-动态分发" class="headerlink" title="2. 静态分发 vs 动态分发"></a>2. 静态分发 vs 动态分发</h3><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-comment">// 静态分发（编译时确定）</span><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">process_static</span>&lt;T: Summary&gt;(item: &amp;T) &#123;<br>    <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;&#123;&#125;&quot;</span>, item.<span class="hljs-title function_ invoke__">summarize</span>());<br>&#125;<br><br><span class="hljs-comment">// 动态分发（运行时确定）</span><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">process_dynamic</span>(item: &amp;<span class="hljs-keyword">dyn</span> Summary) &#123;<br>    <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;&#123;&#125;&quot;</span>, item.<span class="hljs-title function_ invoke__">summarize</span>());<br>&#125;<br><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() &#123;<br>    <span class="hljs-keyword">let</span> <span class="hljs-variable">article</span> = NewsArticle &#123; <span class="hljs-comment">/* ... */</span> &#125;;<br>    <span class="hljs-keyword">let</span> <span class="hljs-variable">tweet</span> = Tweet &#123; <span class="hljs-comment">/* ... */</span> &#125;;<br><br>    <span class="hljs-comment">// 静态分发</span><br>    <span class="hljs-title function_ invoke__">process_static</span>(&amp;article);<br>    <span class="hljs-title function_ invoke__">process_static</span>(&amp;tweet);<br><br>    <span class="hljs-comment">// 动态分发</span><br>    <span class="hljs-keyword">let</span> <span class="hljs-variable">items</span>: <span class="hljs-type">Vec</span>&lt;&amp;<span class="hljs-keyword">dyn</span> Summary&gt; = <span class="hljs-built_in">vec!</span>[&amp;article, &amp;tweet];<br>    <span class="hljs-keyword">for</span> <span class="hljs-variable">item</span> <span class="hljs-keyword">in</span> items &#123;<br>        <span class="hljs-title function_ invoke__">process_dynamic</span>(item);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="3-扩展方法"><a href="#3-扩展方法" class="headerlink" title="3. 扩展方法"></a>3. 扩展方法</h3><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">trait</span> <span class="hljs-title class_">StringExt</span> &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">to_title_case</span>(&amp;<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">String</span>;<br>&#125;<br><br><span class="hljs-keyword">impl</span> <span class="hljs-title class_">StringExt</span> <span class="hljs-keyword">for</span> <span class="hljs-title class_">str</span> &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">to_title_case</span>(&amp;<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">String</span> &#123;<br>        <span class="hljs-keyword">self</span>.<span class="hljs-title function_ invoke__">split_whitespace</span>()<br>            .<span class="hljs-title function_ invoke__">map</span>(|word| &#123;<br>                <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">chars</span> = word.<span class="hljs-title function_ invoke__">chars</span>();<br>                <span class="hljs-keyword">match</span> chars.<span class="hljs-title function_ invoke__">next</span>() &#123;<br>                    <span class="hljs-literal">None</span> =&gt; <span class="hljs-type">String</span>::<span class="hljs-title function_ invoke__">new</span>(),<br>                    <span class="hljs-title function_ invoke__">Some</span>(first) =&gt; first.<span class="hljs-title function_ invoke__">to_uppercase</span>().<span class="hljs-title function_ invoke__">chain</span>(chars).<span class="hljs-title function_ invoke__">collect</span>(),<br>                &#125;<br>            &#125;)<br>            .collect::&lt;<span class="hljs-type">Vec</span>&lt;<span class="hljs-type">String</span>&gt;&gt;()<br>            .<span class="hljs-title function_ invoke__">join</span>(<span class="hljs-string">&quot; &quot;</span>)<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() &#123;<br>    <span class="hljs-keyword">let</span> <span class="hljs-variable">s</span> = <span class="hljs-string">&quot;hello world&quot;</span>;<br>    <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;&#123;&#125;&quot;</span>, s.<span class="hljs-title function_ invoke__">to_title_case</span>()); <span class="hljs-comment">// &quot;Hello World&quot;</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="4-条件方法实现"><a href="#4-条件方法实现" class="headerlink" title="4. 条件方法实现"></a>4. 条件方法实现</h3><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Pair</span>&lt;T&gt; &#123;<br>    x: T,<br>    y: T,<br>&#125;<br><br><span class="hljs-keyword">impl</span>&lt;T&gt; Pair&lt;T&gt; &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">new</span>(x: T, y: T) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-keyword">Self</span> &#123;<br>        <span class="hljs-keyword">Self</span> &#123; x, y &#125;<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">impl</span>&lt;T: Display + <span class="hljs-built_in">PartialOrd</span>&gt; Pair&lt;T&gt; &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">display_comparison</span>(&amp;<span class="hljs-keyword">self</span>) &#123;<br>        <span class="hljs-keyword">if</span> <span class="hljs-keyword">self</span>.x &gt; <span class="hljs-keyword">self</span>.y &#123;<br>            <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;x 大于 y&quot;</span>);<br>        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">self</span>.x &lt; <span class="hljs-keyword">self</span>.y &#123;<br>            <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;x 小于 y&quot;</span>);<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;x 等于 y&quot;</span>);<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、实际应用场景"><a href="#四、实际应用场景" class="headerlink" title="四、实际应用场景"></a>四、实际应用场景</h2><h3 id="1-通用数据结构"><a href="#1-通用数据结构" class="headerlink" title="1. 通用数据结构"></a>1. 通用数据结构</h3><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Stack</span>&lt;T&gt; &#123;<br>    items: <span class="hljs-type">Vec</span>&lt;T&gt;,<br>&#125;<br><br><span class="hljs-keyword">impl</span>&lt;T&gt; Stack&lt;T&gt; &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">new</span>() <span class="hljs-punctuation">-&gt;</span> <span class="hljs-keyword">Self</span> &#123;<br>        Stack &#123; items: <span class="hljs-type">Vec</span>::<span class="hljs-title function_ invoke__">new</span>() &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">push</span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>, item: T) &#123;<br>        <span class="hljs-keyword">self</span>.items.<span class="hljs-title function_ invoke__">push</span>(item);<br>    &#125;<br><br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">pop</span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Option</span>&lt;T&gt; &#123;<br>        <span class="hljs-keyword">self</span>.items.<span class="hljs-title function_ invoke__">pop</span>()<br>    &#125;<br><br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">peek</span>(&amp;<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Option</span>&lt;&amp;T&gt; &#123;<br>        <span class="hljs-keyword">self</span>.items.<span class="hljs-title function_ invoke__">last</span>()<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-错误处理"><a href="#2-错误处理" class="headerlink" title="2. 错误处理"></a>2. 错误处理</h3><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">use</span> std::error::Error;<br><span class="hljs-keyword">use</span> std::fmt;<br><br><span class="hljs-meta">#[derive(Debug)]</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">CustomError</span> &#123;<br>    message: <span class="hljs-type">String</span>,<br>&#125;<br><br><span class="hljs-keyword">impl</span> <span class="hljs-title class_">Error</span> <span class="hljs-keyword">for</span> <span class="hljs-title class_">CustomError</span> &#123;&#125;<br><br><span class="hljs-keyword">impl</span> <span class="hljs-title class_">fmt</span>::Display <span class="hljs-keyword">for</span> <span class="hljs-title class_">CustomError</span> &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">fmt</span>(&amp;<span class="hljs-keyword">self</span>, f: &amp;<span class="hljs-keyword">mut</span> fmt::Formatter) <span class="hljs-punctuation">-&gt;</span> fmt::<span class="hljs-type">Result</span> &#123;<br>        <span class="hljs-built_in">write!</span>(f, <span class="hljs-string">&quot;自定义错误: &#123;&#125;&quot;</span>, <span class="hljs-keyword">self</span>.message)<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">might_fail</span>(flag: <span class="hljs-type">bool</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Result</span>&lt;(), CustomError&gt; &#123;<br>    <span class="hljs-keyword">if</span> flag &#123;<br>        <span class="hljs-title function_ invoke__">Ok</span>(())<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-title function_ invoke__">Err</span>(CustomError &#123;<br>            message: <span class="hljs-string">&quot;操作失败&quot;</span>.<span class="hljs-title function_ invoke__">to_string</span>(),<br>        &#125;)<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="3-策略模式"><a href="#3-策略模式" class="headerlink" title="3. 策略模式"></a>3. 策略模式</h3><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">trait</span> <span class="hljs-title class_">CompressionStrategy</span> &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">compress</span>(&amp;<span class="hljs-keyword">self</span>, data: &amp;[<span class="hljs-type">u8</span>]) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Vec</span>&lt;<span class="hljs-type">u8</span>&gt;;<br>&#125;<br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">ZipCompression</span>;<br><span class="hljs-keyword">impl</span> <span class="hljs-title class_">CompressionStrategy</span> <span class="hljs-keyword">for</span> <span class="hljs-title class_">ZipCompression</span> &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">compress</span>(&amp;<span class="hljs-keyword">self</span>, data: &amp;[<span class="hljs-type">u8</span>]) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Vec</span>&lt;<span class="hljs-type">u8</span>&gt; &#123;<br>        <span class="hljs-comment">// 简化的压缩逻辑</span><br>        data.<span class="hljs-title function_ invoke__">iter</span>().<span class="hljs-title function_ invoke__">map</span>(|b| b.<span class="hljs-title function_ invoke__">wrapping_sub</span>(<span class="hljs-number">1</span>)).<span class="hljs-title function_ invoke__">collect</span>()<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">GzipCompression</span>;<br><span class="hljs-keyword">impl</span> <span class="hljs-title class_">CompressionStrategy</span> <span class="hljs-keyword">for</span> <span class="hljs-title class_">GzipCompression</span> &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">compress</span>(&amp;<span class="hljs-keyword">self</span>, data: &amp;[<span class="hljs-type">u8</span>]) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Vec</span>&lt;<span class="hljs-type">u8</span>&gt; &#123;<br>        <span class="hljs-comment">// 简化的压缩逻辑</span><br>        data.<span class="hljs-title function_ invoke__">iter</span>().<span class="hljs-title function_ invoke__">map</span>(|b| b.<span class="hljs-title function_ invoke__">wrapping_add</span>(<span class="hljs-number">1</span>)).<span class="hljs-title function_ invoke__">collect</span>()<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Compressor</span> &#123;<br>    strategy: <span class="hljs-type">Box</span>&lt;<span class="hljs-keyword">dyn</span> CompressionStrategy&gt;,<br>&#125;<br><br><span class="hljs-keyword">impl</span> <span class="hljs-title class_">Compressor</span> &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">new</span>(strategy: <span class="hljs-type">Box</span>&lt;<span class="hljs-keyword">dyn</span> CompressionStrategy&gt;) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-keyword">Self</span> &#123;<br>        Compressor &#123; strategy &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">compress_data</span>(&amp;<span class="hljs-keyword">self</span>, data: &amp;[<span class="hljs-type">u8</span>]) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Vec</span>&lt;<span class="hljs-type">u8</span>&gt; &#123;<br>        <span class="hljs-keyword">self</span>.strategy.<span class="hljs-title function_ invoke__">compress</span>(data)<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、最佳实践"><a href="#五、最佳实践" class="headerlink" title="五、最佳实践"></a>五、最佳实践</h2><ol>
+<li><strong>优先使用泛型</strong>：当类型在编译时已知时</li>
+<li><strong>合理使用特质对象</strong>：当需要处理多种类型时</li>
+<li><strong>保持特质小而专注</strong>：单一职责原则</li>
+<li><strong>使用泛型约束</strong>：明确类型要求</li>
+<li><strong>利用默认实现</strong>：减少重复代码</li>
+<li><strong>避免过度泛化</strong>：只在真正需要时使用泛型</li>
+</ol>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-comment">// 良好实践：清晰的约束</span><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">process_data</span>&lt;T&gt;(data: T)<br><span class="hljs-keyword">where</span><br>    T: Display + <span class="hljs-built_in">Debug</span> + Serialize,<br>&#123;<br>    <span class="hljs-comment">// 处理数据</span><br>&#125;<br><br><span class="hljs-comment">// 不良实践：过度泛化</span><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">overly_generic</span>&lt;T, U, V&gt;(a: T, b: U, c: V)<br><span class="hljs-keyword">where</span><br>    T: Display,<br>    U: <span class="hljs-built_in">Debug</span>,<br>    V: <span class="hljs-built_in">Clone</span>,<br>&#123;<br>    <span class="hljs-comment">// 功能不明确</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="六、总结对比"><a href="#六、总结对比" class="headerlink" title="六、总结对比"></a>六、总结对比</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>泛型(Generics)</th>
+<th>特质(Traits)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>主要目的</strong></td>
+<td>代码复用，类型参数化</td>
+<td>定义共享行为，实现多态</td>
+</tr>
+<tr>
+<td><strong>实现方式</strong></td>
+<td>编译时单态化</td>
+<td>静态分发或动态分发</td>
+</tr>
+<tr>
+<td><strong>性能</strong></td>
+<td>零运行时开销</td>
+<td>静态分发零开销，动态分发有开销</td>
+</tr>
+<tr>
+<td><strong>使用场景</strong></td>
+<td>创建通用数据结构&#x2F;算法</td>
+<td>定义接口，实现多态行为</td>
+</tr>
+<tr>
+<td><strong>约束</strong></td>
+<td>通过特质约束类型能力</td>
+<td>本身就是行为约束</td>
+</tr>
+<tr>
+<td><strong>灵活性</strong></td>
+<td>编译时确定具体类型</td>
+<td>运行时可通过特质对象处理多种类型</td>
+</tr>
+</tbody></table>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/" class="category-chain-item">编程语言</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Rust-%E5%9F%BA%E7%A1%80/" class="print-no-link">#Rust 基础</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Rust:Generics、Traitstor</div>
+      <div>http://blog.luliang.online/2025/09/27/Rust（四）/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年9月27日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/09/27/Rust%EF%BC%88%E4%BA%94%EF%BC%89/" title="Rust:Box、match、ownership">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Rust:Box、match、ownership</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/09/26/Rust%EF%BC%88%E4%B8%89%EF%BC%89/" title="Rust:Vector">
+                        <span class="hidden-mobile">Rust:Vector</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

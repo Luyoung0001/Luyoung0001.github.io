@@ -1,0 +1,751 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="使用 verilator 进行测试生成测试案例编译测试文件，之后会生成 coe 文件、mif 文件。而且，mif 文件也可以由 vivado 生成，更具体地：  mif 文件是根据 coe 文件生成的。 coe 文件只会在生成 rom 模块时起作用，其作用就是根据文件内容生成相应的 mif 文件，而 rom 真正使用的是 mif 文件。 直接编辑 .mif 文件的方式不可取，因为在重新生成其他模块">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LA 挑战赛：fpga 下板测试">
+<meta property="og:url" content="http://blog.luliang.online/2025/04/06/LA%E6%8C%91%E6%88%98%E8%B5%9B3/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="使用 verilator 进行测试生成测试案例编译测试文件，之后会生成 coe 文件、mif 文件。而且，mif 文件也可以由 vivado 生成，更具体地：  mif 文件是根据 coe 文件生成的。 coe 文件只会在生成 rom 模块时起作用，其作用就是根据文件内容生成相应的 mif 文件，而 rom 真正使用的是 mif 文件。 直接编辑 .mif 文件的方式不可取，因为在重新生成其他模块">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/restart001.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/tcl001.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/cd_tcl.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/IP_update.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/right_co.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/nothing.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/tcl001.png">
+<meta property="article:published_time" content="2025-04-06T05:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.425Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="LoongArch">
+<meta property="article:tag" content="CPU">
+<meta property="article:tag" content="FPGA">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Luyoung0001/picBed/main/restart001.png">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>LA 挑战赛：fpga 下板测试 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="LA 挑战赛：fpga 下板测试"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-04-06 13:03" pubdate>
+          2025年4月6日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          10 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">LA 挑战赛：fpga 下板测试</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="使用-verilator-进行测试"><a href="#使用-verilator-进行测试" class="headerlink" title="使用 verilator 进行测试"></a>使用 verilator 进行测试</h2><h3 id="生成测试案例"><a href="#生成测试案例" class="headerlink" title="生成测试案例"></a>生成测试案例</h3><p>编译测试文件，之后会生成 coe 文件、mif 文件。而且，mif 文件也可以由 vivado 生成，更具体地：</p>
+<ul>
+<li>mif 文件是根据 coe 文件生成的。</li>
+<li>coe 文件只会在生成 rom 模块时起作用，其作用就是根据文件内容生成相应的 mif 文件，而 rom 真正使用的是 mif 文件。</li>
+<li>直接编辑 .mif 文件的方式不可取，因为在重新生成其他模块 generate output products 后会根据 coe 文件重新生成.mif，可能与设计不一致。</li>
+</ul>
+<p>问题是当我们引入 coe 文件的时候，重制 inst_ram 会非常耗时，笔者观察 vivado 花费了 20 分钟还没有完成，因此最好是我们直接使用编译生成的现有的 mif 文件。</p>
+<p>前面讲到的重新定制 inst_ram 比较耗时，如果只进行仿真的话可以选择直接替换 Vivado 项目中所用 mif 文件的方法来达到更改 inst_ram 初始值的目的。以单周期CPU的实验开发环境为例，在启动仿真界面后，会发现工程文件中出现下面的目录 <code>soc_verify/soc_dram/run_vivado/mycpu_prj1/mycpu.sim/sim_1/behave/xsim/</code>，将该目录中的 <code>inst_ram.mif</code> 替换成软件环境 <code>obj</code> 目录下的 <code>inst_ram.mif</code><br>（CPU_CDE&#x2F;func&#x2F;obj&#x2F;inst_ram.mif），再点击 <code>Restart</code> 回到零时刻，点击 <code>run all</code> 开始仿真，此时 <code>inst_ram</code>的初始值就会变成更新后的<code>inst_ram.mif</code> 中的数据。具体参考 <a target="_blank" rel="noopener" href="https://bookdown.org/loongson/_book3/chapter-single-cycle-cpu.html#subsubsec-recusomize-inst-ram">这里</a>。</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/restart001.png"></p>
+<p>上图中，第一个按钮（仿真之后）就是 Restart，紧接着的按钮就是 Run_all。偷梁换柱之后，点击 Restart，接着点击 Run_all 就可以了：</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/tcl001.png"></p>
+<p>最后，在生成 <code>golden_race.txt</code>，这很关键。</p>
+<h3 id="初始化工程"><a href="#初始化工程" class="headerlink" title="初始化工程"></a>初始化工程</h3><p>接着将完成好的 <a target="_blank" rel="noopener" href="https://gitee.com/loongson-edu/cdp_ede_local">cdp_ede_local</a> 框架中的 <code>myCPU_env</code> 复制到装有 vivado 的电脑中。</p>
+<p>然后打开 vivado，在 tcl 命令行中 cd 到目标文件夹：</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/cd_tcl.png"></p>
+<p>接着，继续在 Tcl Console 中输入命令 <code>source ./create_project.tcl</code>。接下来 vivado 将根据 create_project.tcl 的内容创建工程。</p>
+<h3 id="升级-IP"><a href="#升级-IP" class="headerlink" title="升级 IP"></a>升级 IP</h3><p>在创建工程之后，IP 如果需要升级，那么它会被锁定：</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/IP_update.png"></p>
+<p>这时候就得升级，升级很简单，直接参考 <a target="_blank" rel="noopener" href="https://bookdown.org/loongson/_book3/appendix-vivado-advanced-usage.html#sec-upgrade-project-ip">这里</a>。</p>
+<h3 id="仿真"><a href="#仿真" class="headerlink" title="仿真"></a>仿真</h3><p>这一步，很关键，需要明白仿真的原理，这里的话，应该要明白顶层文件是什么。</p>
+<p>点击添加文件，将 <code>mycpu_env/soc_verify/soc_dram/testbench/mycpu_tb.v</code> 中添加到项目，它是顶层文件。</p>
+<p>如果观察的仔细，发现右上角会有这个：</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/right_co.png"></p>
+<p>直接点击取消，接着点击 Run Simulation，这时候就会发现，什么都没有：</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/nothing.png"></p>
+<p>这时候，就可以偷梁换柱了。换成已经生成好的 mif 文件后，就可以快速开始了：</p>
+<p><img src="https://raw.githubusercontent.com/Luyoung0001/picBed/main/tcl001.png"></p>
+<h2 id="仿真的架构"><a href="#仿真的架构" class="headerlink" title="仿真的架构"></a>仿真的架构</h2><h3 id="顶层模块"><a href="#顶层模块" class="headerlink" title="顶层模块"></a>顶层模块</h3><p>顶层文件：mycpu_tb.v，这是一个 test_bench，它模拟各种信号给子模块，比如：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs Verilog"><span class="hljs-keyword">reg</span> resetn;<br><span class="hljs-keyword">reg</span> clk;<br><br><span class="hljs-comment">//goio</span><br><span class="hljs-keyword">wire</span> [<span class="hljs-number">15</span>:<span class="hljs-number">0</span>] led;<br><span class="hljs-keyword">wire</span> [<span class="hljs-number">1</span> :<span class="hljs-number">0</span>] led_rg0;<br><span class="hljs-keyword">wire</span> [<span class="hljs-number">1</span> :<span class="hljs-number">0</span>] led_rg1;<br><span class="hljs-keyword">wire</span> [<span class="hljs-number">7</span> :<span class="hljs-number">0</span>] num_csn;<br><span class="hljs-keyword">wire</span> [<span class="hljs-number">6</span> :<span class="hljs-number">0</span>] num_a_g;<br><span class="hljs-keyword">wire</span> [<span class="hljs-number">7</span> :<span class="hljs-number">0</span>] switch;<br><span class="hljs-keyword">wire</span> [<span class="hljs-number">3</span> :<span class="hljs-number">0</span>] btn_key_col;<br><span class="hljs-keyword">wire</span> [<span class="hljs-number">3</span> :<span class="hljs-number">0</span>] btn_key_row;<br><span class="hljs-keyword">wire</span> [<span class="hljs-number">1</span> :<span class="hljs-number">0</span>] btn_step;<br><span class="hljs-keyword">assign</span> switch      = <span class="hljs-number">8&#x27;hff</span>;<br><span class="hljs-keyword">assign</span> btn_key_row = <span class="hljs-number">4&#x27;d0</span>;<br><span class="hljs-keyword">assign</span> btn_step    = <span class="hljs-number">2&#x27;d3</span>;<br><br><span class="hljs-keyword">initial</span><br><span class="hljs-keyword">begin</span><br>    clk = <span class="hljs-number">1&#x27;b0</span>;<br>    resetn = <span class="hljs-number">1&#x27;b0</span>;<br>    #<span class="hljs-number">2000</span>;<br>    resetn = <span class="hljs-number">1&#x27;b1</span>;<br><span class="hljs-keyword">end</span><br><span class="hljs-keyword">always</span> #<span class="hljs-number">5</span> clk=~clk;<br></code></pre></td></tr></table></figure>
+
+<p>需要注意的时，gpio 中，它直接赋值 switch 为 0xff 等，至于输出信号，连起来忽略就行。</p>
+<p>然后就读取 golden_trace.txt 的行和子模块 soc_lite 中的信号进行对比从而实现 difftest 了。</p>
+<h3 id="子模块-soc-lite-top"><a href="#子模块-soc-lite-top" class="headerlink" title="子模块 soc_lite_top"></a>子模块 soc_lite_top</h3><p>模块 soc_lite_top 就是被验证的模块，它由更复杂的模块组成。</p>
+<h4 id="clk-pll"><a href="#clk-pll" class="headerlink" title="clk_pll"></a>clk_pll</h4><p>这是一个 ip，目的是给原始的 clk 降频。</p>
+<h4 id="mycpu-top"><a href="#mycpu-top" class="headerlink" title="mycpu_top"></a>mycpu_top</h4><p>这就是核心的 CPU 模块了。</p>
+<h4 id="inst-ram"><a href="#inst-ram" class="headerlink" title="inst_ram"></a>inst_ram</h4><p>这是 inst_ram IP，存放指令。</p>
+<h4 id="data-ram"><a href="#data-ram" class="headerlink" title="data_ram"></a>data_ram</h4><p>这是 data_ram IP，可以存放数据。</p>
+<h4 id="confreg"><a href="#confreg" class="headerlink" title="confreg"></a>confreg</h4><p>这是外设配置的模块，详细描述：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-comment">//   &gt; Description : Control module of</span><br><span class="hljs-comment">//                   16 red leds, 2 green/red leds,</span><br><span class="hljs-comment">//                   7-segment display,</span><br><span class="hljs-comment">//                   switchs,</span><br><span class="hljs-comment">//                   key board,</span><br><span class="hljs-comment">//                   bottom STEP,</span><br><span class="hljs-comment">//                   timer.</span><br></code></pre></td></tr></table></figure>
+
+<p>以上就是这个仿真的整体概况了。</p>
+<h2 id="fpga-下板子测试"><a href="#fpga-下板子测试" class="headerlink" title="fpga 下板子测试"></a>fpga 下板子测试</h2><p>下板子之后，要将 switch 置 全部 1。这是为了能在地址 <code>0xbfaff090</code> 读出一个关键的 <code>0x0000aaaa</code>。</p>
+<p>将测试的顶层模块删除掉之后，就可以下板子测试了，直接一键三连。这个过程比较费时间。经过测试，光一个 ram 综合就花费了一小时 40 分钟。</p>
+<p>下板之后，可以通过 switch 控制寄存器 <code>0xbfaff090</code> 的值，从而控制空循环的时长：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs asm">1c010158 &lt;idle_1s&gt;:<br>idle_1s():<br>1c010158:	157f5fec 	lu12i.w	$r12,-263425(0xbfaff)<br>1c01015c:	0282418c 	addi.w	$r12,$r12,144(0x90)<br>1c010160:	1400016d 	lu12i.w	$r13,11(0xb)<br>1c010164:	02aaa9ad 	addi.w	$r13,$r13,-1366(0xaaa)<br>1c010168:	2880018e 	ld.w	$r14,$r12,0<br>1c01016c:	0015b5ce 	xor	$r14,$r14,$r13<br>1c010170:	0040a5cf 	slli.w	$r15,$r14,0x9<br>1c010174:	028005ef 	addi.w	$r15,$r15,1(0x1)<br><br>1c010178 &lt;sub1&gt;:<br>sub1():<br>1c010178:	02bffdef 	addi.w	$r15,$r15,-1(0xfff)<br>1c01017c:	2880018e 	ld.w	$r14,$r12,0<br>1c010180:	0015b5ce 	xor	$r14,$r14,$r13<br>1c010184:	0040a5ce 	slli.w	$r14,$r14,0x9<br>1c010188:	0012b9f0 	sltu	$r16,$r15,$r14<br>1c01018c:	5c000a00 	bne	$r16,$r0,8(0x8) # 1c010194 &lt;sub1+0x1c&gt;<br>1c010190:	028001cf 	addi.w	$r15,$r14,0<br>1c010194:	5fffe5e0 	bne	$r15,$r0,-28(0x3ffe4) # 1c010178 &lt;sub1&gt;<br>1c010198:	4c000020 	jirl	$r0,$r1,0<br>1c01019c:	00000000 	0x00000000<br></code></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/CPU/" class="category-chain-item">CPU</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/LoongArch/" class="print-no-link">#LoongArch</a>
+      
+        <a href="/tags/CPU/" class="print-no-link">#CPU</a>
+      
+        <a href="/tags/FPGA/" class="print-no-link">#FPGA</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>LA 挑战赛：fpga 下板测试</div>
+      <div>http://blog.luliang.online/2025/04/06/LA挑战赛3/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年4月6日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/04/07/Rust_%E7%A7%BB%E5%8A%A8%E8%AF%AD%E6%84%8F/" title="浅谈 Rust 中的移动语义与所有权机制">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">浅谈 Rust 中的移动语义与所有权机制</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/04/05/LA%E6%8C%91%E6%88%98%E8%B5%9B2/" title="LA 挑战赛：加上 difftest">
+                        <span class="hidden-mobile">LA 挑战赛：加上 difftest</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -1,0 +1,749 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言我们希望，用户程序仅仅运行在 U 模式，而 OS 代码统统运行在高权限模式下。这样，比如 tasks 的行为将会受到限制，比如它不能随意的修改 csr 寄存器，甚至修改 PLIC、CLINT、UART 寄存器以危害整个系统。 因此，某些可能会威胁到 OS 稳定运行的操作应该运行在高权限模式下，比如 S、M 模式。而 tasks 想要执行某些高权限操作，只能通过系统调用的方式来进行。 系统模式：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于 riscv32 的 OS 设计：系统调用">
+<meta property="og:url" content="http://blog.luliang.online/2025/03/29/%E5%9F%BA%E4%BA%8Eriscv32%E7%9A%84OS(%E5%8D%81%E4%BA%8C)/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="前言我们希望，用户程序仅仅运行在 U 模式，而 OS 代码统统运行在高权限模式下。这样，比如 tasks 的行为将会受到限制，比如它不能随意的修改 csr 寄存器，甚至修改 PLIC、CLINT、UART 寄存器以危害整个系统。 因此，某些可能会威胁到 OS 稳定运行的操作应该运行在高权限模式下，比如 S、M 模式。而 tasks 想要执行某些高权限操作，只能通过系统调用的方式来进行。 系统模式：">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-03-29T05:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.452Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="OS">
+<meta property="article:tag" content="riscv">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>基于 riscv32 的 OS 设计：系统调用 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="基于 riscv32 的 OS 设计：系统调用"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-03-29 13:03" pubdate>
+          2025年3月29日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          17 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">基于 riscv32 的 OS 设计：系统调用</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>我们希望，用户程序仅仅运行在 U 模式，而 OS 代码统统运行在高权限模式下。这样，比如 tasks 的行为将会受到限制，比如它不能随意的修改 csr 寄存器，甚至修改 PLIC、CLINT、UART 寄存器以危害整个系统。</p>
+<p>因此，某些可能会威胁到 OS 稳定运行的操作应该运行在高权限模式下，比如 S、M 模式。而 tasks 想要执行某些高权限操作，只能通过系统调用的方式来进行。</p>
+<h2 id="系统模式：用户态和内核态"><a href="#系统模式：用户态和内核态" class="headerlink" title="系统模式：用户态和内核态"></a>系统模式：用户态和内核态</h2><p>在RISC-V架构中，<code>mstatus</code>（机器状态寄存器）的<code>MPP</code>（机器先前模式）字段起着至关重要的作用。</p>
+<p><strong><code>MPP</code>字段的作用：</strong></p>
+<ul>
+<li><strong>保存先前的特权模式：</strong><ul>
+<li><code>MPP</code>字段用于保存机器模式（M-mode）下发生异常或中断之前的特权模式。</li>
+<li>当CPU从M-mode下的异常或中断处理程序返回时，<code>MPP</code>字段的值将被用于恢复到先前的特权模式。</li>
+</ul>
+</li>
+<li><strong>支持特权模式的切换：</strong><ul>
+<li>RISC-V架构支持多种特权模式，包括机器模式（M-mode）、超级用户模式（S-mode）和用户模式（U-mode）。</li>
+<li><code>MPP</code>字段确保了在M-mode下处理异常或中断后，系统能够正确地返回到之前的特权模式，从而保证了特权模式切换的正确性。</li>
+</ul>
+</li>
+<li><strong>异常处理和返回：</strong><ul>
+<li>当发生异常或中断时，CPU会自动切换到 M-mode，并保存先前的特权模式到<code>MPP</code>字段。</li>
+<li>在异常或中断处理程序结束时，<code>mret</code>（机器模式返回）指令会读取<code>MPP</code>字段的值，并将CPU的特权模式恢复到之前保存的模式。</li>
+</ul>
+</li>
+</ul>
+<p>也就是说，我们希望 mret 返回到 task 的时候，CPU 模式恢复到 U_mode，这意味着我们</p>
+<h2 id="系统模式的切换"><a href="#系统模式的切换" class="headerlink" title="系统模式的切换"></a>系统模式的切换</h2><p>设置 msstatus.MPP 以及 mstatus.MPIE：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs asm">#ifdef CONFIG_SYSCALL<br>	# Set mstatus.MPP as 0, so we will run in User mode after MRET.<br>	# No need to set mstatus.MPIE to 1 explicitly, because according to ISA<br>	# specification: interrupts for M-mode, which is higher than U-mode, are<br>	# always globally enabled regardless of the setting of the global MIE bit.<br>	li	t0, 0<br>	csrc	mstatus, t0<br>#else<br>	# Set mstatus.MPP to 3, so we still run in Machine mode after MRET.<br>	# Set mstatus.MPIE to 1, so MRET will enable the interrupt.<br>	li	t0, 3 &lt;&lt; 11 | 1 &lt;&lt; 7<br>	csrs	mstatus, t0<br>#endif<br></code></pre></td></tr></table></figure>
+
+<p>如果我们打开 CONFIG_SYSCALL，那么在 mret 后，将会回到 U-mode，此时如果我们在 task 中访问特权指令，比如 csr 指令：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">user_task0</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    uart_puts(<span class="hljs-string">&quot;Task 0: Created!\n&quot;</span>);<br><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> hid = <span class="hljs-number">-1</span>;<br>    hid = r_mhartid(); <span class="hljs-comment">// 内联汇编，访问 csr 寄存器</span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;hart id is %d\n&quot;</span>, hid);<br><br>    <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) &#123;<br>        uart_puts(<span class="hljs-string">&quot;Task 0: Running... \n&quot;</span>);<br>        task_delay(DELAY);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>它就会引发异常：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs bash">Task 0: Created!<br>Sync exceptions! Code = 2<br>panic: OOPS! What can I <span class="hljs-keyword">do</span>!<br>QEMU: Terminated<br></code></pre></td></tr></table></figure>
+
+<p>但是，如果我们设置 mstatus.MPP 让它返回之后依然是机器模式，那就不会引发异常：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs asm">#ifdef CONFIG_SYSCALL<br>	li	t0, 3 &lt;&lt; 11 | 1 &lt;&lt; 7<br>	csrs	mstatus, t0<br>#else<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs bash">Task 0: Created!<br>hart <span class="hljs-built_in">id</span> is 0<br>Task 0: Running...<br>Task 0: Running...<br>Task 0: Running...<br>timer interruption!<br>tick: 1<br>Task 1: Created!<br></code></pre></td></tr></table></figure>
+
+<p>因为我们要设计系统调用，因此必须得设置成 mstatus.MPP &#x3D; 00。</p>
+<h2 id="系统调用的执行流程"><a href="#系统调用的执行流程" class="headerlink" title="系统调用的执行流程"></a>系统调用的执行流程</h2><p>系统调用，就是用户态的函数调用一个 syscall，这个 syscall 在执行的过程中需要通过 trap 进入到核心态来完成，之后再次返回到用户态。</p>
+<p>可以通过 ecall 指令来引发一个异常。这里需要认识到，操作系统的设计和 ISA 是解耦的，ecall 可以主动引发一个异常，使得 CPU 进入高权限模式。OS 设计人员可以借助 ecall 来实现 syscall，这这不意味着 syscall 只能通过 ecall 来实现。你要是不嫌延迟以及代码架构差，完全可以调用 syscall 之后，通过 CLINT 的软件中断来实现。当然，ecall 是最好的选择。</p>
+<p>ecall 命令用于主动触发异常。根据调用 ecall 的权限级别产生不同的 exception code，异常产生时 epc 寄存器的值存放的是 ecall 指令本身的地址。</p>
+<p>ecall 引发异常后，可以根据异常号来确定是什么异常。如果是从 U-mode 发起的 ecall，那么 mcause 的值为 8（可以查阅手册）。这时候就会进入 syscall 执行流程：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><code class="hljs C"><br><span class="hljs-type">reg_t</span> <span class="hljs-title function_">trap_handler</span><span class="hljs-params">(<span class="hljs-type">reg_t</span> epc, <span class="hljs-type">reg_t</span> cause, <span class="hljs-keyword">struct</span> context* cxt)</span> &#123;<br>    <span class="hljs-type">reg_t</span> return_pc = epc;<br>    <span class="hljs-type">reg_t</span> cause_code = cause &amp; MCAUSE_MASK_ECODE;<br><br>    <span class="hljs-keyword">if</span> (cause &amp; MCAUSE_MASK_INTERRUPT) &#123;<br>        <span class="hljs-comment">/* Asynchronous trap - interrupt */</span><br>        <span class="hljs-keyword">switch</span> (cause_code) &#123;<br>            <span class="hljs-keyword">case</span> <span class="hljs-number">3</span>:<br>                uart_puts(<span class="hljs-string">&quot;software interruption!\n&quot;</span>);<br>                <span class="hljs-type">int</span> id = r_mhartid();<br>                *(<span class="hljs-type">uint32_t</span>*)CLINT_MSIP(id) = <span class="hljs-number">0</span>;<br><br>                schedule();<br><br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">case</span> <span class="hljs-number">7</span>:<br>                uart_puts(<span class="hljs-string">&quot;timer interruption!\n&quot;</span>);<br>                timer_handler();<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">case</span> <span class="hljs-number">11</span>:<br>                uart_puts(<span class="hljs-string">&quot;external interruption!\n&quot;</span>);<br>                external_interrupt_handler();<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">default</span>:<br>                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Unknown async exception! Code = %ld\n&quot;</span>, cause_code);<br>                <span class="hljs-keyword">break</span>;<br>        &#125;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-comment">/* Synchronous trap - exception */</span><br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Sync exceptions! Code = %ld\n&quot;</span>, cause_code);<br>        <span class="hljs-keyword">switch</span> (cause_code) &#123;<br>            <span class="hljs-keyword">case</span> <span class="hljs-number">8</span>:<br>                uart_puts(<span class="hljs-string">&quot;System call from U-mode!\n&quot;</span>);<br>                do_syscall(cxt);<br>                return_pc += <span class="hljs-number">4</span>;<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">default</span>:<br>                panic(<span class="hljs-string">&quot;OOPS! What can I do!&quot;</span>);<br>                <span class="hljs-comment">// return_pc += 4;</span><br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">return</span> return_pc;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>上面的 do_syscall 定义为：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">int</span> <span class="hljs-title function_">sys_gethid</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>* ptr_hid)</span> &#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;--&gt; sys_gethid, arg0 = %p\n&quot;</span>, ptr_hid);<br>    <span class="hljs-keyword">if</span> (ptr_hid == <span class="hljs-literal">NULL</span>) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        *ptr_hid = r_mhartid();<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    &#125;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">do_syscall</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> context* cxt)</span> &#123;<br>    <span class="hljs-type">uint32_t</span> syscall_num = cxt-&gt;a7;<br>    <span class="hljs-keyword">switch</span> (syscall_num) &#123;<br>        <span class="hljs-keyword">case</span> SYS_gethid:<br>            cxt-&gt;a0 = sys_gethid((<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>*)(cxt-&gt;a0));<br>            <span class="hljs-keyword">break</span>;<br>        <span class="hljs-keyword">default</span>:<br>            <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Unknown syscall no: %d\n&quot;</span>, syscall_num);<br>            cxt-&gt;a0 = <span class="hljs-number">-1</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这样根据系统调用号就完成了系统调用的过程，之后返回。这里需要注意的是，异常有 retry 机制，因此必须手动把 return_pc+4 后返回，不然死循环。</p>
+<p>这里有一个问题，系统调用号码是怎么传递的？这就涉及到系统调用的传参了。</p>
+<h2 id="系统调用的传参"><a href="#系统调用的传参" class="headerlink" title="系统调用的传参"></a>系统调用的传参</h2><p>如果整个系统中只有一个系统调用，那就不需传递系统调用号码了，直接进来 do_syscall，传递的函数参数就用 a* 来传递。</p>
+<p>我们知道，syscall 是在 trap 过程中执行的，这意味着要保存上下文。进了 trap 之后，所有的函数调用和 u_mode 下的调用没有任何区别。</p>
+<p>于是，当进入到 trap 之后，可以将多个参数转递给 trap_handler。</p>
+<p>系统调用作为操作系统的对外接口，<strong>由操作系统的实现</strong>负责定义。参考 Linux 的系统调用，RVOS 定义系统调用的传参规则如下：</p>
+<ul>
+<li>系统调用号放在 a7 中</li>
+<li>系统调用参数使用 a0 ~ a5</li>
+<li>返回值使用 a0</li>
+</ul>
+<p>其中就包含了上下文的地址 mscratch：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs asm"># call the C trap handler in trap.c<br>csrr	a0, mepc<br>csrr	a1, mcause<br>csrr	a2, mscratch<br>call	trap_handler<br></code></pre></td></tr></table></figure>
+<p>这下，trap_handler 就可以任意访问 context 以及修改 context 了。处理完后，返回到 trap_vector，恢复上下文之后就完成了整个过程。</p>
+<h2 id="print"><a href="#print" class="headerlink" title="print"></a>print</h2><p>我们希望，print 输出字符的过程中不要被异常打断。换句话说，当 task0 执行 print 代码的时候，print 是运行在 trap 过程中的。我们可以让 print 整体作为一个系统调用。尽管它的底层由 printf 实现：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">sys_print</span><span class="hljs-params">(<span class="hljs-type">char</span>* str)</span> &#123;<br>    <span class="hljs-built_in">printf</span>(str);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>事实上，我们应该保证，应该将哪些函数暴露给软件开发者。比如实现了系统调用 print 之后，虽然用户调用 print 之后进入内核执行。但是如果同时也将 printf 暴露给用户，那么用户直接调用 printf 并不会进入内核执行，这应该避免。这里只是一个简单的例子，并没有考虑这么多。</p>
+<p>首先定义 print 系统调用号：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_gethid	1</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_print  2</span><br></code></pre></td></tr></table></figure>
+
+<p>系统调用入口：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs asm"><br>#include &quot;syscall.h&quot;<br>.global gethid<br>.global print<br>gethid:<br>    li a7, SYS_gethid<br>    ecall<br>    ret<br><br>print:<br>    li a7, SYS_print<br>    ecall<br>    ret<br></code></pre></td></tr></table></figure>
+
+<p>进入 trap 之后，进入 do_syacall，执行 print 的底层代码就行了：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">sys_print</span><span class="hljs-params">(<span class="hljs-type">char</span>* str)</span> &#123;<br>    <span class="hljs-built_in">printf</span>(str);<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">do_syscall</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> context* cxt)</span> &#123;<br>    <span class="hljs-type">uint32_t</span> syscall_num = cxt-&gt;a7;<br>    <span class="hljs-keyword">switch</span> (syscall_num) &#123;<br>        <span class="hljs-keyword">case</span> SYS_gethid:<br>            cxt-&gt;a0 = sys_gethid((<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>*)(cxt-&gt;a0));<br>            <span class="hljs-keyword">break</span>;<br>        <span class="hljs-keyword">case</span> SYS_print:<br>            sys_print((<span class="hljs-type">char</span> *)cxt-&gt;a0);<br>            <span class="hljs-keyword">break</span>;<br><br>        <span class="hljs-keyword">default</span>:<br>            <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Unknown syscall no: %d\n&quot;</span>, syscall_num);<br>            cxt-&gt;a0 = <span class="hljs-number">-1</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>注意，不能在 trap 中调用 syscall。运行效果：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs bash">Sync exceptions! Code = 8 &lt;------- 系统调用 <span class="hljs-built_in">print</span><br>System call from U-mode!<br>Task 0: Created!<br>Sync exceptions! Code = 8 &lt;------- 系统调用 gethid<br>System call from U-mode!<br>--&gt; sys_gethid, arg0 = 0x800057f8<br>system call returned!, hart <span class="hljs-built_in">id</span> is 0<br>Sync exceptions! Code = 8 &lt;------- 系统调用 <span class="hljs-built_in">print</span><br>System call from U-mode!<br>Task 0: Running...<br></code></pre></td></tr></table></figure>
+
+<h2 id="系统调用的封装"><a href="#系统调用的封装" class="headerlink" title="系统调用的封装"></a>系统调用的封装</h2><p>OS 提供者还得提供一个C库（对 OS 来说，这就是标准库），这个 C 库 和 OS 的系统调用对应。</p>
+<p>当软件开发者开发 OS 上层应用的时候，就可以调用这些头文件中的系统调用或者基于系统调用的函数了，也就是说，要对系统调用做一些基本的包装或者功能提升。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/OS/" class="category-chain-item">OS</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/OS/" class="print-no-link">#OS</a>
+      
+        <a href="/tags/riscv/" class="print-no-link">#riscv</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>基于 riscv32 的 OS 设计：系统调用</div>
+      <div>http://blog.luliang.online/2025/03/29/基于riscv32的OS(十二)/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年3月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/04/01/%E5%9F%BA%E4%BA%8Eriscv32%E7%9A%84OS(%E5%8D%81%E4%B8%89)/" title="基于 riscv32 的 OS 设计：完结">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">基于 riscv32 的 OS 设计：完结</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/03/28/%E5%9F%BA%E4%BA%8Eriscv32%E7%9A%84OS(%E5%8D%81%E4%B8%80)/" title="基于 riscv32 的 OS 设计：软件定时器">
+                        <span class="hidden-mobile">基于 riscv32 的 OS 设计：软件定时器</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

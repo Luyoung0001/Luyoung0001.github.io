@@ -1,0 +1,785 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="btbThe Branch Target Buffer (BTB) caches branch target addresses to provide fast prediction of where branches will go. Structure:  Set-associative cache (default: 128 sets, 2 ways) Each entry stores:">
+<meta property="og:type" content="article">
+<meta property="og:title" content="riscv-boom&#39;s btb">
+<meta property="og:url" content="http://blog.luliang.online/2025/12/02/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E5%99%A8btb/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="btbThe Branch Target Buffer (BTB) caches branch target addresses to provide fast prediction of where branches will go. Structure:  Set-associative cache (default: 128 sets, 2 ways) Each entry stores:">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-12-02T07:03:14.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.451Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="分支预测">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>riscv-boom&#39;s btb - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="riscv-boom&#39;s btb"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-12-02 15:03" pubdate>
+          2025年12月2日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          16 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">riscv-boom&#39;s btb</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="btb"><a href="#btb" class="headerlink" title="btb"></a>btb</h2><p>The Branch Target Buffer (BTB) caches branch target addresses to provide fast prediction of where branches will go.</p>
+<p>Structure:</p>
+<ul>
+<li>Set-associative cache (default: 128 sets, 2 ways)</li>
+<li>Each entry stores: tag, target offset, is_br flag, extended flag</li>
+<li>Extended BTB (EBTB) for far jumps that exceed offset range</li>
+</ul>
+<p>Operation:</p>
+<ul>
+<li>S0: Send read address to SRAM</li>
+<li>S1: Receive SRAM data, compute hit&#x2F;target</li>
+<li>S2&#x2F;F2: Output prediction response</li>
+<li>S3&#x2F;F3: Registered F2 response</li>
+</ul>
+<h2 id="BTB-条目"><a href="#BTB-条目" class="headerlink" title="BTB 条目"></a>BTB 条目</h2><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BTBEntry</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Bundle</span> </span>&#123;<br>    <span class="hljs-keyword">val</span> offset   = <span class="hljs-type">SInt</span>(offsetSz.<span class="hljs-type">W</span>) <span class="hljs-comment">// 13-bit 有符号偏移</span><br>    <span class="hljs-keyword">val</span> extended = <span class="hljs-type">Bool</span>()           <span class="hljs-comment">// 1-bit 扩展标志</span><br>&#125;<br><br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BTBMeta</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Bundle</span> </span>&#123;<br>    <span class="hljs-keyword">val</span> is_br = <span class="hljs-type">Bool</span>() <span class="hljs-comment">// 是否是分支</span><br>    <span class="hljs-keyword">val</span> tag   = <span class="hljs-type">UInt</span>(tagSz.<span class="hljs-type">W</span>) <span class="hljs-comment">// 用于组内匹配的 Tag</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="并行读取"><a href="#并行读取" class="headerlink" title="并行读取"></a>并行读取</h2><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-keyword">val</span> s1_req_rmeta = <span class="hljs-type">Wire</span>(<span class="hljs-type">Vec</span>(nWays, <span class="hljs-type">Vec</span>(bankWidth, <span class="hljs-keyword">new</span> <span class="hljs-type">BTBMeta</span>))) <span class="hljs-comment">// nWays=2</span><br><span class="hljs-keyword">val</span> s1_req_rbtb  = <span class="hljs-type">Wire</span>(<span class="hljs-type">Vec</span>(nWays, <span class="hljs-type">Vec</span>(bankWidth, <span class="hljs-keyword">new</span> <span class="hljs-type">BTBEntry</span>)))<br><span class="hljs-keyword">val</span> s1_req_rebtb = <span class="hljs-type">Wire</span>(<span class="hljs-type">UInt</span>(vaddrBitsExtended.<span class="hljs-type">W</span>)) <span class="hljs-comment">// Extended BTB</span><br><br><span class="hljs-comment">// ... (SRAM or Flop 实现) ...</span><br>s1_req_rmeta(w) := meta.read(s0_idx, s0_valid).map(...)<br>s1_req_rbtb(w)  := btb.read(s0_idx, s0_valid).map(...)<br>s1_req_rebtb   := ebtb.read(s0_idx, s0_valid)<br></code></pre></td></tr></table></figure>
+
+<h2 id="Tag-匹配"><a href="#Tag-匹配" class="headerlink" title="Tag 匹配"></a>Tag 匹配</h2><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-keyword">val</span> s1_hit_ohs = <span class="hljs-type">VecInit</span>((<span class="hljs-number">0</span> until bankWidth) map &#123; i =&gt;<br>  <span class="hljs-type">VecInit</span>((<span class="hljs-number">0</span> until nWays) map &#123; w =&gt;<br>    s1_req_rmeta(w)(i).tag === s1_req_tag(tagSz<span class="hljs-number">-1</span>,<span class="hljs-number">0</span>)<br>  &#125;)<br>&#125;))<br><span class="hljs-keyword">val</span> s1_hits     = s1_hit_ohs.map &#123; oh =&gt; oh.reduce(_||_) &#125;<br><span class="hljs-keyword">val</span> s1_hit_ways = s1_hit_ohs.map &#123; oh =&gt; <span class="hljs-type">PriorityEncoder</span>(oh) &#125;<br><br></code></pre></td></tr></table></figure>
+<h2 id="目标地址计算"><a href="#目标地址计算" class="headerlink" title="目标地址计算"></a>目标地址计算</h2><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-keyword">for</span> (w &lt;- <span class="hljs-number">0</span> until bankWidth) &#123;<br>  <span class="hljs-keyword">for</span> (b &lt;- <span class="hljs-number">0</span> until nWays) &#123;<br>    <span class="hljs-keyword">val</span> entry_btb = <span class="hljs-type">WireInit</span>(s1_req_rbtb(b)(w))<br>    s1_targs(b)(w) := <span class="hljs-type">Mux</span>(entry_btb.extended,<br>      s1_req_rebtb,<br>      (s1_pc.asSInt + (w &lt;&lt; <span class="hljs-number">1</span>).<span class="hljs-type">S</span> + entry_btb.offset).asUInt)<br>  &#125;<br>  <span class="hljs-comment">// ...</span><br>  s1_resp(w).bits := s1_targs(s1_hit_ways(w))(w)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="BTB-Branch-Target-Buffer-分支目标缓冲器工作流程详解"><a href="#BTB-Branch-Target-Buffer-分支目标缓冲器工作流程详解" class="headerlink" title="BTB (Branch Target Buffer) 分支目标缓冲器工作流程详解"></a>BTB (Branch Target Buffer) 分支目标缓冲器工作流程详解</h2><h3 id="1-整体架构概览"><a href="#1-整体架构概览" class="headerlink" title="1. 整体架构概览"></a>1. 整体架构概览</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌──────────────────────────────────────────────────────────────────────────────────┐<br>│                              BTB Branch Predictor                                 │<br>│                                                                                   │<br>│  ┌─────────────────────────────────────────────────────────────────────────────┐ │<br>│  │                       主 BTB 存储 (nWays 路组相联)                           │ │<br>│  │                                                                              │ │<br>│  │   Way 0                              Way 1                                   │ │<br>│  │  ┌──────────────────────────┐      ┌──────────────────────────┐             │ │<br>│  │  │      Meta SRAM           │      │      Meta SRAM           │             │ │<br>│  │  │  ┌─────┬─────┬─────┐     │      │  ┌─────┬─────┬─────┐     │             │ │<br>│  │  │  │tag  │is_br│tag  │...  │      │  │tag  │is_br│tag  │...  │             │ │<br>│  │  │  │ b0  │ b0  │ b1  │     │      │  │ b0  │ b0  │ b1  │     │             │ │<br>│  │  │  └─────┴─────┴─────┘     │      │  └─────┴─────┴─────┘     │             │ │<br>│  │  │  nSets = 128 行           │      │  nSets = 128 行          │             │ │<br>│  │  └──────────────────────────┘      └──────────────────────────┘             │ │<br>│  │                                                                              │ │<br>│  │  ┌──────────────────────────┐      ┌──────────────────────────┐             │ │<br>│  │  │      Data SRAM           │      │      Data SRAM           │             │ │<br>│  │  │  ┌─────────┬────────┐    │      │  ┌─────────┬────────┐    │             │ │<br>│  │  │  │ offset  │extended│... │      │  │ offset  │extended│... │             │ │<br>│  │  │  │  13-bit │  1-bit │    │      │  │  13-bit │  1-bit │    │             │ │<br>│  │  │  └─────────┴────────┘    │      │  └─────────┴────────┘    │             │ │<br>│  │  └──────────────────────────┘      └──────────────────────────┘             │ │<br>│  └─────────────────────────────────────────────────────────────────────────────┘ │<br>│                                                                                   │<br>│  ┌─────────────────────────────────────────────────────────────────────────────┐ │<br>│  │                     扩展 BTB (Extended BTB / EBTB)                          │ │<br>│  │  ┌──────────────────────────────────────────────────────────────────────┐   │ │<br>│  │  │  用于存储无法用 offset 编码的远跳转目标地址                            │   │ │<br>│  │  │  ┌─────────────────────────────────────────────────────────────────┐ │   │ │<br>│  │  │  │         完整目标地址 (vaddrBitsExtended 位)                      │ │   │ │<br>│  │  │  │         extendedNSets = 128 条目                                 │ │   │ │<br>│  │  │  └─────────────────────────────────────────────────────────────────┘ │   │ │<br>│  │  └──────────────────────────────────────────────────────────────────────┘   │ │<br>│  └─────────────────────────────────────────────────────────────────────────────┘ │<br>└──────────────────────────────────────────────────────────────────────────────────┘<br><br></code></pre></td></tr></table></figure>
+<h3 id="2-数据结构详解"><a href="#2-数据结构详解" class="headerlink" title="2. 数据结构详解"></a>2. 数据结构详解</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                              BTB 条目结构                                        │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>BTBEntry (Data SRAM 存储):<br>┌─────────────────────────────────────────────┐<br>│              btbEntrySz = 14 bits           │<br>├───────────────────────────┬─────────────────┤<br>│      offset (13 bits)     │  extended (1b)  │<br>│      有符号偏移量          │  是否使用 EBTB   │<br>└───────────────────────────┴─────────────────┘<br><br>    offset 范围: -4096 ~ +4095 (相对于当前 PC)<br>    如果目标地址超出此范围，extended=1，需查 EBTB<br><br>BTBMeta (Meta SRAM 存储):<br>┌─────────────────────────────────────────────┐<br>│           btbMetaSz = tagSz + 1 bits        │<br>├───────────────────────────────┬─────────────┤<br>│         tag (tagSz bits)      │  is_br (1b) │<br>│         地址标签               │  是否是分支  │<br>└───────────────────────────────┴─────────────┘<br><br>    is_br = 1: 条件分支指令 (可能跳转/不跳转)<br>    is_br = 0: 无条件跳转 (JAL)<br><br>BTBPredictMeta (预测元数据，传递给更新逻辑):<br>┌─────────────────────────────────────────────┐<br>│        write_way (log2(nWays) bits)         │<br>│        记录命中/分配的路号                    │<br>└─────────────────────────────────────────────┘<br><br></code></pre></td></tr></table></figure>
+<h3 id="3-索引与标签计算"><a href="#3-索引与标签计算" class="headerlink" title="3. 索引与标签计算"></a>3. 索引与标签计算</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                           PC 地址分解                                            │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>                    PC (vaddrBitsExtended 位)<br>    ┌────────────────────────────────────────────────────────────────┐<br>    │  高位 (tag)         │    中间位 (index)    │  低位 (offset)    │<br>    │  tagSz bits         │  log2(nSets) bits   │ log2(fetchWidth)+1│<br>    └────────────────────────────────────────────────────────────────┘<br>                │                    │                   │<br>                │                    │                   └─ 忽略 (字节/指令内)<br>                │                    │<br>                │                    ▼<br>                │         ┌─────────────────────────┐<br>                │         │ s0_idx / s1_idx        │<br>                │         │ 选择 BTB 中的哪一行     │<br>                │         └─────────────────────────┘<br>                │<br>                ▼<br>    ┌─────────────────────────────────────┐<br>    │ s1_req_tag = s1_idx &gt;&gt; log2(nSets) │<br>    │ 用于与存储的 tag 比较               │<br>    └─────────────────────────────────────┘<br><br>示例 (假设 vaddrBitsExtended=39, nSets=128, fetchWidth=8):<br><br>    PC = 0x7F_FFFF_1234<br><br>    index = PC[10:4] = 7 bits → 选择 set<br>    tag   = PC[38:11] = 28 bits → 标签比较<br></code></pre></td></tr></table></figure>
+<h3 id="4-预测流水线时序"><a href="#4-预测流水线时序" class="headerlink" title="4. 预测流水线时序"></a>4. 预测流水线时序</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                            预测流水线时序                                        │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>  周期      S0 (取指请求)       S1 (SRAM 输出)        F2 (输出)           F3 (延迟)<br>   │            │                   │                   │                   │<br>   ▼            ▼                   ▼                   ▼                   ▼<br> ─────────────────────────────────────────────────────────────────────────────────<br>   │                                │                   │                   │<br>   │  ┌──────────────────┐          │                   │                   │<br>   │  │  s0_idx 计算      │          │                   │                   │<br>   │  │  发起 SRAM 读请求  │──────────│                   │                   │<br>   │  │  - meta.read()   │  SyncRead │                   │                   │<br>   │  │  - btb.read()    │          │                   │                   │<br>   │  │  - ebtb.read()   │          │                   │                   │<br>   │  └──────────────────┘          │                   │                   │<br>   │                                │                   │                   │<br>   │                         ┌──────▼──────┐            │                   │<br>   │                         │ s1_req_rmeta│            │                   │<br>   │                         │ s1_req_rbtb │            │                   │<br>   │                         │ s1_req_rebtb│            │                   │<br>   │                         │             │            │                   │<br>   │                         │ 标签比较     │            │                   │<br>   │                         │ s1_hit_ohs  │            │                   │<br>   │                         │             │            │                   │<br>   │                         │ 目标地址计算 │────────────│                   │<br>   │                         │ s1_targs    │   RegNext  │                   │<br>   │                         │             │            │                   │<br>   │                         │ s1_resp     │            │                   │<br>   │                         │ s1_is_br    │            │                   │<br>   │                         │ s1_is_jal   │            │                   │<br>   │                         └─────────────┘            │                   │<br>   │                                                    │                   │<br>   │                                            ┌───────▼───────┐           │<br>   │                                            │ io.resp.f2    │           │<br>   │                                            │ predicted_pc  │───────────│<br>   │                                            │ is_br, is_jal │  RegNext  │<br>   │                                            │ taken (JAL)   │           │<br>   │                                            └───────────────┘           │<br>   │                                                                        │<br>   │                                                                ┌───────▼───────┐<br>   │                                                                │ io.resp.f3    │<br>   │                                                                │ (同 f2 延迟)   │<br>   │                                                                └───────────────┘<br> ─────────────────────────────────────────────────────────────────────────────────<br><br></code></pre></td></tr></table></figure>
+
+<p>  关键点:<br>    - BTB 在 S1 阶段就能提供预测结果 (比 BIM 早一拍)<br>    - JAL 指令直接设置 taken&#x3D;true (无条件跳转)<br>    - 分支指令 (is_br&#x3D;true) 需要等 BIM 等预测器提供 taken</p>
+<h3 id="5-命中检测与路选择"><a href="#5-命中检测与路选择" class="headerlink" title="5. 命中检测与路选择"></a>5. 命中检测与路选择</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                           命中检测逻辑                                           │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>对于每个 bank 位置 (w in 0..bankWidth):<br><br>                    s1_req_tag (来自 PC)<br>                          │<br>          ┌───────────────┼───────────────┐<br>          │               │               │<br>          ▼               ▼               ▼<br>    ┌───────────┐   ┌───────────┐   ┌───────────┐<br>    │ Way 0     │   │ Way 1     │   │ Way N-1   │<br>    │ meta.tag  │   │ meta.tag  │   │ meta.tag  │<br>    └─────┬─────┘   └─────┬─────┘   └─────┬─────┘<br>          │               │               │<br>          ▼               ▼               ▼<br>    ┌───────────┐   ┌───────────┐   ┌───────────┐<br>    │   比较    │   │   比较    │   │   比较    │<br>    │  ==?      │   │  ==?      │   │  ==?      │<br>    └─────┬─────┘   └─────┴─────┘   └─────┴─────┘<br>          │               │               │<br>          ▼               ▼               ▼<br>    s1_hit_ohs(w) = [hit_way0, hit_way1, ..., hit_wayN]<br>                          │<br>            ┌─────────────┴─────────────┐<br>            │                           │<br>            ▼                           ▼<br>    ┌───────────────┐           ┌───────────────┐<br>    │ s1_hits(w)    │           │ s1_hit_ways(w)│<br>    │ = OR reduce   │           │ = PriorityEnc │<br>    │ 是否有命中     │           │ 命中的路号     │<br>    └───────────────┘           └───────────────┘<br><br></code></pre></td></tr></table></figure>
+<h3 id="6-目标地址计算"><a href="#6-目标地址计算" class="headerlink" title="6. 目标地址计算"></a>6. 目标地址计算</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                         目标地址计算逻辑                                         │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>对于每个 bank w 和每个 way b:<br><br>    entry_btb = s1_req_rbtb(b)(w)  // 读出的 BTB 条目<br><br>                    ┌─────────────────────────────────┐<br>                    │        entry_btb.extended?      │<br>                    └────────────────┬────────────────┘<br>                                     │<br>                    ┌────────────────┴────────────────┐<br>                    │                                 │<br>                    ▼                                 ▼<br>              extended = 1                      extended = 0<br>                    │                                 │<br>                    ▼                                 ▼<br>        ┌───────────────────────┐       ┌───────────────────────────────┐<br>        │   使用 EBTB           │       │   相对地址计算                 │<br>        │   s1_req_rebtb        │       │   s1_pc + (w &lt;&lt; 1) + offset   │<br>        │   (完整目标地址)       │       │                               │<br>        └───────────────────────┘       │   PC偏移 + bank内偏移 + offset │<br>                    │                   └───────────────────────────────┘<br>                    │                                 │<br>                    └─────────────┬───────────────────┘<br>                                  │<br>                                  ▼<br>                    ┌─────────────────────────────────┐<br>                    │     s1_targs(b)(w)              │<br>                    │     该 way 该 bank 的目标地址    │<br>                    └─────────────────────────────────┘<br>                                  │<br>                                  ▼<br>                    ┌─────────────────────────────────┐<br>                    │  Mux by s1_hit_ways(w)          │<br>                    │  选择命中路的目标地址             │<br>                    └─────────────────────────────────┘<br>                                  │<br>                                  ▼<br>                    ┌─────────────────────────────────┐<br>                    │     s1_resp(w).bits             │<br>                    │     最终预测的目标地址           │<br>                    └─────────────────────────────────┘<br><br></code></pre></td></tr></table></figure>
+<p>注: (w &lt;&lt; 1) 是因为每条指令占 2 字节 (压缩指令)</p>
+<h3 id="7-路分配策略"><a href="#7-路分配策略" class="headerlink" title="7. 路分配策略"></a>7. 路分配策略</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                           路分配 (Allocation) 策略                               │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>当发生 BTB 未命中时，需要选择一个路来存储新条目:<br><br>    ┌──────────────────────────────────────────────────────────────────┐<br>    │                    s1_hits.reduce(_||_)?                         │<br>    └────────────────────────────┬─────────────────────────────────────┘<br>                                 │<br>                    ┌────────────┴────────────┐<br>                    │                         │<br>                    ▼                         ▼<br>               命中 (Hit)                 未命中 (Miss)<br>                    │                         │<br>                    ▼                         ▼<br>    ┌───────────────────────────┐  ┌───────────────────────────────────┐<br>    │ write_way = 命中路        │  │       alloc_way 计算              │<br>    │ PriorityEncoder(hit_ohs)  │  │                                   │<br>    └───────────────────────────┘  │  伪随机分配 (基于 XOR hash)        │<br>                                   │                                   │<br>                                   │  r_metas = Cat(所有way的tag, req_tag)│<br>                                   │                                   │<br>                                   │  将 r_metas 分成多个 chunk         │<br>                                   │  每个 chunk log2(nWays) 位         │<br>                                   │                                   │<br>                                   │  alloc_way = chunks.XOR_reduce     │<br>                                   └───────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+<p>  示例 (nWays &#x3D; 2):</p>
+<pre><code class="hljs">  r_metas = [way1.tag, way0.tag, req_tag] 拼接
+
+  分成若干 1-bit chunk，全部 XOR
+
+  结果 0 或 1 → 选择替换 Way 0 或 Way 1
+</code></pre>
+<p>  这种策略:<br>    - 简单高效，无需额外状态<br>    - 提供一定的伪随机性<br>    - 与访问地址相关，可重现</p>
+<h3 id="8-更新逻辑"><a href="#8-更新逻辑" class="headerlink" title="8. 更新逻辑"></a>8. 更新逻辑</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                              更新流程                                            │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>                         s1_update (来自后端)<br>                                │<br>                                ▼<br>    ┌───────────────────────────────────────────────────────────────────────┐<br>    │                        偏移量计算                                      │<br>    │                                                                        │<br>    │  new_offset = target - (pc + cfi_idx &lt;&lt; 1)                            │<br>    │                                                                        │<br>    │  max_offset = +4095  (13位有符号最大正值)                               │<br>    │  min_offset = -4096  (13位有符号最小负值)                               │<br>    │                                                                        │<br>    │  offset_is_extended = (new_offset &gt; max) || (new_offset &lt; min)        │<br>    └───────────────────────────────────────────────────────────────────────┘<br>                                │<br>                                ▼<br>    ┌───────────────────────────────────────────────────────────────────────┐<br>    │                     准备写入数据                                       │<br>    │                                                                        │<br>    │  s1_update_wbtb_data:                                                 │<br>    │    .offset   = new_offset (截断为 13 位)                               │<br>    │    .extended = offset_is_extended                                     │<br>    │                                                                        │<br>    │  s1_update_wmeta_data[w]:                                             │<br>    │    .tag   = update_idx &gt;&gt; log2(nSets)  或 0 (如果误预测需清除)          │<br>    │    .is_br = br_mask[w]                                                │<br>    └───────────────────────────────────────────────────────────────────────┘<br>                                │<br>                                ▼<br>    ┌───────────────────────────────────────────────────────────────────────┐<br>    │                     写入掩码计算                                       │<br>    │                                                                        │<br>    │  s1_update_wbtb_mask:                                                 │<br>    │    - 仅在 cfi_taken &amp;&amp; is_commit_update 时写入 BTB data               │<br>    │    - UIntToOH(cfi_idx) 选择对应 bank                                  │<br>    │                                                                        │<br>    │  s1_update_wmeta_mask:                                                │<br>    │    - commit_update 时: 写入 br_mask 标记的所有分支位置                  │<br>    │    - btb_mispredicts: 清除误预测的条目 (tag 设为 0)                    │<br>    └───────────────────────────────────────────────────────────────────────┘<br>                                │<br>                    ┌───────────┴───────────┐<br>                    │                       │<br>                    ▼                       ▼<br>        ┌───────────────────────┐  ┌───────────────────────┐<br>        │    写入主 BTB         │  │    写入 EBTB          │<br>        │                       │  │                       │<br>        │  条件:                │  │  条件:                │<br>        │  write_way 匹配       │  │  wbtb_mask != 0       │<br>        │                       │  │  &amp;&amp; offset_is_extended│<br>        │  写入:                │  │                       │<br>        │  - meta[idx]         │  │  写入:                 │<br>        │  - btb[idx]          │  │  - ebtb[idx] = target │<br>        └───────────────────────┘  └───────────────────────┘<br></code></pre></td></tr></table></figure>
+<h3 id="9-BTB-误预测处理"><a href="#9-BTB-误预测处理" class="headerlink" title="9. BTB 误预测处理"></a>9. BTB 误预测处理</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                        误预测处理 (btb_mispredicts)                              │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>场景: BTB 预测了一个跳转，但实际上:<br>  1. 该位置不是分支/跳转指令<br>  2. 或者目标地址错误<br><br>处理方式:<br><br>    s1_update.bits.btb_mispredicts(w) = true<br>                    │<br>                    ▼<br>    ┌───────────────────────────────────────────────────────────────┐<br>    │  s1_update_wmeta_data(w).tag := 0.U                          │<br>    │                                                               │<br>    │  将 tag 设为 0，使该条目在后续访问中不再命中                     │<br>    │  (因为有效的 tag 不可能全为 0)                                  │<br>    └───────────────────────────────────────────────────────────────┘<br><br>    ┌───────────────────────────────────────────────────────────────┐<br>    │  s1_update_wmeta_mask 包含 btb_mispredicts                   │<br>    │  即使不是 commit_update 也会写入 (快速清除错误预测)             │<br>    └───────────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+<p>  这种”软删除”策略:<br>    - 不需要真正删除数据<br>    - 只需使 tag 失效<br>    - 后续可以被正常分配覆盖</p>
+<h3 id="10-复位逻辑"><a href="#10-复位逻辑" class="headerlink" title="10. 复位逻辑"></a>10. 复位逻辑</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                              复位流程                                            │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>    系统复位<br>        │<br>        ▼<br>    doing_reset = true<br>    reset_idx = 0<br>        │<br>        ▼<br>    ┌───────────────────────────────────────────────────────────────┐<br>    │  每个周期:                                                     │<br>    │    1. 向所有 Way 的 reset_idx 行写入:                          │<br>    │       - btb: 全 0 (offset=0, extended=0)                      │<br>    │       - meta: 全 0 (tag=0, is_br=0)                           │<br>    │    2. reset_idx++                                             │<br>    │    3. 预测输出被屏蔽 (!doing_reset)                            │<br>    └───────────────────────────────────────────────────────────────┘<br>        │<br>        │  经过 nSets (128) 个周期<br>        ▼<br>    reset_idx == nSets - 1<br>        │<br>        ▼<br>    doing_reset = false<br>        │<br>        ▼<br>    正常工作<br></code></pre></td></tr></table></figure>
+<p>注意:</p>
+<ul>
+<li>EBTB 在 SRAM 模式下不需要显式复位 (读出无效数据会因主 BTB 未命中而忽略)</li>
+<li>复位期间所有预测结果无效 (s1_resp.valid &#x3D; false)</li>
+</ul>
+<h3 id="11-完整数据流图"><a href="#11-完整数据流图" class="headerlink" title="11. 完整数据流图"></a>11. 完整数据流图</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                           BTB 完整数据流                                         │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>                              ┌─────────────────┐<br>                              │    取指请求      │<br>                              │   (s0_idx)      │<br>                              └────────┬────────┘<br>                                       │<br>                                       ▼<br>    ┌─────────────────────────────────────────────────────────────────────────────┐<br>    │                          S0: SRAM 读请求                                     │<br>    │                                                                              │<br>    │   ┌───────────┐    ┌───────────┐    ┌───────────┐    ┌───────────┐          │<br>    │   │ Way0 Meta │    │ Way0 Data │    │ Way1 Meta │    │ Way1 Data │   ...    │<br>    │   │  .read()  │    │  .read()  │    │  .read()  │    │  .read()  │          │<br>    │   └─────┬─────┘    └─────┬─────┘    └─────┬─────┘    └─────┬─────┘          │<br>    │         │                │                │                │                 │<br>    └─────────┼────────────────┼────────────────┼────────────────┼─────────────────┘<br>              │                │                │                │<br>              │      ┌─────────┴────────────────┴────────────────┘<br>              │      │                          ▼<br>              ▼      ▼                   ┌─────────────┐<br>    ┌─────────────────────────┐          │   EBTB      │<br>    │       S1: 数据返回       │          │  .read()    │<br>    └─────────────────────────┘          └──────┬──────┘<br>              │      │                          │<br>              ▼      ▼                          ▼<br>    ┌──────────────────────────────────────────────────────────────────┐<br>    │                        S1: 命中检测与目标计算                      │<br>    │                                                                   │<br>    │   ┌─────────────────┐                                            │<br>    │   │ 标签比较         │                                            │<br>    │   │ s1_req_tag vs   │                                            │<br>    │   │ meta.tag        │                                            │<br>    │   └────────┬────────┘                                            │<br>    │            │                                                      │<br>    │   ┌────────▼────────┐    ┌─────────────────────────────────────┐ │<br>    │   │ s1_hit_ohs      │    │ 目标地址计算                         │ │<br>    │   │ s1_hits         │    │ Mux(extended, ebtb, pc+offset)      │ │<br>    │   │ s1_hit_ways     │    └─────────────────────────────────────┘ │<br>    │   └────────┬────────┘                        │                   │<br>    │            │                                 │                   │<br>    │   ┌────────▼─────────────────────────────────▼─────┐             │<br>    │   │                 s1_resp                        │             │<br>    │   │  .valid = !doing_reset &amp;&amp; s1_valid &amp;&amp; hit     │             │<br>    │   │  .bits  = s1_targs[hit_way]                   │             │<br>    │   └────────────────────────────────────────────────┘             │<br>    │                                                                   │<br>    │   ┌────────────────────────────────────────────────┐             │<br>    │   │ s1_is_br  = resp.valid &amp;&amp; meta.is_br          │             │<br>    │   │ s1_is_jal = resp.valid &amp;&amp; !meta.is_br         │             │<br>    │   └────────────────────────────────────────────────┘             │<br>    │                                                                   │<br>    │   ┌────────────────────────────────────────────────┐             │<br>    │   │ s1_meta.write_way = hit ? hit_way : alloc_way │             │<br>    │   └────────────────────────────────────────────────┘             │<br>    └───────────────────────────────────┬──────────────────────────────┘<br>                                        │<br>                                        │ RegNext<br>                                        ▼<br>    ┌───────────────────────────────────────────────────────────────────┐<br>    │                          F2: 输出预测结果                          │<br>    │                                                                    │<br>    │   io.resp.f2(w).predicted_pc := s1_resp (registered)              │<br>    │   io.resp.f2(w).is_br        := s1_is_br (registered)             │<br>    │   io.resp.f2(w).is_jal       := s1_is_jal (registered)            │<br>    │   io.resp.f2(w).taken        := s1_is_jal (JAL 无条件跳转)         │<br>    │                                                                    │<br>    │   (分支指令的 taken 由 BIM/TAGE 等预测器提供)                        │<br>    └────────────────────────────────────┬──────────────────────────────┘<br>                                         │<br>                                         │ RegNext<br>                                         ▼<br>    ┌───────────────────────────────────────────────────────────────────┐<br>    │                          F3: 延迟输出                              │<br>    │                                                                    │<br>    │   io.resp.f3 := RegNext(io.resp.f2)                               │<br>    │   io.f3_meta := RegNext(RegNext(s1_meta))                         │<br>    └───────────────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+<h3 id="12-关键参数总结"><a href="#12-关键参数总结" class="headerlink" title="12. 关键参数总结"></a>12. 关键参数总结</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>默认值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>nSets</td>
+<td>128</td>
+<td>BTB 行数 (索引范围)</td>
+</tr>
+<tr>
+<td>nWays</td>
+<td>2</td>
+<td>组相联路数</td>
+</tr>
+<tr>
+<td>offsetSz</td>
+<td>13</td>
+<td>相对偏移位数 (±4096 范围)</td>
+</tr>
+<tr>
+<td>extendedNSets</td>
+<td>128</td>
+<td>EBTB 条目数</td>
+</tr>
+<tr>
+<td>tagSz</td>
+<td>vaddrBits - log2(nSets) - log2(fetchWidth) - 1</td>
+<td>标签位数</td>
+</tr>
+<tr>
+<td>btbEntrySz</td>
+<td>14</td>
+<td>Data SRAM 条目位宽</td>
+</tr>
+<tr>
+<td>btbMetaSz</td>
+<td>tagSz + 1</td>
+<td>Meta SRAM 条目位宽</td>
+</tr>
+<tr>
+<td>useFlops</td>
+<td>false</td>
+<td>是否用寄存器代替 SRAM</td>
+</tr>
+</tbody></table>
+<h3 id="13-BTB-与-BIM-的协作"><a href="#13-BTB-与-BIM-的协作" class="headerlink" title="13. BTB 与 BIM 的协作"></a>13. BTB 与 BIM 的协作</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────────┐<br>│                         BTB + BIM 协作关系                                       │<br>└─────────────────────────────────────────────────────────────────────────────────┘<br><br>                    ┌─────────────────────────────────────┐<br>                    │            取指 PC                  │<br>                    └─────────────────┬───────────────────┘<br>                                      │<br>                    ┌─────────────────┴───────────────────┐<br>                    │                                     │<br>                    ▼                                     ▼<br>            ┌───────────────┐                     ┌───────────────┐<br>            │     BTB       │                     │     BIM       │<br>            │               │                     │               │<br>            │ 提供:         │                     │ 提供:         │<br>            │ - 目标地址    │                     │ - taken 预测  │<br>            │ - is_br/jal   │                     │ - 2-bit 计数器│<br>            └───────┬───────┘                     └───────┬───────┘<br>                    │                                     │<br>                    │         ┌───────────────────────────┘<br>                    │         │<br>                    ▼         ▼<br>            ┌─────────────────────────────────────┐<br>            │         最终预测结果                 │<br>            │                                     │<br>            │  if (BTB.is_jal):                   │<br>            │      taken = true (无条件)          │<br>            │  elif (BTB.is_br):                  │<br>            │      taken = BIM.prediction        │<br>            │  target = BTB.predicted_pc         │<br>            └─────────────────────────────────────┘<br><br></code></pre></td></tr></table></figure>
+<p>BTB 负责: WHERE to go (跳转目标)<br>BIM 负责: WHETHER to go (是否跳转，仅对分支指令)</p>
+<p>BTB 是分支预测器中提供目标地址预测的核心组件，它通过存储历史跳转信息来快速预测分支&#x2F;跳转指令的目标地址，是实现高性能前端取指的关键。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/" class="category-chain-item">计算机体系结构</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B/" class="print-no-link">#分支预测</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>riscv-boom&#39;s btb</div>
+      <div>http://blog.luliang.online/2025/12/02/分支预测器btb/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年12月2日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/12/02/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E5%99%A8tage/" title="riscv-boom&#39;s tage">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">riscv-boom&#39;s tage</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/12/02/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E5%99%A8bim/" title="riscv-boom&#39;s bim">
+                        <span class="hidden-mobile">riscv-boom&#39;s bim</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

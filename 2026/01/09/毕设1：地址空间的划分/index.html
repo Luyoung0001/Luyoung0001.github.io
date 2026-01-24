@@ -1,0 +1,700 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="地址空间由于计算机软件系统是一个裸机系统，因此没有虚拟内存系统，都是直接访存，也就是说 tlb 其实是相当于不工作的。 只要在start.S 中直接修改 csr 标记 CSR.CRMD.DA &#x3D; 1 (直接地址模式)、CSR.CRMD.PG &#x3D; 0 (关闭分页)。 地址段划分如下： 1234567891011121314151617181920212223242526272829303132333">
+<meta property="og:type" content="article">
+<meta property="og:title" content="毕设(1)：地址空间的划分">
+<meta property="og:url" content="http://blog.luliang.online/2026/01/09/%E6%AF%95%E8%AE%BE1%EF%BC%9A%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%9A%84%E5%88%92%E5%88%86/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="地址空间由于计算机软件系统是一个裸机系统，因此没有虚拟内存系统，都是直接访存，也就是说 tlb 其实是相当于不工作的。 只要在start.S 中直接修改 csr 标记 CSR.CRMD.DA &#x3D; 1 (直接地址模式)、CSR.CRMD.PG &#x3D; 0 (关闭分页)。 地址段划分如下： 1234567891011121314151617181920212223242526272829303132333">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-01-09T02:03:13.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.454Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="毕设">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>毕设(1)：地址空间的划分 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="毕设(1)：地址空间的划分"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-01-09 10:03" pubdate>
+          2026年1月9日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          915 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          8 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">毕设(1)：地址空间的划分</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="地址空间"><a href="#地址空间" class="headerlink" title="地址空间"></a>地址空间</h2><p>由于计算机软件系统是一个裸机系统，因此没有虚拟内存系统，都是直接访存，也就是说 tlb 其实是相当于不工作的。</p>
+<p>只要在start.S 中直接修改 csr 标记 <code>CSR.CRMD.DA = 1</code> (直接地址模式)、<code>CSR.CRMD.PG = 0</code> (关闭分页)。</p>
+<p>地址段划分如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-comment">//==========================================================================</span><br><span class="hljs-comment">// 主存储器</span><br><span class="hljs-comment">//==========================================================================</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> RAM_BASE        0x00000000  <span class="hljs-comment">// DDR3/SRAM 起始</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> RAM_END         0x1CFFFFFF  <span class="hljs-comment">// 464MB (代码+数据+堆)</span></span><br><span class="hljs-comment">// Stack</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> STACK_TOP       0x1EFFFFFF</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> STACK_BOTT      0x1D000000  <span class="hljs-comment">// 32MB</span></span><br><span class="hljs-comment">// Framebuffer 放在 RAM 末尾</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> FRAMEBUF_BASE   0x1F000000</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> FRAMEBUF_SIZE   0x01000000  <span class="hljs-comment">// 16MB (双缓冲 1080P)</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> FRAMEBUF_END    0x1FFFFFFF</span><br><br><span class="hljs-comment">//==========================================================================</span><br><span class="hljs-comment">// Boot ROM (BRAM 实现)</span><br><span class="hljs-comment">//==========================================================================</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> BOOTROM_BASE    0x20000000  <span class="hljs-comment">// Boot ROM 起始</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> BOOTROM_SIZE    0x00001000  <span class="hljs-comment">// 4KB BRAM</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> BOOTROM_END     0x20000FFF  <span class="hljs-comment">// 边界</span></span><br><br><span class="hljs-comment">//==========================================================================</span><br><span class="hljs-comment">// 外设 - CONFREG (0x1FD0_xxxx)</span><br><span class="hljs-comment">//==========================================================================</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> CONFREG_BASE    0x1FD00000</span><br><br><span class="hljs-comment">// 控制寄存器</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> CR0_ADDR        0x1FD00000  <span class="hljs-comment">// CR0</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> CR0_ADDR        0x1FD00004  <span class="hljs-comment">// CR1</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> CR0_ADDR        0x1FD00008  <span class="hljs-comment">// CR2</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> CR0_ADDR        0x1FD0000c  <span class="hljs-comment">// CR3</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> CR0_ADDR        0x1FD00010  <span class="hljs-comment">// CR4</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> CR0_ADDR        0x1FD00014  <span class="hljs-comment">// CR5</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> CR0_ADDR        0x1FD00018  <span class="hljs-comment">// CR6</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> CR7_ADDR        0x1FD0001C  <span class="hljs-comment">// CR7</span></span><br><br><span class="hljs-comment">// Timer</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> TIMER_ADDR      0x1FD0E000</span><br><br><span class="hljs-comment">// LED &amp; Button</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> LED_ADDR        0x1FD0F000</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> BTN_STEP_ADDR   0x1FD0F028</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> FREQ_ADDR       0x1FD0F030</span><br><br><span class="hljs-comment">// GPIO</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> GPIO_DATA_ADDR  0x1FD0F040</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> GPIO_DIR_ADDR   0x1FD0F044</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> GPIO_IN_ADDR    0x1FD0F048</span><br><br><span class="hljs-comment">// PS2 Keyboard</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PS2_DATA_ADDR   0x1FD0F050</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PS2_STATUS_ADDR 0x1FD0F054</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PS2_CTRL_ADDR   0x1FD0F058</span><br><br><span class="hljs-comment">//==========================================================================</span><br><span class="hljs-comment">// 外设 - APB (0x1FE0_xxxx)</span><br><span class="hljs-comment">//==========================================================================</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> APB_BASE        0x1FE00000</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> UART_BASE       0x1FE00000  <span class="hljs-comment">// UART 16550</span></span><br></code></pre></td></tr></table></figure>
+
+<p>关于 axi 仲裁器的设计，所有的非 APB、CONFREG 的地址都会落到 SRAM 通道。因此主存储器、BOOTROM 都能收到icache、dcache 的请求。我只需要在 SRAM 设备设置一个选择器，当bootloader 执行的时候，将数据直接从 brom 模块给出，就可以了。</p>
+<p>由于我可能需要开辟一些比较大的数组或者使用递归什么的，栈区设置了 32MB，这对于裸机系统来说已经相当大了。</p>
+<h2 id="链接脚本的设计"><a href="#链接脚本的设计" class="headerlink" title="链接脚本的设计"></a>链接脚本的设计</h2><p>内存布局好后，就可以主要针对 ddr 的范围来划分内存区域了。另外按照 loongarch 标准，csr_eentry 的地址需要 64 字节对齐：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk) <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (rst) <span class="hljs-keyword">begin</span><br>        csr_eentry[<span class="hljs-number">5</span>:<span class="hljs-number">0</span>] &lt;= <span class="hljs-number">6&#x27;b0</span>;<br>    <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (eentry_wen) <span class="hljs-keyword">begin</span><br>        csr_eentry[<span class="hljs-number">31</span>:<span class="hljs-number">6</span>] &lt;= csr_wdata[<span class="hljs-number">31</span>:<span class="hljs-number">6</span>];<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
+
+<p>因此，中断处理程序也需要链接到 64 字节对齐的地方。但是这样写并不会生效：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs ld">.text.entry : &#123;<br>    ...<br>&#125; &gt; RAM          /* 结束于 0x30 */<br><br>. = ALIGN(64);   /* 期望：. = 0x40 */<br><br>.exception : &#123;   /* 实际：还是从 0x30 开始 */<br>    ...<br>&#125; &gt; RAM<br></code></pre></td></tr></table></figure>
+<p>以为当多个输出段都指定 &gt; RAM 时，链接器会尝试将它们紧密排列，以减少内存空洞。<code>. = ALIGN(64) </code>确实会更新位置计数器到 0x40，但链接器在分配段地址时，可能会忽略段之间的间隙，直接把下一个段放在上一个段结束的位置。而且经过测试，确实对不齐。</p>
+<p>解决办法就是将 <code>.text.entry</code> 填充到 0x40 就好了。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br></pre></td><td class="code"><pre><code class="hljs ld">/*<br> * linker.ld - LoongArch32 裸机链接脚本<br> *<br> * 内存布局 (512MB DDR):<br> *   0x00000000 - 0x1CFFFFFF : RAM (464MB) - 代码+数据+堆<br> *   0x1D000000 - 0x1EFFFFFF : Stack (32MB)<br> *   0x1F000000 - 0x1FFFFFFF : Framebuffer (16MB)<br> *   0x20000000 - 0x20000FFF : Boot ROM (4KB, BRAM)<br> *<br> * 地址空间分配:<br> *   .text.entry: 0x00000000  启动代码 (.text.start)<br> *   .exception : 0x00000040  异常/中断入口 (64字节对齐)<br> *   .text      : 紧随其后    其余代码<br> *   .rodata    : 紧随 .text  只读数据<br> *   .data      : 紧随 .rodata 已初始化数据<br> *   .bss       : 紧随 .data   未初始化数据<br> *   heap       : _end 之后    堆 (向上增长至 0x1CFFFFFF)<br> *   stack      : 0x1D000000 - 0x1EFFFFFF (向下增长, 32MB)<br> */<br><br>OUTPUT_ARCH(loongarch)<br>ENTRY(_start)<br><br>/* 内存定义 */<br>MEMORY<br>&#123;<br>    RAM (rwx) : ORIGIN = 0x00000000, LENGTH = 464M<br>&#125;<br><br>/* 栈大小 */<br>_stack_size = 32M;<br><br>SECTIONS<br>&#123;<br>    /* ======== 启动代码 (必须在 0x00) ======== */<br>    . = 0x00000000;<br>    .text.entry : &#123;<br>        _text_start = .;<br>        KEEP(*(.text.start))    /* 启动代码在最前面 */<br>        . = 0x40;               /* 填充到 0x40，为 .exception 预留空间 */<br>    &#125; &gt; RAM<br><br>    /* ======== 异常/中断入口 (紧随 .text.entry，地址 0x40) ======== */<br>    .exception ALIGN(64) : &#123;<br>        __exception_start = .;<br>        KEEP(*(.exception))<br>        *(.exception.*)<br>        __exception_end = .;<br>    &#125; &gt; RAM<br><br>    /* ======== 代码段 ======== */<br>    .text : &#123;<br>        *(.text)<br>        *(.text.*)<br>        _text_end = .;<br>    &#125; &gt; RAM<br><br>    /* ======== 只读数据段 ======== */<br>    .rodata ALIGN(16) : &#123;<br>        _rodata_start = .;<br>        *(.rodata)<br>        *(.rodata.*)<br>        *(.srodata)<br>        *(.srodata.*)<br>        _rodata_end = .;<br>    &#125; &gt; RAM<br><br>    /* ======== 已初始化数据段 ======== */<br>    .data ALIGN(16) : &#123;<br>        _data_start = .;<br>        *(.data)<br>        *(.data.*)<br>        *(.sdata)<br>        *(.sdata.*)<br>        _data_end = .;<br>    &#125; &gt; RAM<br><br>    /* ======== 未初始化数据段 ======== */<br>    .bss ALIGN(16) : &#123;<br>        _bss_start = .;<br>        *(.bss)<br>        *(.bss.*)<br>        *(.sbss)<br>        *(.sbss.*)<br>        *(COMMON)<br>        _bss_end = .;<br>    &#125; &gt; RAM<br><br>    /* ======== 程序结束标记 ======== */<br>    . = ALIGN(16);<br>    _end = .;<br><br>    /* ======== 堆区域 ======== */<br>    _heap_start = .;<br>    _heap_end = 0x1D000000;  /* 堆结束于栈底 */<br>    _heap_size = _heap_end - _heap_start;<br><br>    /* ======== 栈区域 ======== */<br>    /* 栈: 0x1D000000 - 0x1EFFFFFF (32MB, 向下增长) */<br>    _stack_bottom = 0x1D000000;<br>    _stack_top = 0x1F000000;<br><br>    /* ======== Framebuffer 区域 ======== */<br>    _framebuf_base = 0x1F000000;<br>    _framebuf_end = 0x20000000;<br><br>    /* 丢弃不需要的段 */<br>    /DISCARD/ : &#123;<br>        *(.comment)<br>        *(.note.*)<br>        *(.eh_frame)<br>        *(.eh_frame_hdr)<br>    &#125;<br>&#125;<br><br>/* 导出符号供程序使用 */<br>PROVIDE(__bss_start = _bss_start);<br>PROVIDE(__bss_end = _bss_end);<br>PROVIDE(__stack_top = _stack_top);<br>PROVIDE(__heap_start = _heap_start);<br>PROVIDE(__heap_end = _heap_end);<br>PROVIDE(__framebuf_base = _framebuf_base);<br>PROVIDE(__framebuf_end = _framebuf_end);<br></code></pre></td></tr></table></figure>
+
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/loongarch32r/" class="category-chain-item">loongarch32r</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E6%AF%95%E8%AE%BE/" class="print-no-link">#毕设</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>毕设(1)：地址空间的划分</div>
+      <div>http://blog.luliang.online/2026/01/09/毕设1：地址空间的划分/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年1月9日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/01/10/%E6%AF%95%E8%AE%BE2%EF%BC%9Ahello_world/" title="毕设(2)：Hello World!">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">毕设(2)：Hello World!</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/01/07/loongarch%E4%B8%AD%E7%9A%84%E4%B8%80%E4%B8%AA%E5%86%85%E8%81%94%E6%B1%87%E7%BC%96/" title="loongarch32r 内联汇编的一个注意点">
+                        <span class="hidden-mobile">loongarch32r 内联汇编的一个注意点</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -1,0 +1,968 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="预测器的组合逻辑级联代码实现所有预测器的连接（config-mixins.scala:603-609）： 123456789101112&#x2F;&#x2F; 初始输入（全0预测）val resp_in &#x3D; (0.U).asTypeOf(new BranchPredictionBankResponse)&#x2F;&#x2F; 组合逻辑链ubtb.io.resp_in(0)  :&#x3D; resp_inbim.io.resp_in(0)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="riscv-boom&#39;s bp">
+<meta property="og:url" content="http://blog.luliang.online/2025/12/02/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E5%99%A8boom/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="预测器的组合逻辑级联代码实现所有预测器的连接（config-mixins.scala:603-609）： 123456789101112&#x2F;&#x2F; 初始输入（全0预测）val resp_in &#x3D; (0.U).asTypeOf(new BranchPredictionBankResponse)&#x2F;&#x2F; 组合逻辑链ubtb.io.resp_in(0)  :&#x3D; resp_inbim.io.resp_in(0)">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-12-02T07:03:19.000Z">
+<meta property="article:modified_time" content="2026-01-24T09:00:40.451Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="分支预测">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>riscv-boom&#39;s bp - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="riscv-boom&#39;s bp"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-12-02 15:03" pubdate>
+          2025年12月2日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          24 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">riscv-boom&#39;s bp</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="预测器的组合逻辑级联"><a href="#预测器的组合逻辑级联" class="headerlink" title="预测器的组合逻辑级联"></a>预测器的组合逻辑级联</h2><h3 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h3><p>所有预测器的连接（config-mixins.scala:603-609）：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs scala"><span class="hljs-comment">// 初始输入（全0预测）</span><br><span class="hljs-keyword">val</span> resp_in = (<span class="hljs-number">0.</span><span class="hljs-type">U</span>).asTypeOf(<span class="hljs-keyword">new</span> <span class="hljs-type">BranchPredictionBankResponse</span>)<br><br><span class="hljs-comment">// 组合逻辑链</span><br>ubtb.io.resp_in(<span class="hljs-number">0</span>)  := resp_in<br>bim.io.resp_in(<span class="hljs-number">0</span>)   := ubtb.io.resp      <span class="hljs-comment">// 组合逻辑</span><br>btb.io.resp_in(<span class="hljs-number">0</span>)   := bim.io.resp       <span class="hljs-comment">// 组合逻辑</span><br>tage.io.resp_in(<span class="hljs-number">0</span>)  := btb.io.resp       <span class="hljs-comment">// 组合逻辑</span><br>loop.io.resp_in(<span class="hljs-number">0</span>)  := tage.io.resp      <span class="hljs-comment">// 组合逻辑</span><br><br><span class="hljs-comment">// 最终输出</span><br>final_resp = loop.io.resp<br></code></pre></td></tr></table></figure>
+
+<h3 id="每个预测器的覆盖策略"><a href="#每个预测器的覆盖策略" class="headerlink" title="每个预测器的覆盖策略"></a>每个预测器的覆盖策略</h3><table>
+<thead>
+<tr>
+<th>预测器</th>
+<th>覆盖字段</th>
+<th>条件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>uBTB</td>
+<td>predicted_pc, is_br, is_jal, taken</td>
+<td>标签匹配</td>
+</tr>
+<tr>
+<td>BIM</td>
+<td>taken</td>
+<td>总是（基于PC）</td>
+</tr>
+<tr>
+<td>BTB</td>
+<td>predicted_pc</td>
+<td>标签匹配且置信度高</td>
+</tr>
+<tr>
+<td>TAGE</td>
+<td>taken</td>
+<td>provider命中且置信度高</td>
+</tr>
+<tr>
+<td>Loop</td>
+<td>taken</td>
+<td>检测到循环边界且conf&#x3D;7</td>
+</tr>
+</tbody></table>
+<h3 id="组合逻辑路径"><a href="#组合逻辑路径" class="headerlink" title="组合逻辑路径"></a>组合逻辑路径</h3><p>在F1阶段（最长路径）：</p>
+<figure class="highlight erlang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs erlang"><span class="hljs-function"><span class="hljs-title">resp_in</span> <span class="hljs-params">(<span class="hljs-number">0</span>ns)</span></span><br><span class="hljs-function">  → <span class="hljs-title">uBTB</span>读SRAM <span class="hljs-params">(SRAM access)</span></span><br><span class="hljs-function">  → <span class="hljs-title">uBTB</span>标签比较 + M<span class="hljs-title">ux</span>选择 <span class="hljs-params">(~<span class="hljs-number">0.5</span>ns)</span></span><br><span class="hljs-function">  → BIM读SRAM <span class="hljs-params">(SRAM access)</span></span><br><span class="hljs-function">  → BIM计数器比较 + M<span class="hljs-title">ux</span>选择 <span class="hljs-params">(~<span class="hljs-number">0.3</span>ns)</span></span><br><span class="hljs-function">  → BTB读SRAM <span class="hljs-params">(SRAM access)</span></span><br><span class="hljs-function">  → BTB标签比较 + M<span class="hljs-title">ux</span>选择 <span class="hljs-params">(~<span class="hljs-number">0.5</span>ns)</span></span><br><span class="hljs-function">  → TAGE读所有表 <span class="hljs-params">(parallel SRAM access)</span></span><br><span class="hljs-function">  → TAGE找<span class="hljs-title">provider</span> + 计算预测 <span class="hljs-params">(~<span class="hljs-number">1</span>ns)</span></span><br><span class="hljs-function">  → L<span class="hljs-title">oop</span>表查找 + 边界检测 <span class="hljs-params">(~<span class="hljs-number">0.5</span>ns)</span></span><br><span class="hljs-function">  → <span class="hljs-title">final</span> <span class="hljs-title">output</span> <span class="hljs-params">(~总共<span class="hljs-number">3</span>-<span class="hljs-number">4</span>ns + SRAM延迟)</span></span><br></code></pre></td></tr></table></figure>
+
+<p><strong>关键路径优化</strong>：</p>
+<ul>
+<li>SRAM访问在F0就开始（投机性）</li>
+<li>某些预测器可以配置在不同阶段输出（如BIM的slow模式）</li>
+<li>使用bypass逻辑减少RAW hazard</li>
+</ul>
+<hr>
+<h2 id="完整预测示例"><a href="#完整预测示例" class="headerlink" title="完整预测示例"></a>完整预测示例</h2><p>假设我们要预测以下代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> sum = <span class="hljs-number">0</span>;<br><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">100</span>; i++) &#123;  <span class="hljs-comment">// 分支A: PC=0x1000</span><br>    <span class="hljs-keyword">if</span> (i % <span class="hljs-number">2</span> == <span class="hljs-number">0</span>) &#123;             <span class="hljs-comment">// 分支B: PC=0x1004</span><br>        sum += i;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="第一次执行"><a href="#第一次执行" class="headerlink" title="第一次执行"></a>第一次执行</h3><p><strong>分支A (PC&#x3D;0x1000), i&#x3D;0</strong></p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>预测器</th>
+<th>动作</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>F1</td>
+<td>uBTB</td>
+<td>Miss（首次）</td>
+<td>无预测</td>
+</tr>
+<tr>
+<td>F1</td>
+<td>BIM</td>
+<td>读取，初始值&#x3D;2（弱taken）</td>
+<td>Taken</td>
+</tr>
+<tr>
+<td>F2</td>
+<td>BTB</td>
+<td>Miss</td>
+<td>保持BIM结果</td>
+</tr>
+<tr>
+<td>F3</td>
+<td>TAGE</td>
+<td>T0命中，ctr&#x3D;4</td>
+<td>Taken</td>
+</tr>
+<tr>
+<td>F3</td>
+<td>Loop</td>
+<td>Miss</td>
+<td>保持TAGE结果</td>
+</tr>
+<tr>
+<td>最终</td>
+<td>-</td>
+<td>-</td>
+<td><strong>Taken</strong> ✓</td>
+</tr>
+</tbody></table>
+<p><strong>分支B (PC&#x3D;0x1004), i&#x3D;0, i%2&#x3D;&#x3D;0</strong></p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>预测器</th>
+<th>动作</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>F1</td>
+<td>uBTB</td>
+<td>Miss</td>
+<td>无预测</td>
+</tr>
+<tr>
+<td>F1</td>
+<td>BIM</td>
+<td>初始值&#x3D;2</td>
+<td>Taken</td>
+</tr>
+<tr>
+<td>F3</td>
+<td>TAGE</td>
+<td>T1命中（hist&#x3D;2bit）</td>
+<td>Taken</td>
+</tr>
+<tr>
+<td>最终</td>
+<td>-</td>
+<td>-</td>
+<td><strong>Taken</strong> ✓</td>
+</tr>
+</tbody></table>
+<h3 id="第50次执行"><a href="#第50次执行" class="headerlink" title="第50次执行"></a>第50次执行</h3><p><strong>分支A (PC&#x3D;0x1000), i&#x3D;49</strong></p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>预测器</th>
+<th>动作</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>F1</td>
+<td>uBTB</td>
+<td>命中，ctr&#x3D;3（饱和）</td>
+<td>Taken</td>
+</tr>
+<tr>
+<td>F1</td>
+<td>BIM</td>
+<td>ctr&#x3D;3</td>
+<td>Taken</td>
+</tr>
+<tr>
+<td>F3</td>
+<td>TAGE</td>
+<td>T5命中（64bit hist），ctr&#x3D;7</td>
+<td>Taken</td>
+</tr>
+<tr>
+<td>F3</td>
+<td>Loop</td>
+<td>命中，s_cnt&#x3D;49, p_cnt&#x3D;100, conf&#x3D;5</td>
+<td>保持Taken</td>
+</tr>
+<tr>
+<td>最终</td>
+<td>-</td>
+<td>-</td>
+<td><strong>Taken</strong> ✓</td>
+</tr>
+</tbody></table>
+<h3 id="第100次执行（循环边界）"><a href="#第100次执行（循环边界）" class="headerlink" title="第100次执行（循环边界）"></a>第100次执行（循环边界）</h3><p><strong>分支A (PC&#x3D;0x1000), i&#x3D;99</strong></p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>预测器</th>
+<th>动作</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>F1</td>
+<td>uBTB</td>
+<td>命中，ctr&#x3D;3</td>
+<td>Taken</td>
+</tr>
+<tr>
+<td>F1</td>
+<td>BIM</td>
+<td>ctr&#x3D;3</td>
+<td>Taken</td>
+</tr>
+<tr>
+<td>F3</td>
+<td>TAGE</td>
+<td>T5命中，ctr&#x3D;7（强taken）</td>
+<td>Taken</td>
+</tr>
+<tr>
+<td>F3</td>
+<td>Loop</td>
+<td>命中，s_cnt&#x3D;99, p_cnt&#x3D;100, conf&#x3D;7</td>
+<td><strong>反转！Not Taken</strong></td>
+</tr>
+<tr>
+<td>最终</td>
+<td>-</td>
+<td>-</td>
+<td><strong>Not Taken</strong> ✓</td>
+</tr>
+</tbody></table>
+<p>没有Loop预测器，TAGE会预测Taken → <strong>错误</strong> ✗</p>
+<h3 id="第101次执行（循环结束后）"><a href="#第101次执行（循环结束后）" class="headerlink" title="第101次执行（循环结束后）"></a>第101次执行（循环结束后）</h3><p><strong>下一条指令 (PC&#x3D;0x1008)</strong></p>
+<p>分支A不再执行，成功退出循环。</p>
+<hr>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h3 id="关键要点"><a href="#关键要点" class="headerlink" title="关键要点"></a>关键要点</h3><ol>
+<li><p><strong>4级流水 vs 5个预测器</strong>：</p>
+<ul>
+<li>4级是时间维度（F0→F1→F2→F3）</li>
+<li>5个预测器在每级内部通过组合逻辑级联</li>
+</ul>
+</li>
+<li><p><strong>级联而非投票</strong>：</p>
+<ul>
+<li>每个预测器可以选择保持或覆盖前级预测</li>
+<li>后级预测器（TAGE）通常更准确</li>
+</ul>
+</li>
+<li><p><strong>分工明确</strong>：</p>
+<ul>
+<li>uBTB: 快速但不准</li>
+<li>BIM: 简单基础预测</li>
+<li>BTB: 准确目标地址</li>
+<li>TAGE: 高精度方向预测</li>
+<li>Loop: 处理特殊模式</li>
+</ul>
+</li>
+</ol>
+<h2 id="BOOM-v4-分支预测器协作架构详解"><a href="#BOOM-v4-分支预测器协作架构详解" class="headerlink" title="BOOM v4 分支预测器协作架构详解"></a>BOOM v4 分支预测器协作架构详解</h2><h3 id="1-整体层次结构"><a href="#1-整体层次结构" class="headerlink" title="1. 整体层次结构"></a>1. 整体层次结构</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌──────────────────────────────────────────────────────────────────────────────────────────────────────┐<br>│                                        Frontend (前端)                                                │<br>│                                                                                                       │<br>│    ┌────────────────────────────────────────────────────────────────────────────────────────────┐    │<br>│    │                              BranchPredictor (顶层)                                         │    │<br>│    │                                                                                             │    │<br>│    │    ┌───────────────────────────────────────────────────────────────────────────────────┐   │    │<br>│    │    │                    ComposedBranchPredictorBank (组合预测器)                        │   │    │<br>│    │    │                                                                                    │   │    │<br>│    │    │  ┌────────────────────────────────────────────────────────────────────────────┐   │   │    │<br>│    │    │  │                        预测器级联链                                         │   │   │    │<br>│    │    │  │                                                                             │   │   │    │<br>│    │    │  │   ┌──────┐    ┌──────┐    ┌──────┐    ┌──────┐    ┌──────┐               │   │   │    │<br>│    │    │  │   │ uBTB │───►│ BIM  │───►│ BTB  │───►│ TAGE │───►│ Loop │───► 最终输出   │   │   │    │<br>│    │    │  │   └──────┘    └──────┘    └──────┘    └──────┘    └──────┘               │   │   │    │<br>│    │    │  │                                                                             │   │   │    │<br>│    │    │  │   基础预测 ──────────────────────────────────────────────────►  精细预测    │   │   │    │<br>│    │    │  │   (快速)                                                        (准确)      │   │   │    │<br>│    │    │  └─────────────────────────────────────────────────────────────────────────────┘   │   │    │<br>│    │    │                                                                                    │   │    │<br>│    │    └───────────────────────────────────────────────────────────────────────────────────┘   │    │<br>│    │                                                                                             │    │<br>│    │    ┌───────────────────────────────────────────────────────────────────────────────────┐   │    │<br>│    │    │                    LocalBranchPredictorBank (本地历史)                             │   │    │<br>│    │    └───────────────────────────────────────────────────────────────────────────────────┘   │    │<br>│    │                                                                                             │    │<br>│    └─────────────────────────────────────────────────────────────────────────────────────────────┘    │<br>│                                                                                                       │<br>└───────────────────────────────────────────────────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+<h3 id="2-预测器级联连接-核心"><a href="#2-预测器级联连接-核心" class="headerlink" title="2. 预测器级联连接 (核心!)"></a>2. 预测器级联连接 (核心!)</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────────────────────────────────┐<br>│                                    预测器级联连接详解                                                    │<br>└─────────────────────────────────────────────────────────────────────────────────────────────────────────┘<br><br>来自 config-mixins.scala:603-609 的核心代码:<br><br>    ubtb.io.resp_in(0)  := resp_in        // uBTB 接收空输入<br>    bim.io.resp_in(0)   := ubtb.io.resp   // BIM 接收 uBTB 输出<br>    btb.io.resp_in(0)   := bim.io.resp    // BTB 接收 BIM 输出<br>    tage.io.resp_in(0)  := btb.io.resp    // TAGE 接收 BTB 输出<br>    loop.io.resp_in(0)  := tage.io.resp   // Loop 接收 TAGE 输出<br><br>级联图示:<br><br>    resp_in (全0初始值)<br>         │<br>         ▼<br>    ┌─────────────────────────────────────────────────────────────────────────────────────┐<br>    │                              μBTB (Micro BTB)                                        │<br>    │                                                                                      │<br>    │  功能: 超小型全相联 BTB，提供最快的目标地址预测                                        │<br>    │  输入: resp_in (空)                                                                  │<br>    │  输出: predicted_pc, is_br, is_jal                                                  │<br>    │  特点: F1 阶段就能输出 (最快)                                                        │<br>    └─────────────────────────────────────────────────────────────┬───────────────────────┘<br>                                                                  │<br>                                                                  │ resp<br>                                                                  ▼<br>    ┌─────────────────────────────────────────────────────────────────────────────────────┐<br>    │                              BIM (Bimodal Predictor)                                 │<br>    │                                                                                      │<br>    │  功能: 2-bit 饱和计数器，提供基础方向预测                                             │<br>    │  输入: uBTB 的 resp (透传 predicted_pc, is_br, is_jal)                              │<br>    │  输出: 覆盖/设置 taken 预测                                                          │<br>    │  特点: 简单快速，适合大多数分支                                                       │<br>    └─────────────────────────────────────────────────────────────┬───────────────────────┘<br>                                                                  │<br>                                                                  │ resp<br>                                                                  ▼<br>    ┌─────────────────────────────────────────────────────────────────────────────────────┐<br>    │                              BTB (Branch Target Buffer)                              │<br>    │                                                                                      │<br>    │  功能: 更大的组相联 BTB，提供更准确的目标地址                                          │<br>    │  输入: BIM 的 resp (继承 taken)                                                      │<br>    │  输出: 覆盖 predicted_pc, is_br, is_jal (如果命中)                                  │<br>    │  特点: 支持更大范围的跳转目标 (EBTB)                                                  │<br>    └─────────────────────────────────────────────────────────────┬───────────────────────┘<br>                                                                  │<br>                                                                  │ resp<br>                                                                  ▼<br>    ┌─────────────────────────────────────────────────────────────────────────────────────┐<br>    │                              TAGE (Tagged Geometric)                                 │<br>    │                                                                                      │<br>    │  功能: 多表历史预测器，基于全局历史提供高精度方向预测                                   │<br>    │  输入: BTB 的 resp (使用 taken 作为备选预测)                                         │<br>    │  输出: 覆盖 taken (如果有表命中且置信度足够)                                          │<br>    │  特点: 6 个不同历史长度的表，捕捉复杂分支模式                                          │<br>    └─────────────────────────────────────────────────────────────┬───────────────────────┘<br>                                                                  │<br>                                                                  │ resp<br>                                                                  ▼<br>    ┌─────────────────────────────────────────────────────────────────────────────────────┐<br>    │                              Loop (Loop Predictor)                                   │<br>    │                                                                                      │<br>    │  功能: 专用循环预测器，预测循环退出                                                   │<br>    │  输入: TAGE 的 resp                                                                  │<br>    │  输出: 在检测到循环结束时翻转 taken                                                   │<br>    │  特点: 只有高置信度时才覆盖，保守但精确                                               │<br>    └─────────────────────────────────────────────────────────────┬───────────────────────┘<br>                                                                  │<br>                                                                  │ resp (最终输出)<br>                                                                  ▼<br>                                                          ┌───────────────┐<br>                                                          │  Frontend 使用 │<br>                                                          └───────────────┘<br></code></pre></td></tr></table></figure>
+<h3 id="3-信号透传与覆盖机制"><a href="#3-信号透传与覆盖机制" class="headerlink" title="3. 信号透传与覆盖机制"></a>3. 信号透传与覆盖机制</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────────────────────────────┐<br>│                                    resp_in 透传与覆盖机制                                                │<br>└─────────────────────────────────────────────────────────────────────────────────────────────────────────┘<br><br>每个预测器的默认行为 (来自 BranchPredictorBank 基类):<br><br>    io.resp := io.resp_in(0)   // 默认透传上游的预测结果<br><br>覆盖示例 (以 BTB 为例):<br><br>    // 默认透传<br>    io.resp.f1(w) := io.resp_in(0).f1(w)<br>    io.resp.f2(w) := io.resp_in(0).f2(w)<br>    io.resp.f3(w) := io.resp_in(0).f3(w)<br><br>    // 当 BTB 命中时，覆盖特定字段<br>    when (RegNext(s1_hits(w))) &#123;<br>      io.resp.f2(w).predicted_pc := RegNext(s1_resp(w))   // 覆盖目标地址<br>      io.resp.f2(w).is_br        := RegNext(s1_is_br(w))  // 覆盖类型<br>      io.resp.f2(w).is_jal       := RegNext(s1_is_jal(w))<br>      when (RegNext(s1_is_jal(w))) &#123;<br>        io.resp.f2(w).taken      := true.B                 // JAL 强制 taken<br>      &#125;<br>    &#125;<br><br><br>信号流动可视化:<br><br>    BranchPrediction 结构:<br>    ┌────────────────────────────────────────────────────────────────────────────────────┐<br>    │  taken          │ is_br           │ is_jal          │ predicted_pc                 │<br>    │  是否跳转        │ 是否是分支       │ 是否是 JAL      │ 目标地址                     │<br>    └────────────────────────────────────────────────────────────────────────────────────┘<br><br>    各预测器的贡献:<br><br>    字段           uBTB          BIM           BTB           TAGE          Loop<br>────<br>    taken          -            设置          (JAL时)        覆盖          翻转(循环结束)<br>    is_br          设置         透传          覆盖           透传          透传<br>    is_jal         设置         透传          覆盖           透传          透传<br>    predicted_pc   设置         透传          覆盖           透传          透传<br>────<br><br>    &quot;透传&quot; = 保持上游的值不变<br>    &quot;设置&quot; = 首次提供该值<br>    &quot;覆盖&quot; = 用更准确的值替换<br>    &quot;翻转&quot; = 取反<br></code></pre></td></tr></table></figure>
+<h3 id="4-流水线时序与多阶段输出"><a href="#4-流水线时序与多阶段输出" class="headerlink" title="4. 流水线时序与多阶段输出"></a>4. 流水线时序与多阶段输出</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────────────────────────────────┐<br>│                                    流水线时序 (F0 → F3)                                                 │<br>└─────────────────────────────────────────────────────────────────────────────────────────────────────────┘<br><br>    周期       F0            F1            F2            F3<br>              (请求)        (访问)        (比较)        (输出)<br>─────────────────<br><br>    μBTB      索引计算      SRAM读取      ───────────► resp.f1 输出 (最快!)<br>              ────────►    ────────►<br><br>    BIM       索引计算      SRAM读取      数据返回      ───────────► resp.f2/f3 输出<br>              ────────►    ────────►     ────────►<br><br>    BTB       索引计算      SRAM读取      标签比较      ───────────► resp.f2/f3 输出<br>              ────────►    ────────►     ────────►<br><br>    TAGE      索引/标签     SRAM读取      Provider选择  预测输出 ──► resp.f3 输出<br>              计算          ────────►     ────────►<br><br>    Loop      ─────────    寄存器读取    标签比较      翻转决策 ──► resp.f3 输出<br>                           ────────►     ────────►<br><br>─────────────────<br><br>    Frontend 使用:<br><br>    F1 resp:  μBTB 提供的快速预测 (可用于下一周期重定向)<br>    F2 resp:  BIM + BTB 的预测 (更准确)<br>    F3 resp:  TAGE + Loop 的最终预测 (最准确)<br></code></pre></td></tr></table></figure>
+<h3 id="5-更新路径"><a href="#5-更新路径" class="headerlink" title="5. 更新路径"></a>5. 更新路径</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────────────────────────────┐<br>│                                         更新信号流                                                       │<br>└─────────────────────────────────────────────────────────────────────────────────────────────────────────┘<br><br>                                          后端执行单元<br>                                               │<br>                                               │ 分支解析结果<br>                                               ▼<br>    ┌─────────────────────────────────────────────────────────────────────────────────────────────────┐<br>    │                              BranchPredictionUpdate                                              │<br>    │                                                                                                  │<br>    │  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────────────────────┐│<br>    │  │ is_mispredict   │ │ is_repair       │ │ is_commit       │ │ btb_mispredicts                 ││<br>    │  │ _update         │ │ _update         │ │ _update         │ │                                 ││<br>    │  │ (投机误预测)     │ │ (恢复更新)      │ │ (提交更新)       │ │ (BTB误预测)                     ││<br>    │  └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────────────────────┘│<br>    │                                                                                                  │<br>    │  ┌──────────────────────────────────────────────────────────────────────────────────────────┐   │<br>    │  │ pc, br_mask, cfi_idx, cfi_taken, cfi_mispredicted, target, ghist, meta                   │   │<br>    │  └──────────────────────────────────────────────────────────────────────────────────────────┘   │<br>    └────────────────────────────────────────────┬────────────────────────────────────────────────────┘<br>                                                 │<br>                    ┌────────────────────────────┼────────────────────────────────────────┐<br>                    │                            │                                        │<br>                    ▼                            ▼                                        ▼<br>    ┌─────────────────────┐      ┌─────────────────────┐                    ┌─────────────────────┐<br>    │       μBTB          │      │        BIM          │       ...          │       Loop          │<br>    │                     │      │                     │                    │                     │<br>    │  更新条目            │      │  更新 2-bit 计数器   │                    │  更新 s_cnt, conf   │<br>    └─────────────────────┘      └─────────────────────┘                    └─────────────────────┘<br><br><br>    更新类型说明:<br>────────────────<br>    is_commit_update:      分支已提交，确定性更新 (TAGE, BIM 主要使用)<br>    is_mispredict_update:  投机路径误预测，需要恢复状态 (Loop 使用)<br>    is_repair_update:      修复推测状态 (Loop 用于恢复 s_cnt)<br>    btb_mispredicts:       BTB 预测错误的目标，需要清除条目<br></code></pre></td></tr></table></figure>
+<h3 id="6-元数据-Meta-传递"><a href="#6-元数据-Meta-传递" class="headerlink" title="6. 元数据 (Meta) 传递"></a>6. 元数据 (Meta) 传递</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────────────────────────────────┐<br>│                                        Meta 数据流                                                       │<br>└─────────────────────────────────────────────────────────────────────────────────────────────────────────┘<br><br>预测时 (打包):<br><br>    ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐<br>    │ μBTB meta│   │ BIM meta │   │ BTB meta │   │TAGE meta │   │Loop meta │<br>    │ (Xbits)  │   │ (Ybits)  │   │ (Zbits)  │   │ (Wbits)  │   │ (10bits) │<br>    └────┬─────┘   └────┬─────┘   └────┬─────┘   └────┬─────┘   └────┬─────┘<br>         │              │              │              │              │<br>         └──────────────┴──────────────┴──────────────┴──────────────┘<br>                                       │<br>                                       ▼ 拼接<br>                        ┌─────────────────────────────────────────┐<br>                        │         io.f3_meta (合并后)              │<br>                        │   [Loop | TAGE | BTB | BIM | μBTB]      │<br>                        └─────────────────────────────────────────┘<br>                                       │<br>                                       ▼ 存入 FTQ (Fetch Target Queue)<br>                        ┌─────────────────────────────────────────┐<br>                        │              FTQ Entry                   │<br>                        │         meta 字段保存预测元数据           │<br>                        └─────────────────────────────────────────┘<br><br>更新时 (解包):<br><br>                        ┌─────────────────────────────────────────┐<br>                        │         update.bits.meta                │<br>                        │   来自 FTQ 的保存的元数据                 │<br>                        └─────────────────────────────────────────┘<br>                                       │<br>                                       ▼ 解包 (从右向左)<br>         ┌──────────────┬──────────────┬──────────────┬──────────────┐<br>         │              │              │              │              │<br>         ▼              ▼              ▼              ▼              ▼<br>    ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐<br>    │ μBTB     │   │ BIM      │   │ BTB      │   │ TAGE     │   │ Loop     │<br>    │ 接收自己  │   │ 接收自己  │   │ 接收自己  │   │ 接收自己  │   │ 接收自己  │<br>    │ 的 meta  │   │ 的 meta  │   │ 的 meta  │   │ 的 meta  │   │ 的 meta  │<br>    └──────────┘   └──────────┘   └──────────┘   └──────────┘   └──────────┘<br><br>    composer.scala 中的解包代码:<br><br>    var update_meta = io.update.bits.meta<br>    for (c &lt;- components.reverse) &#123;         // 反向遍历!<br>      c.io.update.bits.meta := update_meta<br>      update_meta = update_meta &gt;&gt; c.metaSz  // 右移剥离<br>    &#125;<br></code></pre></td></tr></table></figure>
+<h3 id="7-各预测器职责分工"><a href="#7-各预测器职责分工" class="headerlink" title="7. 各预测器职责分工"></a>7. 各预测器职责分工</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────────────────────────────┐<br>│                                    预测器职责分工表                                                      │<br>└─────────────────────────────────────────────────────────────────────────────────────────────────────────┘<br><br>┌──────────────┬────────────────────────────────────────────────────────────────────────────────────────┐<br>│   预测器      │                              职责与特点                                                │<br>├──────────────┼────────────────────────────────────────────────────────────────────────────────────────┤<br>│              │  ■ 提供:  最快的目标地址预测                                                            │<br>│   μBTB       │  ■ 时机:  F1 阶段输出 (仅 1 周期延迟)                                                  │<br>│  (Micro BTB) │  ■ 容量:  很小 (全相联，约 16-32 条目)                                                  │<br>│              │  ■ 用途:  快速重定向，减少气泡                                                          │<br>├──────────────┼────────────────────────────────────────────────────────────────────────────────────────┤<br>│              │  ■ 提供:  基础方向预测 (taken/not-taken)                                                │<br>│    BIM       │  ■ 时机:  F2/F3 阶段                                                                   │<br>│  (Bimodal)   │  ■ 容量:  中等 (2048 条目)                                                             │<br>│              │  ■ 用途:  简单分支的快速预测，TAGE 的后备                                                │<br>├──────────────┼────────────────────────────────────────────────────────────────────────────────────────┤<br>│              │  ■ 提供:  准确的目标地址预测                                                            │<br>│    BTB       │  ■ 时机:  F2/F3 阶段                                                                   │<br>│              │  ■ 容量:  较大 (128 sets × 2 ways)                                                     │<br>│              │  ■ 用途:  替代 μBTB 的预测 (如果命中)，支持远跳转 (EBTB)                                 │<br>├──────────────┼────────────────────────────────────────────────────────────────────────────────────────┤<br>│              │  ■ 提供:  高精度方向预测                                                                │<br>│   TAGE       │  ■ 时机:  F3 阶段                                                                      │<br>│              │  ■ 容量:  6 个表，不同历史长度 (2/4/8/16/32/64)                                         │<br>│              │  ■ 用途:  复杂分支模式识别，覆盖 BIM 预测                                                │<br>├──────────────┼────────────────────────────────────────────────────────────────────────────────────────┤<br>│              │  ■ 提供:  循环退出预测                                                                  │<br>│   Loop       │  ■ 时机:  F3 阶段                                                                      │<br>│              │  ■ 容量:  小 (16 条目 × bankWidth 列)                                                   │<br>│              │  ■ 用途:  翻转 TAGE 的预测 (当检测到循环即将结束)                                        │<br>└──────────────┴────────────────────────────────────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+<h3 id="8-完整信号流图"><a href="#8-完整信号流图" class="headerlink" title="8. 完整信号流图"></a>8. 完整信号流图</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br></pre></td><td class="code"><pre><code class="hljs txt"><br>┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐<br>│                                           完整信号流图                                                           │<br>└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘<br><br>                                    ┌─────────────────────────────────────┐<br>                                    │          Frontend (前端)            │<br>                                    │                                     │<br>                                    │    PC, ghist ──────────────────┐    │<br>                                    │                                │    │<br>                                    │    f3_fire (预测被使用) ────┐  │    │<br>                                    │                            │  │    │<br>                                    └────────────────────────────┼──┼────┘<br>                                                                 │  │<br>     ┌───────────────────────────────────────────────────────────┘  │<br>     │                                                              │<br>     ▼                                                              ▼<br>┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐<br>│                                         BranchPredictor                                                          │<br>│                                                                                                                  │<br>│   ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────┐   │<br>│   │                                   ComposedBranchPredictorBank                                            │   │<br>│   │                                                                                                          │   │<br>│   │   ┌─────────────────────────────────────────────────────────────────────────────────────────────────┐   │   │<br>│   │   │                                      预测路径                                                    │   │   │<br>│   │   │                                                                                                  │   │   │<br>│   │   │                         f0_pc, f0_valid, f1_ghist, f3_fire                                      │   │   │<br>│   │   │                                         │                                                        │   │   │<br>│   │   │           ┌─────────────────────────────┼─────────────────────────────┐                         │   │   │<br>│   │   │           │             │               │               │             │                         │   │   │<br>│   │   │           ▼             ▼               ▼               ▼             ▼                         │   │   │<br>│   │   │     ┌──────────┐  ┌──────────┐   ┌──────────┐   ┌──────────┐  ┌──────────┐                     │   │   │<br>│   │   │     │  μBTB    │  │   BIM    │   │   BTB    │   │   TAGE   │  │   Loop   │                     │   │   │<br>│   │   │     │          │  │          │   │          │   │          │  │          │                     │   │   │<br>│   │   │     │ F1输出   │  │ F2输出   │   │ F2输出   │   │ F3输出   │  │ F3输出   │                     │   │   │<br>│   │   │     │ target   │  │ taken    │   │ target   │   │ taken    │  │ taken    │                     │   │   │<br>│   │   │     └────┬─────┘  └────┬─────┘   └────┬─────┘   └────┬─────┘  └────┬─────┘                     │   │   │<br>│   │   │          │             │              │              │             │                            │   │   │<br>│   │   │          │  resp_in    │   resp_in    │   resp_in    │  resp_in    │                            │   │   │<br>│   │   │          └────────────►│─────────────►│─────────────►│────────────►│                            │   │   │<br>│   │   │                        │              │              │             │                            │   │   │<br>│   │   │                        │              │              │             │ resp                       │   │   │<br>│   │   │                        │              │              │             ├───────────────────────────►│   │   │<br>│   │   │                        │              │              │             │                            │   │   │<br>│   │   │   ┌────────────────────┴──────────────┴──────────────┴─────────────┴─────────┐                  │   │   │<br>│   │   │   │                            meta 打包                                      │                  │   │   │<br>│   │   │   │    metas = (metas &lt;&lt; c.metaSz) | c.io.f3_meta                            │                  │   │   │<br>│   │   │   └─────────────────────────────────────────────────────────────┬────────────┘                  │   │   │<br>│   │   │                                                                 │                               │   │   │<br>│   │   │                                                                 ▼ io.f3_meta                    │   │   │<br>│   │   └─────────────────────────────────────────────────────────────────────────────────────────────────┘   │   │<br>│   │                                                                                                          │   │<br>│   │   ┌─────────────────────────────────────────────────────────────────────────────────────────────────┐   │   │<br>│   │   │                                      更新路径                                                    │   │   │<br>│   │   │                                                                                                  │   │   │<br>│   │   │                                    update.bits.meta                                              │   │   │<br>│   │   │                                          │                                                       │   │   │<br>│   │   │     ┌──────────────┬─────────────────────┼─────────────────────┬──────────────┐                  │   │   │<br>│   │   │     │              │                     │                     │              │                  │   │   │<br>│   │   │     ▼              ▼                     ▼                     ▼              ▼                  │   │   │<br>│   │   │  ┌──────────┐  ┌──────────┐        ┌──────────┐        ┌──────────┐  ┌──────────┐               │   │   │<br>│   │   │  │  Loop    │  │   TAGE   │        │   BTB    │        │   BIM    │  │  μBTB    │               │   │   │<br>│   │   │  │          │  │          │        │          │        │          │  │          │               │   │   │<br>│   │   │  │  meta解包│  │  meta解包 │        │  meta解包│        │  meta解包│  │  meta解包│               │   │   │<br>│   │   │  │  update  │  │  update  │        │  update  │        │  update  │  │  update  │               │   │   │<br>│   │   │  └──────────┘  └──────────┘        └──────────┘        └──────────┘  └──────────┘               │   │   │<br>│   │   │                                                                                                  │   │   │<br>│   │   │     ◄──────────────────────────────── update_meta &gt;&gt;= c.metaSz ──────────────────────────────   │   │   │<br>│   │   │                                      (反向遍历解包)                                              │   │   │<br>│   │   └─────────────────────────────────────────────────────────────────────────────────────────────────┘   │   │<br>│   │                                                                                                          │   │<br>│   └──────────────────────────────────────────────────────────────────────────────────────────────────────────┘   │<br>│                                                                                                                  │<br>│   输出: io.resp.f1/f2/f3 ──────────────────────────────────────────────────────────────────────────────────────►│<br>│                                                                                                                  │<br>└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘<br>                │                                                            ▲<br>                │                                                            │<br>                ▼                                                            │<br>        ┌───────────────┐                                           ┌───────────────┐<br>        │   ICache      │                                           │    后端       │<br>        │   取指        │                                           │   执行单元    │<br>        └───────────────┘                                           │   (更新来源)  │<br>                                                                    └───────────────┘<br></code></pre></td></tr></table></figure>
+
+<h3 id="9-takan-信号流动"><a href="#9-takan-信号流动" class="headerlink" title="9. takan 信号流动"></a>9. takan 信号流动</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><code class="hljs txt">┌─────────────────────────────────────────────────────────────────────────────────────────┐<br>│                              taken 字段的流动                                            │<br>└─────────────────────────────────────────────────────────────────────────────────────────┘<br><br>    初始: taken = false (resp_in 全 0)<br>              │<br>              ▼<br>    ┌──────────────────────────────────────────────────────────────────────────────────┐<br>    │  μBTB:  不修改 taken                                                             │<br>    │         (μBTB 主要提供 predicted_pc)                                             │<br>    └──────────────────────────────────────────────────────────────────────────────────┘<br>              │<br>              ▼<br>    ┌──────────────────────────────────────────────────────────────────────────────────┐<br>    │  BIM:   taken = counter[1]   ← 根据 2-bit 计数器设置                             │<br>    │         (BIM 是第一个真正设置 taken 的预测器)                                     │<br>    └──────────────────────────────────────────────────────────────────────────────────┘<br>              │<br>              ▼<br>    ┌──────────────────────────────────────────────────────────────────────────────────┐<br>    │  BTB:   if (is_jal) taken = true   ← JAL 强制跳转                                │<br>    │         else        taken = 透传    ← 分支保持 BIM 的预测                         │<br>    │                                                                                   │<br>    │         同时覆盖: predicted_pc, is_br, is_jal                                    │<br>    └──────────────────────────────────────────────────────────────────────────────────┘<br>              │<br>              ▼<br>    ┌──────────────────────────────────────────────────────────────────────────────────┐<br>    │  TAGE:  if (命中 &amp;&amp; 强预测)     taken = TAGE 预测                                 │<br>    │         elif (命中 &amp;&amp; 弱预测)   taken = 备选预测 或 上游(BTB)                      │<br>    │         else (未命中)           taken = 上游(BTB)  ← 这里使用了 BTB/BIM!          │<br>    │                                                                                   │<br>    │         TAGE 未命中时，BIM 的预测通过 BTB 透传过来被使用                           │<br>    └──────────────────────────────────────────────────────────────────────────────────┘<br>              │<br>              ▼<br>    ┌──────────────────────────────────────────────────────────────────────────────────┐<br>    │  Loop:  if (循环结束条件)  taken = !上游(TAGE)   ← 翻转                           │<br>    │         else              taken = 上游(TAGE)    ← 透传                           │<br>    └──────────────────────────────────────────────────────────────────────────────────┘<br>              │<br>              ▼<br>         最终输出<br></code></pre></td></tr></table></figure>
+<h3 id="10-总结：预测器协作的核心思想"><a href="#10-总结：预测器协作的核心思想" class="headerlink" title="10. 总结：预测器协作的核心思想"></a>10. 总结：预测器协作的核心思想</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs">┌───────────────────────────────────────────────────────────────────────────────────────┐<br>│                                       设计哲学总结                                      │<br>└───────────────────────────────────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+<ol>
+<li><p>级联覆盖 (Cascaded Override)</p>
+<p>每个预测器接收上游的预测，在自己更有把握时覆盖，否则透传。</p>
+<p>uBTB → BIM → BTB → TAGE → Loop<br>  │      │      │      │      │<br>  └──────┴──────┴──────┴──────┘<br>     越往右越准确</p>
+</li>
+<li><p>专业分工 (Specialization)</p>
+<ul>
+<li>目标预测:  μBTB (快), BTB (准)</li>
+<li>方向预测:  BIM (基础), TAGE (复杂模式), Loop (循环)</li>
+</ul>
+<p>每个预测器只做自己擅长的事</p>
+</li>
+<li><p>速度与精度权衡 (Speed-Accuracy Trade-off)</p>
+<ul>
+<li>F1 输出: 快但可能不准 (μBTB)</li>
+<li>F2 输出: 中等 (BIM, BTB)</li>
+<li>F3 输出: 准但慢 (TAGE, Loop)</li>
+</ul>
+<p>Frontend 可以根据需要使用不同阶段的预测</p>
+</li>
+<li><p>元数据保存与恢复 (Meta Preservation)</p>
+<p>预测时的内部状态 (meta) 被保存到 FTQ，<br>更新时解包回各个预测器，<br>确保更新使用的是预测时的状态，而不是当前状态。</p>
+</li>
+<li><p>推测更新与确定更新分离</p>
+<ul>
+<li>f3_fire: 预测被前端采用，推测更新 (Loop 的 s_cnt)</li>
+<li>update:  后端确认，确定性训练 (所有预测器)</li>
+</ul>
+<p>两条路径相互配合，既保证响应速度，又保证正确性。</p>
+</li>
+</ol>
+<p>这就是 BOOM v4 分支预测器的完整协作机制。核心是级联覆盖设计：简单预测器提供基础预测，复杂预测器在有把握时覆盖，最终形成一个既快速又准确的预测系统。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/" class="category-chain-item">计算机体系结构</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B/" class="print-no-link">#分支预测</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>riscv-boom&#39;s bp</div>
+      <div>http://blog.luliang.online/2025/12/02/分支预测器boom/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年12月2日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/12/04/%E8%B6%85%E6%A0%87%E9%87%8F%E5%A4%84%E7%90%86%E5%99%A8%E8%AE%BE%E8%AE%A11/" title="超标量处理器设计：">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">超标量处理器设计：</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/12/02/%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E5%99%A8loop/" title="riscv-boom&#39;s loop">
+                        <span class="hidden-mobile">riscv-boom&#39;s loop</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
