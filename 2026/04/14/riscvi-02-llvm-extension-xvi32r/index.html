@@ -1,0 +1,743 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言如果要让 LLVM 支持一种“新架构”，直觉上很容易想到：那就新建一个 target，比如 riscvi32r。但 RISC-VI 的第一阶段没有这么做，而是选择继续使用 RISC-V target，并通过 +xvi32r 打开实验指令。 这不是绕路，而是一个非常典型的后端工程取舍：先把变量收窄，把目标放在指令价值验证上，而不是过早承担新 triple、新 ABI、新 driver、新 obj">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RISC-VI 研究笔记（二）：LLVM 后端里为什么先做 +xvi32r">
+<meta property="og:url" content="http://blog.luliang.online/2026/04/14/riscvi-02-llvm-extension-xvi32r/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="前言如果要让 LLVM 支持一种“新架构”，直觉上很容易想到：那就新建一个 target，比如 riscvi32r。但 RISC-VI 的第一阶段没有这么做，而是选择继续使用 RISC-V target，并通过 +xvi32r 打开实验指令。 这不是绕路，而是一个非常典型的后端工程取舍：先把变量收窄，把目标放在指令价值验证上，而不是过早承担新 triple、新 ABI、新 driver、新 obj">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.luliang.online/images/mermaid-svg/riscvi-02-llvm-extension-xvi32r/extension-stack.svg">
+<meta property="article:published_time" content="2026-04-14T07:03:13.000Z">
+<meta property="article:modified_time" content="2026-07-02T09:23:55.068Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="RISC-V">
+<meta property="article:tag" content="RISC-VI">
+<meta property="article:tag" content="LLVM">
+<meta property="article:tag" content="backend">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://blog.luliang.online/images/mermaid-svg/riscvi-02-llvm-extension-xvi32r/extension-stack.svg">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>RISC-VI 研究笔记（二）：LLVM 后端里为什么先做 +xvi32r - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="RISC-VI 研究笔记（二）：LLVM 后端里为什么先做 +xvi32r"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-04-14 15:03" pubdate>
+          2026年4月14日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          11 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">RISC-VI 研究笔记（二）：LLVM 后端里为什么先做 +xvi32r</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>如果要让 LLVM 支持一种“新架构”，直觉上很容易想到：那就新建一个 target，比如 <code>riscvi32r</code>。但 RISC-VI 的第一阶段没有这么做，而是选择继续使用 RISC-V target，并通过 <code>+xvi32r</code> 打开实验指令。</p>
+<p>这不是绕路，而是一个非常典型的后端工程取舍：先把变量收窄，把目标放在指令价值验证上，而不是过早承担新 triple、新 ABI、新 driver、新 object 生态的维护成本。</p>
+<p><img src="/images/mermaid-svg/riscvi-02-llvm-extension-xvi32r/extension-stack.svg" alt="LLVM RISC-V 后端中的 +xvi32r 扩展分层"></p>
+<h2 id="LLVM-后端里的三层概念"><a href="#LLVM-后端里的三层概念" class="headerlink" title="LLVM 后端里的三层概念"></a>LLVM 后端里的三层概念</h2><p>理解这个选择前，需要先区分三个概念。</p>
+<p><code>target</code> 是 LLVM 后端的大类，例如 <code>RISCV</code>、<code>X86</code>、<code>AArch64</code>。一个 target 里面有寄存器文件、指令格式、调用约定、栈帧处理、MC 编码、汇编打印、指令选择等基础设施。</p>
+<p><code>triple</code> 是编译目标描述，例如 <code>riscv32</code>、<code>riscv64</code>、<code>x86_64-unknown-linux-gnu</code>。它会影响 ABI、数据布局、平台约定和 driver 行为。</p>
+<p><code>subtarget feature</code> 是 target 内部的能力开关。RISC-V 后端天然适合这种模型，因为 RISC-V 本身就是 base ISA 加扩展的组合。<code>+m</code>、<code>+a</code>、<code>+c</code> 是扩展，vendor extension 也可以被建模成 feature。</p>
+<p>RISC-VI 当前就放在第三层：它不是另起炉灶，而是在 RISC-V target 里增加一个可开关的实验扩展。</p>
+<h2 id="源码里的-feature-定义"><a href="#源码里的-feature-定义" class="headerlink" title="源码里的 feature 定义"></a>源码里的 feature 定义</h2><p>在 LLVM 源码中，RISC-VI feature 定义位于：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">llvm/lib/Target/RISCV/RISCVFeatures.td<br></code></pre></td></tr></table></figure>
+
+<p>当前项目中对应的是 <code>llvm/lib/Target/RISCV/RISCVFeatures.td:1207</code> 开始的 RISC-VI vendor extension 段。</p>
+<p>核心定义是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs tablegen">def FeatureVendorXVI32R<br>    : RISCVExtension&lt;0, 1, &quot;RISC-VI32R LLVM-friendly user-mode integer operations&quot;,<br>                     [], &quot;HasVendorXRiscVI&quot;&gt;;<br>def HasVendorXRiscVI : Predicate&lt;&quot;Subtarget-&gt;hasVendorXRiscVI()&quot;&gt;,<br>                       AssemblerPredicate&lt;(all_of FeatureVendorXVI32R),<br>                           &quot;&#x27;XVI32R&#x27; (RISC-VI32R LLVM-friendly integer operations)&quot;&gt;;<br></code></pre></td></tr></table></figure>
+
+<p>这段代码同时服务两件事：</p>
+<ol>
+<li>后端 C++ 可以通过 <code>Subtarget-&gt;hasVendorXRiscVI()</code> 判断这个 feature 是否开启。</li>
+<li>汇编器可以通过 <code>AssemblerPredicate</code> 拒绝未开启 feature 时出现的 RISC-VI 指令。</li>
+</ol>
+<p>也就是说，<code>+xvi32r</code> 不是一个字符串约定，而是进入了 LLVM 的 subtarget 和 MC predicate 体系。</p>
+<h2 id="指令文件如何接入-RISC-V-后端"><a href="#指令文件如何接入-RISC-V-后端" class="headerlink" title="指令文件如何接入 RISC-V 后端"></a>指令文件如何接入 RISC-V 后端</h2><p>RISC-V 后端的主指令描述文件是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">llvm/lib/Target/RISCV/RISCVInstrInfo.td<br></code></pre></td></tr></table></figure>
+
+<p>RISC-VI 的 include 落点在 <code>llvm/lib/Target/RISCV/RISCVInstrInfo.td:2425</code>。这个位置和其他 vendor extension 并列，而不是侵入主干 RV32I&#x2F;RV64I 指令描述。</p>
+<p>RISC-VI 通过 include 接入 vendor extension 区域：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs tablegen">include &quot;RISCVInstrInfoXVI.td&quot;<br></code></pre></td></tr></table></figure>
+
+<p>这意味着 RISC-VI 指令没有散落在主文件里，而是被集中放在 <code>RISCVInstrInfoXVI.td</code>。这种组织方式很重要：实验扩展可以独立迁移、审查和回滚，也方便后续比较 v0.1&#x2F;v0.2 编码设计。</p>
+<h2 id="为什么不直接新建-riscvi32r-target"><a href="#为什么不直接新建-riscvi32r-target" class="headerlink" title="为什么不直接新建 riscvi32r target"></a>为什么不直接新建 <code>riscvi32r</code> target</h2><p>新建 target 看起来干净，但它会立刻引出一整套问题：</p>
+<ul>
+<li>clang driver 是否认识新 triple；</li>
+<li>ABI 是否完全复用 RV32I；</li>
+<li>calling convention 是否要复制一份；</li>
+<li>frame lowering、register info、instruction info 如何维护；</li>
+<li>MC 层 relocation、object、disassembler 是否要分叉；</li>
+<li>libc、linker script、runtime 如何命名；</li>
+<li>测试体系如何避免和 RISC-V 后端重复。</li>
+</ul>
+<p>RISC-VI v0.1 真正想验证的是另一件事：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">少量面向 LLVM 常见代码模式和双发射流水线的整数指令，<br>能不能减少短距离依赖、动态提交数和局部控制流代价。<br></code></pre></td></tr></table></figure>
+
+<p>在这个阶段，复用 RISC-V 后端能让研究问题更清楚。变量越少，实验结论越容易归因。</p>
+<h2 id="feature-不是护身符，predicate-才是边界"><a href="#feature-不是护身符，predicate-才是边界" class="headerlink" title="feature 不是护身符，predicate 才是边界"></a>feature 不是护身符，predicate 才是边界</h2><p>定义 feature 只是第一步。真正防止“未开启扩展也生成新指令”的，是每条指令和 pattern 上的 predicate。</p>
+<p>在 <code>RISCVInstrInfoXVI.td</code> 中，真实指令被包在：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs tablegen">let Predicates = [HasVendorXRiscVI] in &#123;<br>  def XVI_LWXS : ...<br>  def XVI_MIN  : ...<br>  def XVI_CSEL : ...<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>指令选择 pattern 进一步限定在 RV32：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs tablegen">let Predicates = [HasVendorXRiscVI, IsRV32] in &#123;<br>  def : PatGprGpr&lt;smin, XVI_MIN, i32&gt;;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这就是工程边界：打开 <code>+xvi32r</code> 时，LLVM 可以选择 RISC-VI 指令；没有打开时，后端和汇编器都应该把它们挡住。</p>
+<h2 id="这种路线的边界"><a href="#这种路线的边界" class="headerlink" title="这种路线的边界"></a>这种路线的边界</h2><p>把 RISC-VI 做成 vendor extension，不代表永远不做独立 triple。它只是说明当前阶段还不该过早扩大系统边界。</p>
+<p>后续如果满足这些条件，就可以重新评估 <code>riscvi32r</code> triple：</p>
+<ol>
+<li>指令语义稳定。</li>
+<li>编码版本稳定。</li>
+<li>LLVM、MC、模拟器、AM、RTL 都对同一套编码闭环。</li>
+<li>ABI 和用户态边界明确。</li>
+<li>更大 workload 上有足够实验数据。</li>
+</ol>
+<p>在那之前，<code>+xvi32r</code> 是一个务实路线：让项目专注在 ISA 实验本身。</p>
+<h2 id="项目里的验证入口"><a href="#项目里的验证入口" class="headerlink" title="项目里的验证入口"></a>项目里的验证入口</h2><p>项目提供了 feature、TableGen 和 codegen 的检查入口，例如 source tree report、tblgen report、real codegen check。它们的意义不是让读者记命令，而是表达一个工程原则：feature 定义、TableGen 生成物、正向 codegen 和负向 predicate 检查应当同时存在。只要缺一层，<code>+xvi32r</code> 就可能从“受控扩展”变成“到处泄漏的实验代码”。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p><code>+xvi32r</code> 的核心价值是小步快跑：复用 RISC-V 后端已经成熟的基础设施，把研究焦点放在指令是否真的覆盖 LLVM 常见模式、是否真的改善双发射压力。下一篇继续深入 TableGen，看一条机器指令在 LLVM 里到底由哪些信息构成。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Computer-Architecture/" class="category-chain-item">Computer Architecture</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/RISC-V/" class="print-no-link">#RISC-V</a>
+      
+        <a href="/tags/RISC-VI/" class="print-no-link">#RISC-VI</a>
+      
+        <a href="/tags/LLVM/" class="print-no-link">#LLVM</a>
+      
+        <a href="/tags/backend/" class="print-no-link">#backend</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>RISC-VI 研究笔记（二）：LLVM 后端里为什么先做 +xvi32r</div>
+      <div>http://blog.luliang.online/2026/04/14/riscvi-02-llvm-extension-xvi32r/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年4月14日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/04/15/riscvi-03-tablegen-instruction/" title="RISC-VI 研究笔记（三）：用 TableGen 定义一条真实机器指令">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">RISC-VI 研究笔记（三）：用 TableGen 定义一条真实机器指令</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/04/13/riscvi-01-toolchain-pipeline/" title="RISC-VI 研究笔记（一）：从 C 程序到 RISC-VI 模拟器">
+                        <span class="hidden-mobile">RISC-VI 研究笔记（一）：从 C 程序到 RISC-VI 模拟器</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

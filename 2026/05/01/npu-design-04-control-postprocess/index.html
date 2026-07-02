@@ -1,0 +1,802 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言PE Array 负责算，Unified Buffer 负责存，但 NPU 还缺一个“指挥系统”。这个系统就是 Control Unit。 Control Unit 不做乘法，却决定：  什么时候接收命令； 什么时候从 buffer 读数据； 什么时候启动 PE Array； 什么时候做激活和池化； 什么时候把结果输出。   32 位命令格式一个最小 NPU 可以使用 32 位命令：  123">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NPU 设计（四）：控制状态机、激活和池化">
+<meta property="og:url" content="http://blog.luliang.online/2026/05/01/npu-design-04-control-postprocess/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="前言PE Array 负责算，Unified Buffer 负责存，但 NPU 还缺一个“指挥系统”。这个系统就是 Control Unit。 Control Unit 不做乘法，却决定：  什么时候接收命令； 什么时候从 buffer 读数据； 什么时候启动 PE Array； 什么时候做激活和池化； 什么时候把结果输出。   32 位命令格式一个最小 NPU 可以使用 32 位命令：  123">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.luliang.online/images/mermaid-svg/npu-design-04-control-postprocess/control-postprocess.svg">
+<meta property="og:image" content="http://blog.luliang.online/images/mermaid-svg/npu-design-04-control-postprocess/command-fsm.svg">
+<meta property="article:published_time" content="2026-05-01T07:03:13.000Z">
+<meta property="article:modified_time" content="2026-07-02T09:23:55.064Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="NPU">
+<meta property="article:tag" content="RTL">
+<meta property="article:tag" content="control unit">
+<meta property="article:tag" content="post-processing">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://blog.luliang.online/images/mermaid-svg/npu-design-04-control-postprocess/control-postprocess.svg">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>NPU 设计（四）：控制状态机、激活和池化 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="NPU 设计（四）：控制状态机、激活和池化"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-01 15:03" pubdate>
+          2026年5月1日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          10 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">NPU 设计（四）：控制状态机、激活和池化</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>PE Array 负责算，Unified Buffer 负责存，但 NPU 还缺一个“指挥系统”。这个系统就是 Control Unit。</p>
+<p>Control Unit 不做乘法，却决定：</p>
+<ol>
+<li>什么时候接收命令；</li>
+<li>什么时候从 buffer 读数据；</li>
+<li>什么时候启动 PE Array；</li>
+<li>什么时候做激活和池化；</li>
+<li>什么时候把结果输出。</li>
+</ol>
+<p><img src="/images/mermaid-svg/npu-design-04-control-postprocess/control-postprocess.svg" alt="控制状态机与后处理链路"></p>
+<h2 id="32-位命令格式"><a href="#32-位命令格式" class="headerlink" title="32 位命令格式"></a>32 位命令格式</h2><p>一个最小 NPU 可以使用 32 位命令：</p>
+<p><img src="/images/mermaid-svg/npu-design-04-control-postprocess/command-fsm.svg" alt="NPU 命令字段与状态机"></p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">31          24 23          12 19    16 11           0<br>+-------------+--------------+--------+--------------+<br>|   opcode    |  addr/base   | extra  |   len/rows   |<br>+-------------+--------------+--------+--------------+<br></code></pre></td></tr></table></figure>
+
+<p>几个典型 opcode：</p>
+<table>
+<thead>
+<tr>
+<th>opcode</th>
+<th>命令</th>
+<th>语义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>0x10</code></td>
+<td><code>LOAD_W</code></td>
+<td>把权重写入 buffer</td>
+</tr>
+<tr>
+<td><code>0x11</code></td>
+<td><code>LOAD_A</code></td>
+<td>把激活写入 buffer</td>
+</tr>
+<tr>
+<td><code>0x20</code></td>
+<td><code>MATMUL</code></td>
+<td>启动矩阵乘法</td>
+</tr>
+<tr>
+<td><code>0x30</code></td>
+<td><code>ACT</code></td>
+<td>对结果做激活</td>
+</tr>
+<tr>
+<td><code>0x40</code></td>
+<td><code>POOL</code></td>
+<td>对结果做池化</td>
+</tr>
+<tr>
+<td><code>0x50</code></td>
+<td><code>STORE</code></td>
+<td>输出结果</td>
+</tr>
+</tbody></table>
+<p>这套命令格式把软件意图压缩成硬件字段。软件不需要知道 PE 的每根线，只需要告诉 NPU：要做什么、数据在哪、长度是多少、额外模式是什么。</p>
+<h2 id="为什么需要命令-FIFO"><a href="#为什么需要命令-FIFO" class="headerlink" title="为什么需要命令 FIFO"></a>为什么需要命令 FIFO</h2><p>主机发命令和 NPU 执行命令不一定同速。</p>
+<p>例如 <code>LOAD</code> 可能持续多个数据拍，<code>MATMUL</code> 可能持续多个阵列周期，<code>POOL</code> 还要读 2x2 窗口。主机如果连续发命令，NPU 需要一个地方暂存。</p>
+<p>命令 FIFO 的语义可以写成：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs systemverilog">cmd_ready = !fifo_full;<br><br>if (cmd_valid &amp;&amp; cmd_ready) begin<br>  fifo.push(cmd_data);<br>end<br></code></pre></td></tr></table></figure>
+
+<p>这样主机看到 <code>cmd_ready = 0</code> 时，就知道 NPU 暂时不能接新命令。这就是最小 backpressure。</p>
+<h2 id="主状态机"><a href="#主状态机" class="headerlink" title="主状态机"></a>主状态机</h2><p>控制状态机可以这样组织：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs text">IDLE<br>  -&gt; FETCH<br>  -&gt; DECODE<br>  -&gt; DMA_LOAD   (LOAD_W / LOAD_A)<br>  -&gt; MATMUL     (MATMUL)<br>  -&gt; ACT        (ACT)<br>  -&gt; POOL       (POOL)<br>  -&gt; DMA_STORE  (STORE)<br>  -&gt; DONE<br>  -&gt; IDLE<br></code></pre></td></tr></table></figure>
+
+<p>简化伪代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs systemverilog">case (state)<br>  IDLE:<br>    if (!fifo_empty) state &lt;= FETCH;<br><br>  FETCH:<br>    state &lt;= DECODE;<br><br>  DECODE:<br>    case (opcode)<br>      LOAD_W, LOAD_A: state &lt;= DMA_LOAD;<br>      MATMUL:         state &lt;= MATMUL;<br>      ACT:            state &lt;= ACT;<br>      POOL:           state &lt;= POOL;<br>      STORE:          state &lt;= DMA_STORE;<br>      default:        state &lt;= IDLE;<br>    endcase<br><br>  MATMUL:<br>    if (pe_done) state &lt;= DONE;<br><br>  ACT, POOL:<br>    if (post_done) state &lt;= DONE;<br><br>  DMA_LOAD, DMA_STORE:<br>    if (dma_done) state &lt;= DONE;<br><br>  DONE:<br>    state &lt;= IDLE;<br>endcase<br></code></pre></td></tr></table></figure>
+
+<p>这里的 <code>FETCH -&gt; DECODE</code> 两拍很重要。很多 FIFO 或 SRAM 是同步读，不能在发起读取的同一拍就稳定拿到命令。状态机多一拍，是为了让硬件时序成立。</p>
+<h2 id="MATMUL-如何启动-PE-Array"><a href="#MATMUL-如何启动-PE-Array" class="headerlink" title="MATMUL 如何启动 PE Array"></a><code>MATMUL</code> 如何启动 PE Array</h2><p>当 decode 到 <code>MATMUL</code> 时，控制单元通常会产生：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">pe_start = 1<br>pe_a_addr = base<br>pe_b_addr = base + offset_B<br>pe_c_addr = base + offset_C<br>pe_rows   = rows<br>pe_cols   = cols<br></code></pre></td></tr></table></figure>
+
+<p>这几个信号不是矩阵乘法本身，而是告诉顶层数据通路：</p>
+<ol>
+<li>从哪里读 A；</li>
+<li>从哪里读 B；</li>
+<li>结果写到哪里；</li>
+<li>本次矩阵大小是多少。</li>
+</ol>
+<p>真正的读 buffer、送 PE、写回 C，会由顶层 MATMUL 子状态机完成。</p>
+<h2 id="激活函数：让线性计算变成神经网络"><a href="#激活函数：让线性计算变成神经网络" class="headerlink" title="激活函数：让线性计算变成神经网络"></a>激活函数：让线性计算变成神经网络</h2><p>只有矩阵乘法是不够的。多层线性变换叠起来仍然是线性变换，神经网络需要非线性。</p>
+<p>最常见的激活函数是 ReLU：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">ReLU(x) = max(0, x)<br></code></pre></td></tr></table></figure>
+
+<p>RTL 可以非常简单：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs systemverilog">assign relu_out = x[31] ? 32&#x27;d0 : x;<br></code></pre></td></tr></table></figure>
+
+<p>LeakyReLU 保留负半轴的一点斜率：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">LeakyReLU(x) = x,       if x &gt;= 0<br>             = alpha*x, if x &lt; 0<br></code></pre></td></tr></table></figure>
+
+<p>Sigmoid 和 Tanh 更复杂，真实硬件一般不会直接做昂贵的指数函数，而会采用查表、分段近似或专用近似单元。</p>
+<p>一个激活选择器可以写成：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs systemverilog">case (act_type)<br>  ACT_NONE:  y = x;<br>  ACT_RELU:  y = x[31] ? 0 : x;<br>  ACT_LEAKY: y = x[31] ? (x &gt;&gt;&gt; slope_shift) : x;<br>  ACT_SIGM:  y = sigmoid_lut[index];<br>  ACT_TANH:  y = tanh_lut[index];<br>endcase<br></code></pre></td></tr></table></figure>
+
+<h2 id="池化：压缩局部窗口"><a href="#池化：压缩局部窗口" class="headerlink" title="池化：压缩局部窗口"></a>池化：压缩局部窗口</h2><p>Pooling 用来把局部窗口压缩成一个值。2x2 max pooling 的公式是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">out = max(v00, v01, v10, v11)<br></code></pre></td></tr></table></figure>
+
+<p>2x2 average pooling 则是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">out = (v00 + v01 + v10 + v11) / 4<br></code></pre></td></tr></table></figure>
+
+<p>硬件上，POOL 通常需要多拍读取窗口：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">读 v00<br>读 v01<br>读 v10<br>读 v11<br>计算 max/avg<br>写回 out<br></code></pre></td></tr></table></figure>
+
+<p>简化函数：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs systemverilog">function [31:0] pool2x2;<br>  input [31:0] v0, v1, v2, v3;<br>  input        avg_mode;<br>  begin<br>    if (avg_mode)<br>      pool2x2 = (v0 + v1 + v2 + v3) &gt;&gt;&gt; 2;<br>    else<br>      pool2x2 = max(max(v0, v1), max(v2, v3));<br>  end<br>endfunction<br></code></pre></td></tr></table></figure>
+
+<p>注意 pooling 的复杂点不是公式，而是地址。对于二维结果矩阵，2x2 窗口的四个地址通常是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">base + row*stride + col<br>base + row*stride + col + 1<br>base + (row+1)*stride + col<br>base + (row+1)*stride + col + 1<br></code></pre></td></tr></table></figure>
+
+<p>如果地址错了，pooling 结果会看似合理但对应错窗口。</p>
+<h2 id="后处理为什么常常原地写回"><a href="#后处理为什么常常原地写回" class="headerlink" title="后处理为什么常常原地写回"></a>后处理为什么常常原地写回</h2><p>激活和池化都可以在矩阵结果区上原地处理：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">MATMUL  写 C 区<br>ACT     读 C 区，写回 C 区<br>POOL    读 C 区窗口，写回 C 区前半部分<br>STORE   输出 C 区有效结果<br></code></pre></td></tr></table></figure>
+
+<p>这样可以避免中间结果频繁离开片上 buffer。对 NPU 来说，减少数据搬运通常比节省几个简单 ALU 操作更重要。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>控制单元把 NPU 从“计算电路”变成“可被主机驱动的协处理器”。</p>
+<p>这一篇的核心是：</p>
+<ol>
+<li>命令格式是软硬件之间的最小协议。</li>
+<li>FIFO 和状态机负责把命令变成稳定时序。</li>
+<li>激活和池化属于后处理链，最好复用片上结果区。</li>
+</ol>
+<p>下一篇收束到验证：一个 NPU 设计怎样用分层 testbench 和波形把这些部件验证起来。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Computer-Architecture/" class="category-chain-item">Computer Architecture</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/NPU/" class="print-no-link">#NPU</a>
+      
+        <a href="/tags/RTL/" class="print-no-link">#RTL</a>
+      
+        <a href="/tags/control-unit/" class="print-no-link">#control unit</a>
+      
+        <a href="/tags/post-processing/" class="print-no-link">#post-processing</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>NPU 设计（四）：控制状态机、激活和池化</div>
+      <div>http://blog.luliang.online/2026/05/01/npu-design-04-control-postprocess/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月1日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/05/02/npu-design-05-verilator-validation/" title="NPU 设计（五）：分层验证与波形调试">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">NPU 设计（五）：分层验证与波形调试</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/04/30/npu-design-03-unified-buffer/" title="NPU 设计（三）：Unified Buffer 与片上数据复用">
+                        <span class="hidden-mobile">NPU 设计（三）：Unified Buffer 与片上数据复用</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

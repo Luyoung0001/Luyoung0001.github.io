@@ -1,0 +1,1017 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="〇、前言上一篇主要讲了 GitHub 的权限不是一句“我是 member”能解释的。它至少要看用户、组织、团队、仓库、分支保护、rulesets 等多层关系。 这一篇进入自动化里最容易混乱的部分：token。 在 GitHub 里，我们经常会看到很多种 token：  Classic PAT； fine-grained PAT； GITHUB_TOKEN； GitHub App installat">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GitHub 安全机制解析（二）：PAT、GITHUB_TOKEN 与 GitHub App 到底代表谁">
+<meta property="og:url" content="http://blog.luliang.online/2026/06/29/github-security-model-part-2/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="〇、前言上一篇主要讲了 GitHub 的权限不是一句“我是 member”能解释的。它至少要看用户、组织、团队、仓库、分支保护、rulesets 等多层关系。 这一篇进入自动化里最容易混乱的部分：token。 在 GitHub 里，我们经常会看到很多种 token：  Classic PAT； fine-grained PAT； GITHUB_TOKEN； GitHub App installat">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.luliang.online/images/mermaid-svg/github-security-model-part-2/classic-pat-scope-spread.svg">
+<meta property="og:image" content="http://blog.luliang.online/images/mermaid-svg/github-security-model-part-2/fine-grained-pat-approval.svg">
+<meta property="og:image" content="http://blog.luliang.online/images/mermaid-svg/github-security-model-part-2/github-app-token-sequence.svg">
+<meta property="article:published_time" content="2026-06-29T02:13:13.000Z">
+<meta property="article:modified_time" content="2026-07-02T09:23:55.043Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="GitHub">
+<meta property="article:tag" content="GitHub Actions">
+<meta property="article:tag" content="PAT">
+<meta property="article:tag" content="GitHub App">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://blog.luliang.online/images/mermaid-svg/github-security-model-part-2/classic-pat-scope-spread.svg">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>GitHub 安全机制解析（二）：PAT、GITHUB_TOKEN 与 GitHub App 到底代表谁 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="GitHub 安全机制解析（二）：PAT、GITHUB_TOKEN 与 GitHub App 到底代表谁"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-06-29 10:13" pubdate>
+          2026年6月29日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          25 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">GitHub 安全机制解析（二）：PAT、GITHUB_TOKEN 与 GitHub App 到底代表谁</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="〇、前言"><a href="#〇、前言" class="headerlink" title="〇、前言"></a>〇、前言</h2><p>上一篇主要讲了 GitHub 的权限不是一句“我是 member”能解释的。它至少要看用户、组织、团队、仓库、分支保护、rulesets 等多层关系。</p>
+<p>这一篇进入自动化里最容易混乱的部分：token。</p>
+<p>在 GitHub 里，我们经常会看到很多种 token：</p>
+<ul>
+<li>Classic PAT；</li>
+<li>fine-grained PAT；</li>
+<li><code>GITHUB_TOKEN</code>；</li>
+<li>GitHub App installation token；</li>
+<li>deploy key；</li>
+<li>OIDC 临时身份。</li>
+</ul>
+<p>它们表面上都是一串密钥，放在 secret 里都能被 workflow 读取，发请求的时候也都长得像：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">Authorization: Bearer xxxxxx<br></code></pre></td></tr></table></figure>
+
+<p>但它们本质上完全不一样。</p>
+<p>我觉得理解这些 token 的关键不是先背它们有什么 scope，而是先问一个问题：</p>
+<blockquote>
+<p>这个 token 到底代表谁？</p>
+</blockquote>
+<p>只要这个问题想明白，很多 <code>403</code>、Pending approval、跨仓库发布失败就不奇怪了。</p>
+<p>这篇继续使用虚构组织：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>类型</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>example-org</code></td>
+<td>Organization</td>
+<td>示例组织</td>
+</tr>
+<tr>
+<td><code>example-org/web-client</code></td>
+<td>Repository</td>
+<td>源码仓库，运行 GitHub Actions</td>
+</tr>
+<tr>
+<td><code>example-org/resource-assets</code></td>
+<td>Repository</td>
+<td>资源发布仓库，存放 release asset</td>
+</tr>
+<tr>
+<td><code>example-resource-release-bot</code></td>
+<td>GitHub App</td>
+<td>发布资源的机器身份</td>
+</tr>
+<tr>
+<td><code>alice</code></td>
+<td>User</td>
+<td>普通开发者，<code>web-client</code> admin</td>
+</tr>
+</tbody></table>
+<p>目标场景很简单：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">web-client push main<br>→ Actions 构建 resource-pack.zip<br>→ 发布到 resource-assets 的 release<br></code></pre></td></tr></table></figure>
+
+<p>问题是：workflow 应该用什么身份去写 <code>resource-assets</code>？</p>
+<h2 id="一、Classic-PAT：它代表一个人"><a href="#一、Classic-PAT：它代表一个人" class="headerlink" title="一、Classic PAT：它代表一个人"></a>一、Classic PAT：它代表一个人</h2><p>Classic PAT 是 Personal Access Token，也就是个人访问令牌。</p>
+<p>它的第一性质是：</p>
+<blockquote>
+<p>Classic PAT 代表某个 GitHub 用户。</p>
+</blockquote>
+<p>比如 <code>alice</code> 创建了一个 classic PAT，并把它放到 <code>example-org/web-client</code> 的 repository secret 里：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">Secret name: RELEASE_PAT<br>Secret value: ghp_xxxxxxxxx<br></code></pre></td></tr></table></figure>
+
+<p>然后 workflow 里这样使用：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">env:</span><br>  <span class="hljs-attr">GH_TOKEN:</span> <span class="hljs-string">$&#123;&#123;</span> <span class="hljs-string">secrets.RELEASE_PAT</span> <span class="hljs-string">&#125;&#125;</span><br></code></pre></td></tr></table></figure>
+
+<p>这时 workflow 访问 GitHub API，本质上不是“<code>web-client</code> 仓库在访问 GitHub”，而是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">alice 在访问 GitHub<br></code></pre></td></tr></table></figure>
+
+<p>也就是说，这个 token 能做什么，取决于：</p>
+<ul>
+<li><code>alice</code> 对目标仓库有什么权限；</li>
+<li>classic PAT 申请了什么 scope；</li>
+<li>组织是否允许这种 PAT 访问；</li>
+<li>token 有没有过期或被吊销。</li>
+</ul>
+<p>Classic PAT 的问题在于 scope 比较粗。比如你为了发布 release，可能给了 <code>repo</code> scope。这个 scope 很强，尤其是用户能访问很多私有仓库时，风险就会放大。</p>
+<p><img src="/images/mermaid-svg/github-security-model-part-2/classic-pat-scope-spread.svg" alt="Classic PAT 的权限扩散"></p>
+<p>这就是长期 classic PAT 不适合做组织级自动化的原因。它不是一个独立的机器身份，而是把某个人的权限借给了自动化系统。</p>
+<p>如果 <code>alice</code> 离职、权限变化、token 泄露、账号被锁、2FA 或 SSO 状态变化，都可能影响这个自动化。</p>
+<p>一句话总结：</p>
+<blockquote>
+<p>Classic PAT 能用，但它太像“把人的钥匙交给机器人”。</p>
+</blockquote>
+<h2 id="二、Fine-grained-PAT：更细，但仍然代表一个人"><a href="#二、Fine-grained-PAT：更细，但仍然代表一个人" class="headerlink" title="二、Fine-grained PAT：更细，但仍然代表一个人"></a>二、Fine-grained PAT：更细，但仍然代表一个人</h2><p>Fine-grained PAT 相比 classic PAT 有明显改进，它可以限制：</p>
+<ul>
+<li>owner；</li>
+<li>repository；</li>
+<li>permission；</li>
+<li>expiration。</li>
+</ul>
+<p>例如 <code>alice</code> 创建一个 fine-grained PAT：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text">Owner: example-org<br>Repository access: Only selected repositories<br>Selected repository: resource-assets<br>Permissions:<br>  Contents: Read and write<br>  Metadata: Read<br>Expiration: 30 days<br></code></pre></td></tr></table></figure>
+
+<p>看起来这就很适合发布 release 了。权限范围比 classic PAT 小很多，只能访问 <code>resource-assets</code>，而不是 <code>alice</code> 能访问的所有仓库。</p>
+<p>但它的第一性质仍然是：</p>
+<blockquote>
+<p>Fine-grained PAT 仍然代表某个用户。</p>
+</blockquote>
+<p>也就是代表 <code>alice</code>。</p>
+<p>所以当它要访问 organization 资源时，GitHub 还会看组织策略。比如 <code>example-org</code> 开启了 PAT 审批策略，那么 <code>alice</code> 创建的 fine-grained PAT 可能进入 Pending 状态。</p>
+<p>这时 workflow 里会出现一种很典型的失败链路：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text">web-client Actions<br>→ 读取 RESOURCE_ASSETS_PAT<br>→ 用 alice 的 fine-grained PAT 访问 resource-assets<br>→ GitHub 检查 example-org 是否批准这个 PAT<br>→ token 状态 Pending<br>→ 创建 release 失败<br>→ 403 Forbidden<br></code></pre></td></tr></table></figure>
+
+<p>画成图是这样：</p>
+<p><img src="/images/mermaid-svg/github-security-model-part-2/fine-grained-pat-approval.svg" alt="Fine-grained PAT 的组织审批链路"></p>
+<p>这里最容易误解的是：<code>alice</code> 明明对 <code>web-client</code> 是 admin，为什么她的 token 不能用？</p>
+<p>因为这个 token 的目标不是 <code>web-client</code>，而是 <code>resource-assets</code>；并且它访问的是 <code>example-org</code> 的组织资源。组织有权决定是否允许个人 token 访问组织仓库。</p>
+<p>所以 fine-grained PAT 的安全性比 classic PAT 好，但它仍然有两个天然属性：</p>
+<ul>
+<li>它绑定个人账号；</li>
+<li>它可能受组织 PAT 策略和 approval 流程影响。</li>
+</ul>
+<p>这也是我们在做长期自动化时要小心的地方。短期、个人、临时脚本，用 fine-grained PAT 很合适；长期、组织级、跨仓库自动化，它未必是最稳的模型。</p>
+<h2 id="三、GITHUB-TOKEN：当前仓库-Actions-的临时令牌"><a href="#三、GITHUB-TOKEN：当前仓库-Actions-的临时令牌" class="headerlink" title="三、GITHUB_TOKEN：当前仓库 Actions 的临时令牌"></a>三、GITHUB_TOKEN：当前仓库 Actions 的临时令牌</h2><p><code>GITHUB_TOKEN</code> 是 GitHub Actions 自动生成的 token。每次 workflow job 运行时，GitHub 都会创建一个临时 token，job 结束后它就失效。</p>
+<p>它的第一性质是：</p>
+<blockquote>
+<p><code>GITHUB_TOKEN</code> 代表当前仓库中的 GitHub Actions 自动化身份。</p>
+</blockquote>
+<p>比如 workflow 运行在：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">example-org/web-client<br></code></pre></td></tr></table></figure>
+
+<p>那么默认的 <code>GITHUB_TOKEN</code> 主要作用范围就是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">example-org/web-client<br></code></pre></td></tr></table></figure>
+
+<p>它很适合做当前仓库内的自动化，例如：</p>
+<ul>
+<li>checkout 当前仓库；</li>
+<li>给当前仓库提交状态；</li>
+<li>创建当前仓库 release；</li>
+<li>写当前仓库 issue；</li>
+<li>上传当前仓库 artifact；</li>
+<li>读取当前仓库 packages。</li>
+</ul>
+<p>用法一般是：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">permissions:</span><br>  <span class="hljs-attr">contents:</span> <span class="hljs-string">read</span><br><br><span class="hljs-attr">jobs:</span><br>  <span class="hljs-attr">build:</span><br>    <span class="hljs-attr">runs-on:</span> <span class="hljs-string">ubuntu-latest</span><br>    <span class="hljs-attr">steps:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-attr">uses:</span> <span class="hljs-string">actions/checkout@v4</span><br></code></pre></td></tr></table></figure>
+
+<p>如果要写当前仓库内容，比如创建当前仓库 release，可以显式给：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">permissions:</span><br>  <span class="hljs-attr">contents:</span> <span class="hljs-string">write</span><br></code></pre></td></tr></table></figure>
+
+<p>这里有一个很重要的安全习惯：</p>
+<blockquote>
+<p>workflow 里应该显式写 <code>permissions</code>，不要依赖默认值。</p>
+</blockquote>
+<p>比如普通构建只需要读仓库：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">permissions:</span><br>  <span class="hljs-attr">contents:</span> <span class="hljs-string">read</span><br></code></pre></td></tr></table></figure>
+
+<p>需要发 issue 才给：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">permissions:</span><br>  <span class="hljs-attr">issues:</span> <span class="hljs-string">write</span><br></code></pre></td></tr></table></figure>
+
+<p>需要发布当前仓库 release 才给：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">permissions:</span><br>  <span class="hljs-attr">contents:</span> <span class="hljs-string">write</span><br></code></pre></td></tr></table></figure>
+
+<p>但是 <code>GITHUB_TOKEN</code> 有一个边界：它不是为跨仓库写操作设计的万能钥匙。</p>
+<p>回到我们的例子：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">workflow 所在仓库: example-org/web-client<br>目标发布仓库: example-org/resource-assets<br></code></pre></td></tr></table></figure>
+
+<p>如果直接用 <code>web-client</code> 的 <code>GITHUB_TOKEN</code> 去写 <code>resource-assets</code>，通常会失败。因为它默认不是 <code>resource-assets</code> 的写入身份。</p>
+<p>这就像你在 A 房间领到了一张临时门禁卡，这张卡主要开 A 房间。你不能拿它去开 B 房间，然后说“可是 A 和 B 都在同一栋楼里啊”。</p>
+<h2 id="四、GitHub-App：独立机器身份"><a href="#四、GitHub-App：独立机器身份" class="headerlink" title="四、GitHub App：独立机器身份"></a>四、GitHub App：独立机器身份</h2><p>GitHub App 是另一套模型。</p>
+<p>它的第一性质是：</p>
+<blockquote>
+<p>GitHub App 代表一个独立的机器身份，不代表某个具体用户。</p>
+</blockquote>
+<p>比如我们创建一个 App：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">App name: example-resource-release-bot<br>Owner: example-org<br>Repository access: only example-org/resource-assets<br>Permissions:<br>  Contents: Read and write<br>  Metadata: Read<br></code></pre></td></tr></table></figure>
+
+<p>然后把这个 App 安装到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">example-org/resource-assets<br></code></pre></td></tr></table></figure>
+
+<p>这样它就形成了一条很清晰的授权边界：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">example-resource-release-bot<br>只能访问 resource-assets<br>只能做安装时授予的事情<br></code></pre></td></tr></table></figure>
+
+<p>workflow 中不直接保存一个长期 token，而是保存：</p>
+<ul>
+<li>App ID；</li>
+<li>private key；</li>
+<li>installation id，或者通过 API 查询 installation。</li>
+</ul>
+<p>运行时 workflow 用 private key 生成一个 JWT，再向 GitHub 换取短期 installation token。</p>
+<p>简化链路如下：</p>
+<p><img src="/images/mermaid-svg/github-security-model-part-2/github-app-token-sequence.svg" alt="GitHub App installation token 时序"></p>
+<p>这和 PAT 的区别非常大。</p>
+<p>PAT 是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">alice 授权 workflow 使用自己的个人权限<br></code></pre></td></tr></table></figure>
+
+<p>GitHub App 是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">example-org 安装一个机器身份到指定仓库，并授予指定权限<br></code></pre></td></tr></table></figure>
+
+<p>所以 GitHub App 更适合：</p>
+<ul>
+<li>组织级自动化；</li>
+<li>长期运行的发布流程；</li>
+<li>多仓库协作；</li>
+<li>权限边界清晰的机器人；</li>
+<li>不希望绑定某个员工账号的场景。</li>
+</ul>
+<p>当然，GitHub App 不是没有风险。它的 private key 是高价值凭证。谁拿到 private key，谁就能生成 installation token，代表 App 访问已安装仓库。</p>
+<p>所以治理原则是：</p>
+<ul>
+<li>一个 App 只负责一个职责；</li>
+<li>只安装到必要仓库；</li>
+<li>只给必要权限；</li>
+<li>private key 只放到可信源仓库；</li>
+<li>workflow 和 <code>main</code> 分支必须受保护；</li>
+<li>定期轮换 private key。</li>
+</ul>
+<h2 id="五、四种-token-放在一起比较"><a href="#五、四种-token-放在一起比较" class="headerlink" title="五、四种 token 放在一起比较"></a>五、四种 token 放在一起比较</h2><p>现在把它们放在一张表里。</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>代表谁</th>
+<th>典型作用范围</th>
+<th>优点</th>
+<th>风险</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Classic PAT</td>
+<td>某个用户</td>
+<td>用户有权限访问的资源，再叠加 scope</td>
+<td>简单、兼容老工具</td>
+<td>scope 粗、长期有效、绑定个人</td>
+</tr>
+<tr>
+<td>Fine-grained PAT</td>
+<td>某个用户</td>
+<td>指定 owner&#x2F;repo&#x2F;permission</td>
+<td>权限更细、可设过期</td>
+<td>仍绑定个人，组织资源可能需要审批</td>
+</tr>
+<tr>
+<td><code>GITHUB_TOKEN</code></td>
+<td>当前仓库 Actions</td>
+<td>当前仓库为主</td>
+<td>自动生成、短期、易用</td>
+<td>不适合天然跨仓库写入</td>
+</tr>
+<tr>
+<td>GitHub App token</td>
+<td>独立 App 机器身份</td>
+<td>App 安装到的仓库和权限</td>
+<td>边界清晰、短期、适合组织自动化</td>
+<td>private key 需要严格保护</td>
+</tr>
+</tbody></table>
+<p>如果只记一句话，我会这样记：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">PAT 是个人授权；<br>GITHUB_TOKEN 是当前仓库自动化授权；<br>GitHub App 是机器身份安装授权。<br></code></pre></td></tr></table></figure>
+
+<h2 id="六、案例：为什么-PAT-失败，而-GitHub-App-成功"><a href="#六、案例：为什么-PAT-失败，而-GitHub-App-成功" class="headerlink" title="六、案例：为什么 PAT 失败，而 GitHub App 成功"></a>六、案例：为什么 PAT 失败，而 GitHub App 成功</h2><p>现在回到文章开头的目标：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">web-client push main<br>→ Actions 构建 resource-pack.zip<br>→ 发布到 resource-assets<br></code></pre></td></tr></table></figure>
+
+<h3 id="使用-fine-grained-PAT-的失败链路"><a href="#使用-fine-grained-PAT-的失败链路" class="headerlink" title="使用 fine-grained PAT 的失败链路"></a>使用 fine-grained PAT 的失败链路</h3><p><code>alice</code> 在个人设置里创建 fine-grained PAT，选择：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">Owner: example-org<br>Repository: resource-assets<br>Permission: Contents read/write<br></code></pre></td></tr></table></figure>
+
+<p>然后把它放到 <code>web-client</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">RESOURCE_ASSETS_PAT<br></code></pre></td></tr></table></figure>
+
+<p>workflow 读取它之后发布：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">web-client Actions<br>→ 读取 RESOURCE_ASSETS_PAT<br>→ 用 alice 的 token 访问 resource-assets<br>→ GitHub 检查 example-org 的 PAT 策略<br>→ token 还在 Pending<br>→ API 返回 403<br></code></pre></td></tr></table></figure>
+
+<p>这个失败不是因为 <code>alice</code> 不会写 workflow，也不是因为 release API 写错了，而是因为授权链路没有闭合。</p>
+<p><code>alice</code> 创建了 token，但 <code>example-org</code> 还没有批准这个个人 token 访问组织资源。</p>
+<h3 id="使用-GitHub-App-的成功链路"><a href="#使用-GitHub-App-的成功链路" class="headerlink" title="使用 GitHub App 的成功链路"></a>使用 GitHub App 的成功链路</h3><p>改成 GitHub App 后：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">example-resource-release-bot<br>→ 安装到 example-org/resource-assets<br>→ 授予 Contents write + Metadata read<br></code></pre></td></tr></table></figure>
+
+<p>workflow 中：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text">web-client Actions<br>→ 读取 App ID + Private Key<br>→ 生成 installation token<br>→ token 代表 example-resource-release-bot<br>→ App 已安装到 resource-assets<br>→ App 有 Contents write<br>→ 发布 release 成功<br></code></pre></td></tr></table></figure>
+
+<p>关键差异是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">PAT: 个人授权，受组织 PAT 策略影响<br>GitHub App: 安装授权，受 App 安装范围和权限影响<br></code></pre></td></tr></table></figure>
+
+<p>GitHub App 成功不是绕过安全，而是走了另一套正式授权模型。</p>
+<h2 id="七、workflow-里应该怎么写权限"><a href="#七、workflow-里应该怎么写权限" class="headerlink" title="七、workflow 里应该怎么写权限"></a>七、workflow 里应该怎么写权限</h2><p>即使用了 GitHub App token，也不意味着 <code>GITHUB_TOKEN</code> 可以随便开大。</p>
+<p>一个比较合理的 workflow 思路是：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">name:</span> <span class="hljs-string">Publish</span> <span class="hljs-string">resource</span> <span class="hljs-string">assets</span><br><br><span class="hljs-attr">on:</span><br>  <span class="hljs-attr">push:</span><br>    <span class="hljs-attr">branches:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">main</span><br><br><span class="hljs-attr">permissions:</span><br>  <span class="hljs-attr">contents:</span> <span class="hljs-string">read</span><br><br><span class="hljs-attr">jobs:</span><br>  <span class="hljs-attr">publish:</span><br>    <span class="hljs-attr">runs-on:</span> <span class="hljs-string">ubuntu-latest</span><br><br>    <span class="hljs-attr">steps:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-attr">uses:</span> <span class="hljs-string">actions/checkout@v4</span><br><br>      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Build</span> <span class="hljs-string">resource</span> <span class="hljs-string">pack</span><br>        <span class="hljs-attr">run:</span> <span class="hljs-string">|</span><br><span class="hljs-string">          mkdir -p dist</span><br><span class="hljs-string">          echo &quot;example resource pack&quot; &gt; dist/resource-pack.txt</span><br><span class="hljs-string">          zip -j dist/resource-pack.zip dist/resource-pack.txt</span><br><span class="hljs-string"></span><br>      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Create</span> <span class="hljs-string">GitHub</span> <span class="hljs-string">App</span> <span class="hljs-string">token</span><br>        <span class="hljs-attr">id:</span> <span class="hljs-string">app-token</span><br>        <span class="hljs-attr">uses:</span> <span class="hljs-string">actions/create-github-app-token@v3</span><br>        <span class="hljs-attr">with:</span><br>          <span class="hljs-attr">app-id:</span> <span class="hljs-string">$&#123;&#123;</span> <span class="hljs-string">secrets.RELEASE_APP_ID</span> <span class="hljs-string">&#125;&#125;</span><br>          <span class="hljs-attr">private-key:</span> <span class="hljs-string">$&#123;&#123;</span> <span class="hljs-string">secrets.RELEASE_APP_PRIVATE_KEY</span> <span class="hljs-string">&#125;&#125;</span><br>          <span class="hljs-attr">owner:</span> <span class="hljs-string">example-org</span><br>          <span class="hljs-attr">repositories:</span> <span class="hljs-string">resource-assets</span><br><br>      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Publish</span> <span class="hljs-string">release</span> <span class="hljs-string">asset</span><br>        <span class="hljs-attr">env:</span><br>          <span class="hljs-attr">GH_TOKEN:</span> <span class="hljs-string">$&#123;&#123;</span> <span class="hljs-string">steps.app-token.outputs.token</span> <span class="hljs-string">&#125;&#125;</span><br>        <span class="hljs-attr">run:</span> <span class="hljs-string">|</span><br><span class="hljs-string">          gh release upload latest dist/resource-pack.zip \</span><br><span class="hljs-string">            --repo example-org/resource-assets \</span><br><span class="hljs-string">            --clobber</span><br></code></pre></td></tr></table></figure>
+
+<p>这里有几个点值得注意：</p>
+<ul>
+<li>workflow 自己的 <code>permissions</code> 只给 <code>contents: read</code>；</li>
+<li>跨仓库写入不依赖默认 <code>GITHUB_TOKEN</code>；</li>
+<li>发布时使用 GitHub App 生成的短期 token；</li>
+<li>App token 只针对 <code>resource-assets</code>；</li>
+<li>private key 放在 <code>web-client</code> 的 secrets 里；</li>
+<li><code>web-client/main</code> 必须受保护，因为它能触发发布。</li>
+</ul>
+<p>这就是最小权限原则在 Actions 里的实际样子。</p>
+<h2 id="八、OIDC-又是什么"><a href="#八、OIDC-又是什么" class="headerlink" title="八、OIDC 又是什么"></a>八、OIDC 又是什么</h2><p>OIDC 也是 GitHub Actions 里很重要的一种安全机制，但它主要用于让 workflow 获取云厂商或外部系统的临时身份。</p>
+<p>比如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">GitHub Actions<br>→ 通过 OIDC 向云平台证明自己来自 example-org/web-client 的 main 分支<br>→ 云平台返回短期凭证<br>→ workflow 使用短期凭证部署服务<br></code></pre></td></tr></table></figure>
+
+<p>它解决的问题是：</p>
+<blockquote>
+<p>不要把长期云密钥放在 GitHub Secrets 里。</p>
+</blockquote>
+<p>在跨仓库发布 release 这个例子里，我们主要关注 GitHub 内部资源，所以 GitHub App 更直接。如果是部署到 AWS、Azure、GCP、云服务器等外部平台，OIDC 就非常值得优先考虑。</p>
+<h2 id="九、选择建议"><a href="#九、选择建议" class="headerlink" title="九、选择建议"></a>九、选择建议</h2><p>如果只是自己写一个临时脚本，访问自己的仓库：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">fine-grained PAT 可以接受<br></code></pre></td></tr></table></figure>
+
+<p>如果是当前仓库内的 Actions 自动化：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">优先使用 GITHUB_TOKEN<br>并显式收紧 permissions<br></code></pre></td></tr></table></figure>
+
+<p>如果是组织内长期跨仓库自动化：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">优先使用 GitHub App<br></code></pre></td></tr></table></figure>
+
+<p>如果是访问云平台：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">优先考虑 OIDC<br></code></pre></td></tr></table></figure>
+
+<p>如果还在用 classic PAT 做长期发布：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">应该逐步迁移<br></code></pre></td></tr></table></figure>
+
+<p>不是说 classic PAT 完全不能用，而是它在组织自动化里风险太大。它把个人账号、长期凭证、宽权限、自动化流程绑在了一起，一旦出问题，排查和治理都很麻烦。</p>
+<h2 id="十、结论"><a href="#十、结论" class="headerlink" title="十、结论"></a>十、结论</h2><p>token 不是简单的“密码字符串”。在 GitHub 里，每一种 token 背后都有一个身份模型。</p>
+<p>Classic PAT 和 fine-grained PAT 代表某个用户；<code>GITHUB_TOKEN</code> 代表当前仓库的 Actions 自动化；GitHub App installation token 代表一个被安装到指定仓库的机器身份。</p>
+<p>所以排查自动化权限问题时，不要只问：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">这个 token 有没有 write 权限？<br></code></pre></td></tr></table></figure>
+
+<p>还要问：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">这个 token 代表谁？<br>它想写哪个仓库？<br>这个身份有没有被目标仓库接受？<br>它有没有被组织策略拦住？<br></code></pre></td></tr></table></figure>
+
+<p>下一篇会把这些机制落到完整 release pipeline 上，重点讲 GitHub Actions 的安全边界、secrets、PR 风险、release asset、sha256 metadata、branch protection 和 rulesets。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li>GitHub Actions 安全加固：<a target="_blank" rel="noopener" href="https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions">Security hardening for GitHub Actions</a></li>
+<li><code>GITHUB_TOKEN</code> 权限：<a target="_blank" rel="noopener" href="https://docs.github.com/actions/reference/authentication-in-a-workflow">Automatic token authentication</a></li>
+<li>Fine-grained PAT approval：<a target="_blank" rel="noopener" href="https://docs.github.com/en/organizations/managing-programmatic-access-to-your-organization/managing-requests-for-personal-access-tokens-in-your-organization">Managing requests for personal access tokens in your organization</a></li>
+<li>PAT 策略：<a target="_blank" rel="noopener" href="https://docs.github.com/en/organizations/managing-programmatic-access-to-your-organization/setting-a-personal-access-token-policy-for-your-organization">Setting a personal access token policy for your organization</a></li>
+<li>GitHub App 权限：<a target="_blank" rel="noopener" href="https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/choosing-permissions-for-a-github-app">Choosing permissions for a GitHub App</a></li>
+<li>GitHub App 与 OAuth App 区别：<a target="_blank" rel="noopener" href="https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/differences-between-github-apps-and-oauth-apps">Differences between GitHub Apps and OAuth apps</a></li>
+<li>OIDC：<a target="_blank" rel="noopener" href="https://docs.github.com/en/actions/concepts/security/openid-connect">OpenID Connect</a></li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Tooling/" class="category-chain-item">Tooling</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/GitHub/" class="print-no-link">#GitHub</a>
+      
+        <a href="/tags/GitHub-Actions/" class="print-no-link">#GitHub Actions</a>
+      
+        <a href="/tags/PAT/" class="print-no-link">#PAT</a>
+      
+        <a href="/tags/GitHub-App/" class="print-no-link">#GitHub App</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>GitHub 安全机制解析（二）：PAT、GITHUB_TOKEN 与 GitHub App 到底代表谁</div>
+      <div>http://blog.luliang.online/2026/06/29/github-security-model-part-2/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年6月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/30/github-security-model-part-3/" title="GitHub 安全机制解析（三）：Actions、Release 与自动发布流水线的安全边界">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">GitHub 安全机制解析（三）：Actions、Release 与自动发布流水线的安全边界</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/28/github-security-model-part-1/" title="GitHub 安全机制解析（一）：用户权限不是一句 member 能说清的">
+                        <span class="hidden-mobile">GitHub 安全机制解析（一）：用户权限不是一句 member 能说清的</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

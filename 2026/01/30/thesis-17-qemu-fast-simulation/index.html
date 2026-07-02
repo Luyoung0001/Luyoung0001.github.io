@@ -1,0 +1,911 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="问题调试 JIT 尤其是 difftest 的时候，在初期每次都要重新编译，烧录 sd 卡然后启动等待报错，再 debug。这个迭代周期非常多。如果每次都这样做，那么开发周期将会非常漫长，因此在 qemu 中直接跑 JIT 会大大加快开发进度。 显示设备qemu 一般都带显示设备，但是我们的游戏设计要在 hdmi 这种设备播放，因此最好能找一个支持帧缓冲的 qemu 设备就最好了。好消息是真有这个">
+<meta property="og:type" content="article">
+<meta property="og:title" content="毕业设计记录（17）：利用 QEMU 加速仿真">
+<meta property="og:url" content="http://blog.luliang.online/2026/01/30/thesis-17-qemu-fast-simulation/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="问题调试 JIT 尤其是 difftest 的时候，在初期每次都要重新编译，烧录 sd 卡然后启动等待报错，再 debug。这个迭代周期非常多。如果每次都这样做，那么开发周期将会非常漫长，因此在 qemu 中直接跑 JIT 会大大加快开发进度。 显示设备qemu 一般都带显示设备，但是我们的游戏设计要在 hdmi 这种设备播放，因此最好能找一个支持帧缓冲的 qemu 设备就最好了。好消息是真有这个">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-01-30T02:03:13.000Z">
+<meta property="article:modified_time" content="2026-07-02T09:23:55.070Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="simulation">
+<meta property="article:tag" content="QEMU">
+<meta property="article:tag" content="graduation thesis">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>毕业设计记录（17）：利用 QEMU 加速仿真 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="毕业设计记录（17）：利用 QEMU 加速仿真"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-01-30 10:03" pubdate>
+          2026年1月30日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          25 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">毕业设计记录（17）：利用 QEMU 加速仿真</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>调试 JIT 尤其是 difftest 的时候，在初期每次都要重新编译，烧录 sd 卡然后启动等待报错，再 debug。这个迭代周期非常多。如果每次都这样做，那么开发周期将会非常漫长，因此在 qemu 中直接跑 JIT 会大大加快开发进度。</p>
+<h2 id="显示设备"><a href="#显示设备" class="headerlink" title="显示设备"></a>显示设备</h2><p>qemu 一般都带显示设备，但是我们的游戏设计要在 hdmi 这种设备播放，因此最好能找一个支持帧缓冲的 qemu 设备就最好了。好消息是真有这个设备：bochs-display。bochs-display 是 QEMU 内建的虚拟显卡，不需要另外安装驱动或插件。只要你的 <code>qemu-system-loongarch64</code> 编译时包含默认的显示设备（绝大多数发行版包都带），命令里的 <code>-device bochs-display,...</code> 就能直接用。可快速自检：</p>
+<ul>
+<li><code>qemu-system-loongarch64 -device help | grep bochs-display</code> 能看到条目即已内置。</li>
+<li>Guest 侧只需按我们代码里的 MMIO&#x2F;FBDRAW 驱动访问寄存器，无需额外驱动。</li>
+</ul>
+<p>在非 QEMU（真实板卡）路径，<code>io_write(AM_GPU_FBDRAW, xpad, ypad, canvas, SCR_W, SCR_H,true)</code> 走到 <code>am_gpu_fbdraw</code> 的 “#else” 分支，流程是：</p>
+<ul>
+<li>pixels 指向一块连续的 ARGB32 缓冲（NES 画面 256×240）。</li>
+<li>驱动获得 HDMI 显存基址 fb &#x3D; hdmi_get_fb_pointer()（分辨率固定 1920×1080，RGB565）。</li>
+<li>先做边界检查（x&#x2F;y+w&#x2F;h 不能越 1920×1080）。</li>
+<li>逐行把 ARGB32 转换成 RGB565：</li>
+<li>R &#x3D; (argb &gt;&gt; 8) &amp; 0xF800，G &#x3D; (argb &gt;&gt; 5) &amp; 0x07E0，B &#x3D; (argb &gt;&gt; 3) &amp; 0x001F。</li>
+<li>合成为 16 位写入目标帧缓冲。</li>
+<li>内联汇编加速内层循环，fb_row 每行步长 1920。</li>
+<li>如果 sync &#x3D;&#x3D; true（NES 提交时传的是 true），调用 <code>hdmi_swap_buffers()</code> 执行双缓冲翻转；所以真实硬件是双缓冲，避免撕裂。</li>
+<li>与 QEMU 路径不同，这里确实需要色彩转换为 RGB565。</li>
+</ul>
+<p>QEMU 路径就简单多了：bochs-display 暴露线性 32 位帧缓冲，格式与 pixels 相同（ARGB32），所以直接逐像素拷贝即可，不用做色彩转换或缓冲切换。</p>
+<ul>
+<li>上层 fce_update_screen() 只调用一次 am_gpu_fbdraw&#x2F;qemu_fb_blit 生成整帧，拷贝完成后 QEMU&#x2F;GTK 读取同一块内存展示。</li>
+<li>没有硬件 VSync，理论上有撕裂风险，但 NES 分辨率低、单次拷贝快，实际肉眼几乎看不到。如果需要更稳，可在 NES 侧做软件双缓冲或用 memcpy 整帧写入以缩短窗口。</li>
+</ul>
+<h2 id="程序地址布局"><a href="#程序地址布局" class="headerlink" title="程序地址布局"></a>程序地址布局</h2><p>程序能否正确运行，很大程度上取决于链接脚本的正确配置。QEMU 和真实硬件的内存布局有显著差异，因此需要两套不同的链接脚本。</p>
+<h3 id="非-QEMU-的内存映像（真实硬件）"><a href="#非-QEMU-的内存映像（真实硬件）" class="headerlink" title="非 QEMU 的内存映像（真实硬件）"></a>非 QEMU 的内存映像（真实硬件）</h3><p>真实硬件使用 <code>linker.ld</code>，内存布局如下：</p>
+<figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs ada"><span class="hljs-number">512</span>MB DDR 内存布局:<br>┌─────────────────────────────────────────────────────────┐<br>│ <span class="hljs-number">0</span>x00000000 - <span class="hljs-number">0</span>x1CFFFFFF : <span class="hljs-type">RAM</span> (<span class="hljs-number">464</span>MB)                   │<br>│   ├── .text.<span class="hljs-keyword">entry</span> (<span class="hljs-number">0</span>x00000000) : 启动代码               │<br>│   ├── .<span class="hljs-keyword">exception</span>  (<span class="hljs-number">0</span>x00000040) : 异常/中断入口          │<br>│   ├── .text       : 代码段                              │<br>│   ├── .rodata     : 只读数据                            │<br>│   ├── .data       : 已初始化数据                        │<br>│   ├── .bss        : 未初始化数据                        │<br>│   └── heap        : 堆 (向上增长至 0<span class="hljs-type">x1CFFFFFF</span>)          │<br>├─────────────────────────────────────────────────────────┤<br>│ <span class="hljs-number">0</span>x1D000000 - <span class="hljs-number">0</span>x1EFFFFFF : <span class="hljs-type">Stack</span> (<span class="hljs-number">32</span>MB, 向下增长)        │<br>├─────────────────────────────────────────────────────────┤<br>│ <span class="hljs-number">0</span>x1F000000 - <span class="hljs-number">0</span>x1FFFFFFF : <span class="hljs-type">Framebuffer</span> (<span class="hljs-number">16</span>MB)            │<br>│   ├── BUFFER_A (<span class="hljs-number">0</span>x1F000000) : 双缓冲 <span class="hljs-type">A</span>                  │<br>│   ├── BUFFER_B (<span class="hljs-number">0</span>x1F400000) : 双缓冲 <span class="hljs-type">B</span>                  │<br>│   └── BUFFER_S (<span class="hljs-number">0</span>x1F800000) : <span class="hljs-type">Shell</span> 终端缓冲            │<br>├─────────────────────────────────────────────────────────┤<br>│ <span class="hljs-number">0</span>x20000000 - <span class="hljs-number">0</span>x20000FFF : <span class="hljs-type">Boot</span> ROM (<span class="hljs-number">4</span>KB, BRAM)          │<br>└─────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<p>关键配置：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs ld">/* linker.ld 核心配置 */<br>MEMORY &#123;<br>    RAM (rwx) : ORIGIN = 0x00000000, LENGTH = 464M<br>&#125;<br><br>/* 启动代码必须在地址 0x00 */<br>. = 0x00000000;<br>.text.entry : &#123;<br>    KEEP(*(.text.start))<br>    . = 0x40;  /* 填充到 0x40，为异常入口预留空间 */<br>&#125; &gt; RAM<br><br>/* 异常入口紧随其后，地址 0x40 */<br>.exception : &#123;<br>    KEEP(*(.exception))<br>&#125; &gt; RAM<br><br>/* 堆和栈区域 */<br>_heap_start = .;<br>_heap_end = 0x1D000000;<br>_stack_bottom = 0x1D000000;<br>_stack_top = 0x1F000000;<br><br>/* Framebuffer 区域 */<br>_framebuf_base = 0x1F000000;<br>_framebuf_end = 0x20000000;<br></code></pre></td></tr></table></figure>
+
+<h3 id="QEMU-版本的内存映像"><a href="#QEMU-版本的内存映像" class="headerlink" title="QEMU 版本的内存映像"></a>QEMU 版本的内存映像</h3><p>QEMU virt 机器使用 <code>linker_qemu.ld</code>，内存布局有所不同：</p>
+<figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs ada">QEMU virt 机器内存布局:<br>┌─────────────────────────────────────────────────────────┐<br>│ <span class="hljs-number">0</span>x00100000 - <span class="hljs-number">0</span>x00200000 : <span class="hljs-type">FDT</span> (设备树，QEMU 自动放置)   │<br>├─────────────────────────────────────────────────────────┤<br>│ <span class="hljs-number">0</span>x00200000 - <span class="hljs-number">0</span>x0DFFFFFF : <span class="hljs-type">RAM</span> (约 <span class="hljs-number">220</span>MB)                │<br>│   ├── .text.<span class="hljs-keyword">entry</span> (<span class="hljs-number">0</span>x00200000) : 启动代码               │<br>│   ├── .<span class="hljs-keyword">exception</span>  (ALIGN <span class="hljs-number">64</span>)   : 异常/中断入口          │<br>│   ├── .text       : 代码段                              │<br>│   ├── .rodata     : 只读数据                            │<br>│   ├── .data       : 已初始化数据                        │<br>│   ├── .bss        : 未初始化数据                        │<br>│   └── heap        : 堆 (向上增长至 0<span class="hljs-type">x0E000000</span>)          │<br>├─────────────────────────────────────────────────────────┤<br>│ <span class="hljs-number">0</span>x0E000000 - <span class="hljs-number">0</span>x0EFFFFFF : <span class="hljs-type">Stack</span> (<span class="hljs-number">16</span>MB, 向下增长)        │<br>├─────────────────────────────────────────────────────────┤<br>│ <span class="hljs-number">0</span>x0F000000 - <span class="hljs-number">0</span>x0FFFFFFF : <span class="hljs-type">Framebuffer</span> (<span class="hljs-number">16</span>MB, 内存模拟)  │<br>├─────────────────────────────────────────────────────────┤<br>│ <span class="hljs-number">0</span>x1FE001E0              : <span class="hljs-type">UART</span> (ns16550a)               │<br>├─────────────────────────────────────────────────────────┤<br>│ <span class="hljs-number">0</span>x20000000              : <span class="hljs-type">PCI</span> ECAM 配置空间             │<br>├─────────────────────────────────────────────────────────┤<br>│ <span class="hljs-number">0</span>x40000000              : <span class="hljs-type">PCI</span> MMIO 空间 (bochs-display) │<br>└─────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<p>关键配置：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs ld">/* linker_qemu.ld 核心配置 */<br><br>/* 程序起始地址必须避开 FDT */<br>_PROGRAM_START = 0x00200000;<br><br>MEMORY &#123;<br>    RAM (rwx) : ORIGIN = 0x00200000, LENGTH = 256M<br>&#125;<br><br>/* 启动代码从 0x00200000 开始 */<br>. = _PROGRAM_START;<br>.text.entry : &#123;<br>    KEEP(*(.text.start))<br>&#125; &gt; RAM<br><br>/* 异常入口需要 64 字节对齐 */<br>.exception ALIGN(64) : &#123;<br>    KEEP(*(.exception))<br>&#125; &gt; RAM<br><br>/* 堆和栈区域 */<br>_heap_start = .;<br>_heap_end = 0x0E000000;<br>_stack_bottom = 0x0E000000;<br>_stack_top = 0x0F000000;<br><br>/* Framebuffer (QEMU 无 HDMI，用内存模拟) */<br>_framebuf_base = 0x0F000000;<br>_framebuf_end = 0x10000000;<br></code></pre></td></tr></table></figure>
+
+<h3 id="两者对比"><a href="#两者对比" class="headerlink" title="两者对比"></a>两者对比</h3><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>真实硬件</th>
+<th>QEMU</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>程序起始地址</td>
+<td>0x00000000</td>
+<td>0x00200000</td>
+</tr>
+<tr>
+<td>异常入口地址</td>
+<td>0x00000040</td>
+<td>ALIGN(64)</td>
+</tr>
+<tr>
+<td>堆结束地址</td>
+<td>0x1D000000</td>
+<td>0x0E000000</td>
+</tr>
+<tr>
+<td>栈顶地址</td>
+<td>0x1F000000</td>
+<td>0x0F000000</td>
+</tr>
+<tr>
+<td>Framebuffer</td>
+<td>硬件 HDMI</td>
+<td>内存模拟</td>
+</tr>
+<tr>
+<td>UART 地址</td>
+<td>0x1FE001E0</td>
+<td>0x1FE001E0 (相同)</td>
+</tr>
+</tbody></table>
+<h2 id="PS2、中断等"><a href="#PS2、中断等" class="headerlink" title="PS2、中断等"></a>PS2、中断等</h2><p>外设驱动是 QEMU 和真实硬件差异最大的部分。需要通过条件编译 <code>#ifdef QEMU_RUN</code> 来区分两种环境。</p>
+<h3 id="非-QEMU-情况（真实硬件）"><a href="#非-QEMU-情况（真实硬件）" class="headerlink" title="非 QEMU 情况（真实硬件）"></a>非 QEMU 情况（真实硬件）</h3><p>真实硬件上，PS2 键盘通过自定义的 MMIO 接口访问：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/* PS2 寄存器地址（真实硬件） */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PS2_BASE        0x1FD0F050</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PS2_DATA_REG    (*(volatile uint32_t *)0x1FD0F050)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PS2_STATUS_REG  (*(volatile uint32_t *)0x1FD0F054)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PS2_CTRL_REG    (*(volatile uint32_t *)0x1FD0F058)</span><br><br><span class="hljs-comment">/* 状态寄存器位定义 */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PS2_STATUS_VALID       (1 &lt;&lt; 0)  <span class="hljs-comment">/* 有新数据 */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PS2_STATUS_PARITY_ERR  (1 &lt;&lt; 1)  <span class="hljs-comment">/* 奇偶校验错误 */</span></span><br><br><span class="hljs-comment">/* 控制寄存器位定义 */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PS2_CTRL_ENABLE        (1 &lt;&lt; 1)  <span class="hljs-comment">/* PS2 接收使能 */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PS2_CTRL_INT_ENABLE    (1 &lt;&lt; 2)  <span class="hljs-comment">/* 中断使能 */</span></span><br></code></pre></td></tr></table></figure>
+
+<p>中断处理流程：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/* main.c 中的 PS2 中断处理 */</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">ps2_irq_handler</span><span class="hljs-params">(<span class="hljs-type">trap_frame_t</span> *tf)</span> &#123;<br>    <span class="hljs-keyword">while</span> (bsp_ps2_data_available()) &#123;<br>        <span class="hljs-type">uint8_t</span> scancode = (<span class="hljs-type">uint8_t</span>)bsp_ps2_read();<br>        <span class="hljs-type">int</span> next = (kb_head + <span class="hljs-number">1</span>) % KB_BUF_SIZE;<br>        <span class="hljs-keyword">if</span> (next != kb_head) &#123;<br>            kb_buffer[kb_head] = scancode;<br>            kb_head = next;<br>        &#125;<br>    &#125;<br>&#125;<br><br><span class="hljs-comment">/* 系统初始化时注册 PS2 中断 */</span><br>irq_register(IRQ_PS2, ps2_irq_handler);<br>bsp_ps2_init(<span class="hljs-number">1</span>);  <span class="hljs-comment">/* 1 = 使能中断 */</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="QEMU-情况"><a href="#QEMU-情况" class="headerlink" title="QEMU 情况"></a>QEMU 情况</h3><p>QEMU virt 机器没有 PS2 控制器，因此需要禁用 PS2 相关代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/* ps2.h 中的 QEMU 适配 */</span><br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> QEMU_RUN</span><br><span class="hljs-comment">// QEMU 模式：PS2 不可用，使用虚拟地址（不会被访问）</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PS2_BASE        0x0FD0F050</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PS2_DATA_REG    (*(volatile uint32_t *)0x0FD0F050)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PS2_STATUS_REG  (*(volatile uint32_t *)0x0FD0F054)</span><br><span class="hljs-meta">#<span class="hljs-keyword">else</span></span><br><span class="hljs-comment">// 真实硬件模式</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PS2_BASE        0x1FD0F050</span><br>...<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br></code></pre></td></tr></table></figure>
+
+<p>在 <code>main.c</code> 中跳过 PS2 初始化：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">system_init</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br><span class="hljs-meta">#<span class="hljs-keyword">ifndef</span> QEMU_RUN</span><br>    <span class="hljs-comment">/* 只在真实硬件上注册 PS2 中断 */</span><br>    irq_register(IRQ_PS2, ps2_irq_handler);<br>    bsp_ps2_init(<span class="hljs-number">1</span>);<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="中断系统对比"><a href="#中断系统对比" class="headerlink" title="中断系统对比"></a>中断系统对比</h3><table>
+<thead>
+<tr>
+<th>中断源</th>
+<th>真实硬件</th>
+<th>QEMU</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>定时器 (IRQ_TIMER)</td>
+<td>支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>PS2 键盘 (IRQ_PS2)</td>
+<td>支持</td>
+<td>不支持</td>
+</tr>
+<tr>
+<td>UART (IRQ_UART)</td>
+<td>支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>软中断 (SWI0)</td>
+<td>支持</td>
+<td>支持</td>
+</tr>
+</tbody></table>
+<p>中断初始化代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/* trap.c */</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">trap_init</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-comment">/* 初始化所有中断处理函数为默认 */</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; IRQ_MAX; i++) &#123;<br>        irq_handlers[i] = default_irq_handler;<br>    &#125;<br><br>    <span class="hljs-comment">/* 注册 SWI0 处理函数（用于 task_yield） */</span><br>    irq_handlers[IRQ_SWI0] = swi0_irq_handler;<br><br>    <span class="hljs-comment">/* 设置异常入口点 */</span><br>    <span class="hljs-type">uint32_t</span> entry_addr;<br>    <span class="hljs-keyword">asm</span> <span class="hljs-title function_">volatile</span> <span class="hljs-params">(<span class="hljs-string">&quot;la.local %0, trap_entry&quot;</span> : <span class="hljs-string">&quot;=r&quot;</span>(entry_addr))</span>;<br>    write_csr_eentry(entry_addr);<br><br>    <span class="hljs-comment">/* 使能 SWI0、UART 和 PS2 中断 */</span><br>    <span class="hljs-type">uint32_t</span> ecfg = ECFG_LIE_SWI0 | ECFG_LIE_HWI1 | ECFG_LIE_HWI2;<br>    write_csr_ecfg(ecfg);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="启动流程"><a href="#启动流程" class="headerlink" title="启动流程"></a>启动流程</h2><h3 id="非-QEMU-版本（真实硬件）"><a href="#非-QEMU-版本（真实硬件）" class="headerlink" title="非 QEMU 版本（真实硬件）"></a>非 QEMU 版本（真实硬件）</h3><p>真实硬件的启动流程：</p>
+<figure class="highlight scss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs scss">┌─────────────────────────────────────────────────────────┐<br>│ <span class="hljs-number">1</span>. FPGA 上电，从 Boot ROM (<span class="hljs-number">0</span>x20000000) 加载启动代码     │<br>│    └── Boot ROM 将程序从 SD 卡加载到 RAM (<span class="hljs-number">0</span>x00000000)   │<br>├─────────────────────────────────────────────────────────┤<br>│ <span class="hljs-number">2</span>. 跳转到 _start (<span class="hljs-number">0</span>x00000000)                           │<br>│    └── start<span class="hljs-selector-class">.S</span>: 设置栈指针、清零 BSS、调用 main        │<br>├─────────────────────────────────────────────────────────┤<br>│ <span class="hljs-number">3</span>. <span class="hljs-built_in">main</span>() 执行系统初始化                                │<br>│    ├── <span class="hljs-built_in">terminal_init</span>()  : HDMI 终端初始化               │<br>│    ├── <span class="hljs-built_in">heap_init</span>()      : 堆内存初始化                  │<br>│    ├── <span class="hljs-built_in">trap_init</span>()      : 中断系统初始化                │<br>│    ├── <span class="hljs-built_in">sched_init</span>()     : 调度器初始化                  │<br>│    ├── <span class="hljs-built_in">bsp_ps2_init</span>(<span class="hljs-number">1</span>)  : PS2 键盘初始化（使能中断）    │<br>│    └── <span class="hljs-built_in">timer_init</span>()     : 定时器初始化                  │<br>├─────────────────────────────────────────────────────────┤<br>│ <span class="hljs-number">4</span>. 创建 shell 任务，启动定时器，进入调度循环            │<br>└─────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<h3 id="QEMU-版本"><a href="#QEMU-版本" class="headerlink" title="QEMU 版本"></a>QEMU 版本</h3><p>QEMU 的启动流程有所不同：</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs stylus">┌─────────────────────────────────────────────────────────┐<br>│ <span class="hljs-number">1</span>. QEMU 加载 ELF 文件到内存 (<span class="hljs-number">0</span>x00200000)                │<br>│    └── 使用 -kernel 参数直接加载，无需 Boot ROM        │<br>├─────────────────────────────────────────────────────────┤<br>│ <span class="hljs-number">2</span>. 跳转到 _start (<span class="hljs-number">0</span>x00200000)                           │<br>│    └── start<span class="hljs-selector-class">.S</span>: 设置栈指针、清零 BSS、调用 <span class="hljs-selector-tag">main</span>        │<br>├─────────────────────────────────────────────────────────┤<br>│ <span class="hljs-number">3</span>. <span class="hljs-selector-tag">main</span>() 执行系统初始化（QEMU 模式）                   │<br>│    ├── <span class="hljs-built_in">heap_init</span>()      : 堆内存初始化                  │<br>│    ├── <span class="hljs-built_in">trap_init</span>()      : 中断系统初始化                │<br>│    ├── <span class="hljs-built_in">sched_init</span>()     : 调度器初始化                  │<br>│    ├── <span class="hljs-built_in">qemu_fb_init</span>()   : bochs-<span class="hljs-attribute">display</span> 初始化          │<br>│    └── <span class="hljs-built_in">timer_init</span>()     : 定时器初始化                  │<br>│    注意：跳过 <span class="hljs-built_in">terminal_init</span>() 和 <span class="hljs-built_in">bsp_ps2_init</span>()         │<br>├─────────────────────────────────────────────────────────┤<br>│ <span class="hljs-number">4</span>. 创建 shell 任务，启动定时器，进入调度循环            │<br>└─────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<p>启动代码 <code>start.S</code> 是通用的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs asm">/* start.S - 通用启动代码 */<br>    .section .text.start<br>    .globl _start<br><br>_start:<br>    /* 1. 设置栈指针（使用链接脚本定义的 __stack_top） */<br>    la.local    $sp, __stack_top<br><br>    /* 2. 清零 BSS 段 */<br>    la.local    $t0, __bss_start<br>    la.local    $t1, __bss_end<br>.L_clear_bss:<br>    beq         $t0, $t1, .L_bss_done<br>    st.w        $zero, $t0, 0<br>    addi.w      $t0, $t0, 4<br>    b           .L_clear_bss<br><br>.L_bss_done:<br>    /* 3. 调用 main */<br>    bl          main<br><br>    /* 4. main 返回后死循环 */<br>.L_halt:<br>    b           .L_halt<br></code></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="条件编译机制"><a href="#条件编译机制" class="headerlink" title="条件编译机制"></a>条件编译机制</h2><p>通过 Makefile 传递 <code>QEMU_RUN</code> 宏来区分编译目标：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment"># common.mk 中的条件编译支持</span><br><span class="hljs-keyword">ifdef</span> QEMU_RUN<br>CFLAGS  += -DQEMU_RUN<br><span class="hljs-keyword">endif</span><br><br><span class="hljs-comment"># 根据 QEMU_RUN 选择不同的链接脚本</span><br><span class="hljs-keyword">ifdef</span> QEMU_RUN<br>LDSCRIPT := <span class="hljs-variable">$(SCRIPTS_DIR)</span>/linker_qemu.ld<br><span class="hljs-keyword">else</span><br>LDSCRIPT := <span class="hljs-variable">$(SCRIPTS_DIR)</span>/linker.ld<br><span class="hljs-keyword">endif</span><br></code></pre></td></tr></table></figure>
+
+<p>编译命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 编译真实硬件版本</span><br>make clean &amp;&amp; make<br><br><span class="hljs-comment"># 编译 QEMU 版本</span><br>make clean &amp;&amp; make QEMU_RUN=1<br></code></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="QEMU-Framebuffer-驱动详解"><a href="#QEMU-Framebuffer-驱动详解" class="headerlink" title="QEMU Framebuffer 驱动详解"></a>QEMU Framebuffer 驱动详解</h2><p>bochs-display 是 QEMU 内置的 PCI 显卡设备，需要通过 PCI 配置空间来初始化。</p>
+<h3 id="PCI-设备扫描"><a href="#PCI-设备扫描" class="headerlink" title="PCI 设备扫描"></a>PCI 设备扫描</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/* qemu_fb.c - PCI 配置空间访问 */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PCI_ECAM_BASE       0x20000000</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> BOCHS_VGA_VENDOR    0x1234</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> BOCHS_VGA_DEVICE    0x1111</span><br><br><span class="hljs-comment">/* 计算 PCI ECAM 地址 */</span><br><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">uint32_t</span> <span class="hljs-title function_">pci_ecam_addr</span><span class="hljs-params">(<span class="hljs-type">int</span> bus, <span class="hljs-type">int</span> dev, <span class="hljs-type">int</span> func, <span class="hljs-type">int</span> reg)</span> &#123;<br>    <span class="hljs-keyword">return</span> PCI_ECAM_BASE | (bus &lt;&lt; <span class="hljs-number">20</span>) | (dev &lt;&lt; <span class="hljs-number">15</span>) | (func &lt;&lt; <span class="hljs-number">12</span>) | reg;<br>&#125;<br><br><span class="hljs-comment">/* 扫描 PCI 总线查找 bochs-display */</span><br><span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">pci_find_bochs_display</span><span class="hljs-params">(<span class="hljs-type">int</span> *out_bus, <span class="hljs-type">int</span> *out_dev)</span> &#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> bus = <span class="hljs-number">0</span>; bus &lt; <span class="hljs-number">1</span>; bus++) &#123;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> dev = <span class="hljs-number">0</span>; dev &lt; <span class="hljs-number">32</span>; dev++) &#123;<br>            <span class="hljs-type">uint16_t</span> vendor = pci_read16(bus, dev, <span class="hljs-number">0</span>, PCI_VENDOR_ID);<br>            <span class="hljs-type">uint16_t</span> device = pci_read16(bus, dev, <span class="hljs-number">0</span>, PCI_DEVICE_ID);<br>            <span class="hljs-keyword">if</span> (vendor == BOCHS_VGA_VENDOR &amp;&amp; device == BOCHS_VGA_DEVICE) &#123;<br>                *out_bus = bus;<br>                *out_dev = dev;<br>                <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>            &#125;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="VBE-寄存器配置"><a href="#VBE-寄存器配置" class="headerlink" title="VBE 寄存器配置"></a>VBE 寄存器配置</h3><p>bochs-display 使用 VBE (VESA BIOS Extensions) 寄存器来配置显示模式：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/* VBE 寄存器索引 */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> VBE_DISPI_INDEX_XRES        0x01  <span class="hljs-comment">/* 水平分辨率 */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> VBE_DISPI_INDEX_YRES        0x02  <span class="hljs-comment">/* 垂直分辨率 */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> VBE_DISPI_INDEX_BPP         0x03  <span class="hljs-comment">/* 位深度 */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> VBE_DISPI_INDEX_ENABLE      0x04  <span class="hljs-comment">/* 使能控制 */</span></span><br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> VBE_DISPI_ENABLED           0x01</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> VBE_DISPI_LFB_ENABLED       0x40  <span class="hljs-comment">/* 线性帧缓冲使能 */</span></span><br><br><span class="hljs-comment">/* 设置显示分辨率 */</span><br><span class="hljs-type">int</span> <span class="hljs-title function_">qemu_fb_set_resolution</span><span class="hljs-params">(<span class="hljs-type">uint16_t</span> width, <span class="hljs-type">uint16_t</span> height)</span> &#123;<br>    vbe_write(VBE_DISPI_INDEX_ENABLE, VBE_DISPI_DISABLED);<br>    vbe_write(VBE_DISPI_INDEX_XRES, width);<br>    vbe_write(VBE_DISPI_INDEX_YRES, height);<br>    vbe_write(VBE_DISPI_INDEX_BPP, <span class="hljs-number">32</span>);  <span class="hljs-comment">/* 32 位色深 */</span><br>    vbe_write(VBE_DISPI_INDEX_ENABLE,<br>              VBE_DISPI_ENABLED | VBE_DISPI_LFB_ENABLED);<br><br>    fb_info.width = width;<br>    fb_info.height = height;<br>    fb_info.bpp = <span class="hljs-number">32</span>;<br>    fb_info.pitch = width * <span class="hljs-number">4</span>;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="Framebuffer-初始化流程"><a href="#Framebuffer-初始化流程" class="headerlink" title="Framebuffer 初始化流程"></a>Framebuffer 初始化流程</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">qemu_fb_init</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-type">int</span> bus, dev;<br><br>    <span class="hljs-comment">/* 1. 扫描 PCI 总线查找 bochs-display */</span><br>    <span class="hljs-keyword">if</span> (pci_find_bochs_display(&amp;bus, &amp;dev) &lt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;[QEMU_FB] bochs-display not found\n&quot;</span>);<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>    &#125;<br><br>    <span class="hljs-comment">/* 2. 读取 BAR0 (帧缓冲地址) 和 BAR2 (MMIO 寄存器) */</span><br>    <span class="hljs-type">uint32_t</span> bar0 = pci_read32(bus, dev, <span class="hljs-number">0</span>, PCI_BAR0) &amp; ~<span class="hljs-number">0xF</span>;<br>    <span class="hljs-type">uint32_t</span> bar2 = pci_read32(bus, dev, <span class="hljs-number">0</span>, PCI_BAR2) &amp; ~<span class="hljs-number">0xF</span>;<br><br>    <span class="hljs-comment">/* 3. 如果 BAR 未分配，手动分配 */</span><br>    <span class="hljs-keyword">if</span> (bar0 == <span class="hljs-number">0</span>) pci_write32(bus, dev, <span class="hljs-number">0</span>, PCI_BAR0, <span class="hljs-number">0x40000000</span>);<br>    <span class="hljs-keyword">if</span> (bar2 == <span class="hljs-number">0</span>) pci_write32(bus, dev, <span class="hljs-number">0</span>, PCI_BAR2, <span class="hljs-number">0x41000000</span>);<br><br>    <span class="hljs-comment">/* 4. 使能 PCI 内存访问 */</span><br>    <span class="hljs-type">uint16_t</span> cmd = pci_read16(bus, dev, <span class="hljs-number">0</span>, PCI_COMMAND);<br>    pci_write16(bus, dev, <span class="hljs-number">0</span>, PCI_COMMAND, cmd | <span class="hljs-number">0x03</span>);<br><br>    <span class="hljs-comment">/* 5. 设置分辨率 */</span><br>    qemu_fb_set_resolution(<span class="hljs-number">640</span>, <span class="hljs-number">480</span>);<br><br>    fb_info.initialized = <span class="hljs-literal">true</span>;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="AM-适配层的-QEMU-分支"><a href="#AM-适配层的-QEMU-分支" class="headerlink" title="AM 适配层的 QEMU 分支"></a>AM 适配层的 QEMU 分支</h3><p><code>am_adapter.c</code> 中通过条件编译区分 QEMU 和真实硬件：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">am_gpu_fbdraw</span><span class="hljs-params">(<span class="hljs-type">int</span> x, <span class="hljs-type">int</span> y, <span class="hljs-type">uint32_t</span> *pixels, <span class="hljs-type">int</span> w, <span class="hljs-type">int</span> h, <span class="hljs-type">bool</span> sync)</span> &#123;<br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> QEMU_RUN</span><br>    <span class="hljs-comment">/* QEMU 模式：直接写入 32 位 framebuffer，无需颜色转换 */</span><br>    qemu_fb_blit(x, y, pixels, w, h);<br>    (<span class="hljs-type">void</span>)sync;  <span class="hljs-comment">/* QEMU 不需要同步 */</span><br><span class="hljs-meta">#<span class="hljs-keyword">else</span></span><br>    <span class="hljs-comment">/* 硬件模式：ARGB32 -&gt; RGB565 转换 + HDMI 双缓冲 */</span><br>    <span class="hljs-keyword">volatile</span> <span class="hljs-type">uint16_t</span> *fb = hdmi_get_fb_pointer();<br>    <span class="hljs-comment">// ... 颜色转换和内联汇编优化 ...</span><br>    <span class="hljs-keyword">if</span> (sync) hdmi_swap_buffers();<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="QEMU-运行命令"><a href="#QEMU-运行命令" class="headerlink" title="QEMU 运行命令"></a>QEMU 运行命令</h2><p>编译完成后，使用以下命令启动 QEMU：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs bash">qemu-system-loongarch64 \<br>    -M virt \<br>    -m 256M \<br>    -cpu la464 \<br>    -kernel build/xos.elf \<br>    -nographic \<br>    -device bochs-display \<br>    -serial mon:stdio<br></code></pre></td></tr></table></figure>
+
+<p>参数说明：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>-M virt</code></td>
+<td>使用 virt 虚拟机器</td>
+</tr>
+<tr>
+<td><code>-m 256M</code></td>
+<td>分配 256MB 内存</td>
+</tr>
+<tr>
+<td><code>-cpu la464</code></td>
+<td>使用 LA464 CPU 模型</td>
+</tr>
+<tr>
+<td><code>-kernel</code></td>
+<td>直接加载 ELF 文件</td>
+</tr>
+<tr>
+<td><code>-nographic</code></td>
+<td>无图形界面（串口输出）</td>
+</tr>
+<tr>
+<td><code>-device bochs-display</code></td>
+<td>添加 bochs 显卡</td>
+</tr>
+<tr>
+<td><code>-serial mon:stdio</code></td>
+<td>串口重定向到终端</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="UART-配置差异"><a href="#UART-配置差异" class="headerlink" title="UART 配置差异"></a>UART 配置差异</h2><p>UART 地址在 QEMU 和真实硬件上相同（0x1FE001E0），但时钟频率不同：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/* uart.h */</span><br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> QEMU_RUN</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> UART_CLK 100000000      <span class="hljs-comment">/* QEMU virt 机器时钟 100MHz */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">else</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> UART_CLK 75000000       <span class="hljs-comment">/* 真实硬件时钟 75MHz */</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> UART_BASE 0x1FE001E0    <span class="hljs-comment">/* 地址相同 */</span></span><br></code></pre></td></tr></table></figure>
+
+<p>波特率计算：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/* divisor = CLK / (16 * baudrate) */</span><br><span class="hljs-comment">/* 9600 波特率:</span><br><span class="hljs-comment"> *   QEMU:  100000000 / (16 * 9600) = 651</span><br><span class="hljs-comment"> *   硬件:  75000000 / (16 * 9600) = 488</span><br><span class="hljs-comment"> */</span><br></code></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h3 id="QEMU-仿真的优势"><a href="#QEMU-仿真的优势" class="headerlink" title="QEMU 仿真的优势"></a>QEMU 仿真的优势</h3><table>
+<thead>
+<tr>
+<th>方面</th>
+<th>真实硬件</th>
+<th>QEMU 仿真</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>编译-测试周期</td>
+<td>编译→烧录SD卡→上电→等待</td>
+<td>编译→直接运行</td>
+</tr>
+<tr>
+<td>调试能力</td>
+<td>有限（UART 打印）</td>
+<td>GDB 远程调试</td>
+</tr>
+<tr>
+<td>迭代速度</td>
+<td>慢（分钟级）</td>
+<td>快（秒级）</td>
+</tr>
+<tr>
+<td>硬件依赖</td>
+<td>需要 FPGA 板卡</td>
+<td>仅需 PC</td>
+</tr>
+</tbody></table>
+<h3 id="移植要点清单"><a href="#移植要点清单" class="headerlink" title="移植要点清单"></a>移植要点清单</h3><ol>
+<li><strong>链接脚本</strong>：调整程序起始地址（避开 FDT）</li>
+<li><strong>外设驱动</strong>：条件编译区分 QEMU&#x2F;硬件</li>
+<li><strong>显示设备</strong>：使用 bochs-display 替代 HDMI</li>
+<li><strong>中断系统</strong>：禁用不支持的外设中断</li>
+<li><strong>时钟配置</strong>：调整 UART 时钟频率</li>
+</ol>
+<h3 id="文件结构"><a href="#文件结构" class="headerlink" title="文件结构"></a>文件结构</h3><figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs livecodeserver">scripts/<br>├── linker.ld           <span class="hljs-comment"># 真实硬件链接脚本</span><br>├── linker_qemu.ld      <span class="hljs-comment"># QEMU 链接脚本</span><br>└── common.mk           <span class="hljs-comment"># 通用编译规则</span><br><br>bsp/<br>├── <span class="hljs-built_in">start</span>.S             <span class="hljs-comment"># 通用启动代码</span><br>├── src/<br>│   ├── uart.c          <span class="hljs-comment"># UART 驱动（通用）</span><br>│   ├── ps2.c           <span class="hljs-comment"># PS2 驱动（仅硬件）</span><br>│   ├── hdmi.c          <span class="hljs-comment"># HDMI 驱动（仅硬件）</span><br>│   └── qemu_fb.c       <span class="hljs-comment"># QEMU 显示驱动</span><br>└── <span class="hljs-built_in">include</span>/<br>    ├── uart.h          <span class="hljs-comment"># 条件编译时钟频率</span><br>    ├── ps2.h           <span class="hljs-comment"># 条件编译寄存器地址</span><br>    └── qemu_fb.h       <span class="hljs-comment"># QEMU FB 接口</span><br><br>software/xos_pro_max/<br>├── src/<br>│   ├── main.c          <span class="hljs-comment"># 条件编译初始化流程</span><br>│   └── litenes/<br>│       └── am_adapter.c <span class="hljs-comment"># AM 适配层（条件编译）</span><br>└── Makefile            <span class="hljs-comment"># 支持 QEMU_RUN=1</span><br></code></pre></td></tr></table></figure>
+
+<p>通过 QEMU 仿真，JIT 和 difftest 的开发调试效率大幅提升，从原来的”编译-烧录-等待-调试”循环缩短为”编译-运行”，极大加快了开发迭代速度。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Thesis-Project/" class="category-chain-item">Thesis Project</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/simulation/" class="print-no-link">#simulation</a>
+      
+        <a href="/tags/QEMU/" class="print-no-link">#QEMU</a>
+      
+        <a href="/tags/graduation-thesis/" class="print-no-link">#graduation thesis</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>毕业设计记录（17）：利用 QEMU 加速仿真</div>
+      <div>http://blog.luliang.online/2026/01/30/thesis-17-qemu-fast-simulation/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年1月30日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/01/31/thesis-16-jit-runs-nes/" title="毕业设计记录（16）：用 JIT 运行 NES 指令">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">毕业设计记录（16）：用 JIT 运行 NES 指令</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/01/29/thesis-15-jit/" title="毕业设计记录（15）：JIT 技术调研与设计">
+                        <span class="hidden-mobile">毕业设计记录（15）：JIT 技术调研与设计</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
