@@ -1,0 +1,826 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言NPU 的性能瓶颈经常不是“算不动”，而是“喂不饱”。PE Array 可以很大，但如果每一拍都在等数据，面积再多也只是摆设。 Unified Buffer 是 NPU 里的片上数据仓库。它的价值不只是“存一些数”，而是定义数据本地性：哪些数据已经在片上，哪些结果可以原地处理，哪些数据需要输出到外部。  为什么片上 buffer 很重要矩阵乘法中，同一个 A 元素会参与多个输出，同一个 B 元">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NPU 设计（三）：Unified Buffer 与片上数据复用">
+<meta property="og:url" content="http://blog.luliang.online/2026/04/30/npu-design-03-unified-buffer/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="前言NPU 的性能瓶颈经常不是“算不动”，而是“喂不饱”。PE Array 可以很大，但如果每一拍都在等数据，面积再多也只是摆设。 Unified Buffer 是 NPU 里的片上数据仓库。它的价值不只是“存一些数”，而是定义数据本地性：哪些数据已经在片上，哪些结果可以原地处理，哪些数据需要输出到外部。  为什么片上 buffer 很重要矩阵乘法中，同一个 A 元素会参与多个输出，同一个 B 元">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.luliang.online/images/mermaid-svg/npu-design-03-unified-buffer/unified-buffer.svg">
+<meta property="og:image" content="http://blog.luliang.online/images/mermaid-svg/npu-design-03-unified-buffer/ub-address-map.svg">
+<meta property="article:published_time" content="2026-04-30T07:03:13.000Z">
+<meta property="article:modified_time" content="2026-07-23T03:05:46.854Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="NPU">
+<meta property="article:tag" content="RTL">
+<meta property="article:tag" content="memory hierarchy">
+<meta property="article:tag" content="buffer">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://blog.luliang.online/images/mermaid-svg/npu-design-03-unified-buffer/unified-buffer.svg">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>NPU 设计（三）：Unified Buffer 与片上数据复用 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="NPU 设计（三）：Unified Buffer 与片上数据复用"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-04-30 15:03" pubdate>
+          2026年4月30日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          10 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">NPU 设计（三）：Unified Buffer 与片上数据复用</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>NPU 的性能瓶颈经常不是“算不动”，而是“喂不饱”。PE Array 可以很大，但如果每一拍都在等数据，面积再多也只是摆设。</p>
+<p>Unified Buffer 是 NPU 里的片上数据仓库。它的价值不只是“存一些数”，而是定义数据本地性：哪些数据已经在片上，哪些结果可以原地处理，哪些数据需要输出到外部。</p>
+<p><img src="/images/mermaid-svg/npu-design-03-unified-buffer/unified-buffer.svg" alt="Unified Buffer 与本地性边界"></p>
+<h2 id="为什么片上-buffer-很重要"><a href="#为什么片上-buffer-很重要" class="headerlink" title="为什么片上 buffer 很重要"></a>为什么片上 buffer 很重要</h2><p>矩阵乘法中，同一个 A 元素会参与多个输出，同一个 B 元素也会参与多个输出：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">C[i][0] += A[i][k] * B[k][0]<br>C[i][1] += A[i][k] * B[k][1]<br>C[i][2] += A[i][k] * B[k][2]<br>...<br></code></pre></td></tr></table></figure>
+
+<p>如果 <code>A[i][k]</code> 每用一次都从外部内存读一次，带宽会非常浪费。更好的方式是：先把一块 A&#x2F;B 数据搬到片上，然后在 PE Array 内多次复用。</p>
+<p>所以 NPU 里常见的数据路径是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">外部输入<br>  -&gt; Unified Buffer<br>  -&gt; PE Array<br>  -&gt; Unified Buffer<br>  -&gt; 激活/池化<br>  -&gt; 输出<br></code></pre></td></tr></table></figure>
+
+<p>Unified Buffer 是这个路径的中心。</p>
+<h2 id="一个-4KB-教学级地址分区"><a href="#一个-4KB-教学级地址分区" class="headerlink" title="一个 4KB 教学级地址分区"></a>一个 4KB 教学级地址分区</h2><p>为了让数据生命周期清晰，可以把 4KB 片上 buffer 分成四段：</p>
+<p><img src="/images/mermaid-svg/npu-design-03-unified-buffer/ub-address-map.svg" alt="Unified Buffer 地址分区"></p>
+<table>
+<thead>
+<tr>
+<th>地址范围</th>
+<th>用途</th>
+<th>大小</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>0x000 - 0x3FF</code></td>
+<td>Weight Buffer</td>
+<td>1KB</td>
+</tr>
+<tr>
+<td><code>0x400 - 0x7FF</code></td>
+<td>Activation Buffer</td>
+<td>1KB</td>
+</tr>
+<tr>
+<td><code>0x800 - 0xBFF</code></td>
+<td>Partial Sum</td>
+<td>1KB</td>
+</tr>
+<tr>
+<td><code>0xC00 - 0xFFF</code></td>
+<td>Output Buffer</td>
+<td>1KB</td>
+</tr>
+</tbody></table>
+<p>这个划分的目的不是凑整，而是让数据职责分开：</p>
+<ul>
+<li>权重区保存模型参数；</li>
+<li>激活区保存输入特征；</li>
+<li>partial sum 区保存中间累加；</li>
+<li>output 区保存最终结果。</li>
+</ul>
+<p>当设计变复杂以后，这种分区会演化成更严肃的 tile layout、bank layout、DMA descriptor 和 double buffering。</p>
+<h2 id="三个访问端口对应三类角色"><a href="#三个访问端口对应三类角色" class="headerlink" title="三个访问端口对应三类角色"></a>三个访问端口对应三类角色</h2><p>一个简单 Unified Buffer 可以提供三个逻辑端口：</p>
+<table>
+<thead>
+<tr>
+<th>端口</th>
+<th>使用者</th>
+<th>典型动作</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Port A</td>
+<td>PE Array</td>
+<td>读取 A&#x2F;B 数据</td>
+</tr>
+<tr>
+<td>Port B</td>
+<td>数据搬运通道</td>
+<td>写入输入，读出结果</td>
+</tr>
+<tr>
+<td>Port C</td>
+<td>控制&#x2F;后处理</td>
+<td>写回 C，执行 ACT&#x2F;POOL</td>
+</tr>
+</tbody></table>
+<p>简化 RTL 形状如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs systemverilog">reg [31:0] mem [0:4095];<br><br>always_ff @(posedge clk) begin<br>  if (a_en &amp;&amp; !a_we) a_dout &lt;= mem[a_addr];<br>  if (a_en &amp;&amp;  a_we) mem[a_addr] &lt;= a_din;<br>end<br><br>always_ff @(posedge clk) begin<br>  if (b_en &amp;&amp; !b_we) b_dout &lt;= mem[b_addr];<br>  if (b_en &amp;&amp;  b_we) mem[b_addr] &lt;= b_din;<br>end<br><br>always_ff @(posedge clk) begin<br>  if (c_en &amp;&amp; !c_we) c_dout &lt;= mem[c_addr];<br>  if (c_en &amp;&amp;  c_we) mem[c_addr] &lt;= c_din;<br>end<br></code></pre></td></tr></table></figure>
+
+<p>这个片段有一个隐含重点：读是同步读。地址在这一拍给进去，数据通常下一拍才稳定。</p>
+<h2 id="同步读会改变状态机设计"><a href="#同步读会改变状态机设计" class="headerlink" title="同步读会改变状态机设计"></a>同步读会改变状态机设计</h2><p>算法里我们经常写：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">a = buffer[addr_a]<br>b = buffer[addr_b]<br>send_to_pe(a, b)<br></code></pre></td></tr></table></figure>
+
+<p>RTL 里不能这么随意。同步 SRAM 需要拆节拍：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">第 1 拍：给出 addr_a / addr_b<br>第 2 拍：捕获 a_dout / b_dout<br>第 3 拍：拉高 valid，送入 PE Array<br></code></pre></td></tr></table></figure>
+
+<p>所以一个矩阵乘法控制状态机常常会有这些阶段：</p>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>CLEAR</code></td>
+<td>清空 PE 累加器</td>
+</tr>
+<tr>
+<td><code>CAPTURE</code></td>
+<td>等待并捕获 buffer 读数据</td>
+</tr>
+<tr>
+<td><code>SEND</code></td>
+<td>向 PE Array 发送一组 A&#x2F;B</td>
+</tr>
+<tr>
+<td><code>DRAIN</code></td>
+<td>等阵列内部流水排空</td>
+</tr>
+<tr>
+<td><code>COMMIT</code></td>
+<td>把结果写回 buffer</td>
+</tr>
+</tbody></table>
+<p>这就是为什么存储模块会影响控制模块。硬件不是抽象数学，读写延迟会塑造整个状态机。</p>
+<h2 id="结果为什么要写回-buffer"><a href="#结果为什么要写回-buffer" class="headerlink" title="结果为什么要写回 buffer"></a>结果为什么要写回 buffer</h2><p>一个直觉设计是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">PE Array -&gt; 直接输出<br></code></pre></td></tr></table></figure>
+
+<p>但如果后面还要做 ReLU 或 Pooling，直接输出就不方便了。更实用的方式是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">PE Array -&gt; 写回 result 区<br>ACT      -&gt; 从 result 区读，原地写回<br>POOL     -&gt; 从 result 区读窗口，写回压缩结果<br>STORE    -&gt; 从 result 区输出<br></code></pre></td></tr></table></figure>
+
+<p>这样做有两个好处：</p>
+<ol>
+<li>中间结果不用离开片上 buffer。</li>
+<li>后处理可以复用同一套地址和存储协议。</li>
+</ol>
+<p>这也是 Unified Buffer 叫 “unified” 的原因：它不是某一个模块的私有 RAM，而是计算、后处理和输出之间共享的数据边界。</p>
+<h2 id="什么时候需要更复杂的-buffer"><a href="#什么时候需要更复杂的-buffer" class="headerlink" title="什么时候需要更复杂的 buffer"></a>什么时候需要更复杂的 buffer</h2><p>教学级 Unified Buffer 可以先用一个朴素三端口模型，但真实 NPU 会遇到更多问题：</p>
+<ol>
+<li>PE Array 每拍要读很多数据，单端口不够。</li>
+<li>DMA 写入和 PE 读取可能冲突。</li>
+<li>ACT&#x2F;POOL 读写结果区会和 STORE 竞争。</li>
+<li>大矩阵需要 tile 分块，地址生成更复杂。</li>
+<li>为了隐藏搬运延迟，需要 double buffering。</li>
+<li>多 bank 设计要处理 bank conflict。</li>
+</ol>
+<p>所以 buffer 设计不是“把容量调大”这么简单。容量、带宽、端口、bank、地址映射、仲裁策略，都会影响 NPU 的有效吞吐。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Unified Buffer 是 NPU 的本地性边界。</p>
+<p>这一篇可以记住三点：</p>
+<ol>
+<li>片上 buffer 的核心价值是数据复用，而不是单纯存储。</li>
+<li>地址分区表达了权重、激活、中间结果和输出的生命周期。</li>
+<li>同步读延迟会直接影响 MATMUL、ACT、POOL、STORE 的状态机设计。</li>
+</ol>
+<p>下一篇继续往控制层走：NPU 如何用命令 FIFO 和状态机把 <code>LOAD -&gt; MATMUL -&gt; ACT -&gt; POOL -&gt; STORE</code> 串成一条可执行算子链。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Computer-Architecture/" class="category-chain-item">Computer Architecture</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/NPU/" class="print-no-link">#NPU</a>
+      
+        <a href="/tags/RTL/" class="print-no-link">#RTL</a>
+      
+        <a href="/tags/memory-hierarchy/" class="print-no-link">#memory hierarchy</a>
+      
+        <a href="/tags/buffer/" class="print-no-link">#buffer</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>NPU 设计（三）：Unified Buffer 与片上数据复用</div>
+      <div>http://blog.luliang.online/2026/04/30/npu-design-03-unified-buffer/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年4月30日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/05/01/npu-design-04-control-postprocess/" title="NPU 设计（四）：控制状态机、激活和池化">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">NPU 设计（四）：控制状态机、激活和池化</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/04/29/npu-design-02-pe-array/" title="NPU 设计（二）：PE 与阵列如何展开矩阵乘法">
+                        <span class="hidden-mobile">NPU 设计（二）：PE 与阵列如何展开矩阵乘法</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

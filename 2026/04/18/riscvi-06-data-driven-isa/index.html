@@ -1,0 +1,759 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言ISA 设计最怕变成“我觉得这条指令有用”。RISC-VI 的做法是反过来：先看 LLVM 生成的 RV32I 汇编到底暴露了哪些瓶颈，再从瓶颈里推导指令。 这种方法的重点不是跑几个命令，而是建立一条证据链： 123456C workload  -&gt; LLVM 生成 RV32I 汇编  -&gt; 静态指令和依赖分析  -&gt; 双发射压力分类  -&gt; 候选 ISA 模式  -&amp;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RISC-VI 研究笔记（六）：用静态依赖数据推导 ISA 设计">
+<meta property="og:url" content="http://blog.luliang.online/2026/04/18/riscvi-06-data-driven-isa/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="前言ISA 设计最怕变成“我觉得这条指令有用”。RISC-VI 的做法是反过来：先看 LLVM 生成的 RV32I 汇编到底暴露了哪些瓶颈，再从瓶颈里推导指令。 这种方法的重点不是跑几个命令，而是建立一条证据链： 123456C workload  -&gt; LLVM 生成 RV32I 汇编  -&gt; 静态指令和依赖分析  -&gt; 双发射压力分类  -&gt; 候选 ISA 模式  -&amp;">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.luliang.online/images/mermaid-svg/riscvi-06-data-driven-isa/evidence-chain.svg">
+<meta property="article:published_time" content="2026-04-18T07:03:13.000Z">
+<meta property="article:modified_time" content="2026-07-23T03:05:46.857Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="RISC-V">
+<meta property="article:tag" content="RISC-VI">
+<meta property="article:tag" content="ISA">
+<meta property="article:tag" content="dependency analysis">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://blog.luliang.online/images/mermaid-svg/riscvi-06-data-driven-isa/evidence-chain.svg">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>RISC-VI 研究笔记（六）：用静态依赖数据推导 ISA 设计 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="RISC-VI 研究笔记（六）：用静态依赖数据推导 ISA 设计"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-04-18 15:03" pubdate>
+          2026年4月18日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          12 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">RISC-VI 研究笔记（六）：用静态依赖数据推导 ISA 设计</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>ISA 设计最怕变成“我觉得这条指令有用”。RISC-VI 的做法是反过来：先看 LLVM 生成的 RV32I 汇编到底暴露了哪些瓶颈，再从瓶颈里推导指令。</p>
+<p>这种方法的重点不是跑几个命令，而是建立一条证据链：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">C workload<br>  -&gt; LLVM 生成 RV32I 汇编<br>  -&gt; 静态指令和依赖分析<br>  -&gt; 双发射压力分类<br>  -&gt; 候选 ISA 模式<br>  -&gt; RISC-VI 指令集草案<br></code></pre></td></tr></table></figure>
+
+<p><img src="/images/mermaid-svg/riscvi-06-data-driven-isa/evidence-chain.svg" alt="从静态依赖数据到 RISC-VI 指令设计"></p>
+<h2 id="为什么看静态依赖"><a href="#为什么看静态依赖" class="headerlink" title="为什么看静态依赖"></a>为什么看静态依赖</h2><p>RISC-VI 面向的是一个双发射语境。双发射处理器的理想情况是每周期提交两条互不冲突的指令，但现实里经常被这些因素限制：</p>
+<ul>
+<li>相邻 RAW 数据依赖；</li>
+<li>load-use 紧邻消费；</li>
+<li>分支依赖前序比较或加载结果；</li>
+<li>load&#x2F;store 地址生成链；</li>
+<li>结构资源冲突；</li>
+<li>控制流导致的 fetch&#x2F;issue 空洞。</li>
+</ul>
+<p>静态依赖分析不能替代 RTL 性能评测，但它可以帮助我们发现“编译器经常生成什么形状的短链”。ISA 扩展如果能直接压缩这些短链，就有机会改善双发射压力。</p>
+<h2 id="项目里的关键观察"><a href="#项目里的关键观察" class="headerlink" title="项目里的关键观察"></a>项目里的关键观察</h2><p>当前 RISC-VI 研究基于 15 个用户态整数 C 样例，对 RV32I 汇编做静态分析。项目报告中的几个数字很有代表性：</p>
+<ul>
+<li>总静态指令数为 1162。</li>
+<li>RAW &#x2F; 指令为 1.198。</li>
+<li>距离 1 或 2 的短 RAW 占全部 RAW 的 52.9%。</li>
+<li>address-data 依赖为 393 条。</li>
+<li>load-use 依赖为 180 条。</li>
+<li>branch-data &#x2F; branch 为 85.1%。</li>
+</ul>
+<p>这些数字来自 <code>riscv-vi-research/docs/riscv32r_dependency_report.md:90</code> 的总体指标表；双发射前置压力报告也在 <code>riscv-vi-research/docs/issue_pressure_report.md:5</code> 给出了同样的摘要。</p>
+<p>这些数字说明，瓶颈不是某一条“慢指令”，而是高层语言模式被拆成短距离依赖链。双发射最怕这种链：指令数量看似不大，但后一条马上等前一条结果，第二发射槽很难被填满。</p>
+<h2 id="第一类：地址生成链"><a href="#第一类：地址生成链" class="headerlink" title="第一类：地址生成链"></a>第一类：地址生成链</h2><p>数组访问在 RV32I 上经常长这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs asm">slli t0, index, 2<br>add  t0, base, t0<br>lw   rd, 0(t0)<br></code></pre></td></tr></table></figure>
+
+<p>这里有两层问题：</p>
+<ol>
+<li><code>slli -&gt; add -&gt; lw</code> 形成紧密 RAW。</li>
+<li>load&#x2F;store 本身没有减少，真正被浪费的是地址生成 ALU 指令和它们造成的依赖距离。</li>
+</ol>
+<p>因此 RISC-VI 设计了：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">lwxs / swxs<br></code></pre></td></tr></table></figure>
+
+<p>它们的目标不是减少内存访问次数，而是把常见的 <code>base + (index &lt;&lt; scale)</code> 地址生成折叠进 load&#x2F;store。这个目标很克制，也容易被 LLVM 的 address selection 接住。</p>
+<h2 id="第二类：比较选择链"><a href="#第二类：比较选择链" class="headerlink" title="第二类：比较选择链"></a>第二类：比较选择链</h2><p>很多整数程序里有这类模式：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">if</span> (x &gt; best) best = x;<br></code></pre></td></tr></table></figure>
+
+<p>RV32I 上可能变成比较、分支、移动或条件路径更新。对双发射来说，这类小控制流会同时带来 branch-data 和 fetch&#x2F;issue 压力。</p>
+<p>RISC-VI 用两组指令覆盖：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">min / max / minu / maxu<br>csel<br></code></pre></td></tr></table></figure>
+
+<p><code>min/max</code> 对应 LLVM 中稳定的 <code>smin/smax/umin/umax</code> 节点，是最自然的编译器落点。<code>csel</code> 覆盖更一般的条件选择，但它带来三源读端口代价。所以它不是“无条件越多越好”，而是要在后续 RTL 中观察收益和压力。</p>
+<h2 id="第三类：边界检查失败分支"><a href="#第三类：边界检查失败分支" class="headerlink" title="第三类：边界检查失败分支"></a>第三类：边界检查失败分支</h2><p>安全访问经常包含：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">if</span> (idx &gt;= len) <span class="hljs-keyword">goto</span> fail;<br>value = <span class="hljs-built_in">array</span>[idx];<br></code></pre></td></tr></table></figure>
+
+<p>或者从正向写法看：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">if</span> (idx &lt; len) &#123;<br>  value = <span class="hljs-built_in">array</span>[idx];<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这类边界检查会把比较、分支和后续地址生成绑在一起。RISC-VI 设计 <code>bchkltu</code>，把失败路径检查稳定编码成单条分支：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">bchkltu idx, len, fail<br></code></pre></td></tr></table></figure>
+
+<p>它的价值是压缩边界检查周边指令，不是消灭分支。后续评测必须继续把它算作 branch，并进入同一预测器口径。</p>
+<h2 id="静态估算能说明什么"><a href="#静态估算能说明什么" class="headerlink" title="静态估算能说明什么"></a>静态估算能说明什么</h2><p>项目中的静态替换估算识别了若干可替换模式，例如：</p>
+<ul>
+<li><code>scaled_index_load_store</code></li>
+<li><code>compare_branch_select</code></li>
+<li><code>bounds_check_indexed_load</code></li>
+</ul>
+<p>项目状态报告在 <code>riscv-vi-research/docs/project_status_report_v02.md:20</code> 记录了这组估算：识别 39 个机会，预计减少 63 条静态指令。这里要注意它是设计输入，不是最终性能结论。</p>
+<p>这些模式支持第一版 RISC-VI 指令选择：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">lwxs / swxs<br>min / max / minu / maxu<br>csel<br>bchkltu<br></code></pre></td></tr></table></figure>
+
+<p>但静态估算不是最终性能结论。它不知道动态执行频率，不知道分支预测状态，不知道 RTL 旁路和读端口限制，也不做完整调度。因此它适合作为 ISA 设计输入，而不是最终胜负证明。</p>
+<h2 id="为什么不加更多指令"><a href="#为什么不加更多指令" class="headerlink" title="为什么不加更多指令"></a>为什么不加更多指令</h2><p>当然，还可以想象很多指令：除法取模融合、load 后 ALU 融合、bit-mix、rotate、复杂字符串操作。但第一阶段不能什么都加。</p>
+<p>一个实验 ISA 的第一版最好满足这些条件：</p>
+<ol>
+<li>LLVM IR&#x2F;DAG 中有稳定模式。</li>
+<li>编码和模拟器实现简单。</li>
+<li>硬件代价可控。</li>
+<li>可以形成端到端闭环。</li>
+<li>收益来源可以被数据解释。</li>
+</ol>
+<p>RISC-VI v0.1 的 8 条指令就是按这个标准收敛出来的。它们不是最华丽的一组，而是最容易建立证据链的一组。</p>
+<h2 id="项目里的验证入口"><a href="#项目里的验证入口" class="headerlink" title="项目里的验证入口"></a>项目里的验证入口</h2><p>项目里有静态依赖报告、静态替换估算和 issue pressure 报告。它们的作用是把“为什么设计这些指令”变成可检查的数据，而不是把读者带进命令细节。真正值得关注的是报告中依赖类型、替换机会和 ISA 设计之间的对应关系。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>这一篇的核心是：RISC-VI 的设计不是从指令表开始，而是从 RV32I 输出里的短距离依赖、地址生成链和分支数据依赖开始。下一篇进入 C 模拟器，看这些 ISA 语义如何变成可执行、可对拍的 reference model。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Computer-Architecture/" class="category-chain-item">Computer Architecture</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/RISC-V/" class="print-no-link">#RISC-V</a>
+      
+        <a href="/tags/RISC-VI/" class="print-no-link">#RISC-VI</a>
+      
+        <a href="/tags/ISA/" class="print-no-link">#ISA</a>
+      
+        <a href="/tags/dependency-analysis/" class="print-no-link">#dependency analysis</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>RISC-VI 研究笔记（六）：用静态依赖数据推导 ISA 设计</div>
+      <div>http://blog.luliang.online/2026/04/18/riscvi-06-data-driven-isa/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年4月18日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/04/19/riscvi-07-simulator-reference-model/" title="RISC-VI 研究笔记（七）：C 模拟器与 reference model">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">RISC-VI 研究笔记（七）：C 模拟器与 reference model</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/04/17/riscvi-05-cross-layer-instruction/" title="RISC-VI 研究笔记（五）：新增一条指令要改多少层">
+                        <span class="hidden-mobile">RISC-VI 研究笔记（五）：新增一条指令要改多少层</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

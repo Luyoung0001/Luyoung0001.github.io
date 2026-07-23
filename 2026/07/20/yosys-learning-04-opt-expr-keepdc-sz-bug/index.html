@@ -1,0 +1,1157 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言Verilog 有四种基本逻辑状态：0、1、x 和 z。前两种很直观，x 可以理解为未知值，但 z 经常被误解成“另一种未知值”。事实上，z 的本意不是一个可以参与计算的数字，而是：这个驱动器现在没有驱动线路。 这个区别直接决定了综合器应当如何处理它： 12x：数据值未知，可能进入普通逻辑表达式z：驱动器释放线路，应当用三态结构表达  对于 Yosys 来说，问题还要再细分一层。RTLIL 的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Yosys 学习笔记（四）：RTLIL 中 z 信号与三态门的处理">
+<meta property="og:url" content="http://blog.luliang.online/2026/07/20/yosys-learning-04-opt-expr-keepdc-sz-bug/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="前言Verilog 有四种基本逻辑状态：0、1、x 和 z。前两种很直观，x 可以理解为未知值，但 z 经常被误解成“另一种未知值”。事实上，z 的本意不是一个可以参与计算的数字，而是：这个驱动器现在没有驱动线路。 这个区别直接决定了综合器应当如何处理它： 12x：数据值未知，可能进入普通逻辑表达式z：驱动器释放线路，应当用三态结构表达  对于 Yosys 来说，问题还要再细分一层。RTLIL 的">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-20T08:03:54.000Z">
+<meta property="article:modified_time" content="2026-07-21T02:50:48.000Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="Verilog">
+<meta property="article:tag" content="Yosys">
+<meta property="article:tag" content="RTLIL">
+<meta property="article:tag" content="ASIC">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>Yosys 学习笔记（四）：RTLIL 中 z 信号与三态门的处理 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Yosys 学习笔记（四）：RTLIL 中 z 信号与三态门的处理"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-20 16:03" pubdate>
+          2026年7月20日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          45 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Yosys 学习笔记（四）：RTLIL 中 z 信号与三态门的处理</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>Verilog 有四种基本逻辑状态：<code>0</code>、<code>1</code>、<code>x</code> 和 <code>z</code>。前两种很直观，<code>x</code> 可以理解为未知值，但 <code>z</code> 经常被误解成“另一种未知值”。事实上，<code>z</code> 的本意不是一个可以参与计算的数字，而是：<strong>这个驱动器现在没有驱动线路。</strong></p>
+<p>这个区别直接决定了综合器应当如何处理它：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">x：数据值未知，可能进入普通逻辑表达式<br>z：驱动器释放线路，应当用三态结构表达<br></code></pre></td></tr></table></figure>
+
+<p>对于 Yosys 来说，问题还要再细分一层。RTLIL 的常量系统确实能够表示 <code>z</code>，内部名字是 <code>State::Sz</code>；经典 Verilog 前端也可能暂时把 <code>z</code> 放在 <code>$mux</code> 的一个输入上。但这不等于 <code>Sz</code> 可以像普通数据位一样进入 <code>$sub</code>、<code>$add</code> 或 <code>$mul</code>。</p>
+<p>本文围绕一条完整的数据路径展开：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">Verilog 中的三态赋值<br>  -&gt; 带 z 输入的 RTLIL $mux<br>  -&gt; tribuf 识别三态模式<br>  -&gt; 字级 $tribuf<br>  -&gt; 逐位 $_TBUF_<br>  -&gt; ASIC 三态单元、I/O PAD，或 FPGA 中的普通逻辑<br></code></pre></td></tr></table></figure>
+
+<p>除了 Yosys 的转换过程，本文还会从 CMOS 晶体管开始解释三态门的物理实现、多驱动总线为什么会冲突、bus keeper 有什么作用，以及为什么“RTLIL 能写 <code>z</code>”与“任意 RTLIL cell 都支持 <code>z</code>”是两件完全不同的事。</p>
+<h2 id="先区分-0、1、x-和-z"><a href="#先区分-0、1、x-和-z" class="headerlink" title="先区分 0、1、x 和 z"></a>先区分 0、1、x 和 z</h2><p>Verilog 的四态值可以先用下面这张表建立直觉：</p>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>Yosys 内部状态</th>
+<th>主要含义</th>
+<th>是否代表普通二进制数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>0</code></td>
+<td><code>State::S0</code></td>
+<td>确定的逻辑低电平</td>
+<td>是</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td><code>State::S1</code></td>
+<td>确定的逻辑高电平</td>
+<td>是</td>
+</tr>
+<tr>
+<td><code>x</code></td>
+<td><code>State::Sx</code></td>
+<td>未知值或 don’t-care</td>
+<td>否，但可以传播进普通表达式</td>
+</tr>
+<tr>
+<td><code>z</code></td>
+<td><code>State::Sz</code></td>
+<td>高阻、未连接或未驱动</td>
+<td>否，主要描述驱动关系</td>
+</tr>
+</tbody></table>
+<p><code>x</code> 和 <code>z</code> 都不是芯片制造出来的一种稳定逻辑电平，但它们表达的抽象不同。</p>
+<h3 id="x-表示不知道数据是什么"><a href="#x-表示不知道数据是什么" class="headerlink" title="x 表示不知道数据是什么"></a>x 表示不知道数据是什么</h3><p>例如：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">wire</span> [<span class="hljs-number">3</span>:<span class="hljs-number">0</span>] value = <span class="hljs-number">4&#x27;b10x1</span>;<br></code></pre></td></tr></table></figure>
+
+<p>这里第三位存在一个驱动者，只是仿真或综合分析无法确定它驱动的是 <code>0</code> 还是 <code>1</code>。</p>
+<h3 id="z-表示这个驱动器没有参与驱动"><a href="#z-表示这个驱动器没有参与驱动" class="headerlink" title="z 表示这个驱动器没有参与驱动"></a>z 表示这个驱动器没有参与驱动</h3><p>例如：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">assign</span> bus = enable ? data : <span class="hljs-number">1&#x27;bz</span>;<br></code></pre></td></tr></table></figure>
+
+<p>当 <code>enable=0</code> 时，并不是有人向 <code>bus</code> 写入了一个名为 <code>z</code> 的数据，而是当前输出级断开，让其他设备有机会驱动 <code>bus</code>。</p>
+<p>因此，下面两句话不能混为一谈：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">bus = x：有人在驱动，但值无法确定<br>bus = z：当前没有有效驱动者<br></code></pre></td></tr></table></figure>
+
+<h2 id="三态门到底是什么"><a href="#三态门到底是什么" class="headerlink" title="三态门到底是什么"></a>三态门到底是什么</h2><p>三态门通常指三态缓冲器。它除了数据输入 <code>A</code> 和输出 <code>Y</code>，还有一个输出使能 <code>E</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">          +----------------+<br>A -------&gt;|                |-------&gt; Y<br>E -------&gt;| 三态缓冲器     |<br>          +----------------+<br></code></pre></td></tr></table></figure>
+
+<p>它的真值表是：</p>
+<table>
+<thead>
+<tr>
+<th align="right"><code>E</code></th>
+<th align="right"><code>A</code></th>
+<th align="right"><code>Y</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right"><code>0</code></td>
+<td align="right"><code>0</code></td>
+<td align="right"><code>z</code></td>
+</tr>
+<tr>
+<td align="right"><code>0</code></td>
+<td align="right"><code>1</code></td>
+<td align="right"><code>z</code></td>
+</tr>
+<tr>
+<td align="right"><code>1</code></td>
+<td align="right"><code>0</code></td>
+<td align="right"><code>0</code></td>
+</tr>
+<tr>
+<td align="right"><code>1</code></td>
+<td align="right"><code>1</code></td>
+<td align="right"><code>1</code></td>
+</tr>
+</tbody></table>
+<p>用 Verilog 表示就是：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">assign</span> Y = E ? A : <span class="hljs-number">1&#x27;bz</span>;<br></code></pre></td></tr></table></figure>
+
+<p>所谓“三态”是指输出级能够表现为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">驱动 0<br>驱动 1<br>高阻 Z<br></code></pre></td></tr></table></figure>
+
+<p><code>x</code> 是仿真中的未知状态，不是三态门的第三种物理输出。</p>
+<h2 id="CMOS-如何实现三态门"><a href="#CMOS-如何实现三态门" class="headerlink" title="CMOS 如何实现三态门"></a>CMOS 如何实现三态门</h2><p>先看普通 CMOS 反相器：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs text"> VDD<br>  |<br>PMOS<br>  |<br>  +------ Y<br>  |<br>NMOS<br>  |<br> GND<br></code></pre></td></tr></table></figure>
+
+<p>输入为 <code>0</code> 时，PMOS 导通，把 <code>Y</code> 拉向 <code>VDD</code>；输入为 <code>1</code> 时，NMOS 导通，把 <code>Y</code> 拉向 <code>GND</code>。正常情况下，输出总有一条有效的上拉或下拉路径。</p>
+<p>三态反相器会在上拉、下拉路径中各增加一个使能晶体管：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs text">        VDD<br>         |<br>P_EN，门极接 E_N<br>         |<br> P_A，门极接 A<br>         |<br>         +------ Y<br>         |<br> N_A，门极接 A<br>         |<br>N_EN，门极接 E<br>         |<br>        GND<br></code></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">E_N = ~E<br></code></pre></td></tr></table></figure>
+
+<p>当 <code>E=1</code> 时：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">P_EN 导通<br>N_EN 导通<br>电路表现为普通反相器<br>Y = ~A<br></code></pre></td></tr></table></figure>
+
+<p>当 <code>E=0</code> 时：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">P_EN 关闭<br>N_EN 关闭<br>Y 到 VDD 的路径断开<br>Y 到 GND 的路径也断开<br></code></pre></td></tr></table></figure>
+
+<p>此时 <code>Y</code> 就是高阻状态。非反相三态缓冲器可以在前面增加一级反相器，或者用标准单元库中经过优化的等效晶体管结构实现。</p>
+<p>最重要的物理认识是：</p>
+<blockquote>
+<p><code>Z</code> 不是第三种电压，而是输出级同时关闭上拉和下拉。</p>
+</blockquote>
+<h2 id="驱动器输出-z，不一定代表整根线悬空"><a href="#驱动器输出-z，不一定代表整根线悬空" class="headerlink" title="驱动器输出 z，不一定代表整根线悬空"></a>驱动器输出 z，不一定代表整根线悬空</h2><p>假设两个三态缓冲器连接到同一根总线：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">data_a -&gt; TBUF_A --+<br>                   +---- BUS<br>data_b -&gt; TBUF_B --+<br></code></pre></td></tr></table></figure>
+
+<p>对应 Verilog：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">wire</span> bus;<br><br><span class="hljs-keyword">assign</span> bus = enable_a ? data_a : <span class="hljs-number">1&#x27;bz</span>;<br><span class="hljs-keyword">assign</span> bus = enable_b ? data_b : <span class="hljs-number">1&#x27;bz</span>;<br></code></pre></td></tr></table></figure>
+
+<p>如果 A 输出 <code>z</code>、B 输出 <code>1</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">TBUF_A：释放总线<br>TBUF_B：驱动总线为 1<br>最终 BUS = 1<br></code></pre></td></tr></table></figure>
+
+<p>只有在所有驱动器都输出 <code>z</code>，并且线路上也没有上拉、下拉或 bus keeper 时，整根总线才真正浮空。</p>
+<table>
+<thead>
+<tr>
+<th align="right">A 驱动</th>
+<th align="right">B 驱动</th>
+<th align="right">总线结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right"><code>z</code></td>
+<td align="right"><code>z</code></td>
+<td align="right"><code>z</code>，可能浮空</td>
+</tr>
+<tr>
+<td align="right"><code>0</code></td>
+<td align="right"><code>z</code></td>
+<td align="right"><code>0</code></td>
+</tr>
+<tr>
+<td align="right"><code>z</code></td>
+<td align="right"><code>1</code></td>
+<td align="right"><code>1</code></td>
+</tr>
+<tr>
+<td align="right"><code>0</code></td>
+<td align="right"><code>0</code></td>
+<td align="right"><code>0</code></td>
+</tr>
+<tr>
+<td align="right"><code>1</code></td>
+<td align="right"><code>1</code></td>
+<td align="right"><code>1</code></td>
+</tr>
+<tr>
+<td align="right"><code>0</code></td>
+<td align="right"><code>1</code></td>
+<td align="right"><code>x</code>，存在驱动冲突</td>
+</tr>
+</tbody></table>
+<p>最后一行在真实芯片中尤其危险。一个驱动器试图通过上拉网络连接 <code>VDD</code>，另一个驱动器试图通过下拉网络连接 <code>GND</code>，可能形成近似直通电流：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">VDD<br>  -&gt; 驱动器 A 的上拉晶体管<br>  -&gt; BUS<br>  -&gt; 驱动器 B 的下拉晶体管<br>  -&gt; GND<br></code></pre></td></tr></table></figure>
+
+<p>这会带来大电流、IR drop、电迁移和不确定电压。因此共享三态总线必须保证输出使能互斥，并在驱动权切换时采用 break-before-make：先关闭旧驱动器，再开启新驱动器。</p>
+<h2 id="为什么-ASIC-还需要-bus-keeper"><a href="#为什么-ASIC-还需要-bus-keeper" class="headerlink" title="为什么 ASIC 还需要 bus keeper"></a>为什么 ASIC 还需要 bus keeper</h2><p>所有驱动器都关闭后，线路上的寄生电容可能暂时保留上一次电平，但漏电和噪声会让电压逐渐漂移。浮空输入还可能停留在 CMOS 门的中间电压区间，使 PMOS、NMOS 同时部分导通，增加静态功耗。</p>
+<p>ASIC 中常加入驱动能力很弱的 bus keeper：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">BUS -&gt; 弱反馈结构 -&gt; BUS<br></code></pre></td></tr></table></figure>
+
+<p>它会弱保持总线最近一次的逻辑值：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">总线最后是 1 -&gt; 弱保持为 1<br>总线最后是 0 -&gt; 弱保持为 0<br></code></pre></td></tr></table></figure>
+
+<p>正常三态驱动器开启后，驱动能力远大于 keeper，可以覆盖它。keeper 解决的是“无人驱动时如何避免浮空”，不能解决多个强驱动器互相冲突的问题。</p>
+<h2 id="Verilog-中-z-的三种不同语境"><a href="#Verilog-中-z-的三种不同语境" class="headerlink" title="Verilog 中 z 的三种不同语境"></a>Verilog 中 z 的三种不同语境</h2><p>同一个字符 <code>z</code> 出现在不同语法位置时，含义可能不同。</p>
+<h3 id="合法的三态驱动模式"><a href="#合法的三态驱动模式" class="headerlink" title="合法的三态驱动模式"></a>合法的三态驱动模式</h3><figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">assign</span> bus = output_enable ? output_data : <span class="hljs-number">1&#x27;bz</span>;<br></code></pre></td></tr></table></figure>
+
+<p>这里 <code>z</code> 表示释放线路，综合器应识别出三态缓冲器。</p>
+<h3 id="casez-中的匹配通配符"><a href="#casez-中的匹配通配符" class="headerlink" title="casez 中的匹配通配符"></a>casez 中的匹配通配符</h3><figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">casez</span> (opcode)<br>    <span class="hljs-number">4&#x27;b10</span>??: result = a;<br>    <span class="hljs-number">4&#x27;b01</span>??: result = b;<br><span class="hljs-keyword">endcase</span><br></code></pre></td></tr></table></figure>
+
+<p>在 case pattern 的语境中，<code>z</code> 或 <code>?</code> 可以参与 don’t-care 匹配。这不是在构造三态硬件。</p>
+<h3 id="不应使用的普通算术操作数"><a href="#不应使用的普通算术操作数" class="headerlink" title="不应使用的普通算术操作数"></a>不应使用的普通算术操作数</h3><figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">assign</span> y = <span class="hljs-number">4&#x27;b1111</span> - <span class="hljs-number">4&#x27;b00z0</span>;<br></code></pre></td></tr></table></figure>
+
+<p><code>z</code> 不是一个数位，不能解释成一个确定的二进制整数。可综合 Verilog 只定义少数三态驱动形态，不应把 <code>z</code> 当普通数据参与加减乘除等表达式。</p>
+<p>因此阅读含 <code>z</code> 的代码时，第一件事不是问“它会变成几个 <code>x</code>”，而是先问：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">这里是在描述一个驱动器释放线路，<br>还是错误地把高阻状态当成了数据？<br></code></pre></td></tr></table></figure>
+
+<h2 id="RTLIL-确实能够表示-z"><a href="#RTLIL-确实能够表示-z" class="headerlink" title="RTLIL 确实能够表示 z"></a>RTLIL 确实能够表示 z</h2><p>RTLIL 文本常量允许使用：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">0  1  x  z  m  -<br></code></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">1&#x27;z<br>4&#x27;zzzz<br>8&#x27;0000zzzz<br></code></pre></td></tr></table></figure>
+
+<p>在 Yosys C++ 数据结构中，它们对应：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs cpp">State::S0<br>State::S1<br>State::Sx<br>State::Sz<br></code></pre></td></tr></table></figure>
+
+<p>其中 <code>State::Sz</code> 的含义是 high-impedance &#x2F; not-connected。</p>
+<p>但是必须区分两个命题：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">命题一：RTLIL 的 SigBit 和 Const 可以保存 Sz。<br>命题二：每一种 RTLIL cell 都接受 Sz 作为合法操作数。<br></code></pre></td></tr></table></figure>
+
+<p>命题一成立，命题二不成立。<code>Sz</code> 对三态驱动、未连接状态和特定 pattern 有意义，但它不是 <code>$sub</code>、<code>$mul</code> 等普通算术 cell 的常规输入域。</p>
+<p>手工写出下面的 RTLIL 在语法上可以被解析：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs text">cell $sub \invalid_sub<br>  parameter \A_WIDTH 4<br>  parameter \B_WIDTH 4<br>  parameter \Y_WIDTH 4<br>  parameter \A_SIGNED 0<br>  parameter \B_SIGNED 0<br>  connect \A 4&#x27;1111<br>  connect \B 4&#x27;00z0<br>  connect \Y \y<br>end<br></code></pre></td></tr></table></figure>
+
+<p>但“解析器能装进数据结构”并不等于“这种 cell 组合属于综合流程承诺支持的语义”。正确的三态结构应当由专门的 <code>$tribuf</code> 或 <code>$_TBUF_</code> 表达。</p>
+<h2 id="一个完整的-Yosys-三态实验"><a href="#一个完整的-Yosys-三态实验" class="headerlink" title="一个完整的 Yosys 三态实验"></a>一个完整的 Yosys 三态实验</h2><p>使用下面这个四位三态端口：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">module</span> tristate_demo(<br>    <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span>       oe,<br>    <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span> [<span class="hljs-number">3</span>:<span class="hljs-number">0</span>] data,<br>    <span class="hljs-keyword">inout</span>  <span class="hljs-keyword">wire</span> [<span class="hljs-number">3</span>:<span class="hljs-number">0</span>] bus<br>);<br>    <span class="hljs-keyword">assign</span> bus = oe ? data : <span class="hljs-number">4&#x27;bzzzz</span>;<br><span class="hljs-keyword">endmodule</span><br></code></pre></td></tr></table></figure>
+
+<p>准备脚本，分别保存三个阶段的 RTLIL：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs text">read_verilog tristate_demo.v<br>hierarchy -check -top tristate_demo<br>write_rtlil tristate_01_read.il<br><br>tribuf<br>write_rtlil tristate_02_tribuf.il<br><br>simplemap<br>write_rtlil tristate_03_simplemap.il<br><br>select -assert-count 4 t:$_TBUF_<br>select -assert-none t:$mux t:$tribuf<br></code></pre></td></tr></table></figure>
+
+<p>运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">yosys -Q -l tristate_demo.log tristate_demo.ys<br></code></pre></td></tr></table></figure>
+
+<p>经典 Verilog 前端会给出一条提醒：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">Warning: Yosys has only limited support for tri-state logic at the moment.<br></code></pre></td></tr></table></figure>
+
+<p>这不是说简单三态缓冲器一定无法综合，而是提醒使用者：复杂多驱动解析、内部三态和目标器件支持都有边界，应当检查最终网表。</p>
+<h2 id="第一阶段：前端先生成带-z-输入的-mux"><a href="#第一阶段：前端先生成带-z-输入的-mux" class="headerlink" title="第一阶段：前端先生成带 z 输入的 $mux"></a>第一阶段：前端先生成带 z 输入的 <code>$mux</code></h2><p>刚执行完 <code>read_verilog</code> 后，关键 RTLIL 是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs text">cell $mux $ternary$1<br>  parameter \WIDTH 4<br>  connect \A 4&#x27;zzzz<br>  connect \B \data<br>  connect \S \oe<br>  connect \Y $ternary$1_Y<br>end<br><br>connect \bus $ternary$1_Y<br></code></pre></td></tr></table></figure>
+
+<p>这是三目运算符的直接结构化表示：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">oe = 0 -&gt; 选择 A = zzzz<br>oe = 1 -&gt; 选择 B = data<br></code></pre></td></tr></table></figure>
+
+<p>所以“<code>z</code> 不应该出现在任何 RTLIL 中”是不准确的。当前经典前端生成的中间 RTLIL 里，<code>Sz</code> 可以暂时存在于 <code>$mux</code> 输入；关键是后续 pass 要识别这个受支持的三态语法形状，不让它继续被当作普通数据传播。</p>
+<h2 id="第二阶段：tribuf-把模式变成-tribuf"><a href="#第二阶段：tribuf-把模式变成-tribuf" class="headerlink" title="第二阶段：tribuf 把模式变成 $tribuf"></a>第二阶段：<code>tribuf</code> 把模式变成 <code>$tribuf</code></h2><p>执行：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">tribuf<br></code></pre></td></tr></table></figure>
+
+<p>之后，RTLIL 变为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs text">cell $tribuf $ternary$1<br>  parameter \WIDTH 4<br>  connect \A \data<br>  connect \EN \oe<br>  connect \Y $ternary$1_Y<br>end<br><br>connect \bus $ternary$1_Y<br></code></pre></td></tr></table></figure>
+
+<p><code>$tribuf</code> 是字级三态缓冲器：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">输入：A[WIDTH-1:0]<br>使能：EN<br>输出：Y[WIDTH-1:0]<br></code></pre></td></tr></table></figure>
+
+<p>它定义的函数是：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">assign</span> Y = EN ? A : <span class="hljs-number">&#x27;bz</span>;<br></code></pre></td></tr></table></figure>
+
+<p>现在 <code>z</code> 的语义不再藏在一个普通 <code>$mux</code> 输入里，而是由 cell 类型明确表达：“<code>EN=0</code> 时不驱动输出”。</p>
+<h2 id="tribuf-是怎样识别模式的"><a href="#tribuf-是怎样识别模式的" class="headerlink" title="tribuf 是怎样识别模式的"></a><code>tribuf</code> 是怎样识别模式的</h2><p><code>tribuf</code> pass 会检查 <code>$mux</code> 和 <code>$_MUX_</code> 的两个数据输入。</p>
+<p>逻辑可以概括为：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">if</span> (A 全部是 z &amp;&amp; B 全部是 z) &#123;<br>    删除 mux;<br>&#125;<br><br><span class="hljs-keyword">if</span> (A 全部是 z) &#123;<br>    data   = B;<br>    enable = S;<br>    mux    -&gt; tribuf;<br>&#125;<br><br><span class="hljs-keyword">if</span> (B 全部是 z) &#123;<br>    data   = A;<br>    enable = ~S;<br>    mux    -&gt; tribuf;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>为什么第二、第三种情况的使能极性不同？因为 <code>$mux</code> 的基本语义是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">S=0 -&gt; Y=A<br>S=1 -&gt; Y=B<br></code></pre></td></tr></table></figure>
+
+<p>若 <code>A=z</code>，只有 <code>S=1</code> 时才选择有效数据 <code>B</code>，所以 <code>enable=S</code>。若 <code>B=z</code>，只有 <code>S=0</code> 时才选择有效数据 <code>A</code>，所以 <code>enable=~S</code>。</p>
+<p>这个识别过程依赖语法形状，因此三态驱动最好写成清晰、常见的形式：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">assign</span> bus = oe ? data : &#x27;z;<br></code></pre></td></tr></table></figure>
+
+<p>不要把 <code>z</code> 嵌入复杂算术或经过多层难以恢复的组合表达式。</p>
+<h2 id="第三阶段：simplemap-拆成逐位-TBUF"><a href="#第三阶段：simplemap-拆成逐位-TBUF" class="headerlink" title="第三阶段：simplemap 拆成逐位 $_TBUF_"></a>第三阶段：<code>simplemap</code> 拆成逐位 <code>$_TBUF_</code></h2><p><code>$tribuf</code> 是字级 cell，而 <code>$_TBUF_</code> 是单比特内部 cell。执行：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">simplemap<br></code></pre></td></tr></table></figure>
+
+<p>四位 <code>$tribuf</code> 会被拆成四个 <code>$_TBUF_</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs text">cell $_TBUF_ $tbuf0<br>  connect \A \data [0]<br>  connect \E \oe<br>  connect \Y $ternary$1_Y [0]<br>end<br><br>cell $_TBUF_ $tbuf1<br>  connect \A \data [1]<br>  connect \E \oe<br>  connect \Y $ternary$1_Y [1]<br>end<br><br>cell $_TBUF_ $tbuf2<br>  connect \A \data [2]<br>  connect \E \oe<br>  connect \Y $ternary$1_Y [2]<br>end<br><br>cell $_TBUF_ $tbuf3<br>  connect \A \data [3]<br>  connect \E \oe<br>  connect \Y $ternary$1_Y [3]<br>end<br></code></pre></td></tr></table></figure>
+
+<p>两种 cell 的对应关系是：</p>
+<table>
+<thead>
+<tr>
+<th>cell</th>
+<th>粒度</th>
+<th>数据端口</th>
+<th>使能端口</th>
+<th>输出端口</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>$tribuf</code></td>
+<td>字级、参数化宽度</td>
+<td><code>A</code></td>
+<td><code>EN</code></td>
+<td><code>Y</code></td>
+</tr>
+<tr>
+<td><code>$_TBUF_</code></td>
+<td>单比特</td>
+<td><code>A</code></td>
+<td><code>E</code></td>
+<td><code>Y</code></td>
+</tr>
+</tbody></table>
+<p>脚本最后两条结构断言：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">select -assert-count 4 t:$_TBUF_<br>select -assert-none t:$mux t:$tribuf<br></code></pre></td></tr></table></figure>
+
+<p>证明最终恰好存在四个逐位三态缓冲器，而且原来的 <code>$mux</code> 和字级 <code>$tribuf</code> 都已消失。</p>
+<h2 id="tribuf-的四种工作模式"><a href="#tribuf-的四种工作模式" class="headerlink" title="tribuf 的四种工作模式"></a><code>tribuf</code> 的四种工作模式</h2><p><code>tribuf</code> pass 除了识别基本模式，还有三个重要选项：</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>tribuf</code></td>
+<td>把带全 <code>z</code> 输入的 mux 转成三态 buffer</td>
+</tr>
+<tr>
+<td><code>tribuf -merge</code></td>
+<td>合并驱动同一网络的多个三态 buffer</td>
+</tr>
+<tr>
+<td><code>tribuf -logic</code></td>
+<td>将不驱动模块输出端口的内部三态转换成普通逻辑，并隐含 <code>-merge</code></td>
+</tr>
+<tr>
+<td><code>tribuf -formal</code></td>
+<td>将所有三态转换成普通逻辑，并加入多驱动互斥断言，也隐含 <code>-merge</code></td>
+</tr>
+</tbody></table>
+<h3 id="merge：合并多个三态驱动器"><a href="#merge：合并多个三态驱动器" class="headerlink" title="-merge：合并多个三态驱动器"></a><code>-merge</code>：合并多个三态驱动器</h3><p>多个三态 buffer 驱动同一网络时，<code>-merge</code> 会收集它们的数据和使能，用 <code>$pmux</code> 表示“哪个驱动器被选中”，再用所有使能的 OR 表示合并后三态 buffer 的总使能。</p>
+<p>概念上：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">TBUF(data_a, en_a) --+<br>                      +-- BUS<br>TBUF(data_b, en_b) --+<br></code></pre></td></tr></table></figure>
+
+<p>变为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">selected_data = pmux(x, &#123;data_a, data_b&#125;, &#123;en_a, en_b&#125;)<br>any_enable    = en_a | en_b<br>BUS           = any_enable ? selected_data : z<br></code></pre></td></tr></table></figure>
+
+<p>这里默认数据使用 <code>x</code>，因为没有驱动器使能时，数据端是什么已经不重要，真正决定输出高阻的是 <code>any_enable=0</code>。</p>
+<h3 id="logic：消除内部三态"><a href="#logic：消除内部三态" class="headerlink" title="-logic：消除内部三态"></a><code>-logic</code>：消除内部三态</h3><p>很多目标器件不支持芯片内部三态网络。<code>tribuf -logic</code> 会把不直接驱动模块输出端口的三态结构变成 mux 等普通逻辑。仍然需要输出高阻的顶层端口可以保留三态结构，交给 I&#x2F;O 映射处理。</p>
+<h3 id="formal：把总线仲裁条件变成断言"><a href="#formal：把总线仲裁条件变成断言" class="headerlink" title="-formal：把总线仲裁条件变成断言"></a><code>-formal</code>：把总线仲裁条件变成断言</h3><p>形式验证工具更适合处理普通逻辑，而不是物理高阻和多驱动解析。<code>tribuf -formal</code> 会删除三态 cell，建立 mux 逻辑，并为驱动冲突加入 <code>$assert</code>。</p>
+<p>对于两个驱动器，核心约束相当于：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">assert(!(en_a &amp;&amp; en_b));<br></code></pre></td></tr></table></figure>
+
+<p>也就是任何时候都不能同时启用两个驱动器。</p>
+<h2 id="用-tribuf-formal-检查多驱动冲突"><a href="#用-tribuf-formal-检查多驱动冲突" class="headerlink" title="用 tribuf -formal 检查多驱动冲突"></a>用 <code>tribuf -formal</code> 检查多驱动冲突</h2><p>准备一个共享总线例子：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">module</span> shared_bus_demo(<br>    <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span> en_a,<br>    <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span> en_b,<br>    <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span> a,<br>    <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span> b,<br>    <span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span> bus<br>);<br>    <span class="hljs-keyword">assign</span> bus = en_a ? a : <span class="hljs-number">1&#x27;bz</span>;<br>    <span class="hljs-keyword">assign</span> bus = en_b ? b : <span class="hljs-number">1&#x27;bz</span>;<br><span class="hljs-keyword">endmodule</span><br></code></pre></td></tr></table></figure>
+
+<p>运行：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs text">read_verilog shared_bus_demo.v<br>hierarchy -check -top shared_bus_demo<br>tribuf -formal<br>stat<br>write_rtlil shared_bus_formal.il<br><br>select -assert-none t:$tribuf t:$_TBUF_<br>select -assert-count 2 t:$assert<br></code></pre></td></tr></table></figure>
+
+<p>这个两驱动例子的实际结构统计是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">9 cells<br>2   $and<br>2   $assert<br>2   $not<br>1   $pmux<br>2   $reduce_or<br></code></pre></td></tr></table></figure>
+
+<p>三态 cell 已经全部消失，变成选择数据的 <code>$pmux</code> 和检查冲突的组合逻辑。当前实现按每个驱动器生成一条局部冲突断言，所以两个驱动器得到两个等价方向的 <code>$assert</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">驱动器 A 开启时，其他驱动器不能开启<br>驱动器 B 开启时，其他驱动器不能开启<br></code></pre></td></tr></table></figure>
+
+<p>这比单纯在仿真中等待 <code>bus=x</code> 更主动，因为仲裁错误被提升成了可以由形式工具证明的设计约束。</p>
+<h2 id="opt-expr-如何优化专用三态-cell"><a href="#opt-expr-如何优化专用三态-cell" class="headerlink" title="opt_expr 如何优化专用三态 cell"></a><code>opt_expr</code> 如何优化专用三态 cell</h2><p>三态结构进入 <code>$tribuf</code> 或 <code>$_TBUF_</code> 后，<code>opt_expr</code> 可以根据使能常量进行安全化简。</p>
+<h3 id="使能恒为-1"><a href="#使能恒为-1" class="headerlink" title="使能恒为 1"></a>使能恒为 1</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">E = 1<br>Y = E ? A : z<br></code></pre></td></tr></table></figure>
+
+<p>此时驱动器永远开启：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">Y = A<br></code></pre></td></tr></table></figure>
+
+<p><code>opt_expr</code> 可以把三态 cell 替换为直接连接并删除 cell。</p>
+<h3 id="使能恒为-0"><a href="#使能恒为-0" class="headerlink" title="使能恒为 0"></a>使能恒为 0</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">E = 0<br>Y = E ? A : z<br></code></pre></td></tr></table></figure>
+
+<p>数据端 <code>A</code> 永远不会影响输出。Yosys 可以把 <code>A</code> 改成不确定常量以消除无意义的数据依赖，但仍要保留“该驱动器不驱动线路”的三态结构，直到后续 pass 根据目标流程处理它。</p>
+<p>这说明专用 cell 的价值不仅是名字更清楚。它把数据 <code>A</code>、输出使能 <code>E</code> 和高阻行为分开，使优化器能够在不混淆 <code>x</code> 与 <code>z</code> 的前提下处理常量条件。</p>
+<h2 id="ASIC-标准单元如何描述三态输出"><a href="#ASIC-标准单元如何描述三态输出" class="headerlink" title="ASIC 标准单元如何描述三态输出"></a>ASIC 标准单元如何描述三态输出</h2><p>ASIC 标准单元库通常提供类似下面的单元：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">TBUF_X1<br>TBUF_X4<br>BUFT<br>INVZ<br></code></pre></td></tr></table></figure>
+
+<p>在 Liberty 中，一个非反相三态缓冲器可以概念化地描述为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs text">cell (TBUF_X1) &#123;<br>    pin (A) &#123;<br>        direction : input;<br>    &#125;<br><br>    pin (OE) &#123;<br>        direction : input;<br>    &#125;<br><br>    pin (Y) &#123;<br>        direction   : output;<br>        function    : &quot;A&quot;;<br>        three_state : &quot;!OE&quot;;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里要注意 <code>three_state</code> 表达式描述的是“什么时候输出为高阻”：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">OE=0 -&gt; !OE=1 -&gt; Y 进入高阻<br>OE=1 -&gt; !OE=0 -&gt; Y 按 function=A 驱动<br></code></pre></td></tr></table></figure>
+
+<p>Yosys 读取带 <code>three_state</code> 属性的 Liberty 输出引脚时，可以建立 <code>$tribuf</code> 结构，把库单元的高阻条件纳入 RTLIL 表示。</p>
+<p>真正使用哪一种晶体管拓扑、尺寸和驱动强度，由工艺库提供者完成。综合和物理实现关注的是选择合适的标准单元、检查负载和时序，而不是在 RTL 中手工搭 PMOS、NMOS。</p>
+<h2 id="I-O-PAD-中的三态"><a href="#I-O-PAD-中的三态" class="headerlink" title="I&#x2F;O PAD 中的三态"></a>I&#x2F;O PAD 中的三态</h2><p>三态最常见、也最自然的使用场景是芯片双向引脚：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">module</span> gpio(<br>    <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span> data_out,<br>    <span class="hljs-keyword">input</span>  <span class="hljs-keyword">wire</span> output_enable,<br>    <span class="hljs-keyword">output</span> <span class="hljs-keyword">wire</span> data_in,<br>    <span class="hljs-keyword">inout</span>  <span class="hljs-keyword">wire</span> pad<br>);<br>    <span class="hljs-keyword">assign</span> pad = output_enable ? data_out : <span class="hljs-number">1&#x27;bz</span>;<br>    <span class="hljs-keyword">assign</span> data_in = pad;<br><span class="hljs-keyword">endmodule</span><br></code></pre></td></tr></table></figure>
+
+<p>行为是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">output_enable=1：芯片驱动 pad<br>output_enable=0：输出级断开，外部设备可以驱动 pad<br>data_in：始终通过输入接收器观察 pad<br></code></pre></td></tr></table></figure>
+
+<p>Yosys 的 I&#x2F;O pad 映射可以把 <code>$_TBUF_</code> 合并到输出或双向 pad cell 中。相关映射通常需要指定：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">输出使能端口<br>芯片内部的数据输入端口<br>从 pad 返回的输入数据端口<br>外部 PAD 端口<br></code></pre></td></tr></table></figure>
+
+<p>例如某个 FPGA&#x2F;ASIC 库可能最终使用 <code>OBUFT</code>、<code>IOBUF</code>、<code>TRIBUFF</code> 或工艺专用 PAD 单元。名称不同，但核心仍是“数据 + 输出使能 + 可选输入接收器”。</p>
+<h2 id="FPGA-为什么经常消除内部三态"><a href="#FPGA-为什么经常消除内部三态" class="headerlink" title="FPGA 为什么经常消除内部三态"></a>FPGA 为什么经常消除内部三态</h2><p>大多数现代 FPGA 的内部互连由固定的可编程交换网络组成，不支持任意内部线路真正进入高阻。因此内部三态通常会被转换成 mux 或普通逻辑：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">多个内部三态驱动器<br>  -&gt; 合并使能和数据<br>  -&gt; mux / pmux<br>  -&gt; FPGA LUT 与布线资源<br></code></pre></td></tr></table></figure>
+
+<p>常见流程会调用：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">tribuf -logic<br>deminout<br></code></pre></td></tr></table></figure>
+
+<p><code>tribuf -logic</code> 消除不需要保留到模块输出的内部三态，<code>deminout</code> 则根据实际驱动关系处理不再需要双向语义的端口。</p>
+<p>芯片顶层 I&#x2F;O 仍可能支持真正的输出高阻，所以三态结构可以保留到 I&#x2F;O 映射阶段，再变成器件提供的 <code>OBUFT</code> 或 <code>IOBUF</code>。</p>
+<p>可以把 ASIC 与 FPGA 的常见策略对比为：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>常见实现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ASIC 内部共享总线</td>
+<td>可以使用三态标准单元，但需严格检查仲裁、STA 和 DFT</td>
+</tr>
+<tr>
+<td>ASIC 双向 PAD</td>
+<td>映射到带输出使能的 I&#x2F;O PAD</td>
+</tr>
+<tr>
+<td>FPGA 内部三态</td>
+<td>通常转换为 mux&#x2F;LUT 逻辑</td>
+</tr>
+<tr>
+<td>FPGA 顶层三态</td>
+<td>映射到器件 I&#x2F;O buffer</td>
+</tr>
+</tbody></table>
+<h2 id="为什么-Sz-不应成为算术-cell-的普通输入"><a href="#为什么-Sz-不应成为算术-cell-的普通输入" class="headerlink" title="为什么 Sz 不应成为算术 cell 的普通输入"></a>为什么 Sz 不应成为算术 cell 的普通输入</h2><p>现在可以重新审视下面两个例子。</p>
+<h3 id="Sx-进入算术表达式"><a href="#Sx-进入算术表达式" class="headerlink" title="Sx 进入算术表达式"></a><code>Sx</code> 进入算术表达式</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">A = 4&#x27;b00x0<br>Y = A - 4&#x27;b0001<br></code></pre></td></tr></table></figure>
+
+<p>这里有人驱动 <code>A</code>，只是其中一位无法确定。<code>Sx</code> 作为 unknown&#x2F;don’t-care 在普通表达式中传播，是综合器需要处理的内部情况。</p>
+<h3 id="Sz-进入算术表达式"><a href="#Sz-进入算术表达式" class="headerlink" title="Sz 进入算术表达式"></a><code>Sz</code> 进入算术表达式</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">A = 4&#x27;b00z0<br>Y = A - 4&#x27;b0001<br></code></pre></td></tr></table></figure>
+
+<p>这里的问题不是“这一位到底算 0 还是 1”，而是“谁在驱动这一位”。在完成驱动解析之前，把高阻直接交给减法器没有合理的硬件含义。</p>
+<p>正确的建模层次应当是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">多个驱动器及其 enable<br>  -&gt; 三态 buffer / 驱动解析<br>  -&gt; 得到真正被接收的 0、1 或未知数据<br>  -&gt; 再进入普通组合逻辑<br></code></pre></td></tr></table></figure>
+
+<p>而不是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">把 z 当成一个二进制数位<br>  -&gt; 直接送进 $sub<br></code></pre></td></tr></table></figure>
+
+<p>所以，RTLIL 中存在 <code>State::Sz</code> 并不意味着所有优化 pass 都应该为“任意 cell 输入含 <code>Sz</code>”定义完整语义。更稳固的设计边界是：合法三态模式尽早规范化成 <code>$tribuf</code> 或 <code>$_TBUF_</code>，普通算术 cell 只处理符合其输入约定的数据。</p>
+<h2 id="keepdc-与三态不是同一个问题"><a href="#keepdc-与三态不是同一个问题" class="headerlink" title="-keepdc 与三态不是同一个问题"></a><code>-keepdc</code> 与三态不是同一个问题</h2><p><code>opt_expr -keepdc</code> 用于限制那些会改变 don’t-care 传播方式的优化。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">A + 0 -&gt; A<br></code></pre></td></tr></table></figure>
+
+<p>在二值逻辑中成立，但如果 <code>A</code> 含 <code>x</code>，直接连接与算术 cell 可能呈现不同的全宽 unknown 传播。<code>-keepdc</code> 会阻止相关优化改变这种行为。</p>
+<p>但 <code>-keepdc</code> 不会把一个不应出现的 <code>Sz</code> 算术操作数自动变成受支持输入，也不会替代三态模式识别。两个概念的关注点不同：</p>
+<table>
+<thead>
+<tr>
+<th>机制</th>
+<th>关注的问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>-keepdc</code></td>
+<td>普通表达式优化是否保留 <code>x</code>&#x2F;don’t-care 行为</td>
+</tr>
+<tr>
+<td><code>$tribuf</code> &#x2F; <code>$_TBUF_</code></td>
+<td>某个驱动器是否正在驱动线路</td>
+</tr>
+<tr>
+<td><code>tribuf -formal</code></td>
+<td>多个三态驱动器是否违反互斥条件</td>
+</tr>
+</tbody></table>
+<p>把 <code>x</code> 与 <code>z</code> 都叫作 undef 很方便，但在设计三态总线和阅读 RTLIL 时，必须保留这层语义区别。</p>
+<h2 id="调试-RTLIL-三态结构的实用方法"><a href="#调试-RTLIL-三态结构的实用方法" class="headerlink" title="调试 RTLIL 三态结构的实用方法"></a>调试 RTLIL 三态结构的实用方法</h2><h3 id="观察前端是否生成带-z-的-mux"><a href="#观察前端是否生成带-z-的-mux" class="headerlink" title="观察前端是否生成带 z 的 mux"></a>观察前端是否生成带 z 的 mux</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">read_verilog design.v<br>write_rtlil before_tribuf.il<br>select -list t:$mux<br></code></pre></td></tr></table></figure>
+
+<p>在 RTLIL 中搜索：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">connect \A ...&#x27;zzzz<br>connect \B ...&#x27;zzzz<br></code></pre></td></tr></table></figure>
+
+<h3 id="检查-tribuf-是否完成识别"><a href="#检查-tribuf-是否完成识别" class="headerlink" title="检查 tribuf 是否完成识别"></a>检查 <code>tribuf</code> 是否完成识别</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">tribuf<br>write_rtlil after_tribuf.il<br>select -list t:$tribuf<br></code></pre></td></tr></table></figure>
+
+<p>理想情况下，受支持的三态赋值应从带 <code>z</code> 输入的 <code>$mux</code> 变成 <code>$tribuf</code>。</p>
+<h3 id="检查逐位映射"><a href="#检查逐位映射" class="headerlink" title="检查逐位映射"></a>检查逐位映射</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">simplemap<br>select -list t:$_TBUF_<br>stat<br></code></pre></td></tr></table></figure>
+
+<p>一个 <code>N</code> 位 <code>$tribuf</code> 通常会产生 <code>N</code> 个 <code>$_TBUF_</code>。</p>
+<h3 id="检查内部三态是否被消除"><a href="#检查内部三态是否被消除" class="headerlink" title="检查内部三态是否被消除"></a>检查内部三态是否被消除</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">tribuf -logic<br>deminout<br>stat<br></code></pre></td></tr></table></figure>
+
+<p>具体是否保留顶层三态取决于端口位置和目标架构。</p>
+<h3 id="把冲突变成形式断言"><a href="#把冲突变成形式断言" class="headerlink" title="把冲突变成形式断言"></a>把冲突变成形式断言</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">tribuf -formal<br>select -list t:$assert<br>write_rtlil formalized.il<br></code></pre></td></tr></table></figure>
+
+<p>如果设计依赖“所有输出使能永不同时为 1”，就应当让这个条件成为可验证的显式性质，而不是只依赖仿真中偶尔出现的 <code>x</code>。</p>
+<h2 id="一张图总结整个处理边界"><a href="#一张图总结整个处理边界" class="headerlink" title="一张图总结整个处理边界"></a>一张图总结整个处理边界</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs text">Verilog：assign bus = oe ? data : &#x27;z<br>                |<br>                v<br>前端 RTLIL：$mux(A=&#x27;z, B=data, S=oe)<br>                |<br>                | tribuf<br>                v<br>字级结构：$tribuf(A=data, EN=oe, Y=bus)<br>                |<br>                | simplemap<br>                v<br>逐位结构：$_TBUF_(A=data[i], E=oe, Y=bus[i])<br>                |<br>        +-------+----------------------+<br>        |                              |<br>        v                              v<br>ASIC / 顶层 I/O                  FPGA 内部网络<br>三态标准单元或 PAD              tribuf -logic<br>        |                              |<br>        v                              v<br>真实输出级可断开                mux / LUT 普通逻辑<br></code></pre></td></tr></table></figure>
+
+<p>不应进入这条数据路径的是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">$sub(A=..., B=...z...)<br>$add(A=...z..., B=...)<br>$mul(A=..., B=...z...)<br></code></pre></td></tr></table></figure>
+
+<p>这些结构把“是否存在驱动者”的问题错误地降成了“某个算术数位是什么”的问题。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>理解 Yosys 中的 <code>z</code>，关键不是记住 <code>State::Sz</code> 这个枚举名，而是把值语义和驱动语义分开：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">0/1：确定的数据<br>x：数据存在但未知<br>z：当前驱动器没有驱动<br></code></pre></td></tr></table></figure>
+
+<p>在当前经典 Yosys 流程中，合法的三态赋值可以先形成带全 <code>z</code> 输入的 <code>$mux</code>，再由 <code>tribuf</code> pass 规范化为 <code>$tribuf</code>，最后由 <code>simplemap</code> 拆成 <code>$_TBUF_</code>。后续流程根据目标架构选择保留三态、映射到 I&#x2F;O PAD，或者转换成 mux&#x2F;LUT 逻辑。</p>
+<p>ASIC 三态门在晶体管层面通过同时关闭上拉和下拉实现高阻；多驱动总线需要互斥使能、break-before-make 和必要的 bus keeper。FPGA 内部通常没有真正三态，因此更常见的是逻辑化处理。</p>
+<p>最后应牢记：</p>
+<blockquote>
+<p>RTLIL 能表示 <code>Sz</code>，不等于每一种 RTLIL cell 都支持 <code>Sz</code> 作为普通输入。<code>z</code> 最有意义的位置是三态驱动边界，而不是算术数据通路。</p>
+</blockquote>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Computer-Architecture/" class="category-chain-item">Computer Architecture</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Verilog/" class="print-no-link">#Verilog</a>
+      
+        <a href="/tags/Yosys/" class="print-no-link">#Yosys</a>
+      
+        <a href="/tags/RTLIL/" class="print-no-link">#RTLIL</a>
+      
+        <a href="/tags/ASIC/" class="print-no-link">#ASIC</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Yosys 学习笔记（四）：RTLIL 中 z 信号与三态门的处理</div>
+      <div>http://blog.luliang.online/2026/07/20/yosys-learning-04-opt-expr-keepdc-sz-bug/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月20日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/23/yosys-learning-05-fsm-and-memory/" title="Yosys 学习笔记（五）：FSM 与 Memory 如何变成状态表和寄存器阵列">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Yosys 学习笔记（五）：FSM 与 Memory 如何变成状态表和寄存器阵列</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/14/yosys-learning-03-flatten-cross-module-optimization/" title="Yosys 学习笔记（三）：flatten 与 opt 如何联手把整个设计化成常量">
+                        <span class="hidden-mobile">Yosys 学习笔记（三）：flatten 与 opt 如何联手把整个设计化成常量</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

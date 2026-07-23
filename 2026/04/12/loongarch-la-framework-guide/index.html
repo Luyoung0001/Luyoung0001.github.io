@@ -1,0 +1,796 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Windows 安装 VSCode 并通过 Remote SSH 登录服务器1. 安装 VSCode 打开浏览器，访问 https:&#x2F;&#x2F;code.visualstudio.com 点击页面上的 Download for Windows 按钮，下载安装包（.exe 文件） 双击下载好的安装包，按照安装向导操作： 同意许可协议 选择安装路径（默认即可） 勾选以下选项（推荐全选）： ✅ 将”通过 Cod">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LA 框架使用指南：远程环境、工程结构与调试入口">
+<meta property="og:url" content="http://blog.luliang.online/2026/04/12/loongarch-la-framework-guide/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="Windows 安装 VSCode 并通过 Remote SSH 登录服务器1. 安装 VSCode 打开浏览器，访问 https:&#x2F;&#x2F;code.visualstudio.com 点击页面上的 Download for Windows 按钮，下载安装包（.exe 文件） 双击下载好的安装包，按照安装向导操作： 同意许可协议 选择安装路径（默认即可） 勾选以下选项（推荐全选）： ✅ 将”通过 Cod">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-04-12T02:03:13.000Z">
+<meta property="article:modified_time" content="2026-07-23T03:05:46.852Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="LoongArch">
+<meta property="article:tag" content="LA framework">
+<meta property="article:tag" content="development environment">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>LA 框架使用指南：远程环境、工程结构与调试入口 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="LA 框架使用指南：远程环境、工程结构与调试入口"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-04-12 10:03" pubdate>
+          2026年4月12日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          11 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">LA 框架使用指南：远程环境、工程结构与调试入口</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="Windows-安装-VSCode-并通过-Remote-SSH-登录服务器"><a href="#Windows-安装-VSCode-并通过-Remote-SSH-登录服务器" class="headerlink" title="Windows 安装 VSCode 并通过 Remote SSH 登录服务器"></a>Windows 安装 VSCode 并通过 Remote SSH 登录服务器</h2><h3 id="1-安装-VSCode"><a href="#1-安装-VSCode" class="headerlink" title="1. 安装 VSCode"></a>1. 安装 VSCode</h3><ol>
+<li>打开浏览器，访问 <a target="_blank" rel="noopener" href="https://code.visualstudio.com/">https://code.visualstudio.com</a></li>
+<li>点击页面上的 <strong>Download for Windows</strong> 按钮，下载安装包（<code>.exe</code> 文件）</li>
+<li>双击下载好的安装包，按照安装向导操作：<ul>
+<li>同意许可协议</li>
+<li>选择安装路径（默认即可）</li>
+<li><strong>勾选以下选项</strong>（推荐全选）：<ul>
+<li>✅ 将”通过 Code 打开”操作添加到 Windows 资源管理器文件的上下文菜单</li>
+<li>✅ 将”通过 Code 打开”操作添加到 Windows 资源管理器目录的上下文菜单</li>
+<li>✅ 将 Code 注册为受支持的文件类型的编辑器</li>
+<li>✅ 添加到 PATH（重要，方便命令行使用）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>点击 <strong>安装</strong>，完成后启动 VSCode</li>
+</ol>
+<hr>
+<h3 id="2-安装-Remote-SSH-插件"><a href="#2-安装-Remote-SSH-插件" class="headerlink" title="2. 安装 Remote SSH 插件"></a>2. 安装 Remote SSH 插件</h3><ol>
+<li>打开 VSCode，点击左侧活动栏中的 <strong>扩展图标</strong>（或按 <code>Ctrl+Shift+X</code>）</li>
+<li>在搜索框中输入 <code>Remote - SSH</code></li>
+<li>找到由 <strong>Microsoft</strong> 发布的 <strong>Remote - SSH</strong> 插件，点击 <strong>Install（安装）</strong></li>
+<li>安装完成后，左侧活动栏底部会出现一个 <strong>远程资源管理器</strong> 图标（显示为一个小电脑屏幕）</li>
+</ol>
+<hr>
+<h3 id="3-配置-SSH-密钥（推荐，免密登录）"><a href="#3-配置-SSH-密钥（推荐，免密登录）" class="headerlink" title="3. 配置 SSH 密钥（推荐，免密登录）"></a>3. 配置 SSH 密钥（推荐，免密登录）</h3><p>为了避免每次连接都输入密码，建议配置 SSH 密钥对。</p>
+<p><strong>在 Windows 本地生成密钥对：</strong></p>
+<ol>
+<li>按 <code>Win + R</code>，输入 <code>cmd</code>，打开命令提示符（或使用 PowerShell）</li>
+<li>输入以下命令生成密钥：<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs cmd">ssh-keygen -t rsa -b <span class="hljs-number">4096</span><br></code></pre></td></tr></table></figure></li>
+<li>一路回车（默认保存到 <code>C:\Users\你的用户名\.ssh\id_rsa</code>，不设置密码短语）</li>
+<li>生成完成后，查看公钥内容：<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs cmd"><span class="hljs-built_in">type</span> C:\Users\你的用户名\.ssh\id_rsa.pub<br></code></pre></td></tr></table></figure></li>
+<li>复制输出的公钥内容（一长串以 <code>ssh-rsa</code> 开头的字符串）</li>
+</ol>
+<p><strong>将公钥上传到服务器：</strong></p>
+<ol>
+<li>先用密码方式 SSH 登录服务器一次（见第 4 步）</li>
+<li>在服务器上执行：<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs zsh">mkdir -p ~/.ssh<br>echo &quot;粘贴你的公钥内容&quot; &gt;&gt; ~/.ssh/authorized_keys<br>chmod 700 ~/.ssh<br>chmod 600 ~/.ssh/authorized_keys<br></code></pre></td></tr></table></figure></li>
+</ol>
+<hr>
+<h3 id="4-在-VSCode-中添加-SSH-主机"><a href="#4-在-VSCode-中添加-SSH-主机" class="headerlink" title="4. 在 VSCode 中添加 SSH 主机"></a>4. 在 VSCode 中添加 SSH 主机</h3><ol>
+<li>在 VSCode 中按 <code>Ctrl+Shift+P</code> 打开命令面板</li>
+<li>输入并选择 <code>Remote-SSH: Add New SSH Host...</code></li>
+<li>在弹出的输入框中，输入 SSH 连接命令，格式如下：<figure class="highlight gherkin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs gherkin">ssh 用户名<span class="hljs-meta">@服务器IP地址</span><br></code></pre></td></tr></table></figure>
+例如：<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-attribute">ssh</span> student@<span class="hljs-number">192.168.1.100</span><br></code></pre></td></tr></table></figure></li>
+<li>选择将配置保存到 <code>C:\Users\你的用户名\.ssh\config</code>（选第一个即可）</li>
+<li>右下角会弹出提示，点击 <strong>Open Config</strong> 可以查看或编辑配置文件</li>
+</ol>
+<p>SSH 配置文件示例（<code>~/.ssh/config</code>）：</p>
+<figure class="highlight crmsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs crmsh">Host my-server<br>    HostName <span class="hljs-number">192.168</span>.<span class="hljs-number">1.100</span><br>    <span class="hljs-keyword">User</span> <span class="hljs-title">student</span><br>    Port <span class="hljs-number">22</span><br>    IdentityFile C:\Users\你的用户名\.ssh\id_rsa<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>其中 <code>Host my-server</code> 是你给这台服务器起的别名，之后连接时可以直接用这个名字。</p>
+</blockquote>
+<hr>
+<h3 id="5-连接到服务器"><a href="#5-连接到服务器" class="headerlink" title="5. 连接到服务器"></a>5. 连接到服务器</h3><ol>
+<li>点击 VSCode 左侧的 <strong>远程资源管理器</strong> 图标</li>
+<li>在 <strong>SSH TARGETS</strong> 列表中，找到刚刚添加的服务器（如 <code>my-server</code>）</li>
+<li>点击服务器名称右侧的 <strong>箭头图标</strong>（Connect to Host in New Window）</li>
+<li>VSCode 会打开一个新窗口并开始连接：<ul>
+<li>如果是首次连接，会提示 <strong>确认服务器指纹</strong>，选择 <strong>Continue</strong></li>
+<li>如果没有配置密钥，会提示输入密码，输入后回车</li>
+</ul>
+</li>
+<li>连接成功后，VSCode 窗口左下角会显示绿色的 <code>SSH: my-server</code> 标识</li>
+</ol>
+<hr>
+<h3 id="6-在远程服务器上打开文件夹"><a href="#6-在远程服务器上打开文件夹" class="headerlink" title="6. 在远程服务器上打开文件夹"></a>6. 在远程服务器上打开文件夹</h3><p>连接成功后，你就可以像操作本地文件一样操作服务器上的文件：</p>
+<ol>
+<li>点击左侧 <strong>资源管理器图标</strong>（或按 <code>Ctrl+Shift+E</code>）</li>
+<li>点击 <strong>Open Folder（打开文件夹）</strong></li>
+<li>在弹出的路径框中输入服务器上的目录路径，例如：<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs arduino">/home/student/<br></code></pre></td></tr></table></figure></li>
+<li>点击 <strong>OK</strong>，即可在 VSCode 中浏览和编辑服务器上的所有文件</li>
+</ol>
+<hr>
+<h3 id="7-使用集成终端"><a href="#7-使用集成终端" class="headerlink" title="7. 使用集成终端"></a>7. 使用集成终端</h3><p>连接远程服务器后，可以直接在 VSCode 中打开服务器的终端：</p>
+<ol>
+<li>按 <code>Ctrl+`</code>（反引号）或点击菜单 <strong>Terminal → New Terminal</strong></li>
+<li>终端会自动连接到服务器，就像直接 SSH 登录一样，可以运行任何命令</li>
+</ol>
+<hr>
+<h3 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h3><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>解决方法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>连接超时</td>
+<td>检查服务器 IP 是否正确，确认网络能 ping 通服务器</td>
+</tr>
+<tr>
+<td>权限被拒绝（publickey）</td>
+<td>检查公钥是否正确上传，<code>authorized_keys</code> 权限是否为 600</td>
+</tr>
+<tr>
+<td>每次连接都要输入密码</td>
+<td>检查 <code>~/.ssh/config</code> 中 <code>IdentityFile</code> 路径是否正确</td>
+</tr>
+<tr>
+<td>插件安装失败</td>
+<td>检查网络，或在 VSCode 中配置代理</td>
+</tr>
+<tr>
+<td>远程资源管理器看不到服务器</td>
+<td>重新执行 <code>Remote-SSH: Add New SSH Host</code></td>
+</tr>
+</tbody></table>
+<hr>
+<p>如果还有其他问题，可以使用搜索引擎。</p>
+<h2 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h2><p>登录到服务器后，大概率是这样的一个界面：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs zsh">You can:<br><br>(q)  Quit and do nothing.  The function will be run again next time.<br><br>(0)  Exit, creating the file ~/.zshrc containing just a comment.<br>     That will prevent this function being run again.<br><br>(1)  Continue to the main menu.<br><br>(2)  Populate your ~/.zshrc with the configuration recommended<br>     by the system administrator and exit (you will need to edit<br>     the file by hand, if so desired).<br><br>--- Type one of the keys in parentheses ---<br></code></pre></td></tr></table></figure>
+
+<p>此时输入 <code>0</code> ，会创建一个默认的 zsh 用户配置文件 .zshrc。</p>
+<h2 id="克隆-LA-并运行-demo"><a href="#克隆-LA-并运行-demo" class="headerlink" title="克隆 LA 并运行 demo"></a>克隆 LA 并运行 demo</h2><p>在用户目录下输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs zsh">git clone https://gitee.com/luyoung0010/LA.git<br></code></pre></td></tr></table></figure>
+
+<p>然后回车，就会克隆 LA 框架。然后 cd 到 LA 目录，直接输入并回车：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs zsh">make all EXP=6<br></code></pre></td></tr></table></figure>
+<p>就进入了仿真，loongarch 工具链，包括 verilator 都已经安装好了。在使用之前，务必详细阅读整个项目，了解 LA 是在做什么，是怎么工作的，不懂的话可以问 AI。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Computer-Architecture/" class="category-chain-item">Computer Architecture</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/LoongArch/" class="print-no-link">#LoongArch</a>
+      
+        <a href="/tags/LA-framework/" class="print-no-link">#LA framework</a>
+      
+        <a href="/tags/development-environment/" class="print-no-link">#development environment</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>LA 框架使用指南：远程环境、工程结构与调试入口</div>
+      <div>http://blog.luliang.online/2026/04/12/loongarch-la-framework-guide/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年4月12日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/04/13/riscvi-01-toolchain-pipeline/" title="RISC-VI 研究笔记（一）：从 C 程序到 RISC-VI 模拟器">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">RISC-VI 研究笔记（一）：从 C 程序到 RISC-VI 模拟器</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/02/01/thesis-18-hardware-accelerated-nes/" title="毕业设计记录（18）：NES 硬件加速设计">
+                        <span class="hidden-mobile">毕业设计记录（18）：NES 硬件加速设计</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

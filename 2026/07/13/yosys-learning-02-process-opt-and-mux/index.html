@@ -1,0 +1,990 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言上一篇建立了从 Verilog、RTLIL、通用网表到技术映射网表的整体坐标。这一篇进入带状态的设计，研究一个更具体也更容易产生错觉的问题： 1always @(posedge clk or posedge rst)  它在综合后到底是什么？if&#x2F;else 如何变成 MUX？opt 为什么会把 $adff 变成 $adffe？把优化结果手工写回 RTL 是否有意义？交换 load 和 en 的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Yosys 学习笔记（二）：从 process 到 MUX 和 ADFFE，读懂 proc 与 opt">
+<meta property="og:url" content="http://blog.luliang.online/2026/07/13/yosys-learning-02-process-opt-and-mux/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="前言上一篇建立了从 Verilog、RTLIL、通用网表到技术映射网表的整体坐标。这一篇进入带状态的设计，研究一个更具体也更容易产生错觉的问题： 1always @(posedge clk or posedge rst)  它在综合后到底是什么？if&#x2F;else 如何变成 MUX？opt 为什么会把 $adff 变成 $adffe？把优化结果手工写回 RTL 是否有意义？交换 load 和 en 的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.luliang.online/images/mermaid-svg/yosys-learning-02-process-opt-and-mux/clocked-data-path-timing.svg">
+<meta property="og:image" content="http://blog.luliang.online/images/mermaid-svg/yosys-learning-02-process-opt-and-mux/proc-opt-evolution.svg">
+<meta property="og:image" content="http://blog.luliang.online/images/mermaid-svg/yosys-learning-02-process-opt-and-mux/priority-mux-comparison.svg">
+<meta property="article:published_time" content="2026-07-13T07:03:13.000Z">
+<meta property="article:modified_time" content="2026-07-23T03:05:46.861Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="Verilog">
+<meta property="article:tag" content="Yosys">
+<meta property="article:tag" content="RTLIL">
+<meta property="article:tag" content="logic synthesis">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://blog.luliang.online/images/mermaid-svg/yosys-learning-02-process-opt-and-mux/clocked-data-path-timing.svg">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>Yosys 学习笔记（二）：从 process 到 MUX 和 ADFFE，读懂 proc 与 opt - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Yosys 学习笔记（二）：从 process 到 MUX 和 ADFFE，读懂 proc 与 opt"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-13 15:03" pubdate>
+          2026年7月13日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          34 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Yosys 学习笔记（二）：从 process 到 MUX 和 ADFFE，读懂 proc 与 opt</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>上一篇建立了从 Verilog、RTLIL、通用网表到技术映射网表的整体坐标。这一篇进入带状态的设计，研究一个更具体也更容易产生错觉的问题：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk <span class="hljs-keyword">or</span> <span class="hljs-keyword">posedge</span> rst)<br></code></pre></td></tr></table></figure>
+
+<p>它在综合后到底是什么？<code>if/else</code> 如何变成 MUX？<code>opt</code> 为什么会把 <code>$adff</code> 变成 <code>$adffe</code>？把优化结果手工写回 RTL 是否有意义？交换 <code>load</code> 和 <code>en</code> 的优先级，为什么 cell 数量不变但功能已经不同？</p>
+<p>围绕 <code>seq_counter</code> 的几个直接对照，最后得到两条很有价值的判断：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">功能等价 != RTLIL 结构或文本相同<br>结构统计相同 != 连接关系或功能相同<br></code></pre></td></tr></table></figure>
+
+<p>本文输出实测于 Yosys 0.66+（git <code>b35b6706f</code>）。自动实例名和编号可能随版本变化，阅读时应核对 cell 类型、参数和端口，而不是依赖 <code>$auto$...$12</code> 这类完整名字。</p>
+<h2 id="组合逻辑为什么看起来没有和时钟对齐"><a href="#组合逻辑为什么看起来没有和时钟对齐" class="headerlink" title="组合逻辑为什么看起来没有和时钟对齐"></a>组合逻辑为什么看起来没有和时钟对齐</h2><p>先回答最根本的疑惑：组合电路不需要“等到 clk 才运算”。加法器、比较器和 MUX 一直存在，只要输入变化，电信号就持续传播。</p>
+<p>时钟控制的是寄存器何时采样，而不是组合逻辑何时开始工作：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">t0 时钟沿：上一级寄存器 Q 更新<br>  -&gt; 经过 clock-to-Q 延迟<br>  -&gt; 信号穿过加法器、MUX 等组合路径<br>  -&gt; 在 t1 到来前满足 setup 要求<br>t1 时钟沿：下一级寄存器采样 D<br></code></pre></td></tr></table></figure>
+
+<p><img src="/images/mermaid-svg/yosys-learning-02-process-opt-and-mux/clocked-data-path-timing.svg" alt="同步电路中的组合传播与时钟采样"></p>
+<p>典型寄存器到寄存器路径满足：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">Tclk &gt;= Tcq + Tcomb(max) + Tsetup + clock uncertainty<br></code></pre></td></tr></table></figure>
+
+<p>因此，“组合电路和 clk 对齐”的准确含义不是组合逻辑在时钟沿才计算，而是它的输出必须在目标采样沿前后满足寄存器的 setup&#x2F;hold 要求。</p>
+<p>异步复位则是另一条控制路径。<code>rst</code> 连接触发器的 ARST 端，可以不等待正常时钟沿就把 Q 拉到复位值；复位释放仍要满足 recovery&#x2F;removal 等时序要求。</p>
+<h2 id="从源-RTL-写出状态方程"><a href="#从源-RTL-写出状态方程" class="headerlink" title="从源 RTL 写出状态方程"></a>从源 RTL 写出状态方程</h2><p>先把下面的完整模块保存为 <code>seq_counter.v</code>：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">module</span> seq_counter(<br>    <span class="hljs-keyword">input</span>        clk,<br>    <span class="hljs-keyword">input</span>        rst,<br>    <span class="hljs-keyword">input</span>        en,<br>    <span class="hljs-keyword">input</span>        load,<br>    <span class="hljs-keyword">input</span>  [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] load_value,<br>    <span class="hljs-keyword">output</span> <span class="hljs-keyword">reg</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] count,<br>    <span class="hljs-keyword">output</span>       at_max<br>);<br>    <span class="hljs-keyword">assign</span> at_max = (count == <span class="hljs-number">8&#x27;hff</span>);<br><br>    <span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk <span class="hljs-keyword">or</span> <span class="hljs-keyword">posedge</span> rst) <span class="hljs-keyword">begin</span><br>        <span class="hljs-keyword">if</span> (rst) <span class="hljs-keyword">begin</span><br>            count &lt;= <span class="hljs-number">8&#x27;h00</span>;<br>        <span class="hljs-keyword">end</span> <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (load) <span class="hljs-keyword">begin</span><br>            count &lt;= load_value;<br>        <span class="hljs-keyword">end</span> <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (en) <span class="hljs-keyword">begin</span><br>            count &lt;= count + <span class="hljs-number">8&#x27;h01</span>;<br>        <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">endmodule</span><br></code></pre></td></tr></table></figure>
+
+<p>时序块描述的优先级是：</p>
+<ol>
+<li><code>rst=1</code>，异步清零。</li>
+<li>否则 <code>load=1</code>，装载 <code>load_value</code>。</li>
+<li>否则 <code>en=1</code>，计数加一。</li>
+<li>否则保持原值。</li>
+</ol>
+<p>忽略异步复位的特殊实现，普通数据状态方程可以写成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">count_next = load ? load_value :<br>             en   ? count + 1  :<br>                    count<br></code></pre></td></tr></table></figure>
+
+<p>这里没有显式写 <code>count &lt;= count</code>，但触发器在没有更新条件时天然保持。综合器必须把这个隐含保持关系表达成硬件。</p>
+<h2 id="proc-之前：RTLIL-中仍然存在-process"><a href="#proc-之前：RTLIL-中仍然存在-process" class="headerlink" title="proc 之前：RTLIL 中仍然存在 process"></a><code>proc</code> 之前：RTLIL 中仍然存在 process</h2><p>用下面的命令在三个阶段分别保存 RTLIL：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs bash">yosys -p <span class="hljs-string">&quot;</span><br><span class="hljs-string">read_verilog -sv seq_counter.v;</span><br><span class="hljs-string">hierarchy -check -top seq_counter;</span><br><span class="hljs-string">write_rtlil counter_01_before_proc.il;</span><br><span class="hljs-string">proc;</span><br><span class="hljs-string">write_rtlil counter_02_after_proc.il;</span><br><span class="hljs-string">opt;</span><br><span class="hljs-string">stat;</span><br><span class="hljs-string">write_rtlil counter_03_after_opt.il;</span><br><span class="hljs-string">&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p><code>read_verilog</code> 已经把连续表达式变成 cell，所以 <code>at_max</code> 的比较器和 <code>count+1</code> 的加法器已经出现。但 <code>always</code> 仍保留为 RTLIL process。<code>counter_01_before_proc.il</code> 中的关键部分如下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs text">process $proc$...<br>  assign $0\count[7:0] \count<br>  switch \rst<br>    case 1&#x27;1<br>      assign $0\count[7:0] 8&#x27;00000000<br>    case<br>      switch \load<br>        case 1&#x27;1<br>          assign $0\count[7:0] \load_value<br>        case<br>          switch \en<br>            case 1&#x27;1<br>              assign $0\count[7:0] $add$..._Y<br>  sync posedge \clk<br>    update \count $0\count[7:0]<br>  sync posedge \rst<br>    update \count $0\count[7:0]<br>end<br></code></pre></td></tr></table></figure>
+
+<p>几个细节很关键：</p>
+<ul>
+<li>开头先把 next value 默认设为当前 <code>count</code>，这就是隐含保持。</li>
+<li><code>rst -&gt; load -&gt; en</code> 被保存为嵌套的 <code>switch/case</code>。</li>
+<li><code>clk</code> 和 <code>rst</code> 的边沿事件被保存为两个 <code>sync</code> rule。</li>
+</ul>
+<p>此时的 RTLIL 已经不是 Verilog AST，但仍含有高级过程结构。后续门级映射更适合处理普通 cell 和 wire，因此需要 <code>proc</code> 继续 lowering。</p>
+<h2 id="proc-不是一个动作，而是一组子-pass"><a href="#proc-不是一个动作，而是一组子-pass" class="headerlink" title="proc 不是一个动作，而是一组子 pass"></a><code>proc</code> 不是一个动作，而是一组子 pass</h2><p>运行 <code>help proc</code> 可以看到它按常用顺序调用：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs text">proc_clean<br>proc_rmdead<br>proc_prune<br>proc_init<br>proc_arst<br>proc_rom<br>proc_mux<br>proc_dlatch<br>proc_dff<br>proc_memwr<br>proc_clean<br>opt_expr -keepdc<br></code></pre></td></tr></table></figure>
+
+<p>在本例中最关键的是：</p>
+<table>
+<thead>
+<tr>
+<th>子 pass</th>
+<th>本例作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>proc_arst</code></td>
+<td>从事件和分支中识别异步复位 <code>rst</code></td>
+</tr>
+<tr>
+<td><code>proc_mux</code></td>
+<td>把 <code>if/else</code> 决策树变成 MUX 网络</td>
+</tr>
+<tr>
+<td><code>proc_dff</code></td>
+<td>为 <code>count</code> 创建带异步复位的 <code>$adff</code></td>
+</tr>
+<tr>
+<td><code>proc_clean</code></td>
+<td>删除已经转换完的空 process</td>
+</tr>
+<tr>
+<td><code>opt_expr</code></td>
+<td>做紧随过程转换的表达式简化</td>
+</tr>
+</tbody></table>
+<p>Yosys 日志也会逐项记录这条路径：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">Found async reset \rst in ...<br>Creating decoders for process ...<br>Creating register for signal \count ...<br>  created $adff cell ... with positive edge clock and positive level reset.<br>Removing empty process ...<br></code></pre></td></tr></table></figure>
+
+<h2 id="proc-之后：MUX-加-adff"><a href="#proc-之后：MUX-加-adff" class="headerlink" title="proc 之后：MUX 加 $adff"></a><code>proc</code> 之后：MUX 加 <code>$adff</code></h2><p><code>proc</code> 后 process 已经完全消失，普通数据路径变成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">m_en = en ? count + 1 : count<br>D    = load ? load_value : m_en<br></code></pre></td></tr></table></figure>
+
+<p><code>counter_02_after_proc.il</code> 中，内层 MUX 是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">cell $mux $procmux$4<br>  connect \A \count<br>  connect \B $add$..._Y<br>  connect \S \en<br>  connect \Y $procmux$4_Y<br>end<br></code></pre></td></tr></table></figure>
+
+<p>因为 <code>$mux</code> 的规则是 <code>Y = S ? B : A</code>，这正是 <code>en ? count+1 : count</code>。</p>
+<p>外层 MUX 是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">cell $mux $procmux$7<br>  connect \A $procmux$4_Y<br>  connect \B \load_value<br>  connect \S \load<br>  connect \Y $procmux$7_Y<br>end<br></code></pre></td></tr></table></figure>
+
+<p>它实现 <code>load ? load_value : m_en</code>。最终 <code>$adff</code> 的端口关系是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">D    = $procmux$7_Y<br>Q    = count<br>ARST = rst<br>CLK  = clk<br></code></pre></td></tr></table></figure>
+
+<p><code>$adff</code> 可以读作 asynchronous-reset D flip-flop：带异步复位的 D 触发器，但还没有显式 EN 端口。</p>
+<h2 id="opt-如何把保持路径提取成-EN"><a href="#opt-如何把保持路径提取成-EN" class="headerlink" title="opt 如何把保持路径提取成 EN"></a><code>opt</code> 如何把保持路径提取成 EN</h2><p><code>opt</code> 也不是单一算法，而是 <code>opt_expr</code>、<code>opt_merge</code>、<code>opt_muxtree</code>、<code>opt_reduce</code>、<code>opt_dff</code>、<code>opt_clean</code> 等 pass 的迭代组合。不同设计会触发不同优化，本例最醒目的变化来自 <code>opt_dff</code>。</p>
+<p><code>proc</code> 后存在反馈关系：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">en=0 且 load=0 时，MUX 把 count(Q) 重新送回 D<br></code></pre></td></tr></table></figure>
+
+<p>工具识别出这并不是需要真实更新的数据，而是在描述“寄存器保持”。日志会明确写道：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">Adding EN signal on ... ($adff) from module seq_counter<br></code></pre></td></tr></table></figure>
+
+<p>随后 <code>$adff</code> 被改为 <code>$adffe</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">$adff   = async-reset D flip-flop<br>$adffe  = async-reset D flip-flop with enable<br></code></pre></td></tr></table></figure>
+
+<p>最终 EN 来自：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">EN = bool(&#123;load, en&#125;)<br></code></pre></td></tr></table></figure>
+
+<p>在当前 1 位二值输入下等价于：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">EN = load || en<br></code></pre></td></tr></table></figure>
+
+<p><code>counter_03_after_opt.il</code> 中，<code>$adffe</code> 和使能逻辑直接表现为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs text">cell $adffe $auto$ff.cc:337:slice$12<br>  parameter \CLK_POLARITY 1<br>  parameter \EN_POLARITY 1<br>  parameter \ARST_POLARITY 1<br>  parameter \ARST_VALUE 8&#x27;00000000<br>  parameter \WIDTH 8<br>  connect \CLK \clk<br>  connect \EN $auto$opt_dff.cc:319:make_patterns_logic$13<br>  connect \ARST \rst<br>  connect \D $0\count[7:0]<br>  connect \Q \count<br>end<br><br>cell $reduce_bool $auto$opt_dff.cc:320:make_patterns_logic$14<br>  parameter \A_WIDTH 2<br>  parameter \Y_WIDTH 1<br>  connect \A &#123; \load \en &#125;<br>  connect \Y $auto$opt_dff.cc:319:make_patterns_logic$13<br>end<br></code></pre></td></tr></table></figure>
+
+<p>沿着 <code>connect \Y</code> 和 <code>connect \EN</code> 可以看出，<code>$reduce_bool</code> 的输出就是 <code>$adffe.EN</code>。</p>
+<p>数据方程也随之变成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">EN = load || en<br>D  = load ? load_value : (en ? count+1 : X)<br></code></pre></td></tr></table></figure>
+
+<p>当 <code>EN=0</code> 时，触发器保持 Q，不采样 D，因此此时 D 可以是 don’t-care。RTLIL 中的 <code>8&#39;x</code> 不是说芯片上真的生成了一团 X，而是在告诉后续综合：这个条件下的数据值不可观察，可以自由优化。</p>
+<p><img src="/images/mermaid-svg/yosys-learning-02-process-opt-and-mux/proc-opt-evolution.svg" alt="seq_counter 从 process 到 adff 再到 adffe 的结构演化"></p>
+<p>这个例子也说明“优化”不等于 cell 数一定减少。<code>proc</code> 后可以数到 <code>$eq + $add + 2×$mux + $adff</code> 共 5 个 cell；<code>opt</code> 后变为 <code>$eq + $add + 2×$mux + $adffe + $reduce_bool</code> 共 6 个。结构更适合使用寄存器使能，但统计数量反而增加了一个。</p>
+<p>因此，评价优化不能只看 cell 总数，还要看 cell 类型、连接、目标库是否支持相应结构，以及后续映射结果。</p>
+<h2 id="为什么-EN-要接入-adffe"><a href="#为什么-EN-要接入-adffe" class="headerlink" title="为什么 EN 要接入 $adffe"></a>为什么 EN 要接入 <code>$adffe</code></h2><p>将 EN 接入 <code>$adffe</code> 的逻辑非常直接：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">EN=1：时钟沿到来时 Q &lt;- D<br>EN=0：时钟沿到来时 Q 保持不变<br></code></pre></td></tr></table></figure>
+
+<p>原本的反馈 MUX 用 <code>D=count</code> 表示保持；带使能触发器直接在状态单元内部表达保持。对于支持 clock-enable 的 FPGA FF 或标准单元，这可能映射到专用 EN pin；如果目标库没有匹配的 enable FF，后续技术映射也可能重新分解为普通 DFF 加反馈逻辑。</p>
+<p>所以 <code>$adffe</code> 是通用 RTLIL 结构，不保证最终物理库里一定存在一个名字和形状完全相同的单元。</p>
+<h2 id="手工把-opt-结果写回-RTL"><a href="#手工把-opt-结果写回-RTL" class="headerlink" title="手工把 opt 结果写回 RTL"></a>手工把 <code>opt</code> 结果写回 RTL</h2><p>现在把相同状态转移直接写成显式使能版本，保存为 <code>seq_counter_explicit_enable.v</code>：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">module</span> seq_counter_explicit_enable(<br>    <span class="hljs-keyword">input</span>        clk,<br>    <span class="hljs-keyword">input</span>        rst,<br>    <span class="hljs-keyword">input</span>        en,<br>    <span class="hljs-keyword">input</span>        load,<br>    <span class="hljs-keyword">input</span>  [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] load_value,<br>    <span class="hljs-keyword">output</span> <span class="hljs-keyword">reg</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] count,<br>    <span class="hljs-keyword">output</span>       at_max<br>);<br>    <span class="hljs-keyword">wire</span>       update_en  = load || en;<br>    <span class="hljs-keyword">wire</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] next_count = load ? load_value : (count + <span class="hljs-number">8&#x27;h01</span>);<br><br>    <span class="hljs-keyword">assign</span> at_max = (count == <span class="hljs-number">8&#x27;hff</span>);<br><br>    <span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk <span class="hljs-keyword">or</span> <span class="hljs-keyword">posedge</span> rst) <span class="hljs-keyword">begin</span><br>        <span class="hljs-keyword">if</span> (rst)<br>            count &lt;= <span class="hljs-number">8&#x27;h00</span>;<br>        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (update_en)<br>            count &lt;= next_count;<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">endmodule</span><br></code></pre></td></tr></table></figure>
+
+<p>这就是人工写出的等价分解：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">update_en = load | en<br>next_count = load ? load_value : count+1<br></code></pre></td></tr></table></figure>
+
+<p>当 <code>update_en=0</code> 时，<code>next_count</code> 是什么都不会被触发器采样，所以数据端不再需要 <code>en ? add : X</code> 这个 MUX。</p>
+<p>实际综合统计如下：</p>
+<table>
+<thead>
+<tr>
+<th>通用 RTLIL cell</th>
+<th align="right">原始优先级 RTL</th>
+<th align="right">显式使能 RTL</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>$add</code></td>
+<td align="right">1</td>
+<td align="right">1</td>
+</tr>
+<tr>
+<td><code>$adffe</code></td>
+<td align="right">1</td>
+<td align="right">1</td>
+</tr>
+<tr>
+<td><code>$eq</code></td>
+<td align="right">1</td>
+<td align="right">1</td>
+</tr>
+<tr>
+<td>数据 <code>$mux</code></td>
+<td align="right">2</td>
+<td align="right">1</td>
+</tr>
+<tr>
+<td>使能逻辑</td>
+<td align="right">1 <code>$reduce_bool</code></td>
+<td align="right">1 <code>$logic_or</code></td>
+</tr>
+<tr>
+<td>总数</td>
+<td align="right">6</td>
+<td align="right">5</td>
+</tr>
+</tbody></table>
+<p>显式版本综合后会出现一个 <code>$logic_or</code>、一个数据 <code>$mux</code> 和一个 <code>$adffe</code>；原版本则保留两个数据 <code>$mux</code>。</p>
+<p>这说明两件事：</p>
+<ol>
+<li>工具确实理解了两种写法中的寄存器使能。</li>
+<li>功能等价的 RTL 不保证在某个中间阶段得到逐字相同的 RTLIL，甚至 cell 数都可能不同。</li>
+</ol>
+<p>同时也不能仅凭这里少一个粗粒度 MUX，就断言最终芯片面积和频率一定更好。后续 <code>techmap</code>、ABC 和目标库映射可能使两者继续收敛；真实 PPA 还取决于库单元、约束和物理实现。</p>
+<h2 id="形式等价验证，而不是只用肉眼比较"><a href="#形式等价验证，而不是只用肉眼比较" class="headerlink" title="形式等价验证，而不是只用肉眼比较"></a>形式等价验证，而不是只用肉眼比较</h2><p>仅仅看到两份网表“长得差不多”不足以证明功能相同。可以在一个全新的 Yosys 进程中读入两份 RTL，综合后执行：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs text">read_verilog -sv seq_counter.v seq_counter_explicit_enable.v<br>proc<br>opt<br>async2sync<br>opt<br>equiv_make seq_counter seq_counter_explicit_enable equiv<br>hierarchy -check -top equiv<br>equiv_simple -seq 2<br>equiv_induct -seq 4<br>equiv_status -assert<br></code></pre></td></tr></table></figure>
+
+<p>这里先运行 <code>async2sync</code>，是因为 <code>equiv_simple</code> 的 SAT backend 不能直接为 <code>$adffe</code> 异步复位建立模型。这个正规化只作用于证明副本；前面保存的综合结果仍然保留 <code>$adffe.ARST</code>。</p>
+<p>最终日志报告：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">Found 9 $equiv cells in equiv:<br>  Of those cells 9 are proven and 0 are unproven.<br>  Equivalence successfully proven!<br></code></pre></td></tr></table></figure>
+
+<p>更精确的表述是：在二值输入、对应状态已经对齐，并采用上述异步复位正规化模型时，两份设计不会继续分叉。这里的 <code>equiv_induct</code> 证明的是状态已对齐后的归纳保持性质，并未独立建立任意初始状态下的对齐。</p>
+<p><code>async2sync</code> 也不是任意异步事件的精确替代。它假设异步输入实际相对时钟同步，并采用该 pass 规定的 negative hold-time 模型。若要声称“从复位开始、覆盖任意异步时刻”的完整顺序等价，还需要显式复位序列、base case 和更合适的异步事件模型。</p>
+<p>脚本没有启用 <code>-undef</code>，因此这不是四态 X&#x2F;Z-aware 证明。原过程式 <code>if</code> 的 X optimism 和显式 <code>?:</code> 的 X 合并行为可能不同。例如 <code>load=X, en=1</code> 时，不应把二值等价结论无限外推到所有 RTL 仿真语义。</p>
+<h2 id="手工模仿-opt-是否有意义"><a href="#手工模仿-opt-是否有意义" class="headerlink" title="手工模仿 opt 是否有意义"></a>手工模仿 <code>opt</code> 是否有意义</h2><p>对这个简单例子，通常没有必要为了替工具做局部优化而重写 RTL。常量传播、无用 wire 清理、MUX 简化和使能提取，正是综合器应完成的工作。</p>
+<p>更合理的分工是：</p>
+<h3 id="交给综合工具"><a href="#交给综合工具" class="headerlink" title="交给综合工具"></a>交给综合工具</h3><ul>
+<li>常量折叠与布尔简化</li>
+<li>删除未使用 wire&#x2F;cell</li>
+<li>合并重复逻辑</li>
+<li>识别简单反馈保持和寄存器使能</li>
+<li>根据目标库做局部逻辑优化与技术映射</li>
+</ul>
+<h3 id="仍由-RTL-设计者负责"><a href="#仍由-RTL-设计者负责" class="headerlink" title="仍由 RTL 设计者负责"></a>仍由 RTL 设计者负责</h3><ul>
+<li>流水级数和接口延迟</li>
+<li>数据位宽与数值语义</li>
+<li>串行复用还是并行计算</li>
+<li>RAM、DSP、clock-enable 等推断友好的编码方式</li>
+<li>跨时钟域协议与复位架构</li>
+<li>时序约束和功能验证</li>
+</ul>
+<p>工具不能随意增加流水级，因为那会改变可观察延迟；也不一定能跨层次发现所有架构机会。正确态度不是“手写所有门级优化”，也不是“RTL 怎么写都一样”，而是用清晰、规范、利于推断的 RTL 表达架构意图，再让工具完成可证明的局部变换。</p>
+<h2 id="显式版本有组合路径，原始版本难道没有吗"><a href="#显式版本有组合路径，原始版本难道没有吗" class="headerlink" title="显式版本有组合路径，原始版本难道没有吗"></a>显式版本有组合路径，原始版本难道没有吗</h2><p>显式版本把节点写了出来：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">wire</span> update_en = load || en;<br><span class="hljs-keyword">wire</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] next_count = load ? load_value : count + <span class="hljs-number">1</span>;<br></code></pre></td></tr></table></figure>
+
+<p>因此肉眼很容易看到 OR、加法器和 MUX。原始 <code>if/else</code> 看起来只在时钟沿“执行”，但这是源代码造成的错觉。综合后的原版本同样存在：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">count(Q) -&gt; 加法器 -&gt; MUX(en) -&gt; MUX(load) -&gt; $adffe.D<br>load/en  -&gt; OR/ReduceBool -&gt; $adffe.EN<br>count(Q) -&gt; 比较器 -&gt; at_max<br></code></pre></td></tr></table></figure>
+
+<p>给组合节点起名不会凭空增加一级硬件，也不会增加一个周期。<code>update_en</code> 和 <code>next_count</code> 是并行计算的两条网络，不是先算 EN、再算 D。只有在它们之间插入新的寄存器，才会真正增加流水级。</p>
+<h2 id="交换优先级：数量相同，连接和功能不同"><a href="#交换优先级：数量相同，连接和功能不同" class="headerlink" title="交换优先级：数量相同，连接和功能不同"></a>交换优先级：数量相同，连接和功能不同</h2><p>接着只交换同步分支的顺序。为了不破坏前面的 load-first 基线，把下面模块另存为 <code>seq_counter_en_first.v</code>，不要覆盖 <code>seq_counter.v</code>：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">module</span> seq_counter_en_first(<br>    <span class="hljs-keyword">input</span>        clk,<br>    <span class="hljs-keyword">input</span>        rst,<br>    <span class="hljs-keyword">input</span>        en,<br>    <span class="hljs-keyword">input</span>        load,<br>    <span class="hljs-keyword">input</span>  [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] load_value,<br>    <span class="hljs-keyword">output</span> <span class="hljs-keyword">reg</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] count,<br>    <span class="hljs-keyword">output</span>       at_max<br>);<br>    <span class="hljs-keyword">assign</span> at_max = (count == <span class="hljs-number">8&#x27;hff</span>);<br><br>    <span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk <span class="hljs-keyword">or</span> <span class="hljs-keyword">posedge</span> rst) <span class="hljs-keyword">begin</span><br>        <span class="hljs-keyword">if</span> (rst)<br>            count &lt;= <span class="hljs-number">8&#x27;h00</span>;<br>        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (en)<br>            count &lt;= count + <span class="hljs-number">8&#x27;h01</span>;<br>        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (load)<br>            count &lt;= load_value;<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">endmodule</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="原设计：load-优先"><a href="#原设计：load-优先" class="headerlink" title="原设计：load 优先"></a>原设计：<code>load</code> 优先</h3><p>原设计综合后的两级 MUX 可以简化表示为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">inner = en   ? count+1   : X<br>D     = load ? load_value : inner<br></code></pre></td></tr></table></figure>
+
+<p>对应的 RTLIL 连接可以直接写成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs text">cell $mux $inner<br>  connect \A 8&#x27;x<br>  connect \B $add_Y<br>  connect \S \en<br>  connect \Y $inner_Y<br>end<br><br>cell $mux $outer<br>  connect \A $inner_Y<br>  connect \B \load_value<br>  connect \S \load<br>  connect \Y $next_count<br>end<br></code></pre></td></tr></table></figure>
+
+<p><code>load</code> 控制最靠近 <code>$adffe.D</code> 的外层 MUX，所以 <code>load=1</code> 会覆盖内层 <code>en</code> 的结果。</p>
+<h3 id="修改后：en-优先"><a href="#修改后：en-优先" class="headerlink" title="修改后：en 优先"></a>修改后：<code>en</code> 优先</h3><p>修改后，两级 MUX 的输入关系变为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">inner = load ? load_value : X<br>D     = en   ? count+1    : inner<br></code></pre></td></tr></table></figure>
+
+<p>对应 RTLIL 中交换的是两个 MUX 的数据和选择关系：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs text">cell $mux $inner<br>  connect \A 8&#x27;x<br>  connect \B \load_value<br>  connect \S \load<br>  connect \Y $inner_Y<br>end<br><br>cell $mux $outer<br>  connect \A $inner_Y<br>  connect \B $add_Y<br>  connect \S \en<br>  connect \Y $next_count<br>end<br></code></pre></td></tr></table></figure>
+
+<p>现在 <code>en</code> 控制外层 MUX，所以 <code>en=1</code> 会覆盖 <code>load</code>。</p>
+<p><img src="/images/mermaid-svg/yosys-learning-02-process-opt-and-mux/priority-mux-comparison.svg" alt="load 优先与 en 优先的多路器结构比较"></p>
+<p>两者 cell 统计完全相同：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">1 × $add<br>1 × $adffe<br>1 × $eq<br>2 × $mux<br>1 × $reduce_bool<br></code></pre></td></tr></table></figure>
+
+<p>假设 <code>rst=0</code>，并且 <code>en/load</code> 只取 0 或 1，两者的 EN 相同：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">EN = load || en<br></code></pre></td></tr></table></figure>
+
+<p>因为无论哪个条件优先，只要任意一个为 1，寄存器都需要更新。唯一功能差异出现在两者同时为 1 时：</p>
+<table>
+<thead>
+<tr>
+<th align="right"><code>en</code></th>
+<th align="right"><code>load</code></th>
+<th>load 优先</th>
+<th>en 优先</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">0</td>
+<td align="right">0</td>
+<td>保持</td>
+<td>保持</td>
+</tr>
+<tr>
+<td align="right">0</td>
+<td align="right">1</td>
+<td><code>load_value</code></td>
+<td><code>load_value</code></td>
+</tr>
+<tr>
+<td align="right">1</td>
+<td align="right">0</td>
+<td><code>count+1</code></td>
+<td><code>count+1</code></td>
+</tr>
+<tr>
+<td align="right">1</td>
+<td align="right">1</td>
+<td><code>load_value</code></td>
+<td><code>count+1</code></td>
+</tr>
+</tbody></table>
+<p><code>en=load=1</code> 是唯一可能暴露优先级差异的控制组合；如果某一拍恰好满足 <code>load_value == count+1</code>，数值结果仍可能碰巧相同。</p>
+<p>因此可以得到一个适用于当前粗粒度 RTLIL 的读图规律：</p>
+<blockquote>
+<p>对同步 <code>if/else if</code> 数据分支，最高优先级条件通常控制最靠近寄存器 D 的外层 MUX。</p>
+</blockquote>
+<p>异步复位是例外。它已经被 <code>proc_arst</code> 提取到 <code>$adff/$adffe.ARST</code>，不再属于普通数据 MUX 树。</p>
+<p>优先级还会改变当前 RTLIL 中的数据路径深度。load 优先时，加法结果经过内外两级 MUX，<code>load_value</code> 只经过外层；en 优先时恰好相反。但后续技术映射可以重构逻辑，所以不能只凭这张粗粒度图直接宣布最终 Fmax 高低。</p>
+<h2 id="一套更可靠的-RTLIL-阅读方法"><a href="#一套更可靠的-RTLIL-阅读方法" class="headerlink" title="一套更可靠的 RTLIL 阅读方法"></a>一套更可靠的 RTLIL 阅读方法</h2><p>以后面对更复杂设计，可以按以下顺序阅读：</p>
+<ol>
+<li>先找状态单元：<code>$dff</code>、<code>$adff</code>、<code>$dffe</code>、<code>$adffe</code>。</li>
+<li>顺着 <code>D/Q/CLK/ARST/EN</code> 端口找数据与控制来源。</li>
+<li>对每个 <code>$mux</code> 使用 <code>Y = S ? B : A</code> 还原表达式。</li>
+<li>检查 <code>parameter</code> 中的宽度、极性和复位值。</li>
+<li>区分公开 <code>\name</code> 与自动 <code>$name</code>，不要被自动编号干扰。</li>
+<li>对照 <code>proc</code> 前后确认 process 是否消失，对照 <code>opt</code> 前后确认反馈、常量和别名如何变化。</li>
+<li>用 <code>stat</code> 观察结构，但用仿真或形式等价验证功能。</li>
+<li>在技术映射和 STA 之前，不根据通用 cell 数量过早下最终 PPA 结论。</li>
+</ol>
+<h2 id="如何运行本文代码"><a href="#如何运行本文代码" class="headerlink" title="如何运行本文代码"></a>如何运行本文代码</h2><p>以下命令假设 Yosys 已加入 <code>PATH</code>。<code>rg</code> 来自 ripgrep，只用于搜索文本，也可以换成 <code>grep -nE</code>。</p>
+<p>观察 <code>proc</code> 和 <code>opt</code> 的三个阶段：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash">yosys -p <span class="hljs-string">&quot;read_verilog -sv seq_counter.v; hierarchy -check -top seq_counter; write_rtlil counter_01_before_proc.il; proc; write_rtlil counter_02_after_proc.il; opt; stat; write_rtlil counter_03_after_opt.il&quot;</span><br><br>rg -n <span class="hljs-string">&#x27;process|sync|switch&#x27;</span> counter_01_before_proc.il<br>rg -n <span class="hljs-string">&#x27;\$adff|\$mux|\$add&#x27;</span> counter_02_after_proc.il<br>rg -n <span class="hljs-string">&#x27;\$adffe|\$reduce_bool|\$mux&#x27;</span> counter_03_after_opt.il<br></code></pre></td></tr></table></figure>
+
+<p>单独综合显式使能版本：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">yosys -p <span class="hljs-string">&quot;read_verilog -sv seq_counter_explicit_enable.v; hierarchy -check -top seq_counter_explicit_enable; proc; opt; stat; write_rtlil counter_explicit_after_opt.il&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>单独综合 en-first 版本并保存结果：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">yosys -l en_first.log -p <span class="hljs-string">&quot;read_verilog -sv seq_counter_en_first.v; hierarchy -check -top seq_counter_en_first; proc; opt; stat; write_rtlil counter_en_first_after_opt.il&quot;</span><br><br>diff -u counter_03_after_opt.il counter_en_first_after_opt.il<br></code></pre></td></tr></table></figure>
+
+<p>把前文的形式等价命令保存为 <code>equiv.ys</code> 后运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">yosys -l equiv.log equiv.ys<br>rg -n <span class="hljs-string">&#x27;Equivalence successfully proven&#x27;</span> equiv.log<br></code></pre></td></tr></table></figure>
+
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p><code>proc</code> 把 RTLIL process 中的事件、决策树和赋值关系降成普通 MUX、触发器和连接；<code>opt</code> 再对这张网络做迭代简化，并能把反馈保持模式提取成 <code>$adffe.EN</code>。这两步仍是通用 RTLIL 变换，不是最终标准单元映射。</p>
+<p>更重要的是，源代码中没有显式 <code>wire next_count</code>，不代表硬件中没有组合路径；手工写出优化方程，也不保证得到逐字相同的网表。反过来，两份设计拥有相同 cell 统计，也可能因为 MUX 连接和优先级不同而具有不同功能。</p>
+<p>读综合结果时，真正可靠的对象始终是：<strong>cell 类型、参数、端口连接、状态转移以及验证证据。</strong></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Computer-Architecture/" class="category-chain-item">Computer Architecture</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Verilog/" class="print-no-link">#Verilog</a>
+      
+        <a href="/tags/Yosys/" class="print-no-link">#Yosys</a>
+      
+        <a href="/tags/RTLIL/" class="print-no-link">#RTLIL</a>
+      
+        <a href="/tags/logic-synthesis/" class="print-no-link">#logic synthesis</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Yosys 学习笔记（二）：从 process 到 MUX 和 ADFFE，读懂 proc 与 opt</div>
+      <div>http://blog.luliang.online/2026/07/13/yosys-learning-02-process-opt-and-mux/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/14/yosys-learning-03-flatten-cross-module-optimization/" title="Yosys 学习笔记（三）：flatten 与 opt 如何联手把整个设计化成常量">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Yosys 学习笔记（三）：flatten 与 opt 如何联手把整个设计化成常量</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/12/yosys-learning-01-verilog-to-rtlil/" title="Yosys 学习笔记（一）：从 Verilog 到 RTLIL，第一次看懂逻辑综合">
+                        <span class="hidden-mobile">Yosys 学习笔记（一）：从 Verilog 到 RTLIL，第一次看懂逻辑综合</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

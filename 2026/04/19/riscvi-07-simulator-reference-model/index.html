@@ -1,0 +1,749 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言ISA 实验必须有一个真值源。否则 LLVM 发出一条新指令后，很难判断错误来自哪里：是后端 pattern 选错了、MC 编码错了、模拟器语义错了，还是 RTL 实现错了。 RISC-VI 项目里的 C 模拟器承担的不是“跑个 demo”的角色，而是 reference model：  它定义 RV32R 和 RISC-VI32R 的提交级 ISA 语义。 它把程序运行结果变成结构化 JSO">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RISC-VI 研究笔记（七）：C 模拟器与 reference model">
+<meta property="og:url" content="http://blog.luliang.online/2026/04/19/riscvi-07-simulator-reference-model/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="前言ISA 实验必须有一个真值源。否则 LLVM 发出一条新指令后，很难判断错误来自哪里：是后端 pattern 选错了、MC 编码错了、模拟器语义错了，还是 RTL 实现错了。 RISC-VI 项目里的 C 模拟器承担的不是“跑个 demo”的角色，而是 reference model：  它定义 RV32R 和 RISC-VI32R 的提交级 ISA 语义。 它把程序运行结果变成结构化 JSO">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.luliang.online/images/mermaid-svg/riscvi-07-simulator-reference-model/simulator-architecture.svg">
+<meta property="article:published_time" content="2026-04-19T07:03:13.000Z">
+<meta property="article:modified_time" content="2026-07-23T03:05:46.857Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="difftest">
+<meta property="article:tag" content="RISC-V">
+<meta property="article:tag" content="RISC-VI">
+<meta property="article:tag" content="simulator">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://blog.luliang.online/images/mermaid-svg/riscvi-07-simulator-reference-model/simulator-architecture.svg">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>RISC-VI 研究笔记（七）：C 模拟器与 reference model - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="RISC-VI 研究笔记（七）：C 模拟器与 reference model"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-04-19 15:03" pubdate>
+          2026年4月19日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          11 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">RISC-VI 研究笔记（七）：C 模拟器与 reference model</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>ISA 实验必须有一个真值源。否则 LLVM 发出一条新指令后，很难判断错误来自哪里：是后端 pattern 选错了、MC 编码错了、模拟器语义错了，还是 RTL 实现错了。</p>
+<p>RISC-VI 项目里的 C 模拟器承担的不是“跑个 demo”的角色，而是 reference model：</p>
+<ol>
+<li>它定义 RV32R 和 RISC-VI32R 的提交级 ISA 语义。</li>
+<li>它把程序运行结果变成结构化 JSON，服务自动化回归。</li>
+<li>它提供后续 RTL difftest 可以对齐的 step 接口。</li>
+</ol>
+<p><img src="/images/mermaid-svg/riscvi-07-simulator-reference-model/simulator-architecture.svg" alt="RISC-VI C 模拟器结构"></p>
+<h2 id="reference-model-的边界"><a href="#reference-model-的边界" class="headerlink" title="reference model 的边界"></a>reference model 的边界</h2><p>一个好的 ISA reference model 应该清楚自己做什么，也清楚自己不做什么。</p>
+<p>它应该做：</p>
+<ul>
+<li>加载 flat binary；</li>
+<li>fetch 32 位指令；</li>
+<li>decode 出 op、寄存器号、立即数、目标地址；</li>
+<li>execute 并更新架构状态；</li>
+<li>记录提交级 trace 和统计；</li>
+<li>在 <code>ebreak</code> 或错误条件下停机。</li>
+</ul>
+<p>它不应该假装自己是性能模型：</p>
+<ul>
+<li>不建模真实 cache；</li>
+<li>不建模分支预测器；</li>
+<li>不建模乱序执行；</li>
+<li>不直接给出 IPC 结论；</li>
+<li>不把“动态指令数减少”等同于“最终性能提升”。</li>
+</ul>
+<p>这个边界非常重要。C 模拟器证明的是语义正确性和提交级行为，RTL 才能讨论周期、阻塞、预测和读端口压力。</p>
+<h2 id="decode：从-raw-instruction-到结构化-inst"><a href="#decode：从-raw-instruction-到结构化-inst" class="headerlink" title="decode：从 raw instruction 到结构化 inst"></a>decode：从 raw instruction 到结构化 inst</h2><p>模拟器的 decode 入口在：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">riscv-vi-research/sim/common/decode.c<br></code></pre></td></tr></table></figure>
+
+<p>RISC-VI v0.1 的 decode 从 <code>riscv-vi-research/sim/common/decode.c:59</code> 开始，主入口 <code>decode_inst()</code> 在 <code>:159</code> 根据 ISA 模式和编码版本决定是否进入 RISC-VI decode。</p>
+<p>RISC-VI v0.1 使用 <code>custom-0</code> opcode，并通过 <code>funct3</code> 区分 8 条指令。decode 逻辑大致是：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">if</span> (isa == SIM_ISA_RISCVI32R) &#123;<br>  <span class="hljs-keyword">if</span> (xvi_encoding == SIM_XVI_ENCODING_V0_1 &amp;&amp; opcode == OPCODE_CUSTOM0) &#123;<br>    decode_riscvi_v01(&amp;inst, raw);<br>    <span class="hljs-keyword">return</span> inst;<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>decode_riscvi_v01()</code> 里会先拆出字段：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c">inst-&gt;rd = bits(raw, <span class="hljs-number">11</span>, <span class="hljs-number">7</span>);<br>inst-&gt;rs1 = bits(raw, <span class="hljs-number">19</span>, <span class="hljs-number">15</span>);<br>inst-&gt;rs2 = bits(raw, <span class="hljs-number">24</span>, <span class="hljs-number">20</span>);<br>inst-&gt;scale = bits(raw, <span class="hljs-number">26</span>, <span class="hljs-number">25</span>);<br>inst-&gt;is_riscvi = <span class="hljs-literal">true</span>;<br></code></pre></td></tr></table></figure>
+
+<p>然后按 <code>funct3</code> 分发：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">case</span> <span class="hljs-number">0</span>: inst-&gt;op = OP_XVI_LWXS; <span class="hljs-keyword">break</span>;<br><span class="hljs-keyword">case</span> <span class="hljs-number">1</span>: inst-&gt;op = OP_XVI_SWXS; <span class="hljs-keyword">break</span>;<br><span class="hljs-keyword">case</span> <span class="hljs-number">2</span>: inst-&gt;op = OP_XVI_MIN;  <span class="hljs-keyword">break</span>;<br><span class="hljs-keyword">case</span> <span class="hljs-number">6</span>:<br>  inst-&gt;op = OP_XVI_CSEL;<br>  inst-&gt;rs3 = funct7 &amp; <span class="hljs-number">0x1f</span>u;<br>  <span class="hljs-keyword">break</span>;<br><span class="hljs-keyword">case</span> <span class="hljs-number">7</span>:<br>  inst-&gt;op = OP_XVI_BCHKLTU;<br>  inst-&gt;imm = imm_b(raw);<br>  inst-&gt;target = inst-&gt;pc + inst-&gt;imm;<br>  <span class="hljs-keyword">break</span>;<br></code></pre></td></tr></table></figure>
+
+<p>这段代码体现了 decode 层的职责：它不执行语义，只把 raw bits 翻译成后续 execute 层能理解的结构化指令。</p>
+<h2 id="execute：只维护架构状态"><a href="#execute：只维护架构状态" class="headerlink" title="execute：只维护架构状态"></a>execute：只维护架构状态</h2><p>执行语义在：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">riscv-vi-research/sim/common/exec.c<br></code></pre></td></tr></table></figure>
+
+<p>RISC-VI 指令的 execute case 集中在 <code>riscv-vi-research/sim/common/exec.c:197</code> 到 <code>:230</code>。这个集中度有利于检查 LLVM TableGen 语义和 reference model 语义是否一致。</p>
+<p><code>lwxs</code> 的语义是地址折叠：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">case</span> OP_XVI_LWXS:<br>  addr = rs1 + (rs2 &lt;&lt; inst-&gt;scale);<br>  write_rd(cpu, inst, load_value(cpu, inst, addr));<br>  cpu-&gt;pc = inst-&gt;snpc;<br>  <span class="hljs-keyword">break</span>;<br></code></pre></td></tr></table></figure>
+
+<p><code>swxs</code> 类似，但存储值来自 <code>rd</code> 字段对应的寄存器：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">case</span> OP_XVI_SWXS:<br>  addr = rs1 + (rs2 &lt;&lt; inst-&gt;scale);<br>  store_value(cpu, inst, addr, cpu-&gt;gpr[inst-&gt;rd]);<br>  cpu-&gt;pc = inst-&gt;snpc;<br>  <span class="hljs-keyword">break</span>;<br></code></pre></td></tr></table></figure>
+
+<p><code>csel</code> 是三源选择：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">case</span> OP_XVI_CSEL:<br>  write_rd(cpu, inst, rs3 != <span class="hljs-number">0</span> ? rs1 : rs2);<br>  cpu-&gt;pc = inst-&gt;snpc;<br>  <span class="hljs-keyword">break</span>;<br></code></pre></td></tr></table></figure>
+
+<p><code>bchkltu</code> 保留为普通条件分支：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">case</span> OP_XVI_BCHKLTU:<br>  taken = rs1 &gt;= rs2;<br>  execute_branch(cpu, inst, taken);<br>  <span class="hljs-keyword">break</span>;<br></code></pre></td></tr></table></figure>
+
+<p>这几段代码和 LLVM TableGen 的语义必须严格一致。比如 <code>bchkltu</code> 如果在编译器里按 <code>idx &gt;= len</code> 生成，在模拟器里却按 <code>idx &lt; len</code> 跳转，端到端测试可能直接跑飞。</p>
+<h2 id="统计字段为什么重要"><a href="#统计字段为什么重要" class="headerlink" title="统计字段为什么重要"></a>统计字段为什么重要</h2><p>模拟器在执行时记录 load&#x2F;store&#x2F;branch&#x2F;RISC-VI 指令数量、UART 输出、最终寄存器状态等信息。这些字段有两个作用。</p>
+<p>第一，它们让功能测试自动化。程序不是“看起来跑完了”，而是以 <code>ebreak</code>、<code>final_a0</code>、UART 缓冲和退出原因形成可检查结果。</p>
+<p>第二，它们为 RTL 评测建立命名口径。比如模拟器里 <code>bchkltu</code> 仍然算 branch，这会提醒后续 RTL 不能把它当作“无控制代价”的魔法指令。</p>
+<h2 id="shared-library-API-的意义"><a href="#shared-library-API-的意义" class="headerlink" title="shared library API 的意义"></a>shared library API 的意义</h2><p>项目还冻结了 reference model API，例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">riscvi_ref_init<br>riscvi_ref_load_file<br>riscvi_ref_step<br>riscvi_ref_get_regs<br></code></pre></td></tr></table></figure>
+
+<p>这些入口在 <code>riscv-vi-research/sim/common/ref_api.c:111</code>、<code>:163</code>、<code>:183</code> 和 <code>:222</code> 实现。<code>riscvi_ref_step()</code> 每次最多推进一条提交级指令，是后续 RTL 对拍的核心边界。</p>
+<p>核心是 <code>step()</code>：每次推进一条提交级指令。RTL difftest 可以按提交顺序比较寄存器、PC、内存事件和分支结果。</p>
+<p>这里再次体现边界：API 对齐的是提交级语义，不要求每个 cycle 和 RTL 完全一致。RTL 可以有流水线、旁路、stall、flush；reference model 只关心最终提交的架构状态。</p>
+<h2 id="项目里的验证入口"><a href="#项目里的验证入口" class="headerlink" title="项目里的验证入口"></a>项目里的验证入口</h2><p>项目里模拟器相关检查覆盖功能测试、difftest API 检查和 trace smoke。它们不是文章阅读前提，而是说明 reference model 需要同时覆盖功能、API 和 trace 三个面向。只跑一个小程序，不能证明模拟器已经适合作为后续 RTL 对拍基准。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>C 模拟器是 RISC-VI 项目的语义锚点。LLVM 负责生成机器码，AM&#x2F;BSP 负责承载裸机程序，RTL 负责周期级实现，而模拟器负责回答最根本的问题：这条指令提交后，架构状态应该是什么。下一篇进入 AM&#x2F;BSP，看裸机 C 程序如何启动、输出和停机。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Computer-Architecture/" class="category-chain-item">Computer Architecture</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/difftest/" class="print-no-link">#difftest</a>
+      
+        <a href="/tags/RISC-V/" class="print-no-link">#RISC-V</a>
+      
+        <a href="/tags/RISC-VI/" class="print-no-link">#RISC-VI</a>
+      
+        <a href="/tags/simulator/" class="print-no-link">#simulator</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>RISC-VI 研究笔记（七）：C 模拟器与 reference model</div>
+      <div>http://blog.luliang.online/2026/04/19/riscvi-07-simulator-reference-model/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年4月19日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/04/20/riscvi-08-am-bsp-runtime/" title="RISC-VI 研究笔记（八）：AM/BSP 最小运行时与裸机程序">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">RISC-VI 研究笔记（八）：AM/BSP 最小运行时与裸机程序</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/04/18/riscvi-06-data-driven-isa/" title="RISC-VI 研究笔记（六）：用静态依赖数据推导 ISA 设计">
+                        <span class="hidden-mobile">RISC-VI 研究笔记（六）：用静态依赖数据推导 ISA 设计</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

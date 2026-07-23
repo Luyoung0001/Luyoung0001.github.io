@@ -1,0 +1,880 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言第一次接触 Yosys 时，我最先困惑的不是某条命令，而是几个看似简单的问题：Verilog 到底是在写程序还是在画电路？Yosys 输出的 .v 文件为什么仍像 RTL？RTLIL 是不是类似编译器 IR？技术映射又把什么映射成了什么？ 这些问题其实指向同一件事：逻辑综合不是把一段程序翻译成另一段程序，而是在不同抽象层次上不断改写一张电路图。 下面直接从两个完整的小模块出发，展示 Yosys">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Yosys 学习笔记（一）：从 Verilog 到 RTLIL，第一次看懂逻辑综合">
+<meta property="og:url" content="http://blog.luliang.online/2026/07/12/yosys-learning-01-verilog-to-rtlil/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="前言第一次接触 Yosys 时，我最先困惑的不是某条命令，而是几个看似简单的问题：Verilog 到底是在写程序还是在画电路？Yosys 输出的 .v 文件为什么仍像 RTL？RTLIL 是不是类似编译器 IR？技术映射又把什么映射成了什么？ 这些问题其实指向同一件事：逻辑综合不是把一段程序翻译成另一段程序，而是在不同抽象层次上不断改写一张电路图。 下面直接从两个完整的小模块出发，展示 Yosys">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.luliang.online/images/mermaid-svg/yosys-learning-01-verilog-to-rtlil/yosys-synthesis-pipeline.svg">
+<meta property="og:image" content="http://blog.luliang.online/images/mermaid-svg/yosys-learning-01-verilog-to-rtlil/tiny-adder-rtlil-network.svg">
+<meta property="article:published_time" content="2026-07-12T07:03:13.000Z">
+<meta property="article:modified_time" content="2026-07-23T03:05:46.861Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="Verilog">
+<meta property="article:tag" content="Yosys">
+<meta property="article:tag" content="RTLIL">
+<meta property="article:tag" content="logic synthesis">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://blog.luliang.online/images/mermaid-svg/yosys-learning-01-verilog-to-rtlil/yosys-synthesis-pipeline.svg">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>Yosys 学习笔记（一）：从 Verilog 到 RTLIL，第一次看懂逻辑综合 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Yosys 学习笔记（一）：从 Verilog 到 RTLIL，第一次看懂逻辑综合"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-12 15:03" pubdate>
+          2026年7月12日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          33 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Yosys 学习笔记（一）：从 Verilog 到 RTLIL，第一次看懂逻辑综合</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>第一次接触 Yosys 时，我最先困惑的不是某条命令，而是几个看似简单的问题：Verilog 到底是在写程序还是在画电路？Yosys 输出的 <code>.v</code> 文件为什么仍像 RTL？RTLIL 是不是类似编译器 IR？技术映射又把什么映射成了什么？</p>
+<p>这些问题其实指向同一件事：<strong>逻辑综合不是把一段程序翻译成另一段程序，而是在不同抽象层次上不断改写一张电路图。</strong></p>
+<p>下面直接从两个完整的小模块出发，展示 Yosys 0.66+ 中实际可见的转换。目标不是背完命令，而是建立一条可以反复使用的主线：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">Verilog 行为/结构描述<br>  -&gt; RTLIL 中间表示<br>  -&gt; 通用 cell 网络<br>  -&gt; 技术映射后的目标器件网表<br>  -&gt; 布局布线与物理签核<br></code></pre></td></tr></table></figure>
+
+<p><img src="/images/mermaid-svg/yosys-learning-01-verilog-to-rtlil/yosys-synthesis-pipeline.svg" alt="从 Verilog 到物理实现的 Yosys 综合流水线"></p>
+<h2 id="Verilog-描述的是硬件，不是普通程序"><a href="#Verilog-描述的是硬件，不是普通程序" class="headerlink" title="Verilog 描述的是硬件，不是普通程序"></a>Verilog 描述的是硬件，不是普通程序</h2><p>首先要建立的认识是：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">assign</span> y = a + b;<br></code></pre></td></tr></table></figure>
+
+<p>它不是 CPU 运行到这里时做一次加法，而是描述一个一直存在的组合加法器。只要 <code>a</code> 或 <code>b</code> 改变，信号就会沿加法器传播到 <code>y</code>。</p>
+<p>同样：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk)<br>    q &lt;= d;<br></code></pre></td></tr></table></figure>
+
+<p>也不是注册了一个软件回调。综合器会据此推断触发器：组合逻辑在两个时钟沿之间持续传播，触发器在有效时钟沿采样 <code>D</code>，然后更新 <code>Q</code>。</p>
+<p>编译器类比可以帮助入门，但必须知道边界：</p>
+<table>
+<thead>
+<tr>
+<th>软件工具链</th>
+<th>数字电路工具链</th>
+<th>类比的边界</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>C&#x2F;C++ 源码</td>
+<td>Verilog RTL</td>
+<td>RTL 描述并行电路和状态，不是指令序列</td>
+</tr>
+<tr>
+<td>编译器 IR</td>
+<td>RTLIL &#x2F; 通用网表</td>
+<td>两者都便于统一分析和改写</td>
+</tr>
+<tr>
+<td>目标 ISA 汇编</td>
+<td>工艺单元网表</td>
+<td>网表是连接图，没有逐条执行的 PC</td>
+</tr>
+<tr>
+<td>机器运行</td>
+<td>芯片随时工作</td>
+<td>电路单元天然并行活动</td>
+</tr>
+</tbody></table>
+<p>因此，说“RTLIL 像 IR、技术映射网表像目标相关代码”是有用的；说“网表就是硬件汇编”则容易让人误以为门会按顺序执行。</p>
+<h2 id="两种不同语境下的前端和后端"><a href="#两种不同语境下的前端和后端" class="headerlink" title="两种不同语境下的前端和后端"></a>两种不同语境下的前端和后端</h2><p>讨论 Yosys 时，“前端&#x2F;后端”经常混用。至少要区分两套边界。</p>
+<h3 id="Yosys-软件内部的-frontend、pass-和-backend"><a href="#Yosys-软件内部的-frontend、pass-和-backend" class="headerlink" title="Yosys 软件内部的 frontend、pass 和 backend"></a>Yosys 软件内部的 frontend、pass 和 backend</h3><p>Yosys frontend 负责把输入格式转换成内存里的 RTLIL design，例如 <code>read_verilog</code>。大多数 pass 随后读取或修改 RTLIL。Yosys backend 则把当前 design 写成 Verilog、RTLIL、JSON、BLIF 等格式，例如 <code>write_verilog</code> 和 <code>write_rtlil</code>。</p>
+<p>从 Yosys 源码目录也能看到这层分工：<code>frontends/</code> 读入设计，<code>passes/</code> 改写 RTLIL，<code>backends/</code> 输出设计。</p>
+<p>这里的 backend 只是“Yosys 的输出模块”，不等于芯片物理后端。</p>
+<h3 id="IC-设计流程里的前端和后端"><a href="#IC-设计流程里的前端和后端" class="headerlink" title="IC 设计流程里的前端和后端"></a>IC 设计流程里的前端和后端</h3><p>行业里常见的划分大致是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">IC 前端：规格 -&gt; 微架构 -&gt; RTL -&gt; 仿真/lint/formal/CDC -&gt; 逻辑综合<br>IC 后端：floorplan -&gt; placement -&gt; CTS -&gt; routing -&gt; RCX/STA -&gt; DRC/LVS -&gt; GDSII<br></code></pre></td></tr></table></figure>
+
+<p>不同公司的边界会略有差异，但逻辑综合通常位于 IC 前端的后半段。Yosys 主要解决这一段的 RTL 综合、网表变换和部分形式验证问题；它不是完整的 place-and-route 或 signoff 工具。</p>
+<p>这里顺便解释 CDC。CDC 是 Clock Domain Crossing，即信号跨越不同或无固定相位关系的时钟域。单比特控制信号常用同步器，多比特数据常用握手或异步 FIFO。CDC 检查属于前端验证的重要工作，但它和“组合逻辑是否需要时钟”不是一回事：组合逻辑本身不需要时钟，跨时钟域采样才需要专门处理亚稳态与数据一致性。</p>
+<h2 id="一个可以直接运行的最小例子"><a href="#一个可以直接运行的最小例子" class="headerlink" title="一个可以直接运行的最小例子"></a>一个可以直接运行的最小例子</h2><p>以下命令假设使用 Yosys 0.66+，并且 <code>yosys</code> 已加入 <code>PATH</code>。可以先运行 <code>yosys -V</code> 确认版本；自动对象名称和少量规范化结果可能随版本变化。请在一个新目录中保存本文代码并执行命令，结尾使用的 <code>rg</code> 只负责搜索文本，不参与综合。</p>
+<p>先把下面代码保存为 <code>tiny_adder.v</code>：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">module</span> tiny_adder(<br>    <span class="hljs-keyword">input</span>  [<span class="hljs-number">3</span>:<span class="hljs-number">0</span>] a,<br>    <span class="hljs-keyword">input</span>  [<span class="hljs-number">3</span>:<span class="hljs-number">0</span>] b,<br>    <span class="hljs-keyword">input</span>        sub,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">4</span>:<span class="hljs-number">0</span>] y<br>);<br>    <span class="hljs-keyword">assign</span> y = sub<br>        ? (&#123;<span class="hljs-number">1&#x27;b0</span>, a&#125; - &#123;<span class="hljs-number">1&#x27;b0</span>, b&#125;)<br>        : (&#123;<span class="hljs-number">1&#x27;b0</span>, a&#125; + &#123;<span class="hljs-number">1&#x27;b0</span>, b&#125;);<br><span class="hljs-keyword">endmodule</span><br></code></pre></td></tr></table></figure>
+
+<p>然后运行一条独立的 Yosys 命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">yosys -p <span class="hljs-string">&quot;read_verilog -sv tiny_adder.v; hierarchy -check -top tiny_adder; proc; opt; stat; write_rtlil tiny_adder.il; write_verilog -noattr tiny_adder_netlist.v&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>这行同时包含 shell 语法和 Yosys 语法：</p>
+<table>
+<thead>
+<tr>
+<th>片段</th>
+<th>所属层</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>yosys</code></td>
+<td>shell</td>
+<td>启动 Yosys；若不在 <code>PATH</code> 中，可替换为实际二进制路径</td>
+</tr>
+<tr>
+<td><code>-p &quot;...&quot;</code></td>
+<td>Yosys CLI</td>
+<td>直接执行一整段 Yosys command string</td>
+</tr>
+<tr>
+<td><code>;</code></td>
+<td>Yosys script</td>
+<td>依次分隔多个 pass，不是此处 shell 的命令分隔符</td>
+</tr>
+</tbody></table>
+<p>引号中的每一步都有清晰职责：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text">read_verilog -sv ...       读取 SystemVerilog，生成 RTLIL design<br>hierarchy -check -top ...  指定顶层并检查模块层次<br>proc                       将 process 降为 mux、FF、latch 等 cell<br>opt                        迭代运行一组简单优化与清理 pass<br>stat                       统计当前 wire、bit 和 cell<br>write_rtlil ...            将当前 design 写为 RTLIL 文本<br>write_verilog -noattr ...  将当前 design 写为 Verilog，不输出 attribute<br></code></pre></td></tr></table></figure>
+
+<p><code>stat</code> 只能描述“当前结构里有什么”，不能证明功能正确。两个错误设计可以有完全相同的 cell 统计；反过来，两个功能等价设计也可能具有不同的中间结构。</p>
+<p>如果希望减少终端日志，可以加 <code>-q</code>；如果希望保存完整日志，可以加 <code>-l yosys.log</code>。如果想输出 Graphviz DOT，可以在命令串中加入 <code>show -format dot -prefix tiny_adder</code>。<code>xdot</code> 只是 DOT 图的交互查看器；没有它仍可生成 DOT 文本，也不影响综合。将 DOT 渲染为 SVG 还需要 Graphviz 的 <code>dot</code> 程序。</p>
+<h2 id="tiny-adder：第一次把表达式还原成-cell-图"><a href="#tiny-adder：第一次把表达式还原成-cell-图" class="headerlink" title="tiny_adder：第一次把表达式还原成 cell 图"></a>tiny_adder：第一次把表达式还原成 cell 图</h2><p>这个模块的核心是一条条件表达式：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">assign</span> y = sub<br>    ? (&#123;<span class="hljs-number">1&#x27;b0</span>, a&#125; - &#123;<span class="hljs-number">1&#x27;b0</span>, b&#125;)<br>    : (&#123;<span class="hljs-number">1&#x27;b0</span>, a&#125; + &#123;<span class="hljs-number">1&#x27;b0</span>, b&#125;);<br></code></pre></td></tr></table></figure>
+
+<p><code>a</code> 和 <code>b</code> 是 4 位，输出 <code>y</code> 是 5 位。显式拼接 <code>1&#39;b0</code> 把两个操作数扩展为 5 位，使无符号位宽意图不依赖外层上下文。</p>
+<p>一个值得保留的严谨性是：不能简单断言“只要删掉 <code>&#123;1&#39;b0, a&#125;</code>，这个版本一定丢进位”。在当前 5 位赋值上下文中，Yosys 仍可能把结果扩为 5 位。真正稳妥的结论是：显式扩展让意图明确；如果先把结果存入 4 位中间 wire，再扩到 5 位，最高位就已经丢失。</p>
+<p>运行后，<code>tiny_adder.il</code> 中能直接找到三个 cell：</p>
+<ul>
+<li>一个 <code>$sub</code></li>
+<li>一个 <code>$add</code></li>
+<li>一个 <code>$mux</code></li>
+</ul>
+<p><code>stat</code> 对这个模块的核心统计是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">=== tiny_adder ===<br>3 cells<br>1   $add<br>1   $mux<br>1   $sub<br></code></pre></td></tr></table></figure>
+
+<p><img src="/images/mermaid-svg/yosys-learning-01-verilog-to-rtlil/tiny-adder-rtlil-network.svg" alt="tiny_adder 从 Verilog 表达式到 RTLIL cell 网络"></p>
+<p>Yosys <code>$mux</code> 的连接规则是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">Y = S ? B : A<br></code></pre></td></tr></table></figure>
+
+<p>这里的连接是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">A = add_result<br>B = sub_result<br>S = sub<br>Y = y<br></code></pre></td></tr></table></figure>
+
+<p>所以它准确还原为 <code>y = sub ? sub_result : add_result</code>。读 RTLIL 不能只看 cell 名称，还要一起看参数和 <code>connect</code>。</p>
+<h2 id="逐行读-RTLIL"><a href="#逐行读-RTLIL" class="headerlink" title="逐行读 RTLIL"></a>逐行读 RTLIL</h2><p>tiny_adder 的 RTLIL 头部是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">autoidx 4<br>attribute \src &quot;tiny_adder.v:1.1-10.10&quot;<br>attribute \top 1<br>module \tiny_adder<br></code></pre></td></tr></table></figure>
+
+<p>这些字段分别表示：</p>
+<ul>
+<li><code>autoidx 4</code>：后续创建自动对象时使用的编号起点。</li>
+<li><code>attribute \src ...</code>：源码位置元数据，方便日志、调试和交叉定位。</li>
+<li><code>attribute \top 1</code>：标记当前顶层模块。</li>
+<li><code>module \tiny_adder</code>：开始一个模块；反斜杠开头的是 RTLIL 公开标识符。</li>
+</ul>
+<p>接下来是 wire：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">wire width 4 input 1 \a<br>wire width 5 output 4 \y<br>wire width 5 $sub$tiny_adder.v:8$1_Y<br></code></pre></td></tr></table></figure>
+
+<p>前两个通常保留用户源码名字。美元符号开头的名字通常由 Yosys 自动生成。</p>
+<p><code>$sub$tiny_adder.v:8$1_Y</code> 可以这样拆：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">$sub          来自减法表达式<br>tiny_adder.v  源文件名<br>:8            来源大致在源码第 8 行<br>$1            frontend 分配的唯一自动编号<br>_Y            这是相应 cell 的 Y 输出临时 wire<br></code></pre></td></tr></table></figure>
+
+<p><code>$1_Y</code> 不是“第 1 位 Y”，也不是循环执行次数，只是自动命名的一部分。</p>
+<p>cell 本体则由类型、实例名、参数和端口连接构成。下面为了突出结构省略了部分参数，并用 <code>...</code> 缩短自动名字，因此它是阅读用删节，不是可以直接交给 <code>read_rtlil</code> 的完整文件：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs text">cell $add $add$...<br>  parameter \A_WIDTH 5<br>  parameter \B_WIDTH 5<br>  parameter \Y_WIDTH 5<br>  connect \A &#123; 1&#x27;0 \a &#125;<br>  connect \B &#123; 1&#x27;0 \b &#125;<br>  connect \Y $add$..._Y<br>end<br></code></pre></td></tr></table></figure>
+
+<h3 id="RTLIL-是否必须和原-Verilog-放在一起"><a href="#RTLIL-是否必须和原-Verilog-放在一起" class="headerlink" title="RTLIL 是否必须和原 Verilog 放在一起"></a>RTLIL 是否必须和原 Verilog 放在一起</h3><p>不需要。<code>attribute \src</code> 是来源信息，不是运行时依赖。只要 RTLIL 文件完整，就可以用 <code>read_rtlil</code> 重新加载其中的模块、wire、cell、参数和连接，即使原始 <code>.v</code> 文件已经不存在，综合后的逻辑仍然成立。</p>
+<p>但“可以重建逻辑”不等于“可以恢复原始源码”。从 RTLIL 可以重新输出功能等价的 Verilog，却通常无法恢复原注释、排版、变量命名、宏、循环、函数和原始 <code>always</code> 写法。综合是多对一变换，很多不同 RTL 都会收敛到相同或等价的网络。</p>
+<h2 id="为什么-netlist-Verilog-看起来仍像-RTL"><a href="#为什么-netlist-Verilog-看起来仍像-RTL" class="headerlink" title="为什么 netlist Verilog 看起来仍像 RTL"></a>为什么 netlist Verilog 看起来仍像 RTL</h2><p><code>tiny_adder_netlist.v</code> 中仍然能看到：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">assign</span> _0_ = &#123; <span class="hljs-number">1&#x27;h0</span>, a &#125; + &#123; <span class="hljs-number">1&#x27;h0</span>, b &#125;;<br><span class="hljs-keyword">assign</span> _1_ = &#123; <span class="hljs-number">1&#x27;h0</span>, a &#125; - &#123; <span class="hljs-number">1&#x27;h0</span>, b &#125;;<br><span class="hljs-keyword">assign</span> y = sub ? _1_ : _0_;<br></code></pre></td></tr></table></figure>
+
+<p>它看起来和 RTL 很像，有两个原因。</p>
+<p>第一，<strong>网表是一张 cell 与 net 的连接图，不是一种特定文件后缀。</strong> Verilog 既能表达高层 RTL，也能承载结构网表。</p>
+<p>第二，<code>write_verilog</code> 默认会把许多内部 cell 重新打印成 Verilog expression。<code>-noattr</code> 只是移除 attribute，不会强制输出门实例。如果加上 <code>write_verilog -noexpr</code>，内部 cell 会更直接地以结构形式出现。</p>
+<p>这个例子仍是 <code>$add/$sub/$mux</code> 组成的通用字级网表，还没有绑定 NAND、AOI 或某个标准单元库，所以它本来就不会像大规模门级网表那样复杂。</p>
+<h2 id="组合-ALU：连续赋值何时变成-RTLIL-cell"><a href="#组合-ALU：连续赋值何时变成-RTLIL-cell" class="headerlink" title="组合 ALU：连续赋值何时变成 RTLIL cell"></a>组合 ALU：连续赋值何时变成 RTLIL cell</h2><p>再看一个完整的组合 ALU，把下面代码保存为 <code>alu_slice.v</code>：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">module</span> alu_slice(<br>    <span class="hljs-keyword">input</span>  [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] a,<br>    <span class="hljs-keyword">input</span>  [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] b,<br>    <span class="hljs-keyword">input</span>  [<span class="hljs-number">1</span>:<span class="hljs-number">0</span>] op,<br>    <span class="hljs-keyword">output</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] y,<br>    <span class="hljs-keyword">output</span>       is_zero<br>);<br>    <span class="hljs-keyword">wire</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] add_y  = a + b;<br>    <span class="hljs-keyword">wire</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] and_y  = a &amp; b;<br>    <span class="hljs-keyword">wire</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] xor_y  = a ^ b;<br>    <span class="hljs-keyword">wire</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] pass_y = a;<br><br>    <span class="hljs-keyword">assign</span> y =<br>        (op == <span class="hljs-number">2&#x27;b00</span>) ? add_y :<br>        (op == <span class="hljs-number">2&#x27;b01</span>) ? and_y :<br>        (op == <span class="hljs-number">2&#x27;b10</span>) ? xor_y :<br>                        pass_y;<br><br>    <span class="hljs-keyword">assign</span> is_zero = (y == <span class="hljs-number">8&#x27;h00</span>);<br><span class="hljs-keyword">endmodule</span><br></code></pre></td></tr></table></figure>
+
+<p>可以在 <code>hierarchy</code>、<code>proc</code>、<code>opt</code> 后各保存一次 RTLIL：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">yosys -p <span class="hljs-string">&quot;read_verilog -sv alu_slice.v; hierarchy -check -top alu_slice; write_rtlil alu_01_hierarchy.il; proc; write_rtlil alu_02_proc.il; opt; stat; write_rtlil alu_03_opt.il&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>最重要的观察是：<code>hierarchy</code> 后的第一份 RTLIL 已经包含 <code>$add</code>、<code>$and</code>、<code>$xor</code>、比较器和三级 <code>$mux</code>。这说明连续表达式在 <code>read_verilog</code> 阶段就已经下降成 RTLIL cell；<code>proc</code> 并不负责所有表达式 lowering，它主要针对 <code>process</code>。</p>
+<p>这个设计没有 <code>always</code>，所以 <code>proc</code> 没有 process 可以转换成触发器。不过也不能说“proc 前后完全不变”。<code>proc</code> 是一个宏命令，末尾还会运行 <code>opt_expr</code>。本版本会把 <code>op == 0</code> 和 <code>y == 0</code> 从 <code>$eq</code> 规范化为 <code>$logic_not</code>。</p>
+<p>例如 <code>op == 2&#39;b00</code> 在较早快照中可能是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">cell $eq $eq$alu_slice.v:14$4<br>  connect \A \op<br>  connect \B 2&#x27;00<br>  connect \Y $eq$alu_slice.v:14$4_Y<br>end<br></code></pre></td></tr></table></figure>
+
+<p>经过 <code>proc</code> 尾部的 <code>opt_expr</code> 后变成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">cell $logic_not $eq$alu_slice.v:14$4<br>  connect \A \op<br>  connect \Y $eq$alu_slice.v:14$4_Y<br>end<br></code></pre></td></tr></table></figure>
+
+<p>对 2 位信号来说，“等于零”就是“所有位都不为 1”，因此可以用逻辑非表达。cell 的实例名仍可能保留 <code>$eq$...</code> 的来源痕迹，但 cell 类型已经是 <code>$logic_not</code>。</p>
+<p>这引出一个比背命令更重要的习惯：</p>
+<blockquote>
+<p>不要只问“运行了哪个 pass”，还要问“当前 design 中有没有它处理的对象，它的子 pass 实际改了什么”。</p>
+</blockquote>
+<p>另外，<code>op</code> 是运行时输入，<code>op == 2&#39;b01</code> 不可能在综合时直接“算完”；它必须成为比较逻辑。<code>y == 0</code> 同理，它依赖前面的 MUX 结果。把数据位宽从 8 改成 16 时，字级 <code>$add/$and/$xor/$mux</code> 的数量也不一定翻倍，首先改变的是 cell 的宽度参数；映射到位级门后，资源数量才通常随位宽增长。</p>
+<h2 id="技术映射：输入和输出分别是什么"><a href="#技术映射：输入和输出分别是什么" class="headerlink" title="技术映射：输入和输出分别是什么"></a>技术映射：输入和输出分别是什么</h2><p>到目前为止，我们看到的仍是通用 RTLIL cell。技术映射解决的是：如何用目标器件真正提供的资源实现这些通用运算。</p>
+<p>可以把输入和输出写成下面的集合。具体使用哪些输入取决于映射阶段，并不是每条映射命令都同时需要模板、Liberty 和约束：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text">输入：通用 cell 网络<br>    + 映射模板或目标器件规则<br>    + Liberty 标准单元库<br>    + 延迟/负载等约束<br><br>输出：由目标标准单元或 FPGA LUT/FF 组成的网表<br>    + 每个实例的类型、参数和连接<br></code></pre></td></tr></table></figure>
+
+<p>三个常见命令各有不同职责：</p>
+<ul>
+<li><code>techmap</code>：用 Verilog&#x2F;RTLIL 模板替换匹配的 cell。无 <code>-map</code> 时使用 Yosys 内置映射，把较粗粒度内部 cell 降为内部门库；模板来自 Yosys 自带 <code>techlibs</code>、厂商库或用户提供的 map 文件。</li>
+<li><code>dfflibmap -liberty cells.lib</code>：专门把内部触发器映射到 Liberty 中可用的触发器，必要时还可能引入反相器。</li>
+<li><code>abc -liberty cells.lib</code>：调用 ABC 对抽取出的组合逻辑做优化，并映射到 Liberty 描述的组合标准单元。</li>
+</ul>
+<p>常见顺序是先用 <code>dfflibmap</code> 处理寄存器，再用 <code>abc -liberty</code> 处理组合路径，因为触发器映射可能引入需要继续映射的反相器。</p>
+<p>技术映射后的网表已经面向目标工艺，但还不是芯片版图。后续通常还要进行网表等价检查、约束检查、DFT、布局、时钟树综合、布线、寄生提取、STA、DRC 和 LVS。</p>
+<h2 id="频率、面积和功耗在综合阶段如何估算"><a href="#频率、面积和功耗在综合阶段如何估算" class="headerlink" title="频率、面积和功耗在综合阶段如何估算"></a>频率、面积和功耗在综合阶段如何估算</h2><p>综合阶段的 PPA 是早期估计，不是最终签核数字。前面的两个例子没有读取 Liberty，也没有时钟与 IO 约束，因此只能观察通用 cell 结构，不能得到可信面积、Fmax 或功耗；基础 <code>stat</code> 也不是完整 STA 或功耗分析器。</p>
+<h3 id="面积"><a href="#面积" class="headerlink" title="面积"></a>面积</h3><p>映射后可以根据 Liberty 中的 cell area 累加组合门和触发器面积。它适合比较不同实现，但没有完整考虑宏单元形状、布线拥塞、tap&#x2F;filler、时钟树和最终 core utilization，因此不能直接等同于芯片面积。</p>
+<h3 id="频率"><a href="#频率" class="headerlink" title="频率"></a>频率</h3><p>频率来自最长时序路径。综合器利用目标库中的 timing arc、输入驱动、输出负载和时序约束估计组合延迟，典型寄存器到寄存器约束是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">Tclk &gt;= Tcq + Tcomb(max) + Tsetup + clock uncertainty<br>Fmax ≈ 1 / Tcritical<br></code></pre></td></tr></table></figure>
+
+<p>布局前缺少真实线长和寄生 RC，所以这是 pre-layout timing。布局布线、RCX 以后才能得到更可信的 post-layout STA。</p>
+<h3 id="功耗"><a href="#功耗" class="headerlink" title="功耗"></a>功耗</h3><p>动态功耗近似依赖：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">Pdynamic ≈ activity × capacitance × voltage^2 × frequency<br></code></pre></td></tr></table></figure>
+
+<p>还要加上 cell leakage 和 internal power。若没有真实切换活动率、频率、电压、负载以及库中的功耗模型，只能做粗略估计。Yosys 的基础 <code>stat</code> 更不能单独给出 signoff power。</p>
+<h2 id="这一阶段最值得保留的判断标准"><a href="#这一阶段最值得保留的判断标准" class="headerlink" title="这一阶段最值得保留的判断标准"></a>这一阶段最值得保留的判断标准</h2><p>到这里可以形成几条不会轻易过时的判断：</p>
+<ol>
+<li>Verilog 语法像程序，不代表硬件按语句顺序执行。</li>
+<li>RTLIL 是 Yosys 的统一设计表示，主要 pass 围绕它工作。</li>
+<li>网表由 cell&#x2F;net 图的语义定义，不由 <code>.v</code>、<code>.il</code> 或代码长相定义。</li>
+<li>通用网表类似 IR，技术映射网表绑定目标库，但两者都是并行电路图。</li>
+<li><code>stat</code> 适合观察结构变化，不负责证明功能正确。</li>
+<li><code>.il</code> 可以独立恢复综合后的网络，不能无损恢复原始 RTL。</li>
+<li>PPA 必须结合目标库和约束；布局前的结果仍是估计。</li>
+</ol>
+<h2 id="完整运行命令"><a href="#完整运行命令" class="headerlink" title="完整运行命令"></a>完整运行命令</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs bash">yosys -p <span class="hljs-string">&quot;read_verilog -sv tiny_adder.v; hierarchy -check -top tiny_adder; proc; opt; stat; write_rtlil tiny_adder.il; write_verilog -noattr tiny_adder_netlist.v&quot;</span><br><br>yosys -p <span class="hljs-string">&quot;read_verilog -sv alu_slice.v; hierarchy -check -top alu_slice; write_rtlil alu_01_hierarchy.il; proc; write_rtlil alu_02_proc.il; opt; stat; write_rtlil alu_03_opt.il&quot;</span><br><br>rg -n <span class="hljs-string">&#x27;\$add|\$sub|\$mux&#x27;</span> tiny_adder.il<br>rg -n <span class="hljs-string">&#x27;\$add|\$and|\$xor|\$eq|\$logic_not|\$mux&#x27;</span> alu_*.il<br></code></pre></td></tr></table></figure>
+
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>这一篇建立了逻辑综合的坐标系：Verilog 是电路描述入口，RTLIL 是 Yosys 统一处理的中间表示，pass 持续改写 cell 与 wire 网络，backend 再把当前 design 序列化为不同格式。技术映射把通用网络绑定到目标器件，而布局布线和签核仍在后面。</p>
+<p>下一篇进入真正有状态的设计：观察 <code>always @(posedge clk or posedge rst)</code> 如何经 <code>proc</code> 变成 MUX 和 <code>$adff</code>，<code>opt</code> 又为什么能把反馈保持路径提取成 <code>$adffe.EN</code>。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Computer-Architecture/" class="category-chain-item">Computer Architecture</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Verilog/" class="print-no-link">#Verilog</a>
+      
+        <a href="/tags/Yosys/" class="print-no-link">#Yosys</a>
+      
+        <a href="/tags/RTLIL/" class="print-no-link">#RTLIL</a>
+      
+        <a href="/tags/logic-synthesis/" class="print-no-link">#logic synthesis</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Yosys 学习笔记（一）：从 Verilog 到 RTLIL，第一次看懂逻辑综合</div>
+      <div>http://blog.luliang.online/2026/07/12/yosys-learning-01-verilog-to-rtlil/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月12日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/13/yosys-learning-02-process-opt-and-mux/" title="Yosys 学习笔记（二）：从 process 到 MUX 和 ADFFE，读懂 proc 与 opt">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Yosys 学习笔记（二）：从 process 到 MUX 和 ADFFE，读懂 proc 与 opt</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/03/ssd-controller-firmware-and-nand/" title="SSD 为什么会卡：从 NAND、控制器到固件 Bug">
+                        <span class="hidden-mobile">SSD 为什么会卡：从 NAND、控制器到固件 Bug</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

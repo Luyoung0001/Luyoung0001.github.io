@@ -1,0 +1,810 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言很多工程报告会把 smoke test 写成“跑了几条命令，看到 PASS”。这种写法对没有环境的读者不友好，也讲不出测试设计的价值。 更好的讲法是：smoke test 在验证跨层契约。CoolDA 这种 SoC demo 的 smoke test 应该证明：  固件能构建； SoC 能仿真； shell 能接收脚本输入； runtime 能调度任务； BSP 能驱动 APB NPU； NP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CoolDA 设计仿真（五）：烟测不是跑命令，而是验证契约">
+<meta property="og:url" content="http://blog.luliang.online/2026/05/11/coolda-design-05-smoke-contract/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="前言很多工程报告会把 smoke test 写成“跑了几条命令，看到 PASS”。这种写法对没有环境的读者不友好，也讲不出测试设计的价值。 更好的讲法是：smoke test 在验证跨层契约。CoolDA 这种 SoC demo 的 smoke test 应该证明：  固件能构建； SoC 能仿真； shell 能接收脚本输入； runtime 能调度任务； BSP 能驱动 APB NPU； NP">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.luliang.online/images/mermaid-svg/coolda-design-05-smoke-contract/test-contract.svg">
+<meta property="article:published_time" content="2026-05-11T07:03:13.000Z">
+<meta property="article:modified_time" content="2026-07-23T03:05:46.832Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="testing">
+<meta property="article:tag" content="CoolDA">
+<meta property="article:tag" content="Verilator">
+<meta property="article:tag" content="verification">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://blog.luliang.online/images/mermaid-svg/coolda-design-05-smoke-contract/test-contract.svg">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>CoolDA 设计仿真（五）：烟测不是跑命令，而是验证契约 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="CoolDA 设计仿真（五）：烟测不是跑命令，而是验证契约"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-11 15:03" pubdate>
+          2026年5月11日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          11 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">CoolDA 设计仿真（五）：烟测不是跑命令，而是验证契约</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>很多工程报告会把 smoke test 写成“跑了几条命令，看到 PASS”。这种写法对没有环境的读者不友好，也讲不出测试设计的价值。</p>
+<p>更好的讲法是：smoke test 在验证跨层契约。CoolDA 这种 SoC demo 的 smoke test 应该证明：</p>
+<ol>
+<li>固件能构建；</li>
+<li>SoC 能仿真；</li>
+<li>shell 能接收脚本输入；</li>
+<li>runtime 能调度任务；</li>
+<li>BSP 能驱动 APB NPU；</li>
+<li>NPU 结果能对齐 reference；</li>
+<li>仿真器能干净结束。</li>
+</ol>
+<p><img src="/images/mermaid-svg/coolda-design-05-smoke-contract/test-contract.svg" alt="CoolDA smoke 测试契约"></p>
+<h2 id="smoke-test-的层次"><a href="#smoke-test-的层次" class="headerlink" title="smoke test 的层次"></a>smoke test 的层次</h2><p>一个好的 smoke test 不是单点测试，而是链路测试：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs text">firmware build<br>  -&gt; simulator build<br>  -&gt; program load<br>  -&gt; shell boot<br>  -&gt; scripted commands<br>  -&gt; runtime calls<br>  -&gt; BSP MMIO<br>  -&gt; NPU compute<br>  -&gt; UART observations<br>  -&gt; host-side assertions<br></code></pre></td></tr></table></figure>
+
+<p>这里每一层都可能坏：</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>可能问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>firmware</td>
+<td>链接脚本、启动代码、符号缺失</td>
+</tr>
+<tr>
+<td>simulator</td>
+<td>RTL&#x2F;C++ 链接失败，模型接口变动</td>
+</tr>
+<tr>
+<td>shell</td>
+<td>prompt 不出现，命令解析错</td>
+</tr>
+<tr>
+<td>runtime</td>
+<td>tile 调度错，device heap 越界</td>
+</tr>
+<tr>
+<td>BSP</td>
+<td>寄存器 offset 错，busy&#x2F;done 轮询错</td>
+</tr>
+<tr>
+<td>NPU RTL</td>
+<td>有符号乘法错，C 输出顺序错</td>
+</tr>
+<tr>
+<td>UART&#x2F;script</td>
+<td>输出捕获错，命令注入乱序</td>
+</tr>
+</tbody></table>
+<p>smoke test 的任务就是用少量但高价值的断言覆盖这些层。</p>
+<h2 id="matmul-功能契约"><a href="#matmul-功能契约" class="headerlink" title="matmul 功能契约"></a>matmul 功能契约</h2><p>矩阵乘法功能测试应该包含 CPU reference：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">cpu_matmul_ref</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">job_t</span> *job)</span> &#123;<br>  <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> row = <span class="hljs-number">0</span>; row &lt; job-&gt;m; row++) &#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> col = <span class="hljs-number">0</span>; col &lt; job-&gt;n; col++) &#123;<br>      <span class="hljs-type">int32_t</span> sum = <span class="hljs-number">0</span>;<br>      <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> k = <span class="hljs-number">0</span>; k &lt; job-&gt;k; k++) &#123;<br>        sum += (<span class="hljs-type">int32_t</span>)job-&gt;a[row * job-&gt;lda + k] *<br>               (<span class="hljs-type">int32_t</span>)job-&gt;b[k * job-&gt;ldb + col];<br>      &#125;<br>      <span class="hljs-keyword">if</span> ((job-&gt;flags &amp; JOB_RELU) &amp;&amp; sum &lt; <span class="hljs-number">0</span>)<br>        sum = <span class="hljs-number">0</span>;<br>      job-&gt;c[row * job-&gt;ldc + col] = sum;<br>    &#125;<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>NPU 路径则走：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text">host A/B<br>  -&gt; device memory model<br>  -&gt; runtime tile scheduler<br>  -&gt; BSP<br>  -&gt; APB NPU<br>  -&gt; device C<br>  -&gt; host C<br></code></pre></td></tr></table></figure>
+
+<p>最后逐项比较：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; total; i++) &#123;<br>  assert(npu_c[i] == ref_c[i]);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这个测试验证的不只是 4x4 硬件核，还验证 runtime 是否正确使用了硬件核。</p>
+<h2 id="runtime-内存契约"><a href="#runtime-内存契约" class="headerlink" title="runtime 内存契约"></a>runtime 内存契约</h2><p>即使硬件没有问题，runtime 也可能出错。至少要检查：</p>
+<ol>
+<li><code>malloc(0)</code> 应失败；</li>
+<li>超出 device heap 的分配应失败；</li>
+<li>host 指针和 device 指针不能混用；</li>
+<li>memcpy to device 要检查目标范围；</li>
+<li>memcpy to host 要检查来源范围；</li>
+<li>free 后的空间要标记为不用。</li>
+</ol>
+<p>可以把 device heap 想成一个小数组：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">uint8_t</span> device_heap[<span class="hljs-number">64</span> * <span class="hljs-number">1024</span>];<br><br><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> &#123;</span><br>  <span class="hljs-type">uint32_t</span> offset;<br>  <span class="hljs-type">uint32_t</span> bytes;<br>  <span class="hljs-type">uint8_t</span>  in_use;<br>&#125; <span class="hljs-type">alloc_t</span>;<br></code></pre></td></tr></table></figure>
+
+<p>内存检查伪代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">check_device_range</span><span class="hljs-params">(<span class="hljs-type">void</span> *ptr, <span class="hljs-type">size_t</span> bytes)</span> &#123;<br>  <span class="hljs-keyword">if</span> (!is_device_ptr(ptr)) <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>  <span class="hljs-keyword">if</span> (!range_inside_known_alloc(ptr, bytes)) <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这类检查让 runtime 更像一个真正的加速器运行时，而不只是几层函数封装。</p>
+<h2 id="event-契约"><a href="#event-契约" class="headerlink" title="event 契约"></a>event 契约</h2><p>如果 runtime 提供 async&#x2F;event，smoke test 应该验证事件状态：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">IDLE -&gt; RUNNING -&gt; DONE<br></code></pre></td></tr></table></figure>
+
+<p>以及错误情况：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">invalid job -&gt; ERROR 或返回失败<br></code></pre></td></tr></table></figure>
+
+<p>一个 event poll 的核心契约是：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">event_poll</span><span class="hljs-params">(<span class="hljs-type">event_t</span> *e)</span> &#123;<br>  <span class="hljs-keyword">if</span> (e-&gt;state != RUNNING) <span class="hljs-keyword">return</span> error_or_done(e);<br><br>  run_one_tile_step(e);<br>  e-&gt;completed_steps++;<br><br>  <span class="hljs-keyword">if</span> (e-&gt;completed_steps == e-&gt;total_steps)<br>    e-&gt;state = DONE;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>测试不需要读者看终端输出。文章里应该讲清楚：每次 poll 推进一个 tile step，所有 step 完成后结果必须与 CPU reference 一致。</p>
+<h2 id="vecadd-为什么也能出现在-smoke-里"><a href="#vecadd-为什么也能出现在-smoke-里" class="headerlink" title="vecadd 为什么也能出现在 smoke 里"></a>vecadd 为什么也能出现在 smoke 里</h2><p>如果当前硬件只实现 matmul，而 vecadd 仍由 CPU reference 实现，那 vecadd 测试还有意义吗？</p>
+<p>有。它验证的是 runtime API 和 device memory 路径，而不是 RTL kernel。</p>
+<p>vecadd job 很简单：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> &#123;</span><br>  <span class="hljs-type">uint32_t</span> n;<br>  <span class="hljs-type">const</span> <span class="hljs-type">int32_t</span> *a;<br>  <span class="hljs-type">const</span> <span class="hljs-type">int32_t</span> *b;<br>  <span class="hljs-type">int32_t</span> *c;<br>&#125; <span class="hljs-type">vecadd_job_t</span>;<br></code></pre></td></tr></table></figure>
+
+<p>reference：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; n; i++) &#123;<br>  c[i] = a[i] + b[i];<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>它能覆盖：</p>
+<ol>
+<li>device allocation；</li>
+<li>memcpy to device；</li>
+<li>launch API；</li>
+<li>memcpy to host；</li>
+<li>result compare；</li>
+<li>benchmark 框架。</li>
+</ol>
+<p>所以文章里要说清楚：vecadd 测的是 runtime 形状，不代表已经有 vecadd RTL accelerator。</p>
+<h2 id="simulator-完成契约"><a href="#simulator-完成契约" class="headerlink" title="simulator 完成契约"></a>simulator 完成契约</h2><p>自动测试还需要知道什么时候结束。</p>
+<p>如果仿真器通过 shell prompt 注入命令，就应该有这样的契约：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">看到 prompt<br>  -&gt; 注入下一条命令<br>  -&gt; 等待命令执行结束并再次出现 prompt<br>  -&gt; 如果队列为空，则停止仿真<br></code></pre></td></tr></table></figure>
+
+<p>这比“睡眠一段固定时间再输入下一条”可靠得多。</p>
+<p>伪代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">if</span> (prompt_seen()) &#123;<br>  <span class="hljs-keyword">if</span> (command_inflight) &#123;<br>    command_inflight = <span class="hljs-literal">false</span>;<br>    <span class="hljs-keyword">if</span> (exit_after_commands &amp;&amp; command_queue_empty())<br>      running = <span class="hljs-literal">false</span>;<br>  &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (!command_queue_empty()) &#123;<br>    inject_next_command();<br>    command_inflight = <span class="hljs-literal">true</span>;<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里验证的是 simulator、UART 捕获、shell prompt 和脚本注入之间的同步。</p>
+<h2 id="benchmark-要克制解读"><a href="#benchmark-要克制解读" class="headerlink" title="benchmark 要克制解读"></a>benchmark 要克制解读</h2><p>smoke test 里可以包含 benchmark 入口，但不要把它写成真实性能结论。</p>
+<p>原因很简单：</p>
+<ol>
+<li>Verilator 时间不是芯片真实时间；</li>
+<li>4x4 寄存器喂数小核不代表最终 NPU 性能；</li>
+<li>没有 DMA 时，CPU 参与数据搬运成本很高；</li>
+<li>裸机 timer 精度可能影响短 benchmark；</li>
+<li>simulator 编译选项也会影响 host 侧耗时。</li>
+</ol>
+<p>benchmark 在这个阶段更适合做回归信号：同一实现下，性能数字是否异常漂移。它不是最终性能报告。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>CoolDA smoke test 的重点不是“跑命令”，而是验证契约：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">构建契约<br>  -&gt; shell 契约<br>  -&gt; runtime 契约<br>  -&gt; BSP/MMIO 契约<br>  -&gt; NPU 数值契约<br>  -&gt; simulator 完成契约<br></code></pre></td></tr></table></figure>
+
+<p>到这里，CoolDA 系列也形成了闭环：CPU 到 NPU 的系统路径、APB 寄存器契约、BSP&#x2F;runtime 分层、xOS&#x2F;Verilator 交互、跨层测试契约。后续要加 DMA、命令队列或中断，也可以沿着这些层逐步扩展，而不是推倒重来。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Computer-Architecture/" class="category-chain-item">Computer Architecture</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/testing/" class="print-no-link">#testing</a>
+      
+        <a href="/tags/CoolDA/" class="print-no-link">#CoolDA</a>
+      
+        <a href="/tags/Verilator/" class="print-no-link">#Verilator</a>
+      
+        <a href="/tags/verification/" class="print-no-link">#verification</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>CoolDA 设计仿真（五）：烟测不是跑命令，而是验证契约</div>
+      <div>http://blog.luliang.online/2026/05/11/coolda-design-05-smoke-contract/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月11日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/28/github-security-model-part-1/" title="GitHub 安全机制解析（一）：用户权限不是一句 member 能说清的">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">GitHub 安全机制解析（一）：用户权限不是一句 member 能说清的</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/05/10/coolda-design-04-xos-verilator/" title="CoolDA 设计仿真（四）：xOS Shell 与 Verilator 交互">
+                        <span class="hidden-mobile">CoolDA 设计仿真（四）：xOS Shell 与 Verilator 交互</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

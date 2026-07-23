@@ -1,0 +1,1157 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言组合表达式经过 proc 和 opt 后，通常会变成 mux、比较器和算术 cell。但状态机和数组存储包含更高层的设计意图： 12状态机：状态集合、转移条件、复位状态、控制输出memory：容量、端口数量、读写时序、碰撞语义  如果综合器只把它们当成普通寄存器和 mux，就很难执行状态重编码，也很难把数组映射到 SRAM macro、FPGA block RAM 或 LUT RAM。Yosy">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Yosys 学习笔记（五）：FSM 与 Memory 如何变成状态表和寄存器阵列">
+<meta property="og:url" content="http://blog.luliang.online/2026/07/23/yosys-learning-05-fsm-and-memory/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="前言组合表达式经过 proc 和 opt 后，通常会变成 mux、比较器和算术 cell。但状态机和数组存储包含更高层的设计意图： 12状态机：状态集合、转移条件、复位状态、控制输出memory：容量、端口数量、读写时序、碰撞语义  如果综合器只把它们当成普通寄存器和 mux，就很难执行状态重编码，也很难把数组映射到 SRAM macro、FPGA block RAM 或 LUT RAM。Yosy">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-23T02:52:28.000Z">
+<meta property="article:modified_time" content="2026-07-23T03:05:46.861Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="Verilog">
+<meta property="article:tag" content="FSM">
+<meta property="article:tag" content="Yosys">
+<meta property="article:tag" content="RTLIL">
+<meta property="article:tag" content="Memory">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>Yosys 学习笔记（五）：FSM 与 Memory 如何变成状态表和寄存器阵列 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Yosys 学习笔记（五）：FSM 与 Memory 如何变成状态表和寄存器阵列"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-23 10:52" pubdate>
+          2026年7月23日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          49 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Yosys 学习笔记（五）：FSM 与 Memory 如何变成状态表和寄存器阵列</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>组合表达式经过 <code>proc</code> 和 <code>opt</code> 后，通常会变成 mux、比较器和算术 cell。但状态机和数组存储包含更高层的设计意图：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">状态机：状态集合、转移条件、复位状态、控制输出<br>memory：容量、端口数量、读写时序、碰撞语义<br></code></pre></td></tr></table></figure>
+
+<p>如果综合器只把它们当成普通寄存器和 mux，就很难执行状态重编码，也很难把数组映射到 SRAM macro、FPGA block RAM 或 LUT RAM。Yosys 因此提供了两组专门的处理流程：<code>fsm</code> 和 <code>memory</code>。</p>
+<p>不过，观察这两个宏命令时很容易遇到一个反直觉现象：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">运行 fsm 后，为什么 RTLIL 里没有 $fsm？<br>运行 memory 后，为什么 RTLIL 里也没有 $mem_v2？<br></code></pre></td></tr></table></figure>
+
+<p>答案不是 pass 没运行，而是两个宏默认都会继续完成后续映射：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">fsm 默认最后调用 fsm_map，把 $fsm 重新展开成触发器和逻辑<br>memory 默认最后调用 memory_map，把 $mem_v2 展开成寄存器和地址译码<br></code></pre></td></tr></table></figure>
+
+<p>本文用一个包含四状态控制器和 <code>16 x 8</code> memory 的小设计，完整观察下面这条路径：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">Verilog always / case / reg array<br>  -&gt; proc：触发器、mux、独立 memory 端口<br>  -&gt; fsm -nomap：$fsm 状态表与 one-hot 重编码<br>  -&gt; fsm_map：重新生成状态寄存器和转移逻辑<br>  -&gt; memory -nomap：统一的 $mem_v2<br>  -&gt; memory_map：16 个字级寄存器、读 mux 树和写地址译码<br></code></pre></td></tr></table></figure>
+
+<p>重点不只是记住命令，而是理解每一个中间表示为什么存在、何时会消失，以及 pass 的顺序为什么会影响 FSM 检测结果。</p>
+<h2 id="完整实验设计"><a href="#完整实验设计" class="headerlink" title="完整实验设计"></a>完整实验设计</h2><p>先看完整 Verilog：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">module</span> control_and_mem(<br>    <span class="hljs-keyword">input</span>        clk,<br>    <span class="hljs-keyword">input</span>        rst,<br>    <span class="hljs-keyword">input</span>        start,<br>    <span class="hljs-keyword">input</span>  [<span class="hljs-number">3</span>:<span class="hljs-number">0</span>] addr,<br>    <span class="hljs-keyword">input</span>  [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] din,<br>    <span class="hljs-keyword">output</span> <span class="hljs-keyword">reg</span>   done,<br>    <span class="hljs-keyword">output</span> <span class="hljs-keyword">reg</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] dout<br>);<br>    <span class="hljs-keyword">localparam</span> IDLE = <span class="hljs-number">2&#x27;b00</span>;<br>    <span class="hljs-keyword">localparam</span> LOAD = <span class="hljs-number">2&#x27;b01</span>;<br>    <span class="hljs-keyword">localparam</span> WAIT = <span class="hljs-number">2&#x27;b10</span>;<br>    <span class="hljs-keyword">localparam</span> DONE = <span class="hljs-number">2&#x27;b11</span>;<br><br>    <span class="hljs-keyword">reg</span> [<span class="hljs-number">1</span>:<span class="hljs-number">0</span>] state;<br>    <span class="hljs-keyword">reg</span> [<span class="hljs-number">1</span>:<span class="hljs-number">0</span>] next_state;<br>    <span class="hljs-keyword">reg</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] mem [<span class="hljs-number">0</span>:<span class="hljs-number">15</span>];<br><br>    <span class="hljs-keyword">always</span> @* <span class="hljs-keyword">begin</span><br>        next_state = state;<br>        done = <span class="hljs-number">1&#x27;b0</span>;<br><br>        <span class="hljs-keyword">case</span> (state)<br>            IDLE: <span class="hljs-keyword">if</span> (start) next_state = LOAD;<br>            LOAD: next_state = WAIT;<br>            WAIT: next_state = DONE;<br>            DONE: <span class="hljs-keyword">begin</span><br>                done = <span class="hljs-number">1&#x27;b1</span>;<br>                next_state = IDLE;<br>            <span class="hljs-keyword">end</span><br>            <span class="hljs-keyword">default</span>: next_state = IDLE;<br>        <span class="hljs-keyword">endcase</span><br>    <span class="hljs-keyword">end</span><br><br>    <span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk <span class="hljs-keyword">or</span> <span class="hljs-keyword">posedge</span> rst) <span class="hljs-keyword">begin</span><br>        <span class="hljs-keyword">if</span> (rst)<br>            state &lt;= IDLE;<br>        <span class="hljs-keyword">else</span><br>            state &lt;= next_state;<br>    <span class="hljs-keyword">end</span><br><br>    <span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk) <span class="hljs-keyword">begin</span><br>        <span class="hljs-keyword">if</span> (state == LOAD)<br>            mem[addr] &lt;= din;<br>        dout &lt;= mem[addr];<br>    <span class="hljs-keyword">end</span><br><span class="hljs-keyword">endmodule</span><br></code></pre></td></tr></table></figure>
+
+<p>这个模块里有两个相对独立、又通过 <code>state == LOAD</code> 联系起来的部分。</p>
+<h2 id="先读懂-FSM-行为"><a href="#先读懂-FSM-行为" class="headerlink" title="先读懂 FSM 行为"></a>先读懂 FSM 行为</h2><p>状态转移关系是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs text">     start=0<br>  +-----------+<br>  |           |<br>  v           |<br>IDLE ----------+<br>  |<br>  | start=1<br>  v<br>LOAD<br>  |<br>  v<br>WAIT<br>  |<br>  v<br>DONE --done=1--&gt; IDLE<br></code></pre></td></tr></table></figure>
+
+<p>更精确地列成表：</p>
+<table>
+<thead>
+<tr>
+<th>当前状态</th>
+<th>条件</th>
+<th>下一状态</th>
+<th align="right"><code>done</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>IDLE</code></td>
+<td><code>start=0</code></td>
+<td><code>IDLE</code></td>
+<td align="right"><code>0</code></td>
+</tr>
+<tr>
+<td><code>IDLE</code></td>
+<td><code>start=1</code></td>
+<td><code>LOAD</code></td>
+<td align="right"><code>0</code></td>
+</tr>
+<tr>
+<td><code>LOAD</code></td>
+<td>无条件</td>
+<td><code>WAIT</code></td>
+<td align="right"><code>0</code></td>
+</tr>
+<tr>
+<td><code>WAIT</code></td>
+<td>无条件</td>
+<td><code>DONE</code></td>
+<td align="right"><code>0</code></td>
+</tr>
+<tr>
+<td><code>DONE</code></td>
+<td>无条件</td>
+<td><code>IDLE</code></td>
+<td align="right"><code>1</code></td>
+</tr>
+</tbody></table>
+<p>组合块开头的默认赋值非常重要：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs verilog">next_state = state;<br>done = <span class="hljs-number">1&#x27;b0</span>;<br></code></pre></td></tr></table></figure>
+
+<p>它们保证所有组合路径都有赋值。否则某些分支没有给 <code>next_state</code> 或 <code>done</code> 赋值时，综合器必须推断 latch 来保存旧值。</p>
+<p>这个设计中的默认 <code>next_state = state</code> 还会影响后面的 FSM 检测：它在网表中表现为状态寄存器的自反馈路径，而普通 <code>opt</code> 可能把这种“保持旧值”的行为吸收到触发器使能中。</p>
+<h2 id="再读懂-memory-行为"><a href="#再读懂-memory-行为" class="headerlink" title="再读懂 memory 行为"></a>再读懂 memory 行为</h2><p>数组声明：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">reg</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] mem [<span class="hljs-number">0</span>:<span class="hljs-number">15</span>];<br></code></pre></td></tr></table></figure>
+
+<p>表示：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">字宽 WIDTH = 8 bit<br>深度 SIZE  = 16 word<br>地址宽度   = 4 bit<br>总存储容量 = 16 x 8 = 128 bit<br></code></pre></td></tr></table></figure>
+
+<p>写入条件是：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">if</span> (state == LOAD)<br>    mem[addr] &lt;= din;<br></code></pre></td></tr></table></figure>
+
+<p>所以 memory 有一个同步写端口：只有时钟上升沿到来且当前状态为 <code>LOAD</code> 时，才把 <code>din</code> 写入 <code>addr</code> 指定的 word。</p>
+<p>读取也是同步的：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs verilog">dout &lt;= mem[addr];<br></code></pre></td></tr></table></figure>
+
+<p><code>dout</code> 只在时钟上升沿更新。由于使用非阻塞赋值，同一时钟沿同时读写相同地址时，<code>dout</code> 读取的是写入前的旧值。这类行为通常称为 read-first 或 non-transparent read。</p>
+<p>这里没有给 memory 写初始化内容，因此它的初始 128 bit 都是不确定值。</p>
+<h2 id="第一版脚本与一个诚实的意外"><a href="#第一版脚本与一个诚实的意外" class="headerlink" title="第一版脚本与一个诚实的意外"></a>第一版脚本与一个诚实的意外</h2><p>最直接的实验脚本可能写成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs text">read_verilog -sv control_and_mem.v<br>hierarchy -check -top control_and_mem<br><br>proc<br>opt<br>write_rtlil 01_after_proc_opt.il<br><br>fsm<br>opt<br>write_rtlil 02_after_fsm.il<br><br>memory<br>opt<br>stat<br>write_rtlil 03_after_memory.il<br>write_verilog -noattr control_and_mem_netlist.v<br></code></pre></td></tr></table></figure>
+
+<p>运行后会观察到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">01_after_proc_opt.il 与 02_after_fsm.il 完全相同<br>02_after_fsm.il 中没有 $fsm<br>03_after_memory.il 中没有任何 memory cell<br></code></pre></td></tr></table></figure>
+
+<p>如果只看命令名称，很容易得出“<code>fsm</code> 没用，<code>memory</code> 把 memory 弄丢了”的错误结论。真实原因需要分别分析。</p>
+<h2 id="proc-opt-后-FSM-变成了什么"><a href="#proc-opt-后-FSM-变成了什么" class="headerlink" title="proc; opt 后 FSM 变成了什么"></a><code>proc; opt</code> 后 FSM 变成了什么</h2><p><code>proc</code> 会把三个 <code>always</code> 过程全部转换成 RTLIL cell。</p>
+<p>状态寄存器最初是一个带异步复位的 <code>$adff</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs text">cell $adff $state_ff<br>  parameter \WIDTH 2<br>  parameter \CLK_POLARITY 1&#x27;1<br>  parameter \ARST_POLARITY 1&#x27;1<br>  parameter \ARST_VALUE 2&#x27;00<br>  connect \CLK \clk<br>  connect \ARST \rst<br>  connect \D \next_state<br>  connect \Q \state<br>end<br></code></pre></td></tr></table></figure>
+
+<p><code>case (state)</code> 则变成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">状态常量比较器<br>  + $mux / $pmux 组成的 next_state 选择树<br>  + $mux / $pmux 组成的 done 逻辑<br></code></pre></td></tr></table></figure>
+
+<p>执行普通 <code>opt</code> 后，Yosys 注意到某些情况下 <code>next_state</code> 等于 <code>state</code>，于是把“保持旧状态”变成触发器使能，状态寄存器从 <code>$adff</code> 变成 <code>$adffe</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs text">cell $adffe $state_ff<br>  parameter \WIDTH 2<br>  parameter \ARST_VALUE 2&#x27;00<br>  connect \CLK \clk<br>  connect \ARST \rst<br>  connect \EN $state_should_update<br>  connect \D \next_state<br>  connect \Q \state<br>end<br></code></pre></td></tr></table></figure>
+
+<p>功能没有变化，但结构形态变化了。这个变化恰好会影响 <code>fsm_detect</code>。</p>
+<h2 id="FSM-检测不是看到-case-就算成功"><a href="#FSM-检测不是看到-case-就算成功" class="headerlink" title="FSM 检测不是看到 case 就算成功"></a>FSM 检测不是看到 case 就算成功</h2><p>Yosys 不是在 Verilog AST 中看到 <code>case (state)</code> 就直接贴上 FSM 标签。<code>fsm_detect</code> 在 RTLIL 网表上寻找满足特定形状的状态信号。</p>
+<p>一个典型候选需要满足：</p>
+<ol>
+<li>状态信号是多 bit 内部信号，而不是模块输出端口；</li>
+<li>它由单个 <code>$dff</code> 或 <code>$adff</code> 驱动；</li>
+<li>触发器 <code>D</code> 端由 mux 树驱动；</li>
+<li>mux 树叶子只能是状态常量或旧状态本身；</li>
+<li>状态值只用于这棵转移 mux 树，或用于与常量进行简单比较；</li>
+<li>没有妨碍安全重编码的初始化、复杂数据用途或自复位行为。</li>
+</ol>
+<p>普通 <code>opt</code> 把当前实验中的状态寄存器变成 <code>$adffe</code> 后，它不再属于检测器所使用的 <code>$dff/$adff</code> 子集。因此第一版脚本运行 <code>fsm</code> 时，日志只有各个 <code>fsm_*</code> 子 pass 的标题，却没有：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">Found FSM state register ...<br></code></pre></td></tr></table></figure>
+
+<p>这就是 <code>01_after_proc_opt.il</code> 和 <code>02_after_fsm.il</code> 完全相同的直接原因。</p>
+<h2 id="正确准备-FSM-检测输入"><a href="#正确准备-FSM-检测输入" class="headerlink" title="正确准备 FSM 检测输入"></a>正确准备 FSM 检测输入</h2><p>Yosys 给出的推荐准备方式是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">opt -nosdff -nodffe<br></code></pre></td></tr></table></figure>
+
+<p>其中 <code>-nodffe</code> 阻止 <code>opt_dff</code> 把 mux 反馈吸收到触发器 enable，<code>-nosdff</code> 则避免形成检测器暂不处理的同步复位触发器变体。</p>
+<p>因此更适合观察 FSM 的前半段脚本是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs text">read_verilog -sv control_and_mem.v<br>hierarchy -check -top control_and_mem<br><br>proc<br>opt -nosdff -nodffe<br>write_rtlil 01_after_proc.il<br><br>fsm -nomap<br>write_rtlil 02_with_fsm.il<br></code></pre></td></tr></table></figure>
+
+<p>这里还有另一个关键选项：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">-nomap<br></code></pre></td></tr></table></figure>
+
+<p><code>fsm</code> 是宏命令，默认最后调用 <code>fsm_map</code>。如果不加 <code>-nomap</code>，即使 <code>$fsm</code> 成功生成，也会在写 RTLIL 之前重新展开成触发器和组合逻辑。</p>
+<p>所以：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">opt -nosdff -nodffe：让检测器看见合适的 FF + mux 结构<br>fsm -nomap：让生成的 $fsm 暂时留在 RTLIL 中供我们观察<br></code></pre></td></tr></table></figure>
+
+<h2 id="fsm-宏内部做了什么"><a href="#fsm-宏内部做了什么" class="headerlink" title="fsm 宏内部做了什么"></a><code>fsm</code> 宏内部做了什么</h2><p><code>fsm</code> 不是一个单动作 pass，而是一组子 pass：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs text">fsm_detect<br>fsm_extract<br>fsm_opt<br>opt_clean<br>fsm_opt<br>fsm_recode<br>fsm_info<br>fsm_map        # 除非使用 -nomap<br></code></pre></td></tr></table></figure>
+
+<p>它们分别承担不同职责：</p>
+<table>
+<thead>
+<tr>
+<th>子 pass</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>fsm_detect</code></td>
+<td>找到状态寄存器，并标记 <code>fsm_encoding=&quot;auto&quot;</code></td>
+</tr>
+<tr>
+<td><code>fsm_extract</code></td>
+<td>沿转移 mux 树收集状态、输入、输出和转移表，生成 <code>$fsm</code></td>
+</tr>
+<tr>
+<td><code>fsm_opt</code></td>
+<td>删除无用输入输出，合并等价转移条件</td>
+</tr>
+<tr>
+<td><code>fsm_recode</code></td>
+<td>为状态分配新编码</td>
+</tr>
+<tr>
+<td><code>fsm_info</code></td>
+<td>输出状态数量、编码和转移表</td>
+</tr>
+<tr>
+<td><code>fsm_map</code></td>
+<td>把 <code>$fsm</code> 重新实现为触发器和组合逻辑</td>
+</tr>
+</tbody></table>
+<p><code>fsm_encoding</code> 也可以由 RTL 属性控制：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs verilog">(* fsm_encoding = <span class="hljs-string">&quot;auto&quot;</span> *) <span class="hljs-keyword">reg</span> [<span class="hljs-number">1</span>:<span class="hljs-number">0</span>] state;<br></code></pre></td></tr></table></figure>
+
+<p>或者明确阻止检测：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs verilog">(* fsm_encoding = <span class="hljs-string">&quot;none&quot;</span> *) <span class="hljs-keyword">reg</span> [<span class="hljs-number">1</span>:<span class="hljs-number">0</span>] state;<br></code></pre></td></tr></table></figure>
+
+<p>但强制属性不是修复任意复杂状态机的万能方法。如果状态寄存器还承担数据运算、部分 bit 直接泄漏到外部，或者转移树不适合重编码，强制提取可能增加面积，甚至造成仿真与综合语义风险。应先让 RTL 和 pass 顺序满足检测不变量。</p>
+<h2 id="实际提取出的五条状态转移"><a href="#实际提取出的五条状态转移" class="headerlink" title="实际提取出的五条状态转移"></a>实际提取出的五条状态转移</h2><p>修正脚本后，日志首先确认：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">Found FSM state register control_and_mem.state.<br></code></pre></td></tr></table></figure>
+
+<p>随后从两位原始状态编码中提取五条转移：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">2&#x27;00 + start=0 -&gt; 2&#x27;00<br>2&#x27;00 + start=1 -&gt; 2&#x27;01<br>2&#x27;01 + start=- -&gt; 2&#x27;10<br>2&#x27;10 + start=- -&gt; 2&#x27;11<br>2&#x27;11 + start=- -&gt; 2&#x27;00<br></code></pre></td></tr></table></figure>
+
+<p>这里 <code>-</code> 表示 don’t-care：处于 <code>LOAD</code>、<code>WAIT</code> 或 <code>DONE</code> 时，<code>start</code> 不影响下一状态。</p>
+<p>为什么四个状态却有五条转移？因为 <code>IDLE</code> 必须根据 <code>start</code> 分成两种情况，其余三个状态各有一条无条件转移：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">IDLE：2 条<br>LOAD：1 条<br>WAIT：1 条<br>DONE：1 条<br>总计：5 条<br></code></pre></td></tr></table></figure>
+
+<h2 id="两位编码为什么变成四位-one-hot"><a href="#两位编码为什么变成四位-one-hot" class="headerlink" title="两位编码为什么变成四位 one-hot"></a>两位编码为什么变成四位 one-hot</h2><p>原始 Verilog 使用两位二进制编码：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">IDLE = 00<br>LOAD = 01<br>WAIT = 10<br>DONE = 11<br></code></pre></td></tr></table></figure>
+
+<p><code>fsm_recode</code> 的自动策略为这个小状态机选择了 one-hot，并输出：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">00 -&gt; ---1<br>10 -&gt; --1-<br>01 -&gt; -1--<br>11 -&gt; 1---<br></code></pre></td></tr></table></figure>
+
+<p>这里 <code>-</code> 是编码表中的 don’t-care 展示。映射后的有效状态分别只有一个 bit 为 <code>1</code>，复位状态对应最低位：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">IDLE -&gt; 0001<br>WAIT -&gt; 0010<br>LOAD -&gt; 0100<br>DONE -&gt; 1000<br></code></pre></td></tr></table></figure>
+
+<p>one-hot 使用四个状态 bit，而原设计只用两个。它不是单纯“节省触发器”的优化，而是用更多触发器换取更简单的状态译码和转移逻辑：</p>
+<table>
+<thead>
+<tr>
+<th>编码</th>
+<th align="right">状态寄存器数量</th>
+<th>状态比较逻辑</th>
+<th>常见适用方向</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>二进制编码</td>
+<td align="right">少</td>
+<td>相对复杂</td>
+<td>ASIC、状态较多、重视面积</td>
+</tr>
+<tr>
+<td>one-hot</td>
+<td align="right">多</td>
+<td>相对简单</td>
+<td>FPGA、小 FSM、重视速度</td>
+</tr>
+</tbody></table>
+<p>最终优劣取决于工艺库、目标频率、状态图和后续优化，不能只看状态 bit 数量。</p>
+<h2 id="fsm-cell-中保存了什么"><a href="#fsm-cell-中保存了什么" class="headerlink" title="$fsm cell 中保存了什么"></a><code>$fsm</code> cell 中保存了什么</h2><p><code>fsm -nomap</code> 后，整个状态机被压缩成一个 <code>$fsm</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs text">cell $fsm $state_fsm<br>  parameter \NAME &quot;\\state&quot;<br>  parameter \CTRL_IN_WIDTH 1<br>  parameter \CTRL_OUT_WIDTH 4<br>  parameter \STATE_BITS 4<br>  parameter \STATE_NUM 4<br>  parameter \STATE_RST 0<br>  parameter \TRANS_NUM 5<br><br>  connect \CLK \clk<br>  connect \ARST \rst<br>  connect \CTRL_IN \start<br>  connect \CTRL_OUT $state_decodes<br>end<br></code></pre></td></tr></table></figure>
+
+<p>重要参数是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">1 个控制输入：start<br>4 个状态<br>4 个重编码后的状态 bit<br>5 条状态转移<br>异步复位状态：状态 0<br></code></pre></td></tr></table></figure>
+
+<p><code>CTRL_OUT</code> 不只是顶层的 <code>done</code>。状态比较结果还被 memory 写使能等外部逻辑使用。提取器会把这些依赖状态编码的比较结果变成 <code>$fsm</code> 的控制输出，这样状态编码改变后，外部逻辑仍能获得正确含义。</p>
+<h2 id="为什么最终网表里通常又没有-fsm"><a href="#为什么最终网表里通常又没有-fsm" class="headerlink" title="为什么最终网表里通常又没有 $fsm"></a>为什么最终网表里通常又没有 <code>$fsm</code></h2><p>完成状态分析和重编码后，硬件仍需要由触发器和组合门实现。执行：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">fsm_map<br>opt<br></code></pre></td></tr></table></figure>
+
+<p>会把 <code>$fsm</code> 展开为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">一个 4 bit $adff 状态寄存器<br>复位值 4&#x27;b0001<br>由 start 和状态 bit 构成的转移逻辑<br>由状态 bit 产生的控制输出逻辑<br></code></pre></td></tr></table></figure>
+
+<p>关键 RTLIL 类似：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs text">cell $adff $state_ff<br>  parameter \WIDTH 4<br>  parameter \ARST_VALUE 4&#x27;0001<br>  connect \CLK \clk<br>  connect \ARST \rst<br>  connect \D $next_one_hot_state<br>  connect \Q \state<br>end<br></code></pre></td></tr></table></figure>
+
+<p>所以最终看不到 <code>$fsm</code> 不代表状态机没有被识别。判断方法应当是查看 <code>fsm_detect</code>、<code>fsm_extract</code>、<code>fsm_recode</code> 的日志，或者用 <code>fsm -nomap</code> 在中间阶段暂停。</p>
+<h2 id="proc-opt-后-memory-变成了什么"><a href="#proc-opt-后-memory-变成了什么" class="headerlink" title="proc; opt 后 memory 变成了什么"></a><code>proc; opt</code> 后 memory 变成了什么</h2><p>与 FSM 不同，memory 在 <code>proc</code> 后仍保留一个 RTLIL memory 对象：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">memory width 8 size 16 \mem<br></code></pre></td></tr></table></figure>
+
+<p>读写端口暂时是独立 cell。</p>
+<p>读取路径表现为一个异步 <code>$memrd</code> 加输出 <code>$dff</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs text">cell $memrd $read_port<br>  parameter \MEMID &quot;\\mem&quot;<br>  parameter \ABITS 4<br>  parameter \WIDTH 8<br>  parameter \CLK_ENABLE 0<br>  connect \ADDR \addr<br>  connect \DATA $dout_next<br>end<br><br>cell $dff $dout_ff<br>  parameter \WIDTH 8<br>  connect \CLK \clk<br>  connect \D $dout_next<br>  connect \Q \dout<br>end<br></code></pre></td></tr></table></figure>
+
+<p>这并不表示原设计是异步读。原 Verilog 的同步读语义被分成了两层：memory 本体先组合读出，外面的 <code>$dff</code> 再在时钟沿采样。</p>
+<p>写入路径是 <code>$memwr_v2</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs text">cell $memwr_v2 $write_port<br>  parameter \MEMID &quot;\\mem&quot;<br>  parameter \ABITS 4<br>  parameter \WIDTH 8<br>  parameter \CLK_ENABLE 1&#x27;1<br>  parameter \CLK_POLARITY 1&#x27;1<br>  connect \ADDR $write_addr<br>  connect \DATA $write_data<br>  connect \EN $write_enable_per_bit<br>  connect \CLK \clk<br>end<br></code></pre></td></tr></table></figure>
+
+<p><code>EN</code> 宽度与数据宽度相同，因为 Yosys 的写端口支持逐 bit 写使能。当前设计一次写整个字，所以八个 enable bit 都连接到同一个 <code>state == LOAD</code> 条件。</p>
+<h2 id="memory-也是一个宏命令"><a href="#memory-也是一个宏命令" class="headerlink" title="memory 也是一个宏命令"></a><code>memory</code> 也是一个宏命令</h2><p>默认 <code>memory</code> 依次调用：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs text">opt_mem<br>opt_mem_priority<br>opt_mem_feedback<br>memory_bmux2rom<br>memory_dff<br>opt_clean<br>memory_share<br>opt_mem_widen<br>opt_clean<br>memory_collect<br>memory_map          # 除非使用 -nomap<br></code></pre></td></tr></table></figure>
+
+<p>可以把它们分为三组：</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>代表 pass</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>端口优化</td>
+<td><code>opt_mem*</code>、<code>memory_share</code></td>
+<td>删除无效端口、整理优先级、共享资源</td>
+</tr>
+<tr>
+<td>结构收集</td>
+<td><code>memory_dff</code>、<code>memory_collect</code></td>
+<td>吸收端口寄存器，把分散端口合成 <code>$mem_v2</code></td>
+</tr>
+<tr>
+<td>实现映射</td>
+<td><code>memory_map</code> 或目标专用映射</td>
+<td>变成寄存器逻辑、block RAM、LUT RAM 或 SRAM macro</td>
+</tr>
+</tbody></table>
+<p>默认 <code>memory</code> 会一直执行到 <code>memory_map</code>，所以普通脚本写完 RTLIL 时，<code>$mem_v2</code> 已经消失。</p>
+<p>要观察统一 memory cell，应使用：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">memory -nomap<br>write_rtlil 03_with_mem_v2.il<br></code></pre></td></tr></table></figure>
+
+<h2 id="memory-dff-如何恢复同步读取"><a href="#memory-dff-如何恢复同步读取" class="headerlink" title="memory_dff 如何恢复同步读取"></a><code>memory_dff</code> 如何恢复同步读取</h2><p><code>memory_dff</code> 会检查 memory 端口附近的触发器，尝试把寄存器吸收到 memory 端口中。</p>
+<p>对当前设计，它识别到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">$memrd -&gt; $dff -&gt; dout<br></code></pre></td></tr></table></figure>
+
+<p>可以合并成一个同步 read port，并报告：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">merging output FF to cell<br>Write port 0: non-transparent<br></code></pre></td></tr></table></figure>
+
+<p>合并后的 read port 在时钟上升沿更新 <code>dout</code>，不再需要外部 <code>$dff</code>。<code>non-transparent</code> 表示同周期同地址读写时，读端不会直接看到新写入数据，对应原始非阻塞赋值的 read-first 行为。</p>
+<p>这一步说明 memory inference 不只看数组声明，还必须理解端口周围的时序逻辑。同步读、异步读、read-first、write-first 和 no-change 会直接影响能否映射到目标 memory primitive。</p>
+<h2 id="memory-collect-生成统一的-mem-v2"><a href="#memory-collect-生成统一的-mem-v2" class="headerlink" title="memory_collect 生成统一的 $mem_v2"></a><code>memory_collect</code> 生成统一的 <code>$mem_v2</code></h2><p>执行 <code>memory -nomap</code> 后，独立的 memory 对象、读端口和写端口被收集为一个 <code>$mem_v2</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs text">cell $mem_v2 \mem<br>  parameter \WIDTH 8<br>  parameter \SIZE 16<br>  parameter \ABITS 4<br><br>  parameter \RD_PORTS 1<br>  parameter \RD_CLK_ENABLE 1&#x27;1<br>  parameter \RD_CLK_POLARITY 1&#x27;1<br>  parameter \RD_TRANSPARENCY_MASK 1&#x27;0<br>  parameter \RD_COLLISION_X_MASK 1&#x27;0<br><br>  parameter \WR_PORTS 1<br>  parameter \WR_CLK_ENABLE 1&#x27;1<br>  parameter \WR_CLK_POLARITY 1&#x27;1<br><br>  parameter \INIT 128&#x27;x<br><br>  connect \RD_CLK \clk<br>  connect \RD_EN 1&#x27;1<br>  connect \RD_ADDR \addr<br>  connect \RD_DATA \dout<br><br>  connect \WR_CLK \clk<br>  connect \WR_EN $write_enable_per_bit<br>  connect \WR_ADDR $write_addr<br>  connect \WR_DATA $write_data<br>end<br></code></pre></td></tr></table></figure>
+
+<p>这个 cell 完整描述了目标映射真正关心的信息：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text">几行、每行多宽<br>有几个读写端口<br>端口是否同步<br>时钟极性<br>写使能粒度<br>读写碰撞行为<br>初始内容<br></code></pre></td></tr></table></figure>
+
+<p><code>$mem_v2</code> 是一个很重要的架构边界。它暂时保留“这是 memory”的意图，让后续 target-specific pass 有机会选择真正的存储资源。</p>
+<h2 id="memory-map-为什么生成-16-个寄存器"><a href="#memory-map-为什么生成-16-个寄存器" class="headerlink" title="memory_map 为什么生成 16 个寄存器"></a><code>memory_map</code> 为什么生成 16 个寄存器</h2><p>当前实验没有提供 FPGA RAM 规则或 ASIC SRAM macro，所以手动执行：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">memory_map<br>opt<br></code></pre></td></tr></table></figure>
+
+<p>会采用通用逻辑实现。日志给出非常具体的结果：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">created 16 $dff cells of width 8<br>read interface: 1 $dff and 15 $mux cells<br>write interface: 16 write mux blocks<br></code></pre></td></tr></table></figure>
+
+<p>第一行表示 memory 的 16 个 word 分别变成一个 8 bit 字级触发器：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">mem[0]  -&gt; 8 bit FF<br>mem[1]  -&gt; 8 bit FF<br>...<br>mem[15] -&gt; 8 bit FF<br></code></pre></td></tr></table></figure>
+
+<p>总存储 bit 仍然是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">16 x 8 = 128 bit<br></code></pre></td></tr></table></figure>
+
+<p>经过后续 <code>opt_dff</code>，每个 word 的“地址命中时更新，否则保持”被吸收到 enable，因此最终是 16 个 8 bit <code>$dffe</code>。这不是只有 16 个单比特触发器；每个 <code>$dffe</code> 的 <code>WIDTH=8</code>，继续技术映射后才可能拆成 128 个单比特标准触发器。</p>
+<h2 id="为什么-16-个-word-需要-15-个读-mux"><a href="#为什么-16-个-word-需要-15-个读-mux" class="headerlink" title="为什么 16 个 word 需要 15 个读 mux"></a>为什么 16 个 word 需要 15 个读 mux</h2><p>读端要从 16 个 word 中选择一个：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs text">     addr[3]<br>  +-----------+<br>  |           |<br>8-word      8-word<br> 子树         子树<br>  |           |<br>  +-----MUX---+<br>        |<br>       dout<br></code></pre></td></tr></table></figure>
+
+<p>一棵拥有 16 个叶子的二叉选择树需要 15 个二选一 mux：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">第 1 层：8 个 mux<br>第 2 层：4 个 mux<br>第 3 层：2 个 mux<br>第 4 层：1 个 mux<br>总计：8 + 4 + 2 + 1 = 15<br></code></pre></td></tr></table></figure>
+
+<p>每个 mux 都是 8 bit 宽，因此面积并不小。这也是为什么较大的 memory 应尽量映射到专用存储宏，而不是无条件展开成 FF RAM。</p>
+<h2 id="写地址译码在做什么"><a href="#写地址译码在做什么" class="headerlink" title="写地址译码在做什么"></a>写地址译码在做什么</h2><p>写端必须确保只有被 <code>addr</code> 选中的 word 更新。四位地址先被译码成 16 路 one-hot：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">addr = 0000 -&gt; word_enable[0]  = 1<br>addr = 0001 -&gt; word_enable[1]  = 1<br>...<br>addr = 1111 -&gt; word_enable[15] = 1<br></code></pre></td></tr></table></figure>
+
+<p>然后与全局写条件相与：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">write_enable[i] = (state == LOAD) &amp;&amp; (addr == i)<br></code></pre></td></tr></table></figure>
+
+<p>每个 <code>$dffe</code> 获得自己的 enable：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">if write_enable[i]:<br>    mem[i] &lt;= din<br>else:<br>    mem[i] 保持原值<br></code></pre></td></tr></table></figure>
+
+<p>综合器会共享地址反相和部分与门，所以最终门数量不一定等于手工展开公式的直接总和。</p>
+<h2 id="修正后的完整阶段统计"><a href="#修正后的完整阶段统计" class="headerlink" title="修正后的完整阶段统计"></a>修正后的完整阶段统计</h2><p>采用“先暂停观察，再手动映射”的脚本，最终通用逻辑网表统计为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs text">86 cells<br> 1   $adff<br>42   $and<br> 1   $dff<br>16   $dffe<br>18   $mux<br> 5   $not<br> 1   $pmux<br> 2   $reduce_or<br></code></pre></td></tr></table></figure>
+
+<p>可以按功能划分：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">$adff：4 bit one-hot FSM 状态寄存器<br>$dff：memory 同步读出的 dout 寄存器<br>16 x $dffe：16 个 8 bit memory word<br>$mux：memory 读取树及剩余数据选择<br>$and/$not：写地址译码和 FSM 转移逻辑<br>$pmux/$reduce_or：组合控制输出<br></code></pre></td></tr></table></figure>
+
+<p>cell 数量不是优化质量的绝对指标。这里真正值得观察的是结构意图如何经历：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text">状态寄存器 + mux<br>  -&gt; $fsm<br>  -&gt; one-hot 状态寄存器 + 新转移逻辑<br><br>memory 对象 + 独立端口<br>  -&gt; $mem_v2<br>  -&gt; 字级寄存器 + 地址译码 + 读 mux 树<br></code></pre></td></tr></table></figure>
+
+<h2 id="为什么真实流程通常不急着-memory-map"><a href="#为什么真实流程通常不急着-memory-map" class="headerlink" title="为什么真实流程通常不急着 memory_map"></a>为什么真实流程通常不急着 <code>memory_map</code></h2><p>直接 <code>memory_map</code> 等于明确选择 FF RAM。对于 128 bit 小存储器，它可能可以接受；对于几 KB、几 MB 的 memory，这会造成巨大的面积和功耗。</p>
+<p>更常见的目标相关流程是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">memory -nomap<br>  -&gt; 保留 $mem_v2<br>  -&gt; memory_libmap 根据目标存储库选择实现<br>  -&gt; techmap 映射到硬件 primitive 或 SRAM wrapper<br>  -&gt; memory_map 只处理无法映射的剩余 memory<br></code></pre></td></tr></table></figure>
+
+<p><code>memory_libmap</code> 在必要时还可能加入模拟逻辑，以弥补目标 macro 与 RTL 端口语义之间的差异。</p>
+<h3 id="FPGA-上的候选资源"><a href="#FPGA-上的候选资源" class="headerlink" title="FPGA 上的候选资源"></a>FPGA 上的候选资源</h3><p>FPGA 通常有四类候选：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>典型资源</th>
+<th>主要限制</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>FF RAM</td>
+<td>触发器 + mux</td>
+<td>灵活但面积大</td>
+</tr>
+<tr>
+<td>LUT RAM</td>
+<td>LUT 内部存储</td>
+<td>通常支持同步写、异步读，容量较小</td>
+</tr>
+<tr>
+<td>Block RAM</td>
+<td>专用 BRAM tile</td>
+<td>端口、时钟、读写模式受硬件限制</td>
+</tr>
+<tr>
+<td>Huge RAM</td>
+<td>UltraRAM、SPRAM 等</td>
+<td>只在部分系列存在，限制更多</td>
+</tr>
+</tbody></table>
+<p>通常：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">异步读 -&gt; 更可能是 LUT RAM 或 FF RAM<br>同步读 + 合适端口 -&gt; 有机会使用 block RAM<br>很小的 memory -&gt; 工具可能认为 LUT/FF 更划算<br>很大的 memory -&gt; 更倾向专用 RAM<br></code></pre></td></tr></table></figure>
+
+<p>当前例子是单时钟、一个同步读端口和一个同步写端口，结构上适合许多同步 RAM primitive；但只有 128 bit，最终选择仍取决于目标系列和成本模型。</p>
+<h3 id="ASIC-上的候选资源"><a href="#ASIC-上的候选资源" class="headerlink" title="ASIC 上的候选资源"></a>ASIC 上的候选资源</h3><p>ASIC 中通常希望映射到 memory compiler 生成的 SRAM macro。映射需要匹配：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs text">深度和字宽<br>读写端口数量<br>单口、简单双口或真双口<br>时钟极性<br>读延迟<br>写 mask 粒度<br>read-during-write 行为<br>初始化和复位能力<br></code></pre></td></tr></table></figure>
+
+<p>如果流程没有提供可用 SRAM macro 或映射规则，Yosys 只能退回寄存器和组合逻辑。对大型 memory 来说，这通常不是可接受的最终实现，因此必须在综合约束和日志中确认 macro inference 是否成功。</p>
+<h2 id="读写碰撞语义为什么重要"><a href="#读写碰撞语义为什么重要" class="headerlink" title="读写碰撞语义为什么重要"></a>读写碰撞语义为什么重要</h2><p>假设同一时钟沿同时读取和写入同一地址：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">read_addr  = 4<br>write_addr = 4<br>write_data = 8&#x27;hA5<br></code></pre></td></tr></table></figure>
+
+<p>可能存在三种常见语义：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>读出的值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>read-first</td>
+<td>写入前的旧值</td>
+</tr>
+<tr>
+<td>write-first</td>
+<td>新写入的 <code>8&#39;hA5</code></td>
+</tr>
+<tr>
+<td>no-change &#x2F; undefined</td>
+<td>保持旧输出或结果不保证</td>
+</tr>
+</tbody></table>
+<p>目标 block RAM 或 SRAM macro 不一定原生支持 RTL 要求的模式。综合器有时需要插入 bypass mux 或其他逻辑维持等价，这会影响面积和时序。</p>
+<p>当前实验使用：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">if</span> (write_enable)<br>    mem[addr] &lt;= din;<br>dout &lt;= mem[addr];<br></code></pre></td></tr></table></figure>
+
+<p>对应 read-first。<code>$mem_v2</code> 中：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">RD_TRANSPARENCY_MASK = 0<br>RD_COLLISION_X_MASK  = 0<br></code></pre></td></tr></table></figure>
+
+<p>表示读端不透明，也没有把碰撞声明为返回 <code>x</code>。</p>
+<h2 id="常见的-memory-RTL-写法差异"><a href="#常见的-memory-RTL-写法差异" class="headerlink" title="常见的 memory RTL 写法差异"></a>常见的 memory RTL 写法差异</h2><h3 id="异步读"><a href="#异步读" class="headerlink" title="异步读"></a>异步读</h3><figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk)<br>    <span class="hljs-keyword">if</span> (we)<br>        mem[waddr] &lt;= wdata;<br><br><span class="hljs-keyword">assign</span> rdata = mem[raddr];<br></code></pre></td></tr></table></figure>
+
+<p>地址变化后不等时钟，<code>rdata</code> 就变化。这通常不能直接映射到只支持同步读的 block RAM。</p>
+<h3 id="同步读"><a href="#同步读" class="headerlink" title="同步读"></a>同步读</h3><figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk) <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (we)<br>        mem[waddr] &lt;= wdata;<br>    rdata &lt;= mem[raddr];<br><span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
+
+<p><code>rdata</code> 在时钟沿更新，更适合常见 BRAM 和 SRAM macro。</p>
+<h3 id="write-first-bypass"><a href="#write-first-bypass" class="headerlink" title="write-first bypass"></a>write-first bypass</h3><figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">always</span> @(<span class="hljs-keyword">posedge</span> clk) <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">if</span> (we)<br>        mem[waddr] &lt;= wdata;<br><br>    <span class="hljs-keyword">if</span> (we &amp;&amp; waddr == raddr)<br>        rdata &lt;= wdata;<br>    <span class="hljs-keyword">else</span><br>        rdata &lt;= mem[raddr];<br><span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
+
+<p>同地址碰撞时显式返回新数据。若硬件 memory 不是 write-first，综合器可能需要保留额外 bypass mux。</p>
+<p>RTL 中看似只差几行，映射到目标资源时可能是完全不同的硬件约束。</p>
+<h2 id="FSM-为什么可能无法识别"><a href="#FSM-为什么可能无法识别" class="headerlink" title="FSM 为什么可能无法识别"></a>FSM 为什么可能无法识别</h2><p>除了本实验的 <code>$adffe</code> pass 顺序问题，常见原因还包括：</p>
+<h3 id="状态寄存器成为模块输出"><a href="#状态寄存器成为模块输出" class="headerlink" title="状态寄存器成为模块输出"></a>状态寄存器成为模块输出</h3><figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">output</span> [<span class="hljs-number">2</span>:<span class="hljs-number">0</span>] state;<br></code></pre></td></tr></table></figure>
+
+<p>如果状态编码直接暴露到模块接口，重编码会改变可观察行为，检测器通常不会自动处理。</p>
+<p>更好的做法是输出有语义的状态标志：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">assign</span> busy = state != IDLE;<br><span class="hljs-keyword">assign</span> done = state == DONE;<br></code></pre></td></tr></table></figure>
+
+<h3 id="状态值被当成普通数据运算"><a href="#状态值被当成普通数据运算" class="headerlink" title="状态值被当成普通数据运算"></a>状态值被当成普通数据运算</h3><figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">assign</span> debug_value = state + offset;<br></code></pre></td></tr></table></figure>
+
+<p>这使状态编码本身具有数据含义，重编码就不再自由。</p>
+<h3 id="下一状态不是常量或旧状态组成的-mux-树"><a href="#下一状态不是常量或旧状态组成的-mux-树" class="headerlink" title="下一状态不是常量或旧状态组成的 mux 树"></a>下一状态不是常量或旧状态组成的 mux 树</h3><figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs verilog">next_state = state + <span class="hljs-number">1&#x27;b1</span>;<br></code></pre></td></tr></table></figure>
+
+<p>虽然人可以把它理解为计数式 FSM，但对启发式检测器来说，它更像普通计数器。</p>
+<h3 id="组合逻辑漏默认赋值"><a href="#组合逻辑漏默认赋值" class="headerlink" title="组合逻辑漏默认赋值"></a>组合逻辑漏默认赋值</h3><figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">always</span> @* <span class="hljs-keyword">begin</span><br>    <span class="hljs-keyword">case</span> (state)<br>        IDLE: <span class="hljs-keyword">if</span> (start) next_state = LOAD;<br>        LOAD: next_state = WAIT;<br>    <span class="hljs-keyword">endcase</span><br><span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
+
+<p>未覆盖路径会推断 latch，状态转移结构也不再是预期的纯组合 mux 树。</p>
+<h3 id="pass-顺序破坏检测形状"><a href="#pass-顺序破坏检测形状" class="headerlink" title="pass 顺序破坏检测形状"></a>pass 顺序破坏检测形状</h3><p>一些优化会把 mux、enable、同步复位或比较逻辑改写成检测器不认识的形态。遇到这种情况，应先查看 <code>fsm_detect</code> 的输入 RTLIL，而不是立刻强制添加属性。</p>
+<h2 id="Memory-为什么可能无法映射到专用-RAM"><a href="#Memory-为什么可能无法映射到专用-RAM" class="headerlink" title="Memory 为什么可能无法映射到专用 RAM"></a>Memory 为什么可能无法映射到专用 RAM</h2><p>常见原因包括：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs text">异步读，而目标 BRAM 只支持同步读<br>读写端口数量超过 macro 能力<br>多个写端口处于不同、不受支持的时钟域<br>byte enable 粒度与硬件不匹配<br>碰撞语义与硬件模式不匹配<br>memory 太小，成本模型选择 LUT/FF<br>memory 太大或形状特殊，没有合适 primitive<br>初始化或复位要求硬件无法实现<br></code></pre></td></tr></table></figure>
+
+<p>可以使用属性表达实现偏好，例如：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs verilog">(* ram_style = <span class="hljs-string">&quot;logic&quot;</span> *)       <span class="hljs-keyword">reg</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] mem [<span class="hljs-number">0</span>:<span class="hljs-number">15</span>];<br>(* ram_style = <span class="hljs-string">&quot;distributed&quot;</span> *) <span class="hljs-keyword">reg</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] mem [<span class="hljs-number">0</span>:<span class="hljs-number">15</span>];<br>(* ram_style = <span class="hljs-string">&quot;block&quot;</span> *)       <span class="hljs-keyword">reg</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] mem [<span class="hljs-number">0</span>:<span class="hljs-number">1023</span>];<br></code></pre></td></tr></table></figure>
+
+<p>但属性不是魔法。如果目标器件无法实现指定模式，正确结果应当是映射失败或报错，而不是强行产生不等价硬件。</p>
+<h2 id="推荐的完整观察脚本"><a href="#推荐的完整观察脚本" class="headerlink" title="推荐的完整观察脚本"></a>推荐的完整观察脚本</h2><p>下面这份脚本把 FSM 和 memory 的高层表示都保留下来一次，然后再手动映射：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs text">read_verilog -sv control_and_mem.v<br>hierarchy -check -top control_and_mem<br><br># 保持 $dff/$adff + mux 形态，便于 FSM 检测。<br>proc<br>opt -nosdff -nodffe<br>write_rtlil 01_after_proc.il<br><br># 暂停在 $fsm。<br>fsm -nomap<br>write_rtlil 02_with_fsm.il<br><br># 把重编码后的 FSM 映回触发器和逻辑。<br>fsm_map<br>opt<br><br># 暂停在统一的 $mem_v2。<br>memory -nomap<br>write_rtlil 03_with_mem_v2.il<br><br># 使用通用 FF RAM 实现。<br>memory_map<br>opt<br>stat<br>write_rtlil 04_after_memory_map.il<br>write_verilog -noattr control_and_mem_netlist.v<br></code></pre></td></tr></table></figure>
+
+<p>运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">yosys -Q -l fsm_memory.log fsm_memory.ys<br></code></pre></td></tr></table></figure>
+
+<p>用结构断言把观察结果变成自动检查：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs text"># 在 02_with_fsm.il 对应阶段执行：<br>select -assert-count 1 t:$fsm<br><br># 在 03_with_mem_v2.il 对应阶段执行：<br>select -assert-count 1 t:$mem_v2<br><br># 最终通用映射后：<br>select -assert-none t:$fsm t:$mem t:$mem_v2 t:$memrd t:$memwr_v2<br>select -assert-count 16 t:$dffe<br></code></pre></td></tr></table></figure>
+
+<p>断言必须放在对应阶段，不能先把 <code>$fsm</code> 或 <code>$mem_v2</code> 映射掉再要求它存在。</p>
+<h2 id="调试命令清单"><a href="#调试命令清单" class="headerlink" title="调试命令清单"></a>调试命令清单</h2><p>检查 FSM 是否被发现：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">rg -n <span class="hljs-string">&quot;Found FSM|Extracting FSM|transition:|mapping auto encoding&quot;</span> fsm_memory.log<br></code></pre></td></tr></table></figure>
+
+<p>检查 <code>$fsm</code> 的关键参数：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">rg -n -A 30 <span class="hljs-string">&#x27;cell \$fsm&#x27;</span> 02_with_fsm.il<br></code></pre></td></tr></table></figure>
+
+<p>检查 memory 的分散端口：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">rg -n <span class="hljs-string">&#x27;\$memrd|\$memwr|memory width&#x27;</span> 01_after_proc.il<br></code></pre></td></tr></table></figure>
+
+<p>检查统一的 <code>$mem_v2</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">rg -n -A 40 <span class="hljs-string">&#x27;cell \$mem_v2&#x27;</span> 03_with_mem_v2.il<br></code></pre></td></tr></table></figure>
+
+<p>检查最终寄存器和 mux 数量：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">rg -n <span class="hljs-string">&#x27;\$dff|\$dffe|\$mux|addr_decode&#x27;</span> 04_after_memory_map.il<br></code></pre></td></tr></table></figure>
+
+<p>真正有用的问题不是“文件里有没有某个名字”，而是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">我现在处于宏命令的哪个阶段？<br>这个高层 cell 是还没生成，还是已经被映射掉？<br>当前 target flow 是否应该保留 memory 意图？<br></code></pre></td></tr></table></figure>
+
+<h2 id="一张图总结-FSM-路径"><a href="#一张图总结-FSM-路径" class="headerlink" title="一张图总结 FSM 路径"></a>一张图总结 FSM 路径</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs text">Verilog case + state register<br>              |<br>              | proc<br>              v<br>$adff + 比较器 + mux/pmux<br>              |<br>              | opt -nosdff -nodffe<br>              | fsm -nomap<br>              v<br>$fsm：状态集合 + 输入输出 + 转移表<br>              |<br>              | fsm_recode<br>              v<br>2 bit binary -&gt; 4 bit one-hot<br>              |<br>              | fsm_map<br>              v<br>4 bit $adff + 新状态转移逻辑<br></code></pre></td></tr></table></figure>
+
+<h2 id="一张图总结-Memory-路径"><a href="#一张图总结-Memory-路径" class="headerlink" title="一张图总结 Memory 路径"></a>一张图总结 Memory 路径</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs text">Verilog reg [7:0] mem [0:15]<br>              |<br>              | proc<br>              v<br>RTLIL::Memory + $memrd + $memwr_v2 + 外部 $dff<br>              |<br>              | memory_dff<br>              v<br>同步 read port，保留 read-first 语义<br>              |<br>              | memory_collect<br>              v<br>$mem_v2：16 x 8、1R1W、同步端口、碰撞参数<br>              |<br>       +------+-------------------------+<br>       |                                |<br>       v                                v<br>target-specific mapping             memory_map<br>BRAM / LUT RAM / SRAM macro         FF RAM<br>                                        |<br>                                        v<br>                           16 x 8-bit $dffe<br>                           + 15 x 8-bit read mux<br>                           + write address decoder<br></code></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>FSM 与 memory 的综合都遵循同一种思路：先从普通 RTL 结构中恢复设计意图，在高层 cell 上完成分析和优化，再根据目标硬件映射回可实现结构。</p>
+<p>对 FSM：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">检测依赖输入网表形状<br>`opt -nosdff -nodffe` 可以保留适合检测的 FF 结构<br>`fsm -nomap` 才能在 RTLIL 中观察 `$fsm`<br>自动重编码可能增加状态 bit，但简化组合逻辑<br>默认 `fsm` 最后会用 `fsm_map` 消除 `$fsm`<br></code></pre></td></tr></table></figure>
+
+<p>对 memory：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">`proc` 后 memory 对象与读写端口暂时分开<br>`memory_dff` 把端口附近寄存器吸收到同步端口<br>`memory_collect` 生成统一的 `$mem_v2`<br>`memory -nomap` 为目标 RAM 映射保留高层意图<br>默认 `memory_map` 会展开成字级 FF、读 mux 和写译码<br></code></pre></td></tr></table></figure>
+
+<p>最重要的调试原则是：</p>
+<blockquote>
+<p>看不到 <code>$fsm</code> 或 <code>$mem_v2</code> 时，先检查 pass 的输入形态和宏命令是否已经把它映射掉，不要仅凭最终网表判断识别是否发生过。</p>
+</blockquote>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Computer-Architecture/" class="category-chain-item">Computer Architecture</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Verilog/" class="print-no-link">#Verilog</a>
+      
+        <a href="/tags/FSM/" class="print-no-link">#FSM</a>
+      
+        <a href="/tags/Yosys/" class="print-no-link">#Yosys</a>
+      
+        <a href="/tags/RTLIL/" class="print-no-link">#RTLIL</a>
+      
+        <a href="/tags/Memory/" class="print-no-link">#Memory</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Yosys 学习笔记（五）：FSM 与 Memory 如何变成状态表和寄存器阵列</div>
+      <div>http://blog.luliang.online/2026/07/23/yosys-learning-05-fsm-and-memory/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月23日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/20/yosys-learning-04-opt-expr-keepdc-sz-bug/" title="Yosys 学习笔记（四）：RTLIL 中 z 信号与三态门的处理">
+                        <span class="hidden-mobile">Yosys 学习笔记（四）：RTLIL 中 z 信号与三态门的处理</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

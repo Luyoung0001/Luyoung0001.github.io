@@ -1,0 +1,754 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言硬件核只会做 4x4，但用户想算的矩阵可能是 8x8、16x16，甚至更大。解决方法不是让 CPU 直接操作每一个寄存器细节，而是分两层：  BSP：把寄存器表包装成薄函数； runtime：把大任务拆成 4x4 tile，并调度硬件核反复执行。   BSP：越薄越好BSP 的职责是硬件寄存器访问。它应该非常薄。 最底层是 MMIO helper： 1234567891011static in">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CoolDA 设计仿真（三）：BSP、runtime 与 tile 调度">
+<meta property="og:url" content="http://blog.luliang.online/2026/05/09/coolda-design-03-runtime-tiling/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="前言硬件核只会做 4x4，但用户想算的矩阵可能是 8x8、16x16，甚至更大。解决方法不是让 CPU 直接操作每一个寄存器细节，而是分两层：  BSP：把寄存器表包装成薄函数； runtime：把大任务拆成 4x4 tile，并调度硬件核反复执行。   BSP：越薄越好BSP 的职责是硬件寄存器访问。它应该非常薄。 最底层是 MMIO helper： 1234567891011static in">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.luliang.online/images/mermaid-svg/coolda-design-03-runtime-tiling/bsp-runtime.svg">
+<meta property="og:image" content="http://blog.luliang.online/images/mermaid-svg/coolda-design-03-runtime-tiling/tile-scheduler.svg">
+<meta property="article:published_time" content="2026-05-09T07:03:13.000Z">
+<meta property="article:modified_time" content="2026-07-23T03:05:46.832Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="CoolDA">
+<meta property="article:tag" content="runtime">
+<meta property="article:tag" content="BSP">
+<meta property="article:tag" content="tiling">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://blog.luliang.online/images/mermaid-svg/coolda-design-03-runtime-tiling/bsp-runtime.svg">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>CoolDA 设计仿真（三）：BSP、runtime 与 tile 调度 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="CoolDA 设计仿真（三）：BSP、runtime 与 tile 调度"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-09 15:03" pubdate>
+          2026年5月9日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          949 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          8 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">CoolDA 设计仿真（三）：BSP、runtime 与 tile 调度</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>硬件核只会做 4x4，但用户想算的矩阵可能是 8x8、16x16，甚至更大。解决方法不是让 CPU 直接操作每一个寄存器细节，而是分两层：</p>
+<ol>
+<li>BSP：把寄存器表包装成薄函数；</li>
+<li>runtime：把大任务拆成 4x4 tile，并调度硬件核反复执行。</li>
+</ol>
+<p><img src="/images/mermaid-svg/coolda-design-03-runtime-tiling/bsp-runtime.svg" alt="CoolDA BSP 与 runtime 分层"></p>
+<h2 id="BSP：越薄越好"><a href="#BSP：越薄越好" class="headerlink" title="BSP：越薄越好"></a>BSP：越薄越好</h2><p>BSP 的职责是硬件寄存器访问。它应该非常薄。</p>
+<p>最底层是 MMIO helper：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-keyword">volatile</span> <span class="hljs-type">uint32_t</span> *<span class="hljs-title function_">reg_ptr</span><span class="hljs-params">(<span class="hljs-type">uint32_t</span> offset)</span> &#123;<br>  <span class="hljs-keyword">return</span> (<span class="hljs-keyword">volatile</span> <span class="hljs-type">uint32_t</span> *)(COOLDA_BASE + offset);<br>&#125;<br><br><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">void</span> <span class="hljs-title function_">write_reg</span><span class="hljs-params">(<span class="hljs-type">uint32_t</span> offset, <span class="hljs-type">uint32_t</span> value)</span> &#123;<br>  *reg_ptr(offset) = value;<br>&#125;<br><br><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">uint32_t</span> <span class="hljs-title function_">read_reg</span><span class="hljs-params">(<span class="hljs-type">uint32_t</span> offset)</span> &#123;<br>  <span class="hljs-keyword">return</span> *reg_ptr(offset);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>往上是硬件动作：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">load_matrix_a</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">int8_t</span> a[<span class="hljs-number">4</span>][<span class="hljs-number">4</span>])</span> &#123;<br>  write_reg(REG_A0, pack_row(a[<span class="hljs-number">0</span>]));<br>  write_reg(REG_A1, pack_row(a[<span class="hljs-number">1</span>]));<br>  write_reg(REG_A2, pack_row(a[<span class="hljs-number">2</span>]));<br>  write_reg(REG_A3, pack_row(a[<span class="hljs-number">3</span>]));<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">load_matrix_b</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">int8_t</span> b[<span class="hljs-number">4</span>][<span class="hljs-number">4</span>])</span> &#123;<br>  write_reg(REG_B0, pack_row(b[<span class="hljs-number">0</span>]));<br>  write_reg(REG_B1, pack_row(b[<span class="hljs-number">1</span>]));<br>  write_reg(REG_B2, pack_row(b[<span class="hljs-number">2</span>]));<br>  write_reg(REG_B3, pack_row(b[<span class="hljs-number">3</span>]));<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">start</span><span class="hljs-params">(<span class="hljs-type">int</span> relu_enable)</span> &#123;<br>  <span class="hljs-type">uint32_t</span> ctrl = CTRL_START;<br>  <span class="hljs-keyword">if</span> (relu_enable) ctrl |= CTRL_RELU;<br>  write_reg(REG_CTRL, ctrl);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>BSP 不应该知道 8x8 怎么拆，也不应该知道 event 怎么推进。它只负责把“写 A、写 B、启动、等待、读 C”这些硬件动作封装好。</p>
+<h2 id="runtime：把硬件动作变成任务"><a href="#runtime：把硬件动作变成任务" class="headerlink" title="runtime：把硬件动作变成任务"></a>runtime：把硬件动作变成任务</h2><p>runtime 关心的是 job：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> &#123;</span><br>  <span class="hljs-type">uint32_t</span> flags;<br>  <span class="hljs-type">uint32_t</span> m, n, k;<br>  <span class="hljs-type">int8_t</span>  *a;<br>  <span class="hljs-type">int8_t</span>  *b;<br>  <span class="hljs-type">int32_t</span> *c;<br>  <span class="hljs-type">uint32_t</span> lda, ldb, ldc;<br>&#125; <span class="hljs-type">matmul_job_t</span>;<br></code></pre></td></tr></table></figure>
+
+<p>这个结构比 BSP 高一层。它描述的是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">C[m x n] = A[m x k] * B[k x n]<br></code></pre></td></tr></table></figure>
+
+<p>runtime 可以再提供类似接口：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">launch_matmul</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">matmul_job_t</span> *job)</span>;<br><span class="hljs-type">int</span> <span class="hljs-title function_">launch_matmul_async</span><span class="hljs-params">(<span class="hljs-type">event_t</span> *event, <span class="hljs-type">const</span> <span class="hljs-type">matmul_job_t</span> *job)</span>;<br><span class="hljs-type">int</span> <span class="hljs-title function_">event_poll</span><span class="hljs-params">(<span class="hljs-type">event_t</span> *event)</span>;<br><span class="hljs-type">int</span> <span class="hljs-title function_">event_wait</span><span class="hljs-params">(<span class="hljs-type">event_t</span> *event)</span>;<br></code></pre></td></tr></table></figure>
+
+<p>这样用户面对的是“矩阵任务”，不是寄存器细节。</p>
+<h2 id="tile-调度"><a href="#tile-调度" class="headerlink" title="tile 调度"></a>tile 调度</h2><p>硬件 tile 是 4x4x4：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">M tile = 4<br>N tile = 4<br>K tile = 4<br></code></pre></td></tr></table></figure>
+
+<p><img src="/images/mermaid-svg/coolda-design-03-runtime-tiling/tile-scheduler.svg" alt="CoolDA tile 调度示意"></p>
+<p>如果要算 8x8 矩阵：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">C[8x8] = A[8x8] * B[8x8]<br></code></pre></td></tr></table></figure>
+
+<p>那么 C 会被拆成 2x2 个输出 tile：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">C00  C01<br>C10  C11<br></code></pre></td></tr></table></figure>
+
+<p>每个 C tile 还要沿 K 维累加两次：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">C00 = A00*B00 + A01*B10<br>C01 = A00*B01 + A01*B11<br>C10 = A10*B00 + A11*B10<br>C11 = A10*B01 + A11*B11<br></code></pre></td></tr></table></figure>
+
+<p>通用伪代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">for</span> (row_base = <span class="hljs-number">0</span>; row_base &lt; M; row_base += <span class="hljs-number">4</span>) &#123;<br>  <span class="hljs-keyword">for</span> (col_base = <span class="hljs-number">0</span>; col_base &lt; N; col_base += <span class="hljs-number">4</span>) &#123;<br>    <span class="hljs-type">int32_t</span> acc[<span class="hljs-number">4</span>][<span class="hljs-number">4</span>] = &#123;<span class="hljs-number">0</span>&#125;;<br><br>    <span class="hljs-keyword">for</span> (k_base = <span class="hljs-number">0</span>; k_base &lt; K; k_base += <span class="hljs-number">4</span>) &#123;<br>      <span class="hljs-type">int8_t</span>  a_tile[<span class="hljs-number">4</span>][<span class="hljs-number">4</span>];<br>      <span class="hljs-type">int8_t</span>  b_tile[<span class="hljs-number">4</span>][<span class="hljs-number">4</span>];<br>      <span class="hljs-type">int32_t</span> partial[<span class="hljs-number">4</span>][<span class="hljs-number">4</span>];<br><br>      pack_a_tile(job, row_base, k_base, a_tile);<br>      pack_b_tile(job, k_base, col_base, b_tile);<br>      run_hardware_tile(a_tile, b_tile, partial);<br>      accumulate(acc, partial);<br>    &#125;<br><br>    store_c_tile(job, row_base, col_base, acc);<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这就是 runtime 的核心价值：硬件只会做一个小块，runtime 负责把小块拼成完整任务。</p>
+<h2 id="边界-tile-要补零"><a href="#边界-tile-要补零" class="headerlink" title="边界 tile 要补零"></a>边界 tile 要补零</h2><p>如果矩阵大小不是 4 的倍数，tile 会越界。例如 <code>M=6</code> 时，第二个 row tile 只有 2 行有效。</p>
+<p>pack 函数要做边界判断：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">if</span> (src_row &lt; job-&gt;m &amp;&amp; src_k &lt; job-&gt;k)<br>  a_tile[row][kk] = A[src_row][src_k];<br><span class="hljs-keyword">else</span><br>  a_tile[row][kk] = <span class="hljs-number">0</span>;<br></code></pre></td></tr></table></figure>
+
+<p>B tile 同理。补零以后，硬件仍然只看到一个完整 4x4 tile；越界部分对结果没有贡献。</p>
+<p>这是 tile runtime 里非常基础但非常重要的处理。</p>
+<h2 id="为什么-ReLU-放在最终-store"><a href="#为什么-ReLU-放在最终-store" class="headerlink" title="为什么 ReLU 放在最终 store"></a>为什么 ReLU 放在最终 store</h2><p>4x4 硬件核可以支持 ReLU bit，但在 tiled matmul 中，ReLU 不能随便提前。</p>
+<p>假设一个输出需要两个 K tile 累加：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">sum = partial0 + partial1<br></code></pre></td></tr></table></figure>
+
+<p>如果先对 <code>partial0</code> 做 ReLU：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">wrong = ReLU(partial0) + partial1<br></code></pre></td></tr></table></figure>
+
+<p>它通常不等于：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">right = ReLU(partial0 + partial1)<br></code></pre></td></tr></table></figure>
+
+<p>所以 runtime 更合理的做法是：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c">accumulate all K tiles first;<br><span class="hljs-keyword">if</span> (relu &amp;&amp; value &lt; <span class="hljs-number">0</span>) value = <span class="hljs-number">0</span>;<br>store value to C;<br></code></pre></td></tr></table></figure>
+
+<p>硬件负责 partial tile 的乘加，runtime 负责跨 K tile 的累加和最终后处理。</p>
+<h2 id="async-event-是软件调度语义"><a href="#async-event-是软件调度语义" class="headerlink" title="async event 是软件调度语义"></a>async event 是软件调度语义</h2><p>一个轻量 runtime 可以提供 event：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">enum</span> &#123;</span><br>  EVENT_IDLE,<br>  EVENT_RUNNING,<br>  EVENT_DONE,<br>  EVENT_ERROR<br>&#125; <span class="hljs-type">event_state_t</span>;<br><br><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> &#123;</span><br>  <span class="hljs-type">matmul_job_t</span> job;<br>  <span class="hljs-type">event_state_t</span> state;<br>  <span class="hljs-type">uint32_t</span> total_steps;<br>  <span class="hljs-type">uint32_t</span> completed_steps;<br>  <span class="hljs-type">uint32_t</span> row_base, col_base, k_base;<br>  <span class="hljs-type">int32_t</span> accum_tile[<span class="hljs-number">4</span>][<span class="hljs-number">4</span>];<br>&#125; <span class="hljs-type">event_t</span>;<br></code></pre></td></tr></table></figure>
+
+<p><code>event_poll()</code> 每次推进一个 tile step：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">event_poll</span><span class="hljs-params">(<span class="hljs-type">event_t</span> *e)</span> &#123;<br>  <span class="hljs-keyword">if</span> (e-&gt;completed_steps &gt;= e-&gt;total_steps) &#123;<br>    e-&gt;state = EVENT_DONE;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;<br>  &#125;<br><br>  pack_a_tile(...);<br>  pack_b_tile(...);<br>  run_hardware_tile(...);<br>  accumulate(...);<br>  advance_indices(e);<br><br>  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>注意：这是一种软件 async&#x2F;event 语义，不等于硬件后台队列。每次 poll 都还是由 CPU 推进。真正的硬件 async 需要命令队列、中断、DMA 和后台执行。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>CoolDA 的 BSP&#x2F;runtime 分层可以记成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">BSP = 寄存器动作<br>runtime = 任务、tile、event、内存语义<br></code></pre></td></tr></table></figure>
+
+<p>硬件小核只做 4x4，runtime 通过 tile 调度把它扩展成更大的矩阵乘法。这是很多加速器平台最核心的思想：硬件提供 primitive，软件负责 orchestration。</p>
+<p>下一篇看仿真环境：xOS shell 和 Verilator 如何让这条路径可交互、可脚本化、可观察。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Computer-Architecture/" class="category-chain-item">Computer Architecture</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/CoolDA/" class="print-no-link">#CoolDA</a>
+      
+        <a href="/tags/runtime/" class="print-no-link">#runtime</a>
+      
+        <a href="/tags/BSP/" class="print-no-link">#BSP</a>
+      
+        <a href="/tags/tiling/" class="print-no-link">#tiling</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>CoolDA 设计仿真（三）：BSP、runtime 与 tile 调度</div>
+      <div>http://blog.luliang.online/2026/05/09/coolda-design-03-runtime-tiling/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月9日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/05/10/coolda-design-04-xos-verilator/" title="CoolDA 设计仿真（四）：xOS Shell 与 Verilator 交互">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">CoolDA 设计仿真（四）：xOS Shell 与 Verilator 交互</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/05/08/coolda-design-02-apb-npu/" title="CoolDA 设计仿真（二）：APB 外设与 4x4 INT8 矩阵乘核">
+                        <span class="hidden-mobile">CoolDA 设计仿真（二）：APB 外设与 4x4 INT8 矩阵乘核</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

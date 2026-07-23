@@ -1,0 +1,827 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="把 JIT 接入 NES 指令执行路径上一篇先把 JIT 的基本原理和一个小 demo 跑通了。这一篇开始把它真正接到毕业设计项目里：让 xOS Pro Max 上移植的 LiteNES 模拟器，在 LoongArch32R 软核上运行 NES 指令时，可以从传统解释器路径切换到动态生成的本机代码路径。 这件事看起来像是“给模拟器加一个优化开关”，但实际做下来更像是在系统里加一条新的执行通道。NE">
+<meta property="og:type" content="article">
+<meta property="og:title" content="毕业设计记录（16）：用 JIT 运行 NES 指令">
+<meta property="og:url" content="http://blog.luliang.online/2026/01/31/thesis-16-jit-runs-nes/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="把 JIT 接入 NES 指令执行路径上一篇先把 JIT 的基本原理和一个小 demo 跑通了。这一篇开始把它真正接到毕业设计项目里：让 xOS Pro Max 上移植的 LiteNES 模拟器，在 LoongArch32R 软核上运行 NES 指令时，可以从传统解释器路径切换到动态生成的本机代码路径。 这件事看起来像是“给模拟器加一个优化开关”，但实际做下来更像是在系统里加一条新的执行通道。NE">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.luliang.online/images/mermaid-svg/thesis-16-jit-runs-nes/jit-execution-flow.svg">
+<meta property="article:published_time" content="2026-01-31T02:03:13.000Z">
+<meta property="article:modified_time" content="2026-07-23T03:05:46.859Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="graduation thesis">
+<meta property="article:tag" content="NES">
+<meta property="article:tag" content="JIT">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://blog.luliang.online/images/mermaid-svg/thesis-16-jit-runs-nes/jit-execution-flow.svg">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>毕业设计记录（16）：用 JIT 运行 NES 指令 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="毕业设计记录（16）：用 JIT 运行 NES 指令"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-01-31 10:03" pubdate>
+          2026年1月31日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          23 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">毕业设计记录（16）：用 JIT 运行 NES 指令</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="把-JIT-接入-NES-指令执行路径"><a href="#把-JIT-接入-NES-指令执行路径" class="headerlink" title="把 JIT 接入 NES 指令执行路径"></a>把 JIT 接入 NES 指令执行路径</h2><p>上一篇先把 JIT 的基本原理和一个小 demo 跑通了。这一篇开始把它真正接到毕业设计项目里：让 <code>xOS Pro Max</code> 上移植的 LiteNES 模拟器，在 LoongArch32R 软核上运行 NES 指令时，可以从传统解释器路径切换到动态生成的本机代码路径。</p>
+<p>这件事看起来像是“给模拟器加一个优化开关”，但实际做下来更像是在系统里加一条新的执行通道。NES 的 CPU 指令不是孤立计算，读写地址会牵出 PPU 寄存器、OAM DMA、手柄输入、Mapper、调色板等副作用。如果 JIT 只追求把 <code>switch(opcode)</code> 翻译成机器码，很容易跑得更快，也错得更快。</p>
+<p>所以本项目当前采用的是一个比较稳的中间形态：<strong>单指令直译 JIT</strong>。每个 6502 PC 编译成一段 LoongArch32R 机器码，能安全原生执行的指令直接生成本机代码，复杂或暂未覆盖的指令则生成一个调用解释器单步函数的 fallback stub。</p>
+<h2 id="代码位置"><a href="#代码位置" class="headerlink" title="代码位置"></a>代码位置</h2><p>软件侧 NES&#x2F;JIT 主要在 <code>software/xos_pro_max</code> 中：</p>
+<table>
+<thead>
+<tr>
+<th>路径</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>software/xos_pro_max/Makefile</code></td>
+<td>把 LiteNES 源码和 <code>jit_simple.c</code> 纳入 <code>xos</code> 构建</td>
+</tr>
+<tr>
+<td><code>software/xos_pro_max/src/litenes/cpu.c</code></td>
+<td>6502 解释器、指令表、<code>cpu_run()</code> 主循环</td>
+</tr>
+<tr>
+<td><code>software/xos_pro_max/src/litenes/jit_simple.c</code></td>
+<td>当前 JIT 主实现</td>
+</tr>
+<tr>
+<td><code>software/xos_pro_max/src/litenes/la_emit.h</code></td>
+<td>LoongArch32R 指令编码助手</td>
+</tr>
+<tr>
+<td><code>software/xos_pro_max/src/litenes/memory.c</code></td>
+<td>NES CPU 地址空间读写路由</td>
+</tr>
+<tr>
+<td><code>software/xos_pro_max/src/shell.c</code></td>
+<td><code>jitmode</code>、<code>difftest</code> 等 shell 命令入口</td>
+</tr>
+</tbody></table>
+<p><code>Makefile</code> 中的 LiteNES 源文件列表已经包含了 <code>src/litenes/jit_simple.c</code>，因此它不是独立 demo，而是直接进入系统镜像：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs makefile">LITENES_SRCS := src/litenes/common.c \<br>                src/litenes/cpu.c \<br>                src/litenes/cpu-addressing.c \<br>                src/litenes/fce.c \<br>                src/litenes/memory.c \<br>                src/litenes/mmc.c \<br>                src/litenes/ppu.c \<br>                src/litenes/psg.c \<br>                src/litenes/mario-rom.c \<br>                src/litenes/am_adapter.c \<br>                src/litenes/jit_simple.c<br></code></pre></td></tr></table></figure>
+
+<h2 id="原来的解释器路径"><a href="#原来的解释器路径" class="headerlink" title="原来的解释器路径"></a>原来的解释器路径</h2><p>解释器入口在 <code>cpu.c</code> 的 <code>cpu_run(long cycles)</code>。PPU 每条扫描线会分段调用 <code>cpu_run()</code>，模拟 NES 中 CPU 与 PPU 的比例关系。当前代码里先把传入周期除以 3，然后在循环里不断执行 6502 指令：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">cpu_run</span><span class="hljs-params">(<span class="hljs-type">long</span> cycles)</span> &#123;<br>  cycles /= <span class="hljs-number">3</span>;<br>  <span class="hljs-keyword">while</span> (cycles &gt; <span class="hljs-number">0</span>) &#123;<br>    <span class="hljs-type">int</span> used = <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">if</span> (jit_enabled) &#123;<br>      used = jit_run(cpu.PC);<br>    &#125;<br>    <span class="hljs-keyword">if</span> (!jit_enabled || used &lt;= <span class="hljs-number">0</span>) &#123;<br>      op_code = memory_readb(cpu.PC++);<br>      <span class="hljs-keyword">if</span> (cpu_op_address_mode[op_code] != <span class="hljs-literal">NULL</span>) &#123;<br>        cpu_op_address_mode[op_code]();<br>        cpu_op_handler[op_code]();<br>      &#125;<br>      used = cpu_op_cycles[op_code] + op_cycles;<br>      op_cycles = <span class="hljs-number">0</span>;<br>    &#125;<br>    cycles -= used;<br>    cpu_cycles -= used;<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这段代码里最关键的变化是：解释器执行之前先尝试 <code>jit_run(cpu.PC)</code>。如果 JIT 返回了正的周期数，就说明这条 6502 指令已经通过 JIT 路径完成执行；如果返回 0 或失败，再落回解释器。</p>
+<p>解释器本身仍然非常重要。它既是正确性基准，也是 JIT 暂未覆盖指令的后备实现。项目里还额外提供了 <code>cpu_step_interp(uint16_t pc)</code>，用于从指定 PC 执行一条解释器指令，这正好给 JIT fallback stub 使用。</p>
+<h2 id="当前-JIT-的设计取舍"><a href="#当前-JIT-的设计取舍" class="headerlink" title="当前 JIT 的设计取舍"></a>当前 JIT 的设计取舍</h2><p>最初设想过块级 JIT：从某个 PC 开始连续翻译一个 basic block，直到分支、跳转、JSR&#x2F;RTS 或 I&#x2F;O 边界为止。这个方向性能潜力更大，但调试成本也更高，尤其是在 NES 这种大量依赖内存映射副作用的系统里。</p>
+<p>当前实现选择先跑通一个更保守的版本：</p>
+<ol>
+<li>每个 PC 单独缓存一段机器码；</li>
+<li>每段机器码只负责一条 6502 指令；</li>
+<li>原生模板统一通过 <code>memory_readb()</code> &#x2F; <code>memory_writeb()</code> 访问 NES 地址空间；</li>
+<li>未覆盖 opcode 编译成 <code>cpu_step_interp(pc)</code> 调用；</li>
+<li>每次生成代码后调用 <code>__builtin___clear_cache()</code> 刷新 I-cache。</li>
+</ol>
+<p>对应数据结构在 <code>jit_simple.c</code> 顶部：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> JIT_CODE_PER_ENTRY 64</span><br><br><span class="hljs-keyword">typedef</span> <span class="hljs-title function_">int</span> <span class="hljs-params">(*<span class="hljs-type">jit_func_t</span>)</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;<br><br><span class="hljs-type">static</span> <span class="hljs-type">jit_func_t</span> pc_func[<span class="hljs-number">1</span> &lt;&lt; <span class="hljs-number">16</span>] LITENES_NOINIT;<br><span class="hljs-type">static</span> <span class="hljs-type">uint8_t</span> pc_len[<span class="hljs-number">1</span> &lt;&lt; <span class="hljs-number">16</span>] LITENES_NOINIT;<br><span class="hljs-type">static</span> <span class="hljs-type">uint32_t</span> code_pool[<span class="hljs-number">1</span> &lt;&lt; <span class="hljs-number">16</span>][JIT_CODE_PER_ENTRY] LITENES_NOINIT;<br></code></pre></td></tr></table></figure>
+
+<p>这里没有采用哈希表，而是直接用 16 位 PC 做下标。好处是查找极其简单：<code>pc_func[pc]</code> 要么是已经编译好的函数指针，要么为空。代价是代码池比较大，所以这些数组放在 <code>.noinit.litenes</code> 段里，避免普通 <code>.bss</code> 初始化拖慢启动。</p>
+<h2 id="JIT-执行流程"><a href="#JIT-执行流程" class="headerlink" title="JIT 执行流程"></a>JIT 执行流程</h2><p>整体流程如下：</p>
+<p><img src="/images/mermaid-svg/thesis-16-jit-runs-nes/jit-execution-flow.svg" alt="NES JIT 执行流程"></p>
+<p><code>jit_run()</code> 负责命中检查、编译、统计和调用：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">jit_run</span><span class="hljs-params">(<span class="hljs-type">uint16_t</span> pc)</span> &#123;<br>    <span class="hljs-keyword">if</span> (!jit_enabled)<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br><br>    stat_calls++;<br>    <span class="hljs-type">jit_func_t</span> fn = pc_func[pc];<br>    <span class="hljs-keyword">if</span> (!fn) &#123;<br>        stat_misses++;<br>        <span class="hljs-type">uint8_t</span> len = <span class="hljs-number">0</span>;<br>        fn = jit_compile(pc, &amp;len);<br>        <span class="hljs-keyword">if</span> (!fn)<br>            <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>        pc_func[pc] = fn;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        stat_hits++;<br>    &#125;<br><br>    jit_cur_pc = pc;<br>    <span class="hljs-keyword">return</span> fn();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这段代码还有一个很实用的调试价值：可以通过 <code>stat_calls</code>、<code>stat_hits</code>、<code>stat_misses</code>、<code>stat_invalid</code> 观察 JIT 是否真的被执行，而不是只是 shell 里打开了开关。</p>
+<h2 id="如何生成-LoongArch32R-机器码"><a href="#如何生成-LoongArch32R-机器码" class="headerlink" title="如何生成 LoongArch32R 机器码"></a>如何生成 LoongArch32R 机器码</h2><p>JIT 不依赖汇编器，而是直接把 LoongArch32R 指令编码写进 <code>uint32_t</code> 数组。<code>la_emit.h</code> 封装了常用指令，例如：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">uint32_t</span> <span class="hljs-title function_">la_ori</span><span class="hljs-params">(<span class="hljs-type">int</span> rd, <span class="hljs-type">int</span> rj, <span class="hljs-type">int</span> imm12)</span> &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0x03800000</span> | ((imm12 &amp; <span class="hljs-number">0xFFF</span>) &lt;&lt; <span class="hljs-number">10</span>) | (rj &lt;&lt; <span class="hljs-number">5</span>) | rd;<br>&#125;<br><br><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">uint32_t</span> <span class="hljs-title function_">la_jirl</span><span class="hljs-params">(<span class="hljs-type">int</span> rd, <span class="hljs-type">int</span> rj, <span class="hljs-type">int</span> imm16)</span> &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0x4C000000</span> | ((imm16 &amp; <span class="hljs-number">0xFFFF</span>) &lt;&lt; <span class="hljs-number">10</span>) | (rj &lt;&lt; <span class="hljs-number">5</span>) | rd;<br>&#125;<br><br><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">int</span> <span class="hljs-title function_">emit_li32</span><span class="hljs-params">(<span class="hljs-type">uint32_t</span> *buf, <span class="hljs-type">int</span> pos, <span class="hljs-type">int</span> rd, <span class="hljs-type">uint32_t</span> imm)</span> &#123;<br>    buf[pos++] = la_lu12i_w(rd, imm &gt;&gt; <span class="hljs-number">12</span>);<br>    buf[pos++] = la_ori(rd, rd, imm &amp; <span class="hljs-number">0xFFF</span>);<br>    <span class="hljs-keyword">return</span> pos;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>每个 JIT 模板都是往 <code>code_pool[pc]</code> 里追加 32 位机器码。模板开头会保存返回地址和 <code>s0</code>，并把 <code>s0</code> 固定用作 <code>cpu</code> 结构体指针：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> REG_CPU 23</span><br><br><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">int</span> <span class="hljs-title function_">emit_prologue</span><span class="hljs-params">(<span class="hljs-type">uint32_t</span> *buf, <span class="hljs-type">int</span> p)</span> &#123;<br>    buf[p++] = la_addi_w(<span class="hljs-number">3</span>, <span class="hljs-number">3</span>, <span class="hljs-number">-24</span>);<br>    buf[p++] = la_st_w(<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">0</span>);<br>    buf[p++] = la_st_w(REG_CPU, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>);<br>    p = emit_li32(buf, p, REG_CPU, (<span class="hljs-type">uint32_t</span>)(<span class="hljs-type">uintptr_t</span>)&amp;cpu);<br>    <span class="hljs-keyword">return</span> p;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>模板末尾把周期数放进 <code>$a0</code> 返回：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">int</span> <span class="hljs-title function_">emit_ret_cycles</span><span class="hljs-params">(<span class="hljs-type">uint32_t</span> *buf, <span class="hljs-type">int</span> p, <span class="hljs-type">int</span> cycles)</span> &#123;<br>    buf[p++] = la_ori(<span class="hljs-number">4</span>, <span class="hljs-number">0</span>, cycles);<br>    <span class="hljs-keyword">return</span> p;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="一个指令模板：LDA-imm"><a href="#一个指令模板：LDA-imm" class="headerlink" title="一个指令模板：LDA #imm"></a>一个指令模板：<code>LDA #imm</code></h2><p>以 <code>LDA #imm</code> 为例，6502 语义是把立即数放进 A 寄存器，并更新 Z&#x2F;N 标志。JIT 模板会在编译时读取立即数，把它直接编码进本机代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">case</span> <span class="hljs-number">0xA9</span>: &#123; <span class="hljs-comment">// LDA #imm</span><br>    <span class="hljs-type">uint8_t</span> imm = memory_readb(pc + <span class="hljs-number">1</span>);<br>    p = emit_li32(buf, p, <span class="hljs-number">12</span>, (<span class="hljs-type">uint32_t</span>)(<span class="hljs-type">uintptr_t</span>)&amp;cpu);<br>    buf[p++] = la_ori(<span class="hljs-number">4</span>, <span class="hljs-number">0</span>, imm);<br>    buf[p++] = la_st_b(<span class="hljs-number">4</span>, REG_CPU, OFF_A);<br>    p = emit_set_zn(buf, p);<br>    p = emit_pc_advance(buf, p, <span class="hljs-number">2</span>);<br>    p = emit_ret_cycles(buf, p, <span class="hljs-number">2</span>);<br>    len = <span class="hljs-number">2</span>;<br>    <span class="hljs-keyword">break</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>执行时这段机器码不再经过解释器的 opcode switch，也不再查询寻址模式表，直接完成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">a0 = imm<br>cpu.A = a0<br>更新 Z/N<br>cpu.PC += 2<br>return 2 cycles<br></code></pre></td></tr></table></figure>
+
+<p>这里的 <code>emit_set_zn()</code> 会清掉 P 寄存器里的 N&#x2F;Z 位，然后根据结果是否为 0、最高位是否为 1 写回标志。这样 JIT 与解释器的 <code>cpu_update_zn_flags()</code> 保持同一类语义。</p>
+<h2 id="内存访问必须保留副作用"><a href="#内存访问必须保留副作用" class="headerlink" title="内存访问必须保留副作用"></a>内存访问必须保留副作用</h2><p>NES 模拟器最容易出错的地方不是算术，而是内存访问。<code>memory.c</code> 里按地址区间把访问分到 CPU RAM、PPU、APU&#x2F;输入和 Mapper：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c">byte <span class="hljs-title function_">memory_readb</span><span class="hljs-params">(word address)</span> &#123;<br>  <span class="hljs-keyword">switch</span> (address &gt;&gt; <span class="hljs-number">13</span>) &#123;<br>    <span class="hljs-keyword">case</span> <span class="hljs-number">0</span>: <span class="hljs-keyword">return</span> cpu_ram_read(address &amp; <span class="hljs-number">0x07FF</span>);<br>    <span class="hljs-keyword">case</span> <span class="hljs-number">1</span>: <span class="hljs-keyword">return</span> ppuio_read(address);<br>    <span class="hljs-keyword">case</span> <span class="hljs-number">2</span>: <span class="hljs-keyword">return</span> psgio_read(address);<br>    <span class="hljs-keyword">case</span> <span class="hljs-number">3</span>: <span class="hljs-keyword">return</span> cpu_ram_read(address &amp; <span class="hljs-number">0x1FFF</span>);<br>    <span class="hljs-keyword">default</span>: <span class="hljs-keyword">return</span> mmc_read(address);<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>写路径还额外处理 <code>$4014</code> 的 OAM DMA：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">if</span> (address == <span class="hljs-number">0x4014</span>) &#123;<br>  <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">256</span>; i++) &#123;<br>    ppu_sprram_write(cpu_ram_read((<span class="hljs-number">0x100</span> * data) + i));<br>  &#125;<br>  <span class="hljs-keyword">return</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>因此 JIT 模板中只要涉及 NES 地址空间读写，就尽量调用 <code>memory_readb()</code> &#x2F; <code>memory_writeb()</code>，而不是直接访问某个数组。比如 <code>STA abs</code> 的模板会生成对 <code>memory_writeb</code> 的调用：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">case</span> <span class="hljs-number">0x8D</span>: &#123; <span class="hljs-comment">// STA abs</span><br>    <span class="hljs-type">uint16_t</span> addr = memory_readb(pc + <span class="hljs-number">1</span>) | (memory_readb(pc + <span class="hljs-number">2</span>) &lt;&lt; <span class="hljs-number">8</span>);<br>    p = emit_li32(buf, p, <span class="hljs-number">19</span>, (<span class="hljs-type">uint32_t</span>)(<span class="hljs-type">uintptr_t</span>)memory_writeb);<br>    p = emit_li32(buf, p, <span class="hljs-number">4</span>, addr);<br>    buf[p++] = la_ld_bu(<span class="hljs-number">5</span>, REG_CPU, OFF_A);<br>    buf[p++] = la_jirl(<span class="hljs-number">1</span>, <span class="hljs-number">19</span>, <span class="hljs-number">0</span>);<br>    p = emit_pc_advance(buf, p, <span class="hljs-number">3</span>);<br>    p = emit_ret_cycles(buf, p, <span class="hljs-number">4</span>);<br>    len = <span class="hljs-number">3</span>;<br>    <span class="hljs-keyword">break</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这样虽然牺牲了一部分性能，但能保证 PPU 寄存器写、OAM DMA、Mapper 写等副作用仍然走原来的模拟器路径。这也是当前版本“正确性优先”的核心。</p>
+<h2 id="覆盖范围与-fallback"><a href="#覆盖范围与-fallback" class="headerlink" title="覆盖范围与 fallback"></a>覆盖范围与 fallback</h2><p>当前 <code>jit_simple.c</code> 对常见指令分三类处理：</p>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>当前策略</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>LDA/LDX/LDY</code>、<code>STA/STX/STY</code></td>
+<td>生成较完整的原生模板</td>
+</tr>
+<tr>
+<td><code>AND/ORA/EOR</code></td>
+<td>生成原生逻辑运算模板</td>
+</tr>
+<tr>
+<td><code>ADC/SBC/CMP/CPX/CPY</code></td>
+<td>生成到 C 级 helper 的短跳转</td>
+</tr>
+<tr>
+<td>其他 opcode</td>
+<td>生成 <code>cpu_step_interp(pc)</code> fallback stub</td>
+</tr>
+</tbody></table>
+<p>也就是说，当前版本并不是“所有 6502 指令都已经纯原生化”。更准确地说，它已经把 JIT 执行框架接入了模拟器，并覆盖了一批高频、容易验证的指令；其余指令仍由解释器保证功能正确。</p>
+<p>fallback 的实现很直接：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">default</span>:<br>    p = emit_li32(buf, p, <span class="hljs-number">4</span>, pc);<br>    p = emit_li32(buf, p, <span class="hljs-number">12</span>, (<span class="hljs-type">uint32_t</span>)(<span class="hljs-type">uintptr_t</span>)cpu_step_interp);<br>    buf[p++] = la_jirl(<span class="hljs-number">1</span>, <span class="hljs-number">12</span>, <span class="hljs-number">0</span>);<br>    <span class="hljs-keyword">break</span>;<br></code></pre></td></tr></table></figure>
+
+<p>这个设计有一个好处：即使遇到未覆盖指令，也不会把整个模拟器切回纯解释器模式，而是只在这个 PC 上缓存一个“解释器单步调用”。下一次再执行同一个 PC，就不需要重新编译 fallback 了。</p>
+<h2 id="Shell-控制入口"><a href="#Shell-控制入口" class="headerlink" title="Shell 控制入口"></a>Shell 控制入口</h2><p>JIT 通过 xOS shell 控制：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">jitmode on<br>jitmode off<br>jitmode stats<br>jitmode reset<br>jitmode dump<br></code></pre></td></tr></table></figure>
+
+<p>对应实现位于 <code>software/xos_pro_max/src/shell.c</code>。打开 JIT 时会先调用 <code>jit_init()</code> 清空缓存：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">if</span> (<span class="hljs-built_in">strcmp</span>(argv[<span class="hljs-number">1</span>], <span class="hljs-string">&quot;on&quot;</span>) == <span class="hljs-number">0</span>) &#123;<br>    jit_init();<br>    jit_enabled = <span class="hljs-literal">true</span>;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;JIT mode enabled\n&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>jitmode stats</code> 会打印类似：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">[JIT] calls=... hits=... misses=... invalid=... hit-rate=...%<br></code></pre></td></tr></table></figure>
+
+<p>这对现场调试非常重要。之前调试系统时，经常会遇到“以为 JIT 开了，但实际主路径没走 JIT”的情况。有了命中率和调用次数，至少可以先确认执行通道是否真的切过去了。</p>
+<h2 id="与第-15-篇-demo-的区别"><a href="#与第-15-篇-demo-的区别" class="headerlink" title="与第 15 篇 demo 的区别"></a>与第 15 篇 demo 的区别</h2><p>第 15 篇里的 JIT demo 是一个极简虚拟机：<code>LOAD/ADD/JMP/HALT</code>，所有状态都在一两个寄存器里，内存没有复杂副作用。</p>
+<p>这篇接入 LiteNES 后，问题完全不一样：</p>
+<ol>
+<li>6502 有 A&#x2F;X&#x2F;Y&#x2F;P&#x2F;SP&#x2F;PC 等完整状态；</li>
+<li>指令周期要返回给 PPU 时序模拟；</li>
+<li>地址空间读写可能触发 PPU、APU、OAM DMA、Mapper；</li>
+<li>生成的代码要和 C 代码共享 <code>cpu</code> 全局结构；</li>
+<li>生成代码后必须刷新 I-cache，否则可能执行到旧指令；</li>
+<li>未覆盖指令必须可回退，而不是直接报错。</li>
+</ol>
+<p>可以把当前版本理解为从 demo 到工程实现之间的第一道桥：它先把 JIT 的生命周期、代码缓存、机器码生成、解释器协同都接进了系统，之后再逐步扩大原生模板覆盖范围。</p>
+<h2 id="后续优化路线"><a href="#后续优化路线" class="headerlink" title="后续优化路线"></a>后续优化路线</h2><p>当前版本的瓶颈也很明显：单指令 JIT 仍然有较多函数调用开销，访存模板大量调用 <code>memory_readb()</code> &#x2F; <code>memory_writeb()</code>，分支和跳转也没有跨块链接。因此后续可以按下面顺序演进：</p>
+<ol>
+<li><strong>扩大原生覆盖范围</strong>：优先实现 <code>INC/DEC/ASL/LSR/ROL/ROR</code>、分支和栈相关指令；</li>
+<li><strong>块级 JIT</strong>：把顺序执行的多条 6502 指令合成一个 basic block；</li>
+<li><strong>I&#x2F;O 白名单</strong>：普通 RAM&#x2F;ROM 访问走更短路径，PPU&#x2F;APU&#x2F;Mapper 访问继续走安全路径；</li>
+<li><strong>回退原因统计</strong>：区分 opcode 未覆盖、I&#x2F;O 保守回退、缓存失效等原因；</li>
+<li><strong>热点块优化</strong>：对高频 PC 段做块链接或指令融合；</li>
+<li><strong>自动回归</strong>：用 <code>jitmode on/off</code> 对同一 ROM 跑若干帧，做截图或状态对比。</li>
+</ol>
+<p>软件 JIT 并不是本毕业设计里唯一的 NES 加速路线。它适合展示“在自研 LoongArch SoC 上动态生成并执行本机代码”的系统能力；而第 18 篇会继续记录另一条更硬核的路线：把 NES 核作为硬件外设接入 SoC，让 6502、PPU 和像素输出直接在 FPGA 逻辑中运行。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Thesis-Project/" class="category-chain-item">Thesis Project</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/graduation-thesis/" class="print-no-link">#graduation thesis</a>
+      
+        <a href="/tags/NES/" class="print-no-link">#NES</a>
+      
+        <a href="/tags/JIT/" class="print-no-link">#JIT</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>毕业设计记录（16）：用 JIT 运行 NES 指令</div>
+      <div>http://blog.luliang.online/2026/01/31/thesis-16-jit-runs-nes/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年1月31日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/02/01/thesis-18-hardware-accelerated-nes/" title="毕业设计记录（18）：NES 硬件加速设计">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">毕业设计记录（18）：NES 硬件加速设计</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/01/30/thesis-17-qemu-fast-simulation/" title="毕业设计记录（17）：利用 QEMU 加速仿真">
+                        <span class="hidden-mobile">毕业设计记录（17）：利用 QEMU 加速仿真</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

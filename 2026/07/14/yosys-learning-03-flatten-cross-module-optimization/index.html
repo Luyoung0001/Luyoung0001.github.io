@@ -1,0 +1,1023 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言设想这样一个层次化设计：  子模块 A 只在输入为奇数时输出 1； 子模块 B 只在输入为偶数时输出 1； 顶层把两个结果做或运算。  对任何普通二进制输入，一个数不是奇数就是偶数，所以顶层输出必然为 1。源码里明明写了两个子模块、一个取反和一个或运算，综合器最终能不能发现“整个设计其实只是常量 1”？ 答案是：能，但不是 flatten 单独完成，也不是第一次 opt 就能完成。 真正发生的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Yosys 学习笔记（三）：flatten 与 opt 如何联手把整个设计化成常量">
+<meta property="og:url" content="http://blog.luliang.online/2026/07/14/yosys-learning-03-flatten-cross-module-optimization/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="前言设想这样一个层次化设计：  子模块 A 只在输入为奇数时输出 1； 子模块 B 只在输入为偶数时输出 1； 顶层把两个结果做或运算。  对任何普通二进制输入，一个数不是奇数就是偶数，所以顶层输出必然为 1。源码里明明写了两个子模块、一个取反和一个或运算，综合器最终能不能发现“整个设计其实只是常量 1”？ 答案是：能，但不是 flatten 单独完成，也不是第一次 opt 就能完成。 真正发生的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.luliang.online/images/mermaid-svg/yosys-learning-03-flatten-cross-module-optimization/flatten-opt-stage-evolution.svg">
+<meta property="og:image" content="http://blog.luliang.online/images/mermaid-svg/yosys-learning-03-flatten-cross-module-optimization/binary-vs-undef-semantics.svg">
+<meta property="article:published_time" content="2026-07-14T07:03:13.000Z">
+<meta property="article:modified_time" content="2026-07-23T03:05:46.861Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="Verilog">
+<meta property="article:tag" content="Yosys">
+<meta property="article:tag" content="RTLIL">
+<meta property="article:tag" content="logic synthesis">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://blog.luliang.online/images/mermaid-svg/yosys-learning-03-flatten-cross-module-optimization/flatten-opt-stage-evolution.svg">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>Yosys 学习笔记（三）：flatten 与 opt 如何联手把整个设计化成常量 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Yosys 学习笔记（三）：flatten 与 opt 如何联手把整个设计化成常量"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-14 15:03" pubdate>
+          2026年7月14日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          44 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Yosys 学习笔记（三）：flatten 与 opt 如何联手把整个设计化成常量</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>设想这样一个层次化设计：</p>
+<ul>
+<li>子模块 A 只在输入为奇数时输出 <code>1</code>；</li>
+<li>子模块 B 只在输入为偶数时输出 <code>1</code>；</li>
+<li>顶层把两个结果做或运算。</li>
+</ul>
+<p>对任何普通二进制输入，一个数不是奇数就是偶数，所以顶层输出必然为 <code>1</code>。源码里明明写了两个子模块、一个取反和一个或运算，综合器最终能不能发现“整个设计其实只是常量 <code>1</code>”？</p>
+<p>答案是：<strong>能，但不是 <code>flatten</code> 单独完成，也不是第一次 <code>opt</code> 就能完成。</strong></p>
+<p>真正发生的是一组分工明确的结构变换：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">保留层次<br>  -&gt; opt：只清理各模块内部，跨模块关系仍不可见<br>  -&gt; flatten：复制子模块实现，消除模块边界<br>  -&gt; opt：识别 x | ~x = 1，删除 $or 和 $not<br>  -&gt; clean -purge：删除残余层次元数据和无用公开线网<br>  -&gt; 顶层只剩 always_one = 1，功能 cell 数量为 0<br></code></pre></td></tr></table></figure>
+
+<p><img src="/images/mermaid-svg/yosys-learning-03-flatten-cross-module-optimization/flatten-opt-stage-evolution.svg" alt="flatten 与 opt 的五阶段结构演化"></p>
+<p>这个例子看上去很小，却把逻辑综合中的三个关键概念连在了一起：<strong>层次是优化边界，展平是在改变优化视野，<code>opt</code> 才是在改写布尔结构。</strong></p>
+<p>本文结果实测于 Yosys 0.66+（git <code>b35b6706f</code>）。不同版本生成的自动名称和编号可能变化，阅读时应关注 cell 类型、连接关系和常量，而不是依赖完整的 <code>$auto$...</code> 名字。</p>
+<h2 id="完整的层次化-Verilog"><a href="#完整的层次化-Verilog" class="headerlink" title="完整的层次化 Verilog"></a>完整的层次化 Verilog</h2><p>先把下面代码保存为 <code>parity_cover.v</code>：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">module</span> odd_detector(<br>    <span class="hljs-keyword">input</span>  [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] value,<br>    <span class="hljs-keyword">output</span>       is_odd<br>);<br>    <span class="hljs-keyword">assign</span> is_odd = value[<span class="hljs-number">0</span>];<br><span class="hljs-keyword">endmodule</span><br><br><span class="hljs-keyword">module</span> even_detector(<br>    <span class="hljs-keyword">input</span>  [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] value,<br>    <span class="hljs-keyword">output</span>       is_even<br>);<br>    <span class="hljs-keyword">assign</span> is_even = ~value[<span class="hljs-number">0</span>];<br><span class="hljs-keyword">endmodule</span><br><br><span class="hljs-keyword">module</span> parity_cover(<br>    <span class="hljs-keyword">input</span>  [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] value,<br>    <span class="hljs-keyword">output</span>       always_one<br>);<br>    <span class="hljs-keyword">wire</span> odd_hit;<br>    <span class="hljs-keyword">wire</span> even_hit;<br><br>    odd_detector odd_part(<br>        <span class="hljs-variable">.value</span>(value),<br>        <span class="hljs-variable">.is_odd</span>(odd_hit)<br>    );<br><br>    even_detector even_part(<br>        <span class="hljs-variable">.value</span>(value),<br>        <span class="hljs-variable">.is_even</span>(even_hit)<br>    );<br><br>    <span class="hljs-keyword">assign</span> always_one = odd_hit | even_hit;<br><span class="hljs-keyword">endmodule</span><br></code></pre></td></tr></table></figure>
+
+<p>这里不需要真的计算八位整数的除法余数。对二进制整数而言，最低位已经决定奇偶性：</p>
+<table>
+<thead>
+<tr>
+<th align="right"><code>value[0]</code></th>
+<th align="right"><code>odd_hit</code></th>
+<th align="right"><code>even_hit</code></th>
+<th align="right"><code>always_one</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right"><code>0</code></td>
+<td align="right"><code>0</code></td>
+<td align="right"><code>1</code></td>
+<td align="right"><code>1</code></td>
+</tr>
+<tr>
+<td align="right"><code>1</code></td>
+<td align="right"><code>1</code></td>
+<td align="right"><code>0</code></td>
+<td align="right"><code>1</code></td>
+</tr>
+</tbody></table>
+<p>令 <code>x = value[0]</code>，顶层逻辑就是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">odd_hit    = x<br>even_hit   = ~x<br>always_one = x | ~x = 1<br></code></pre></td></tr></table></figure>
+
+<p>从人的视角看，这个结论一眼就能得到。问题在于，第一次读入设计时，这三行关系分散在三个模块里。Yosys 是否能做出同样的判断，取决于当前 pass 能看见多大的结构范围。</p>
+<h2 id="一次保存五个阶段的-Yosys-脚本"><a href="#一次保存五个阶段的-Yosys-脚本" class="headerlink" title="一次保存五个阶段的 Yosys 脚本"></a>一次保存五个阶段的 Yosys 脚本</h2><p>再把下面脚本保存为 <code>parity_cover.ys</code>。它会把每个关键阶段都写成 RTLIL 和 Verilog，便于直接比较：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs text">read_verilog -sv parity_cover.v<br>hierarchy -check -top parity_cover<br>stat<br>write_rtlil 01_hierarchy.il<br>write_verilog -noattr 01_hierarchy.v<br><br>opt<br>stat<br>write_rtlil 02_hierarchy_opt.il<br>write_verilog -noattr 02_hierarchy_opt.v<br><br>flatten<br>stat<br>write_rtlil 03_flattened.il<br>write_verilog -noattr 03_flattened.v<br><br>opt<br>stat<br>write_rtlil 04_flattened_opt.il<br>write_verilog -noattr 04_flattened_opt.v<br><br>clean -purge<br>stat<br>sat -verify -prove always_one 1 -show value<br>write_rtlil 05_constant.il<br>write_verilog -noattr 05_constant.v<br></code></pre></td></tr></table></figure>
+
+<p>运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">yosys -V<br>yosys -Q -l parity_cover.log parity_cover.ys<br></code></pre></td></tr></table></figure>
+
+<p><code>-Q</code> 只省略启动横幅，不会像 <code>-q</code> 那样静默 <code>stat</code>；<code>-l parity_cover.log</code> 会把完整日志保存下来。若安装了 ripgrep，可以分别定位统计、模块删除和各阶段 cell：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">rg -n -A 14 <span class="hljs-string">&#x27;^=== parity_cover ===&#x27;</span> parity_cover.log<br>rg -n <span class="hljs-string">&#x27;Deleting now unused module|SAT proof finished&#x27;</span> parity_cover.log<br>rg -n <span class="hljs-string">&#x27;\$not|\$or|\$scopeinfo|connect \\always_one&#x27;</span> 0*.il<br></code></pre></td></tr></table></figure>
+
+<p>五个阶段的核心结果如下：</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th align="right">子模块实例</th>
+<th>功能 cell</th>
+<th>元数据 cell</th>
+<th><code>always_one</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>hierarchy</code></td>
+<td align="right">2</td>
+<td><code>$not</code>、<code>$or</code></td>
+<td>0</td>
+<td>由 <code>$or</code> 驱动</td>
+</tr>
+<tr>
+<td>第一次 <code>opt</code></td>
+<td align="right">2</td>
+<td><code>$not</code>、<code>$or</code></td>
+<td>0</td>
+<td>仍由 <code>$or</code> 驱动</td>
+</tr>
+<tr>
+<td><code>flatten</code></td>
+<td align="right">0</td>
+<td><code>$not</code>、<code>$or</code></td>
+<td>2 个 <code>$scopeinfo</code></td>
+<td>仍由 <code>$or</code> 驱动</td>
+</tr>
+<tr>
+<td>第二次 <code>opt</code></td>
+<td align="right">0</td>
+<td>0</td>
+<td>2 个 <code>$scopeinfo</code></td>
+<td>常量 <code>1&#39;1</code></td>
+</tr>
+<tr>
+<td><code>clean -purge</code></td>
+<td align="right">0</td>
+<td>0</td>
+<td>0</td>
+<td>常量 <code>1&#39;1</code></td>
+</tr>
+</tbody></table>
+<p>这里把 <code>$scopeinfo</code> 单独列出，是因为它保存来源和层次信息，不是会被制造成门电路的功能逻辑。</p>
+<h2 id="第一阶段：hierarchy-建立模块关系，但不展开实现"><a href="#第一阶段：hierarchy-建立模块关系，但不展开实现" class="headerlink" title="第一阶段：hierarchy 建立模块关系，但不展开实现"></a>第一阶段：hierarchy 建立模块关系，但不展开实现</h2><p><code>read_verilog</code> 把三个 Verilog 模块转换成 RTLIL module。随后：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">hierarchy -check -top parity_cover<br></code></pre></td></tr></table></figure>
+
+<p>主要完成三件事：</p>
+<ol>
+<li>指定 <code>parity_cover</code> 是顶层；</li>
+<li>解析并规范化实例接口，检查引用的 module 是否存在；端口宽度异常可能被调整或产生 warning；</li>
+<li>删除从顶层不可达的无用模块。</li>
+</ol>
+<p>这一步不会把子模块内容复制进顶层。省略属性和部分参数后，<code>01_hierarchy.il</code> 的关键结构是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs text">module \odd_detector<br>  wire width 8 input 1 \value<br>  wire output 2 \is_odd<br>  connect \is_odd \value [0]<br>end<br><br>module \even_detector<br>  wire width 8 input 1 \value<br>  wire output 2 \is_even<br><br>  cell $not $not$parity_cover.v:12$1<br>    connect \A \value [0]<br>    connect \Y $not$parity_cover.v:12$1_Y<br>  end<br><br>  connect \is_even $not$parity_cover.v:12$1_Y<br>end<br><br>module \parity_cover<br>  cell \odd_detector \odd_part<br>    connect \value \value<br>    connect \is_odd \odd_hit<br>  end<br><br>  cell \even_detector \even_part<br>    connect \value \value<br>    connect \is_even \even_hit<br>  end<br><br>  cell $or $or$parity_cover.v:32$2<br>    connect \A \odd_hit<br>    connect \B \even_hit<br>    connect \Y $or$parity_cover.v:32$2_Y<br>  end<br><br>  connect \always_one $or$parity_cover.v:32$2_Y<br>end<br></code></pre></td></tr></table></figure>
+
+<p>这段 RTLIL 揭示了一个重要事实：<strong>模块实例在 RTLIL 中也是 cell。</strong></p>
+<ul>
+<li><code>$not</code> 和 <code>$or</code> 是 Yosys 内部 cell 类型；</li>
+<li><code>\odd_detector</code> 和 <code>\even_detector</code> 是用户定义的 cell 类型；</li>
+<li><code>\odd_part</code> 和 <code>\even_part</code> 是两个实例名。</li>
+</ul>
+<p>顶层当前只知道：<code>odd_hit</code> 来自一个 <code>odd_detector</code> 实例，<code>even_hit</code> 来自一个 <code>even_detector</code> 实例，然后二者进入 <code>$or</code>。子模块的定义虽然也存在于 design 中，但尚未成为顶层内部的一张连续布尔网络。</p>
+<h2 id="为什么第一次-opt-没有把输出化成-1"><a href="#为什么第一次-opt-没有把输出化成-1" class="headerlink" title="为什么第一次 opt 没有把输出化成 1"></a>为什么第一次 opt 没有把输出化成 1</h2><p>第一次执行：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">opt<br></code></pre></td></tr></table></figure>
+
+<p>生成结果的顶层部分仍是下面这样；两个子模块定义也仍在输出文件中，这里没有重复展开：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">module</span> parity_cover(<br>    <span class="hljs-keyword">input</span>  [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] value,<br>    <span class="hljs-keyword">output</span>       always_one<br>);<br>    <span class="hljs-keyword">wire</span> odd_hit;<br>    <span class="hljs-keyword">wire</span> even_hit;<br><br>    odd_detector  odd_part  (<span class="hljs-variable">.value</span>(value), <span class="hljs-variable">.is_odd</span>(odd_hit));<br>    even_detector even_part (<span class="hljs-variable">.value</span>(value), <span class="hljs-variable">.is_even</span>(even_hit));<br><br>    <span class="hljs-keyword">assign</span> always_one = odd_hit | even_hit;<br><span class="hljs-keyword">endmodule</span><br></code></pre></td></tr></table></figure>
+
+<p>一些匿名中间 wire 会被合并，但两个实例、<code>$not</code> 和 <code>$or</code> 仍然存在。这不是 <code>opt</code> 不够聪明，而是它此时面对的是三个分别优化的 module：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">odd_detector 内部：   is_odd  = value[0]<br>even_detector 内部：  is_even = ~value[0]<br>parity_cover 内部：   always_one = odd_hit | even_hit<br></code></pre></td></tr></table></figure>
+
+<p>在顶层模块内部，<code>odd_hit</code> 和 <code>even_hit</code> 只是两个子模块输出。仅看顶层连接，任何下面这些实现都可能藏在子模块里：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">odd_hit = x      even_hit = ~x    -&gt; 输出恒为 1<br>odd_hit = x      even_hit = x     -&gt; 输出等于 x<br>odd_hit = 0      even_hit = 0     -&gt; 输出恒为 0<br></code></pre></td></tr></table></figure>
+
+<p>如果不把实例实现带入顶层，<code>opt</code> 就不能擅自假设两个端口互补。模块边界在这里形成了一个真实的优化边界。</p>
+<h3 id="opt-hier-能不能替代-flatten"><a href="#opt-hier-能不能替代-flatten" class="headerlink" title="opt -hier 能不能替代 flatten"></a>opt -hier 能不能替代 flatten</h3><p><code>opt -hier</code> 会额外调用 <code>opt_hier</code>，可以做一些层次相关清理。例如当前设计的两个检测器都只使用 <code>value[0]</code>，它可以断开实例输入端口中没有被子模块使用的高七位。</p>
+<p>但在当前 Yosys 版本中，下面这组结构仍会保留：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">2 个子模块实例 + 1 个 $not + 1 个 $or<br></code></pre></td></tr></table></figure>
+
+<p>原因是 <code>opt_hier</code> 不是通用的模块内联器。它能利用部分层次信息做端口和参数层面的清理，却不会像 <code>flatten</code> 那样把两个子模块的实现完整复制到顶层。因此，对本例来说，<code>opt -hier</code> 仍不能替代 <code>flatten</code>。</p>
+<h2 id="flatten-到底做了什么"><a href="#flatten-到底做了什么" class="headerlink" title="flatten 到底做了什么"></a>flatten 到底做了什么</h2><p>现在执行：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">flatten<br></code></pre></td></tr></table></figure>
+
+<p>Yosys 的帮助把它描述为：用 cell 的 implementation 替换 cell。它与 <code>techmap</code> 有些相似，区别是 <code>flatten</code> 把<strong>当前 design 本身</strong>当作映射库。</p>
+<p>对 <code>odd_part</code>，它把 <code>odd_detector</code> 内部的：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">is_odd = value[0]<br></code></pre></td></tr></table></figure>
+
+<p>复制到顶层；对 <code>even_part</code>，它把：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">is_even = ~value[0]<br></code></pre></td></tr></table></figure>
+
+<p>复制到顶层。完成替换以后，原来的两个实例已经不存在，而两个子模块定义也不再被任何实例使用，所以日志会出现：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">Deleting now unused module even_detector.<br>Deleting now unused module odd_detector.<br></code></pre></td></tr></table></figure>
+
+<p>这两行很容易让人误解。它们的意思不是“奇偶判断逻辑已经被优化掉”，而是“子模块定义已经被内联，旧的独立 module 定义不再需要”。</p>
+<p><code>03_flattened.il</code> 仍然明确包含 <code>$not</code> 和 <code>$or</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs text">module \parity_cover<br>  wire width 8 input 1 \value<br>  wire output 2 \always_one<br><br>  wire \odd_part.is_odd<br>  wire width 8 \odd_part.value<br>  wire \even_part.is_even<br>  wire width 8 \even_part.value<br><br>  cell $or $or$parity_cover.v:32$2<br>    connect \A \odd_hit<br>    connect \B \even_hit<br>    connect \Y \always_one<br>  end<br><br>  cell $not $flatten\even_part.$not$parity_cover.v:12$1<br>    connect \A \even_part.value [0]<br>    connect \Y \even_part.is_even<br>  end<br><br>  connect \odd_part.is_odd \odd_part.value [0]<br>  connect \odd_hit \odd_part.is_odd<br>  connect \odd_part.value \value<br>  connect \even_hit \even_part.is_even<br>  connect \even_part.value \value<br>end<br></code></pre></td></tr></table></figure>
+
+<p>生成的 Verilog 也能直观看见同一件事：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">module</span> parity_cover(value, always_one);<br>  <span class="hljs-keyword">input</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] value;<br>  <span class="hljs-keyword">output</span> always_one;<br>  <span class="hljs-keyword">wire</span> even_hit;<br>  <span class="hljs-keyword">wire</span> odd_hit;<br>  <span class="hljs-keyword">wire</span> \even_part<span class="hljs-variable">.is_even</span> ;<br>  <span class="hljs-keyword">wire</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] \even_part<span class="hljs-variable">.value</span> ;<br>  <span class="hljs-keyword">wire</span> \odd_part<span class="hljs-variable">.is_odd</span> ;<br>  <span class="hljs-keyword">wire</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] \odd_part<span class="hljs-variable">.value</span> ;<br><br>  <span class="hljs-keyword">assign</span> \even_part<span class="hljs-variable">.is_even</span>  = ~ \even_part<span class="hljs-variable">.value</span> [<span class="hljs-number">0</span>];<br>  <span class="hljs-keyword">assign</span> always_one = odd_hit | even_hit;<br>  <span class="hljs-keyword">assign</span> \odd_part<span class="hljs-variable">.is_odd</span>  = \odd_part<span class="hljs-variable">.value</span> [<span class="hljs-number">0</span>];<br>  <span class="hljs-keyword">assign</span> odd_hit = \odd_part<span class="hljs-variable">.is_odd</span> ;<br>  <span class="hljs-keyword">assign</span> \odd_part<span class="hljs-variable">.value</span>  = value;<br>  <span class="hljs-keyword">assign</span> even_hit = \even_part<span class="hljs-variable">.is_even</span> ;<br>  <span class="hljs-keyword">assign</span> \even_part<span class="hljs-variable">.value</span>  = value;<br><span class="hljs-keyword">endmodule</span><br></code></pre></td></tr></table></figure>
+
+<p>这里名称中的 <code>odd_part.</code> 和 <code>even_part.</code> 是原层次被编码进展平后对象名的结果。模块边界已经消失，但 Yosys 尽量保留名称，以便追溯来源。</p>
+<p>所以必须把结论说准确：</p>
+<blockquote>
+<p><code>flatten</code> 不是布尔化简 pass。它的作用是消除用户模块实例边界，让原来分散在多个 module 中的逻辑出现在同一个 module 里。</p>
+</blockquote>
+<h2 id="第二次-opt-为什么突然能把整个逻辑删掉"><a href="#第二次-opt-为什么突然能把整个逻辑删掉" class="headerlink" title="第二次 opt 为什么突然能把整个逻辑删掉"></a>第二次 opt 为什么突然能把整个逻辑删掉</h2><p>展平以后，顶层内部出现了一条连续关系：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">value[0] -----------------------&gt; odd_hit ----+<br>                                                OR ---&gt; always_one<br>value[0] ---&gt; NOT ---&gt; even_hit --------------+<br></code></pre></td></tr></table></figure>
+
+<p>也就是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">always_one = value[0] | ~value[0]<br></code></pre></td></tr></table></figure>
+
+<p>现在第二次执行 <code>opt</code>，<code>opt_expr</code> 可以直接识别互补输入的或运算：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">x | ~x -&gt; 1<br></code></pre></td></tr></table></figure>
+
+<p><code>opt</code> 不是一个单独算法，而是按有用顺序调用多个 <code>opt_*</code> pass 的包装器。与本例最相关的循环可以简化理解为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs text">opt_expr<br>opt_merge<br><br>do<br>  opt_muxtree<br>  opt_reduce<br>  opt_merge<br>  opt_dff<br>  opt_clean<br>  opt_expr<br>while design changed<br></code></pre></td></tr></table></figure>
+
+<p>本例中的实际分工非常清楚：</p>
+<ol>
+<li><code>opt_expr</code> 把 <code>$or</code> 的结果改接到常量 <code>1&#39;1</code>；</li>
+<li>原 <code>$or</code> cell 消失；</li>
+<li><code>$not</code> 的输出已经无人使用；</li>
+<li><code>opt_clean</code> 删除无用的 <code>$not</code> 和相关 wire；</li>
+<li><code>opt</code> 再跑一轮，直到设计不再变化。</li>
+</ol>
+<p>如果沿主脚本执行到 <code>flatten</code> 后，暂时只运行 <code>opt_expr</code> 并立即写出 RTLIL，可以看到 <code>$or</code> cell 已经不在了，输出被直接接成常量，但暂时无用的 <code>$not</code> 还没清理：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">cell $not $flatten\even_part.$not$parity_cover.v:12$1<br>  connect \A \even_part.value [0]<br>  connect \Y \even_part.is_even<br>end<br><br>connect \always_one 1&#x27;1<br></code></pre></td></tr></table></figure>
+
+<p>完整 <code>opt</code> 结束后，<code>04_flattened_opt.il</code> 的功能部分已经只剩：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs text">module \parity_cover<br>  wire width 8 input 1 \value<br>  wire output 2 \always_one<br><br>  cell $scopeinfo \odd_part<br>    parameter \TYPE &quot;module&quot;<br>  end<br><br>  cell $scopeinfo \even_part<br>    parameter \TYPE &quot;module&quot;<br>  end<br><br>  connect \always_one 1&#x27;1<br>end<br></code></pre></td></tr></table></figure>
+
+<p>此时 <code>$not</code> 和 <code>$or</code> 都没有了。输入端口 <code>value</code> 仍存在，因为它属于顶层接口；只是任何输入位都不再影响输出。</p>
+<p>这就是为什么源码规模不能直接代表综合后的面积。RTL 中写了多少层模块、多少个表达式，不等于芯片上一定留下多少逻辑。综合器关心的是最终可观察功能。</p>
+<h2 id="scopeinfo-为什么还被-stat-算成-cell"><a href="#scopeinfo-为什么还被-stat-算成-cell" class="headerlink" title="$scopeinfo 为什么还被 stat 算成 cell"></a><code>$scopeinfo</code> 为什么还被 <code>stat</code> 算成 cell</h2><p>对本例中 <code>odd_part</code>、<code>even_part</code> 这类具有公开名称的实例，<code>flatten</code> 默认会创建 <code>$scopeinfo</code> cell，保存已经删除的实例和模块来源，例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">attribute \cell_src &quot;parity_cover.v:22.18-25.6&quot;<br>attribute \module_src &quot;parity_cover.v:1.1-6.10&quot;<br>attribute \module &quot;odd_detector&quot;<br>cell $scopeinfo \odd_part<br>  parameter \TYPE &quot;module&quot;<br>end<br></code></pre></td></tr></table></figure>
+
+<p>它记录的信息包括：</p>
+<ul>
+<li>原实例来自源码的什么位置；</li>
+<li>被内联的模块定义来自什么位置；</li>
+<li>原模块和实例叫什么名字。</li>
+</ul>
+<p><code>$scopeinfo</code> 没有参与功能计算的输入输出端口，不代表门、触发器或工艺单元。它之所以留在 RTLIL 中，是为了让后续报告和调试仍能追溯展平前的层次。</p>
+<p>如果从一开始就不需要这些信息，可以运行：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">flatten -noscopeinfo<br></code></pre></td></tr></table></figure>
+
+<p>如果希望先保留来源信息，等最终输出前再清理，可以使用：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">clean -purge<br></code></pre></td></tr></table></figure>
+
+<p><code>clean</code> 与 <code>opt_clean</code> 等价，用于删除无用 cell 和 wire。这里的 <code>-purge</code> 有两个相关效果：</p>
+<ul>
+<li>允许删除无用但具有公开名称的内部 net；</li>
+<li>取消普通模式对 <code>$scopeinfo</code> cell 的专门保留。</li>
+</ul>
+<p>因此，本例的清理日志会报告删除两个无用 cell 和四条无用 wire：两个 cell 正是 <code>odd_part</code>、<code>even_part</code> 对应的 <code>$scopeinfo</code>。</p>
+<p>最终 <code>05_constant.il</code> 非常短：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">module \parity_cover<br>  wire width 8 input 1 \value<br>  wire output 2 \always_one<br>  connect \always_one 1&#x27;1<br>end<br></code></pre></td></tr></table></figure>
+
+<p>对应 Verilog 是：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">module</span> parity_cover(value, always_one);<br>  <span class="hljs-keyword">input</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] value;<br>  <span class="hljs-keyword">wire</span> [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] value;<br>  <span class="hljs-keyword">output</span> always_one;<br>  <span class="hljs-keyword">wire</span> always_one;<br>  <span class="hljs-keyword">assign</span> always_one = <span class="hljs-number">1&#x27;h1</span>;<br><span class="hljs-keyword">endmodule</span><br></code></pre></td></tr></table></figure>
+
+<p>统计结果是 <strong>0 cells</strong>。这不代表模块本身消失了：顶层 module、输入端口和输出端口仍然存在，只是实现这个输入输出关系不再需要任何逻辑单元。</p>
+<p>如果后续映射到标准单元库，常量通常会通过 tie-high cell 或目标流程规定的常量网络实现；“Yosys 通用 RTLIL 中是 0 个逻辑 cell”不等于版图里一定完全没有与常量分发有关的物理资源。</p>
+<h2 id="用-SAT-分别验证优化前后的输出性质"><a href="#用-SAT-分别验证优化前后的输出性质" class="headerlink" title="用 SAT 分别验证优化前后的输出性质"></a>用 SAT 分别验证优化前后的输出性质</h2><p>结构变得过于简单时，最危险的反应有两个：</p>
+<ul>
+<li>看到 cell 变少就无条件相信；</li>
+<li>看到模块消失就认定工具出错。</li>
+</ul>
+<p>更可靠的做法是检查完整输出性质，并明确它是在优化前还是优化后证明的。主脚本中的命令运行在最终常量网表上：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">sat -verify -prove always_one 1 -show value<br></code></pre></td></tr></table></figure>
+
+<p>含义分别是：</p>
+<ul>
+<li><code>sat</code>：把当前选中模块转换成 SAT 问题；</li>
+<li><code>-prove always_one 1</code>：尝试证明 <code>always_one</code> 对所有输入都等于 <code>1</code>；</li>
+<li><code>-show value</code>：如果存在反例，显示对应的输入；</li>
+<li><code>-verify</code>：证明失败时让 Yosys 返回错误，而不是只在日志里报告失败。</li>
+</ul>
+<p>成功时会看到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">Import proof-constraint: \always_one = 1&#x27;1<br>Final proof equation: \always_one = 1&#x27;1<br>SAT proof finished - no model found: SUCCESS!<br></code></pre></td></tr></table></figure>
+
+<p>“no model found”在这里不是求解器失败，而是找不到任何令证明条件为假的输入模型，也就是最终网表不存在反例。</p>
+<p>其实不必等优化完成。只要先 <code>flatten</code>，默认二值 SAT 就已经能直接证明原 <code>$not + $or</code> 网络恒为 <code>1</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">yosys -Q -p <span class="hljs-string">&#x27;read_verilog -sv parity_cover.v; hierarchy -top parity_cover; flatten; sat -prove always_one 1 -show value,always_one&#x27;</span><br></code></pre></td></tr></table></figure>
+
+<p>于是本例有两份独立证据：</p>
+<ul>
+<li><code>flatten</code> 后、第二次 <code>opt</code> 前的 <code>$not + $or</code> 网络，对所有二值输入满足 <code>always_one = 1</code>；</li>
+<li>第二次 <code>opt</code> 和 <code>clean -purge</code> 后的常量网络，也满足同一性质。</li>
+</ul>
+<p>因为这是一个只有单个输出的组合设计，而且该性质完整规定了这个输出，所以前后分别证明它已经很有说明力。但必须知道：<strong>后网表上的一条 <code>sat -prove</code> 本身不是通用的前后等价证明。</strong> 对多输出或时序设计，应使用 <code>equiv_make</code>、<code>equiv_simple</code>、<code>equiv_induct</code>、<code>equiv_status -assert</code> 等等价检查流程直接比较两个设计。</p>
+<p>结构优化和性质证明仍是两件不同的事：前者把实现改得更小，后者检查所声明的逻辑结论。</p>
+<h2 id="必须说清楚的-X-Z-与-undef-语义边界"><a href="#必须说清楚的-X-Z-与-undef-语义边界" class="headerlink" title="必须说清楚的 X&#x2F;Z 与 undef 语义边界"></a>必须说清楚的 X&#x2F;Z 与 undef 语义边界</h2><p>上面的真值表只列出了 <code>0</code> 和 <code>1</code>。Verilog 仿真还有 <code>X</code> 和 <code>Z</code>。如果 <code>value[0]</code> 是 <code>X</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">~X     = X<br>X | X  = X<br></code></pre></td></tr></table></figure>
+
+<p>所以四值 RTL 仿真中，原始代码的 <code>always_one</code> 会是 <code>X</code>，而不是 <code>1</code>。在展平但尚未执行第二次 <code>opt</code> 的设计上启用 Yosys 的 undef&#x2F;X-bit 建模：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">yosys -Q -p <span class="hljs-string">&#x27;read_verilog -sv parity_cover.v; hierarchy -top parity_cover; flatten; sat -enable_undef -prove always_one 1 -show value,always_one&#x27;</span><br></code></pre></td></tr></table></figure>
+
+<p>求解器会找到反例：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">SAT proof finished - model found: FAIL!<br><br>\always_one = x<br>\value      = 0000000x<br></code></pre></td></tr></table></figure>
+
+<p>如果对已经化成 <code>always_one = 1&#39;1</code> 的最终网表再加 <code>-enable_undef</code>，证明仍会成功。SAT 选项只能改变当前网络中的未知值建模，不能恢复已经被综合删除的 X 传播结构。</p>
+<p>还要注意，<code>-enable_undef</code> 不是完整的 Verilog 四值仿真器。它建模 undef&#x2F;X-bit，不会独立区分 <code>Z</code>，也不覆盖驱动强度和事件调度等四值仿真细节。本例的 X 反例与 RTL 的未知传播一致，但不能把这个选项泛化成完整四态仿真。</p>
+<p><img src="/images/mermaid-svg/yosys-learning-03-flatten-cross-module-optimization/binary-vs-undef-semantics.svg" alt="二值布尔语义与 X/undef 建模的区别"></p>
+<p>这不意味着 <code>opt</code> 的常量化是错误的。可综合组合硬件最终工作在布尔 <code>0/1</code> 抽象上；仿真里的 <code>X</code> 主要表达“仿真器不知道当前值”，并不是芯片中的第三种稳定数字逻辑值。综合优化通常不承诺保留所有 RTL 的 <code>X</code> 传播现象。</p>
+<p>这条边界非常重要：</p>
+<ul>
+<li>不要把 <code>X</code> 当成正常运行时功能状态；</li>
+<li>不要依赖 <code>X</code> 传播来实现芯片行为；</li>
+<li>对“不允许未知”的要求，应使用复位、断言、lint 和形式约束表达；</li>
+<li>亚稳态是模拟电气现象，也不能靠四值 <code>X</code> 精确描述。</li>
+</ul>
+<p>因此，本文的“恒为 <code>1</code>”准确含义是：<strong>对所有已定义的二值硬件输入，输出恒为 <code>1</code>。</strong></p>
+<h2 id="keep-hierarchy：有意保留优化边界"><a href="#keep-hierarchy：有意保留优化边界" class="headerlink" title="keep_hierarchy：有意保留优化边界"></a>keep_hierarchy：有意保留优化边界</h2><p>并不是所有模块都应该展平。Yosys 的 <code>flatten</code> 会跳过带有 <code>keep_hierarchy</code> 属性的 cell，或者其实现 module 带有该属性的 cell。</p>
+<p>只保护某个实例：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs verilog">(* keep_hierarchy *)<br>odd_detector odd_part(<br>    <span class="hljs-variable">.value</span>(value),<br>    <span class="hljs-variable">.is_odd</span>(odd_hit)<br>);<br></code></pre></td></tr></table></figure>
+
+<p>保护某类子模块的所有实例：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs verilog">(* keep_hierarchy *)<br><span class="hljs-keyword">module</span> odd_detector(<br>    <span class="hljs-keyword">input</span>  [<span class="hljs-number">7</span>:<span class="hljs-number">0</span>] value,<br>    <span class="hljs-keyword">output</span>       is_odd<br>);<br>    <span class="hljs-keyword">assign</span> is_odd = value[<span class="hljs-number">0</span>];<br><span class="hljs-keyword">endmodule</span><br></code></pre></td></tr></table></figure>
+
+<p>需要注意，单纯把 <code>keep_hierarchy</code> 标在当前顶层 <code>parity_cover</code> module 上，并不会自动为它内部的每个子实例建立保护墙。要阻止 <code>odd_part</code> 或 <code>even_part</code> 被展开，应把属性放在对应实例或被例化的子模块定义上。</p>
+<p>这个属性只保护当前被例化边界，不会递归冻结整个子树，也不会阻止 <code>opt</code> 优化被保护 module 的内部逻辑。加入保护后，本例的跨模块互补关系再次被边界隔开，普通的 <code>flatten; opt</code> 就不会得到完全相同的常量化结果。这正是属性存在的意义：主动用一部分全局优化空间换取稳定的设计边界。</p>
+<h2 id="什么时候-flatten-有利，什么时候应该克制"><a href="#什么时候-flatten-有利，什么时候应该克制" class="headerlink" title="什么时候 flatten 有利，什么时候应该克制"></a>什么时候 flatten 有利，什么时候应该克制</h2><p>展平的直接收益是让后续 pass 看见更大的连续网络。常见机会包括：</p>
+<ul>
+<li>常量跨 wrapper 和子模块端口传播；</li>
+<li>跨模块删除无用逻辑；</li>
+<li>识别原本分散在不同模块里的互补或重复表达式；</li>
+<li>让后续技术映射或组合逻辑优化处理更大的逻辑锥；</li>
+<li>消除仅用于组织源码、没有必要保留到网表的薄封装层。</li>
+</ul>
+<p>代价同样真实：</p>
+<ul>
+<li>网表名称更长，源码与网表对象更难一一对应；</li>
+<li>波形、时序报告和形式反例的调试可读性下降；</li>
+<li>层次化约束和依赖实例路径的脚本可能需要调整；</li>
+<li>大型设计的内存占用和优化运行时间可能增加；</li>
+<li>IP、复用模块、DFT 分区或增量流程可能需要稳定边界；</li>
+<li>某些团队依靠模块层次划分所有权和签核范围。</li>
+</ul>
+<p>所以工程判断不是“展平越多越好”，而是：</p>
+<blockquote>
+<p>哪些边界只是源码组织手段，哪些边界承担调试、约束、复用或流程职责？</p>
+</blockquote>
+<p>对前者，展平通常能释放优化空间；对后者，选择性 flatten 或 <code>keep_hierarchy</code> 往往更合适。</p>
+<h2 id="opt-很强，但它不是无所不知的全局证明器"><a href="#opt-很强，但它不是无所不知的全局证明器" class="headerlink" title="opt 很强，但它不是无所不知的全局证明器"></a>opt 很强，但它不是无所不知的全局证明器</h2><p>这个案例会给人一种印象：只要跑 <code>opt</code>，任意复杂逻辑都能被发现并压缩到最小。这个结论过头了。</p>
+<p>Yosys 对 <code>opt</code> 的定位是“一系列简单优化和清理”。它非常擅长：</p>
+<ul>
+<li>常量折叠；</li>
+<li>简单布尔恒等式；</li>
+<li>合并相同 cell；</li>
+<li>清理 MUX 树中的死分支；</li>
+<li>删除无用 wire 和 cell；</li>
+<li>提取触发器使能、复位和部分同步控制；</li>
+<li>反复运行上述过程直到达到稳定状态。</li>
+</ul>
+<p>但它不会自动把任意大型布尔网络做成全局最小实现。更复杂的逻辑还可能依赖：</p>
+<ul>
+<li><code>techmap</code> 或 <code>simplemap</code> 把高层 cell 降到更基础的门网络；</li>
+<li><code>abc</code> 对组合逻辑做分解、重写和目标库映射；</li>
+<li>目标 Liberty 库中的实际 cell 集合与面积、延迟信息；</li>
+<li>时序约束和面积目标；</li>
+<li>设计是否已经展平，以及后续 pass 的选择范围。</li>
+</ul>
+<p>本例之所以变化如此彻底，是因为 <code>x | ~x = 1</code> 是一个非常直接的局部恒等式。一旦 <code>flatten</code> 让两个操作数进入同一 module，<code>opt_expr</code> 就能轻易识别。</p>
+<h2 id="当设计突然变成常量时，应该检查什么"><a href="#当设计突然变成常量时，应该检查什么" class="headerlink" title="当设计突然变成常量时，应该检查什么"></a>当设计突然变成常量时，应该检查什么</h2><p>看到综合结果大幅缩小时，可以按下面顺序排查：</p>
+<ol>
+<li><strong>顶层是否选对。</strong> 检查 <code>hierarchy -check -top ...</code>，选错 top 会让真正设计变成不可达模块。</li>
+<li><strong>输出是否可观察。</strong> 没有连接到顶层输出、存储单元或有副作用对象的逻辑，本来就可以被删除。</li>
+<li><strong>输入是否被绑成常量。</strong> 参数、generate 条件、端口 tie-off 都可能令整个逻辑锥静态化。</li>
+<li><strong>是否存在简单恒等式。</strong> 例如 <code>x &amp; 0</code>、<code>x | 1</code>、<code>x ^ x</code>、<code>x | ~x</code>。</li>
+<li><strong>优化发生在哪一个 pass。</strong> 在关键命令前后分别执行 <code>write_rtlil</code> 和 <code>stat</code>，不要只比较源码与最终网表。</li>
+<li><strong>消失的是功能 cell 还是层次定义。</strong> <code>Deleting now unused module</code> 可能只是内联后的正常清理。</li>
+<li><strong>证明功能，而不是只数 cell。</strong> 用 <code>sat</code> 检查组合性质，用等价检查验证较大的前后设计。</li>
+<li><strong>确认 X&#x2F;未定义值假设。</strong> 默认二值证明与 <code>-enable_undef</code> 的结论可能不同。</li>
+<li><strong>检查层次保护意图。</strong> 需要稳定边界时，确认 <code>keep_hierarchy</code> 放在正确的子模块或实例上。</li>
+</ol>
+<p>这个检查顺序能区分三种完全不同的情况：正确的逻辑优化、错误的综合入口，以及 RTL 本身没有把预期功能连接到可观察输出。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>这个设计最终确实会被优化到只剩：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs verilog"><span class="hljs-keyword">assign</span> always_one = <span class="hljs-number">1&#x27;b1</span>;<br></code></pre></td></tr></table></figure>
+
+<p>但整个过程不能简单概括为“<code>flatten</code> 把两个模块优化掉了”。更准确的分解是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs text">hierarchy<br>  建立并保留模块实例关系<br><br>第一次 opt<br>  清理各 module 内部，但看不到跨边界的互补关系<br><br>flatten<br>  用子模块实现替换实例，使 x、~x 和 OR 出现在同一 module<br><br>第二次 opt<br>  opt_expr 将 x | ~x 化成 1，opt_clean 删除失去用途的 $not<br><br>clean -purge<br>  删除无功能作用的 $scopeinfo 和无用公开内部线网<br><br>sat<br>  证明对所有二值输入，always_one 恒为 1<br></code></pre></td></tr></table></figure>
+
+<p>最值得保留的认识不是“<code>opt</code> 很神奇”，而是：<strong>优化能力取决于工具当前能看见的结构。模块边界决定视野，<code>flatten</code> 扩大视野，<code>opt</code> 在这个视野里重写电路。</strong></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Computer-Architecture/" class="category-chain-item">Computer Architecture</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Verilog/" class="print-no-link">#Verilog</a>
+      
+        <a href="/tags/Yosys/" class="print-no-link">#Yosys</a>
+      
+        <a href="/tags/RTLIL/" class="print-no-link">#RTLIL</a>
+      
+        <a href="/tags/logic-synthesis/" class="print-no-link">#logic synthesis</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Yosys 学习笔记（三）：flatten 与 opt 如何联手把整个设计化成常量</div>
+      <div>http://blog.luliang.online/2026/07/14/yosys-learning-03-flatten-cross-module-optimization/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月14日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/20/yosys-learning-04-opt-expr-keepdc-sz-bug/" title="Yosys 学习笔记（四）：RTLIL 中 z 信号与三态门的处理">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Yosys 学习笔记（四）：RTLIL 中 z 信号与三态门的处理</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/13/yosys-learning-02-process-opt-and-mux/" title="Yosys 学习笔记（二）：从 process 到 MUX 和 ADFFE，读懂 proc 与 opt">
+                        <span class="hidden-mobile">Yosys 学习笔记（二）：从 process 到 MUX 和 ADFFE，读懂 proc 与 opt</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -1,0 +1,746 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Luyoung0001/picBed/main/low.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luyoung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="问题通过 NES 模拟器，运行 mario 的效率太低了，主要的时间花费在了图像渲染上： 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051void am_gpu_fbdraw(int x, int y, uint32_t *pixels, int w, int">
+<meta property="og:type" content="article">
+<meta property="og:title" content="毕业设计记录（15）：JIT 技术调研与设计">
+<meta property="og:url" content="http://blog.luliang.online/2026/01/29/thesis-15-jit/index.html">
+<meta property="og:site_name" content="Luyoung">
+<meta property="og:description" content="问题通过 NES 模拟器，运行 mario 的效率太低了，主要的时间花费在了图像渲染上： 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051void am_gpu_fbdraw(int x, int y, uint32_t *pixels, int w, int">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-01-29T02:03:13.000Z">
+<meta property="article:modified_time" content="2026-07-23T03:05:46.859Z">
+<meta property="article:author" content="Luyoung">
+<meta property="article:tag" content="emulator">
+<meta property="article:tag" content="graduation thesis">
+<meta property="article:tag" content="JIT">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>毕业设计记录（15）：JIT 技术调研与设计 - Luyoung</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.luliang.online","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":false,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 65vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Luyoung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://raw.githubusercontent.com/Luyoung0001/picBed/main/1.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="毕业设计记录（15）：JIT 技术调研与设计"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-01-29 10:03" pubdate>
+          2026年1月29日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          13 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">毕业设计记录（15）：JIT 技术调研与设计</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>通过 NES 模拟器，运行 mario 的效率太低了，主要的时间花费在了图像渲染上：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">am_gpu_fbdraw</span><span class="hljs-params">(<span class="hljs-type">int</span> x, <span class="hljs-type">int</span> y, <span class="hljs-type">uint32_t</span> *pixels, <span class="hljs-type">int</span> w, <span class="hljs-type">int</span> h, <span class="hljs-type">bool</span> sync)</span> &#123;<br>    <span class="hljs-keyword">volatile</span> <span class="hljs-type">uint16_t</span> *fb = hdmi_get_fb_pointer();<br><br>    <span class="hljs-comment">// 边界检查</span><br>    <span class="hljs-keyword">if</span> (x &lt; <span class="hljs-number">0</span> || y &lt; <span class="hljs-number">0</span> || x + w &gt; <span class="hljs-number">1920</span> || y + h &gt; <span class="hljs-number">1080</span>) &#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br><br>    <span class="hljs-comment">// 预计算基地址（y * 1920 使用移位）</span><br>    <span class="hljs-type">int</span> y_offset = (y &lt;&lt; <span class="hljs-number">10</span>) + (y &lt;&lt; <span class="hljs-number">9</span>) + (y &lt;&lt; <span class="hljs-number">8</span>) + (y &lt;&lt; <span class="hljs-number">7</span>);<br>    <span class="hljs-keyword">volatile</span> <span class="hljs-type">uint16_t</span> *fb_row = fb + y_offset + x;<br>    <span class="hljs-type">uint32_t</span> *src = pixels;<br><br>    <span class="hljs-comment">// 预加载掩码到寄存器</span><br>    <span class="hljs-type">uint32_t</span> mask_r = <span class="hljs-number">0xF800</span>;<br>    <span class="hljs-type">uint32_t</span> mask_g = <span class="hljs-number">0x07E0</span>;<br>    <span class="hljs-type">uint32_t</span> mask_b = <span class="hljs-number">0x001F</span>;<br><br>    <span class="hljs-comment">// 使用内联汇编优化内循环</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> j = <span class="hljs-number">0</span>; j &lt; h; j++) &#123;<br>        <span class="hljs-type">uint32_t</span> *src_ptr = src;<br>        <span class="hljs-keyword">volatile</span> <span class="hljs-type">uint16_t</span> *dst_ptr = fb_row;<br>        <span class="hljs-type">int</span> count = w;<br><br>        <span class="hljs-comment">// 内联汇编：直接从寄存器写入，避免栈操作</span><br>        __asm__ <span class="hljs-title function_">volatile</span><span class="hljs-params">(<span class="hljs-string">&quot;1:\n\t&quot;</span></span><br><span class="hljs-params">                         <span class="hljs-string">&quot;ld.w    $t0, %3, 0\n\t&quot;</span>    <span class="hljs-comment">// 加载 ARGB</span></span><br><span class="hljs-params">                         <span class="hljs-string">&quot;addi.w  %3, %3, 4\n\t&quot;</span>     <span class="hljs-comment">// src++</span></span><br><span class="hljs-params">                         <span class="hljs-string">&quot;srli.w  $t1, $t0, 8\n\t&quot;</span>   <span class="hljs-comment">// argb &gt;&gt; 8</span></span><br><span class="hljs-params">                         <span class="hljs-string">&quot;srli.w  $t2, $t0, 5\n\t&quot;</span>   <span class="hljs-comment">// argb &gt;&gt; 5</span></span><br><span class="hljs-params">                         <span class="hljs-string">&quot;srli.w  $t3, $t0, 3\n\t&quot;</span>   <span class="hljs-comment">// argb &gt;&gt; 3</span></span><br><span class="hljs-params">                         <span class="hljs-string">&quot;and     $t1, $t1, %6\n\t&quot;</span>  <span class="hljs-comment">// R: &amp; mask_r</span></span><br><span class="hljs-params">                         <span class="hljs-string">&quot;and     $t2, $t2, %7\n\t&quot;</span>  <span class="hljs-comment">// G: &amp; mask_g</span></span><br><span class="hljs-params">                         <span class="hljs-string">&quot;and     $t3, $t3, %8\n\t&quot;</span>  <span class="hljs-comment">// B: &amp; mask_b</span></span><br><span class="hljs-params">                         <span class="hljs-string">&quot;or      $t1, $t1, $t2\n\t&quot;</span> <span class="hljs-comment">// R | G</span></span><br><span class="hljs-params">                         <span class="hljs-string">&quot;or      $t1, $t1, $t3\n\t&quot;</span> <span class="hljs-comment">// R | G | B</span></span><br><span class="hljs-params">                         <span class="hljs-string">&quot;st.h    $t1, %4, 0\n\t&quot;</span>    <span class="hljs-comment">// 直接写入16位</span></span><br><span class="hljs-params">                         <span class="hljs-string">&quot;addi.w  %4, %4, 2\n\t&quot;</span>     <span class="hljs-comment">// dst++</span></span><br><span class="hljs-params">                         <span class="hljs-string">&quot;addi.w  %5, %5, -1\n\t&quot;</span>    <span class="hljs-comment">// count--</span></span><br><span class="hljs-params">                         <span class="hljs-string">&quot;bne     $zero, %5, 1b\n\t&quot;</span> <span class="hljs-comment">// 循环</span></span><br><span class="hljs-params">                         : <span class="hljs-string">&quot;=r&quot;</span>(src_ptr), <span class="hljs-string">&quot;=r&quot;</span>(dst_ptr), <span class="hljs-string">&quot;=r&quot;</span>(count)</span><br><span class="hljs-params">                         : <span class="hljs-string">&quot;0&quot;</span>(src_ptr), <span class="hljs-string">&quot;1&quot;</span>(dst_ptr), <span class="hljs-string">&quot;2&quot;</span>(count), <span class="hljs-string">&quot;r&quot;</span>(mask_r),</span><br><span class="hljs-params">                           <span class="hljs-string">&quot;r&quot;</span>(mask_g), <span class="hljs-string">&quot;r&quot;</span>(mask_b)</span><br><span class="hljs-params">                         : <span class="hljs-string">&quot;t0&quot;</span>, <span class="hljs-string">&quot;t1&quot;</span>, <span class="hljs-string">&quot;t2&quot;</span>, <span class="hljs-string">&quot;t3&quot;</span>, <span class="hljs-string">&quot;memory&quot;</span>)</span>;<br>        src += w;<br>        fb_row += <span class="hljs-number">1920</span>;<br>    &#125;<br>    <span class="hljs-keyword">if</span> (sync) &#123;<br>        hdmi_swap_buffers();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>就算是这样，还是很慢，差不多 15 秒一帧，这样是无法玩游戏的，通过反汇编发现，NES 模拟器中的指令模拟，每一条指令差不多都被模拟成了 20～30 条指令。而且本来 PPU 和 CPU 并行执行，模拟器是通过穿插交替执行来模拟并行执行，这样 CPU 推荐的就更慢了。</p>
+<p>这里 JIT 技术就闪亮登场（可能会加快，但是也不要迷信 JIT）。</p>
+<h2 id="JIT"><a href="#JIT" class="headerlink" title="JIT"></a>JIT</h2><p>JIT (Just-In-Time) 编译是一种在运行时将字节码或中间代码编译成本机机器码的技术。与传统解释器相比，JIT 可以显著提升执行效率。</p>
+<h3 id="解释器-vs-JIT"><a href="#解释器-vs-JIT" class="headerlink" title="解释器 vs JIT"></a>解释器 vs JIT</h3><table>
+<thead>
+<tr>
+<th>方式</th>
+<th>执行过程</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>解释器</td>
+<td>取指令→解码→执行→循环</td>
+<td>实现简单，启动快</td>
+<td>每条指令都要重复解码</td>
+</tr>
+<tr>
+<td>JIT</td>
+<td>编译→执行本机代码</td>
+<td>执行速度快</td>
+<td>编译有开销，实现复杂</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="JIT-Demo：一个简单的例子"><a href="#JIT-Demo：一个简单的例子" class="headerlink" title="JIT Demo：一个简单的例子"></a>JIT Demo：一个简单的例子</h2><p>为了理解 JIT 的核心原理，我们先实现一个简单的虚拟机和对应的 JIT 编译器。</p>
+<h3 id="虚拟机定义"><a href="#虚拟机定义" class="headerlink" title="虚拟机定义"></a>虚拟机定义</h3><p>定义一个极简虚拟机：</p>
+<ul>
+<li>1 个寄存器 A（累加器）</li>
+<li>4 条指令</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">define</span> OP_HALT  0x00  <span class="hljs-comment">// 停止执行，返回 A</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> OP_LOAD  0x01  <span class="hljs-comment">// LOAD n  : A = n</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> OP_ADD   0x02  <span class="hljs-comment">// ADD n   : A = A + n</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> OP_JMP   0x03  <span class="hljs-comment">// JMP addr: PC = addr</span></span><br></code></pre></td></tr></table></figure>
+
+<h3 id="解释器实现"><a href="#解释器实现" class="headerlink" title="解释器实现"></a>解释器实现</h3><p>传统解释器通过 switch-case 循环执行：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">int</span> <span class="hljs-title function_">vm_interpret</span><span class="hljs-params">(<span class="hljs-type">uint8_t</span> *code, <span class="hljs-type">int</span> max_cycles)</span> &#123;<br>    <span class="hljs-type">int</span> pc = <span class="hljs-number">0</span>;<br>    <span class="hljs-type">int</span> reg_a = <span class="hljs-number">0</span>;<br>    <span class="hljs-type">int</span> cycles = <span class="hljs-number">0</span>;<br><br>    <span class="hljs-keyword">while</span> (cycles &lt; max_cycles) &#123;<br>        <span class="hljs-type">uint8_t</span> op = code[pc];<br><br>        <span class="hljs-keyword">switch</span> (op) &#123;<br>        <span class="hljs-keyword">case</span> OP_HALT:<br>            <span class="hljs-keyword">return</span> reg_a;<br><br>        <span class="hljs-keyword">case</span> OP_LOAD:<br>            reg_a = code[pc + <span class="hljs-number">1</span>];<br>            pc += <span class="hljs-number">2</span>;<br>            <span class="hljs-keyword">break</span>;<br><br>        <span class="hljs-keyword">case</span> OP_ADD:<br>            reg_a += code[pc + <span class="hljs-number">1</span>];<br>            pc += <span class="hljs-number">2</span>;<br>            <span class="hljs-keyword">break</span>;<br><br>        <span class="hljs-keyword">case</span> OP_JMP:<br>            pc = code[pc + <span class="hljs-number">1</span>];<br>            <span class="hljs-keyword">break</span>;<br>        &#125;<br>        cycles++;<br>    &#125;<br>    <span class="hljs-keyword">return</span> reg_a;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>每次执行都要：<strong>取指令 → switch 判断 → 执行 → 循环</strong>，开销很大。</p>
+<h3 id="JIT-编译器实现"><a href="#JIT-编译器实现" class="headerlink" title="JIT 编译器实现"></a>JIT 编译器实现</h3><p>JIT 的核心思想：<strong>把虚拟机代码翻译成本机代码，然后直接执行</strong>。</p>
+<h4 id="LoongArch32R-指令编码"><a href="#LoongArch32R-指令编码" class="headerlink" title="LoongArch32R 指令编码"></a>LoongArch32R 指令编码</h4><p>首先需要了解目标平台的指令编码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-comment">// ori rd, rj, imm12 : rd = rj | imm12</span><br><span class="hljs-comment">// 编码: 0x03800000 | (imm12 &lt;&lt; 10) | (rj &lt;&lt; 5) | rd</span><br><span class="hljs-type">static</span> <span class="hljs-type">uint32_t</span> <span class="hljs-title function_">encode_ori</span><span class="hljs-params">(<span class="hljs-type">int</span> rd, <span class="hljs-type">int</span> rj, <span class="hljs-type">int</span> imm12)</span> &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0x03800000</span> | ((imm12 &amp; <span class="hljs-number">0xFFF</span>) &lt;&lt; <span class="hljs-number">10</span>) | (rj &lt;&lt; <span class="hljs-number">5</span>) | rd;<br>&#125;<br><br><span class="hljs-comment">// addi.w rd, rj, imm12 : rd = rj + imm12</span><br><span class="hljs-comment">// 编码: 0x02800000 | (imm12 &lt;&lt; 10) | (rj &lt;&lt; 5) | rd</span><br><span class="hljs-type">static</span> <span class="hljs-type">uint32_t</span> <span class="hljs-title function_">encode_addi_w</span><span class="hljs-params">(<span class="hljs-type">int</span> rd, <span class="hljs-type">int</span> rj, <span class="hljs-type">int</span> imm12)</span> &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0x02800000</span> | ((imm12 &amp; <span class="hljs-number">0xFFF</span>) &lt;&lt; <span class="hljs-number">10</span>) | (rj &lt;&lt; <span class="hljs-number">5</span>) | rd;<br>&#125;<br><br><span class="hljs-comment">// jirl rd, rj, offset : rd = pc + 4; pc = rj + offset</span><br><span class="hljs-type">static</span> <span class="hljs-type">uint32_t</span> <span class="hljs-title function_">encode_jirl</span><span class="hljs-params">(<span class="hljs-type">int</span> rd, <span class="hljs-type">int</span> rj, <span class="hljs-type">int</span> offset)</span> &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0x4C000000</span> | (((offset &gt;&gt; <span class="hljs-number">2</span>) &amp; <span class="hljs-number">0xFFFF</span>) &lt;&lt; <span class="hljs-number">10</span>) | (rj &lt;&lt; <span class="hljs-number">5</span>) | rd;<br>&#125;<br><br><span class="hljs-comment">// b offset : pc = pc + offset</span><br><span class="hljs-type">static</span> <span class="hljs-type">uint32_t</span> <span class="hljs-title function_">encode_b</span><span class="hljs-params">(<span class="hljs-type">int</span> offset)</span> &#123;<br>    <span class="hljs-type">int</span> off = offset &gt;&gt; <span class="hljs-number">2</span>;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0x50000000</span> | ((off &amp; <span class="hljs-number">0xFFFF</span>) | ((off &gt;&gt; <span class="hljs-number">16</span>) &lt;&lt; <span class="hljs-number">16</span>));<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="寄存器分配"><a href="#寄存器分配" class="headerlink" title="寄存器分配"></a>寄存器分配</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">define</span> REG_ZERO  0   <span class="hljs-comment">// $r0 = 0 (恒为零)</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> REG_RA    1   <span class="hljs-comment">// $r1 = 返回地址</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> REG_T0    12  <span class="hljs-comment">// $r12 = $t0 (虚拟机的 A 寄存器)</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> REG_A0    4   <span class="hljs-comment">// $r4 = $a0 (函数返回值)</span></span><br></code></pre></td></tr></table></figure>
+
+<h4 id="JIT-编译函数"><a href="#JIT-编译函数" class="headerlink" title="JIT 编译函数"></a>JIT 编译函数</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-comment">// JIT 代码缓冲区</span><br><span class="hljs-type">static</span> <span class="hljs-type">uint32_t</span> jit_code_buffer[<span class="hljs-number">256</span>];<br><span class="hljs-type">static</span> <span class="hljs-type">int</span> jit_code_size = <span class="hljs-number">0</span>;<br><br><span class="hljs-comment">// 生成一条指令</span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">emit</span><span class="hljs-params">(<span class="hljs-type">uint32_t</span> instruction)</span> &#123;<br>    jit_code_buffer[jit_code_size++] = instruction;<br>&#125;<br><br><span class="hljs-keyword">typedef</span> <span class="hljs-title function_">int</span> <span class="hljs-params">(*<span class="hljs-type">jit_func_t</span>)</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;<br></code></pre></td></tr></table></figure>
+
+<p>核心编译逻辑：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">jit_func_t</span> <span class="hljs-title function_">jit_compile</span><span class="hljs-params">(<span class="hljs-type">uint8_t</span> *code, <span class="hljs-type">int</span> code_len)</span> &#123;<br>    jit_code_size = <span class="hljs-number">0</span>;<br><br>    <span class="hljs-comment">// 记录虚拟机地址到本机代码位置的映射</span><br>    <span class="hljs-type">int</span> addr_map[<span class="hljs-number">256</span>];<br>    <span class="hljs-built_in">memset</span>(addr_map, <span class="hljs-number">-1</span>, <span class="hljs-keyword">sizeof</span>(addr_map));<br><br>    <span class="hljs-comment">// 需要回填的跳转指令</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> &#123;</span><br>        <span class="hljs-type">int</span> native_pos;   <span class="hljs-comment">// 本机代码位置</span><br>        <span class="hljs-type">int</span> target_addr;  <span class="hljs-comment">// 目标虚拟机地址</span><br>    &#125; fixups[<span class="hljs-number">64</span>];<br>    <span class="hljs-type">int</span> num_fixups = <span class="hljs-number">0</span>;<br><br>    <span class="hljs-comment">// 第一遍：生成代码</span><br>    <span class="hljs-type">int</span> pc = <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">while</span> (pc &lt; code_len) &#123;<br>        addr_map[pc] = jit_code_size;  <span class="hljs-comment">// 记录映射</span><br>        <span class="hljs-type">uint8_t</span> op = code[pc];<br><br>        <span class="hljs-keyword">switch</span> (op) &#123;<br>        <span class="hljs-keyword">case</span> OP_HALT:<br>            <span class="hljs-comment">// 返回：$a0 = $t0; return</span><br>            emit(encode_ori(REG_A0, REG_T0, <span class="hljs-number">0</span>));<br>            emit(encode_jirl(REG_ZERO, REG_RA, <span class="hljs-number">0</span>));<br>            pc += <span class="hljs-number">1</span>;<br>            <span class="hljs-keyword">break</span>;<br><br>        <span class="hljs-keyword">case</span> OP_LOAD:<br>            <span class="hljs-comment">// A = n  =&gt;  ori $t0, $zero, n</span><br>            emit(encode_ori(REG_T0, REG_ZERO, code[pc + <span class="hljs-number">1</span>]));<br>            pc += <span class="hljs-number">2</span>;<br>            <span class="hljs-keyword">break</span>;<br><br>        <span class="hljs-keyword">case</span> OP_ADD:<br>            <span class="hljs-comment">// A += n  =&gt;  addi.w $t0, $t0, n</span><br>            emit(encode_addi_w(REG_T0, REG_T0, code[pc + <span class="hljs-number">1</span>]));<br>            pc += <span class="hljs-number">2</span>;<br>            <span class="hljs-keyword">break</span>;<br><br>        <span class="hljs-keyword">case</span> OP_JMP:<br>            <span class="hljs-comment">// 跳转：先占位，稍后回填</span><br>            fixups[num_fixups].native_pos = jit_code_size;<br>            fixups[num_fixups].target_addr = code[pc + <span class="hljs-number">1</span>];<br>            num_fixups++;<br>            emit(<span class="hljs-number">0</span>);  <span class="hljs-comment">// 占位</span><br>            pc += <span class="hljs-number">2</span>;<br>            <span class="hljs-keyword">break</span>;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-comment">// 第二遍：回填跳转地址</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; num_fixups; i++) &#123;<br>        <span class="hljs-type">int</span> native_pos = fixups[i].native_pos;<br>        <span class="hljs-type">int</span> target_native = addr_map[fixups[i].target_addr];<br>        <span class="hljs-type">int</span> offset = (target_native - native_pos) * <span class="hljs-number">4</span>;<br>        jit_code_buffer[native_pos] = encode_b(offset);<br>    &#125;<br><br>    <span class="hljs-comment">// 返回函数指针</span><br>    <span class="hljs-keyword">return</span> (<span class="hljs-type">jit_func_t</span>)jit_code_buffer;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="JIT-编译的关键点"><a href="#JIT-编译的关键点" class="headerlink" title="JIT 编译的关键点"></a>JIT 编译的关键点</h4><ol>
+<li><strong>两遍扫描</strong>：第一遍生成代码，第二遍回填跳转地址；</li>
+<li><strong>地址映射</strong>：<code>addr_map[vm_pc] = native_pos</code> 记录虚拟机地址到本机代码的对应关系；</li>
+<li><strong>函数指针转换</strong>：<code>(jit_func_t)jit_code_buffer</code> 将数据数组转为可执行函数。</li>
+</ol>
+<hr>
+<h3 id="编译示例"><a href="#编译示例" class="headerlink" title="编译示例"></a>编译示例</h3><p>对于程序 <code>LOAD 1; ADD 2; ADD 3; HALT</code>：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs angelscript">虚拟机字节码:<br><span class="hljs-string">  [0]</span> <span class="hljs-number">0x01</span> <span class="hljs-number">0x01</span>    LOAD <span class="hljs-number">1</span><br><span class="hljs-string">  [2]</span> <span class="hljs-number">0x02</span> <span class="hljs-number">0x02</span>    ADD <span class="hljs-number">2</span><br><span class="hljs-string">  [4]</span> <span class="hljs-number">0x02</span> <span class="hljs-number">0x03</span>    ADD <span class="hljs-number">3</span><br><span class="hljs-string">  [6]</span> <span class="hljs-number">0x00</span>         HALT<br></code></pre></td></tr></table></figure>
+
+<p>JIT 生成的 LoongArch32R 代码：</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm"><span class="hljs-number">0x00</span>:  <span class="hljs-keyword">ori </span>  $<span class="hljs-built_in">t0</span>, $<span class="hljs-built_in">zero</span>, <span class="hljs-number">1</span>    <span class="hljs-comment">; A = 1</span><br><span class="hljs-number">0x04</span>:  <span class="hljs-keyword">addi.w </span>$<span class="hljs-built_in">t0</span>, $<span class="hljs-built_in">t0</span>, <span class="hljs-number">2</span>     <span class="hljs-comment">; A = A + 2</span><br><span class="hljs-number">0x08</span>:  <span class="hljs-keyword">addi.w </span>$<span class="hljs-built_in">t0</span>, $<span class="hljs-built_in">t0</span>, <span class="hljs-number">3</span>     <span class="hljs-comment">; A = A + 3</span><br><span class="hljs-number">0x0c</span>:  <span class="hljs-keyword">ori </span>  $<span class="hljs-built_in">a0</span>, $<span class="hljs-built_in">t0</span>, <span class="hljs-number">0</span>      <span class="hljs-comment">; 返回值 = A</span><br><span class="hljs-number">0x10</span>:  <span class="hljs-keyword">jirl </span> $<span class="hljs-built_in">zero</span>, $<span class="hljs-built_in">ra</span>, <span class="hljs-number">0</span>    <span class="hljs-comment">; return</span><br></code></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="性能对比"><a href="#性能对比" class="headerlink" title="性能对比"></a>性能对比</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">jit_demo</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> &#123;<br>    <span class="hljs-type">uint8_t</span> prog[] = &#123;<br>        OP_LOAD, <span class="hljs-number">1</span>,     <span class="hljs-comment">// A = 1</span><br>        OP_ADD,  <span class="hljs-number">2</span>,     <span class="hljs-comment">// A = 3</span><br>        OP_ADD,  <span class="hljs-number">3</span>,     <span class="hljs-comment">// A = 6</span><br>        OP_HALT<br>    &#125;;<br><br>    <span class="hljs-comment">// 编译一次</span><br>    <span class="hljs-type">jit_func_t</span> fn = jit_compile(prog, <span class="hljs-keyword">sizeof</span>(prog));<br><br>    <span class="hljs-comment">// 测试 1000 万次迭代</span><br>    <span class="hljs-meta">#<span class="hljs-keyword">define</span> TEST_ITERATIONS 10000000</span><br><br>    <span class="hljs-comment">// 解释器</span><br>    <span class="hljs-type">uint32_t</span> start = timer_get_uptime_us();<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; TEST_ITERATIONS; i++) &#123;<br>        vm_interpret(prog, <span class="hljs-number">100</span>);<br>    &#125;<br>    <span class="hljs-type">uint32_t</span> time_interp = timer_get_uptime_us() - start;<br><br>    <span class="hljs-comment">// JIT</span><br>    start = timer_get_uptime_us();<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; TEST_ITERATIONS; i++) &#123;<br>        fn();<br>    &#125;<br>    <span class="hljs-type">uint32_t</span> time_jit = timer_get_uptime_us() - start;<br><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Interpreter: %u us\n&quot;</span>, time_interp);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;JIT: %u us\n&quot;</span>, time_jit);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Speedup: ~%ux\n&quot;</span>, time_interp / time_jit);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>实际测试结果（在 LoongArch32R 上）：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">Interpreter</span>: 约 <span class="hljs-number">5000000</span> us<br><span class="hljs-attribute">JIT</span>:         约 <span class="hljs-number">500000</span> us<br><span class="hljs-attribute">Speedup</span>:     ~<span class="hljs-number">10</span>x<br></code></pre></td></tr></table></figure>
+
+<p>JIT 版本快约 <strong>10 倍</strong>！</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Thesis-Project/" class="category-chain-item">Thesis Project</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/emulator/" class="print-no-link">#emulator</a>
+      
+        <a href="/tags/graduation-thesis/" class="print-no-link">#graduation thesis</a>
+      
+        <a href="/tags/JIT/" class="print-no-link">#JIT</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>毕业设计记录（15）：JIT 技术调研与设计</div>
+      <div>http://blog.luliang.online/2026/01/29/thesis-15-jit/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luyoung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年1月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/01/30/thesis-17-qemu-fast-simulation/" title="毕业设计记录（17）：利用 QEMU 加速仿真">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">毕业设计记录（17）：利用 QEMU 加速仿真</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/01/28/thesis-14-nes-emulator-mario/" title="毕业设计记录（14）：适配 NES 模拟器运行 Mario">
+                        <span class="hidden-mobile">毕业设计记录（14）：适配 NES 模拟器运行 Mario</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
